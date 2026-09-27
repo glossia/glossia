@@ -59,7 +59,7 @@ defmodule Glossia.Translations do
     * `"source_language"`, `"language"`, `"locale"` - required display strings
     * `"source_content"` - the content to translate (required)
     * `"context_body"`, `"locale_override_body"` - optional repository guidance
-    * `"server_context_body"` - resolved voice and source-relevant terminology
+    * `"server_context_body"` - resolved voice and source-relevant glossary
     * `"custom_prompt"` - optional per-document instructions
     * `"frontmatter_preserved"` - boolean, whether the client re-attaches frontmatter
     * `"last_error"` - optional prior validation error, for self-correcting retries

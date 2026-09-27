@@ -1,12 +1,14 @@
 ---
 locale: "es"
+glossary:
+  lockfile: archivo de bloqueo
 ---
 
 # Spanish Translation Context
 
 Use neutral Spanish that works across Spain and Latin America.
 
-## Terminology
+## Glossary
 
 - Keep "Glossia" untranslated.
 - Translate "translation session" as "sesion de traduccion" unless a shorter interface label

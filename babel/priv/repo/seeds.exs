@@ -153,13 +153,13 @@ prospects = [
     contact_role: "Senior Manager, Localization",
     status: "ready",
     outreach_angle:
-      "Offer a working session that keeps product, help, and campaign copy aligned through a reviewable voice and terminology check alongside the existing workflow.",
+      "Offer a working session that keeps product, help, and campaign copy aligned through a reviewable voice and glossary check alongside the existing workflow.",
     intro_email_draft: """
     Hi Liz,
 
     I read Braze's public story about scaling localized content through Sanity. Growing into new markets while keeping a consistent customer experience stood out.
 
-    We are building Glossia for teams that want their voice and terminology to travel with code and content changes, with reviewable changes instead of another opaque handoff.
+    We are building Glossia for teams that want their voice and glossary to travel with code and content changes, with reviewable changes instead of another opaque handoff.
 
     Would you be open to a 20-minute working demo using a small, non-production content change? We could show how a localization contact can inspect the context and proposed wording before it ships.
     """,
@@ -184,7 +184,7 @@ prospects = [
 
     I saw the public account of Strava's work to make its product more accessible to runners worldwide. It is a good example of localization being a product decision, not a final translation step.
 
-    Glossia is exploring a repository-native way to keep approved terminology, audience guidance, and review context attached to the changes that create them.
+    Glossia is exploring a repository-native way to keep approved glossary, audience guidance, and review context attached to the changes that create them.
 
     If it is useful, I would love to share a short demo focused on one question: how can a globalization team inspect the context behind a proposed change without adding another manual handoff?
     """,
@@ -209,7 +209,7 @@ prospects = [
 
     I came across Tito's story about growing from translation files into a workflow that lets a small team add languages without pulling engineers into every handoff.
 
-    We are building Glossia around a complementary idea: keep translation context, terminology, and brand voice versioned with the work that changes the product, so review stays concrete and familiar to developers.
+    We are building Glossia around a complementary idea: keep translation context, glossary, and brand voice versioned with the work that changes the product, so review stays concrete and familiar to developers.
 
     Would a 20-minute demo be useful? We can use a small Rails-style example and show the output as a pull request, with no migration or account setup required.
     """,

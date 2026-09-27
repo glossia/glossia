@@ -1474,11 +1474,11 @@ defmodule Glossia.Translations.Engine do
   defp attach_server_context(segments, server_context, preserve) do
     initial_budget = %{
       segments: length(segments),
-      segments_with_terminology_omissions: 0,
-      terminology_matched: 0,
-      terminology_included: 0,
-      terminology_omitted: 0,
-      terminology_definitions_omitted: 0,
+      segments_with_glossary_omissions: 0,
+      glossary_matched: 0,
+      glossary_included: 0,
+      glossary_omitted: 0,
+      glossary_definitions_omitted: 0,
       voice_truncated: false
     }
 
@@ -1491,24 +1491,24 @@ defmodule Glossia.Translations.Engine do
 
   defp merge_context_budget(total, segment) do
     segment_has_omissions =
-      segment.terminology_omitted > 0 or segment.terminology_definitions_omitted > 0
+      segment.glossary_omitted > 0 or segment.glossary_definitions_omitted > 0
 
     %{
       total
-      | segments_with_terminology_omissions:
-          total.segments_with_terminology_omissions + if(segment_has_omissions, do: 1, else: 0),
-        terminology_matched: total.terminology_matched + segment.terminology_matched,
-        terminology_included: total.terminology_included + segment.terminology_included,
-        terminology_omitted: total.terminology_omitted + segment.terminology_omitted,
-        terminology_definitions_omitted:
-          total.terminology_definitions_omitted + segment.terminology_definitions_omitted,
+      | segments_with_glossary_omissions:
+          total.segments_with_glossary_omissions + if(segment_has_omissions, do: 1, else: 0),
+        glossary_matched: total.glossary_matched + segment.glossary_matched,
+        glossary_included: total.glossary_included + segment.glossary_included,
+        glossary_omitted: total.glossary_omitted + segment.glossary_omitted,
+        glossary_definitions_omitted:
+          total.glossary_definitions_omitted + segment.glossary_definitions_omitted,
         voice_truncated: total.voice_truncated or segment.voice_truncated
     }
   end
 
   defp context_budget_clipped?(budget) do
-    budget.voice_truncated or budget.terminology_omitted > 0 or
-      budget.terminology_definitions_omitted > 0
+    budget.voice_truncated or budget.glossary_omitted > 0 or
+      budget.glossary_definitions_omitted > 0
   end
 
   @doc false

@@ -154,7 +154,9 @@ defmodule Glossia.Translations.Planner do
       retries: ctx.rule.retries,
       model: override.model || ctx.resolved.merged_frontmatter.model,
       context_body: ctx.resolved.merged_body,
-      locale_override_body: override.merged_body
+      locale_override_body: override.merged_body,
+      glossary: ctx.resolved.merged_frontmatter.glossary,
+      glossary_translations: override.glossary
     }
   end
 

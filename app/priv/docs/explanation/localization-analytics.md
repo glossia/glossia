@@ -2,6 +2,7 @@
   title: "Why localization analytics",
   summary: "How the collected signals translate into localization decisions, and why the gap metric matters.",
   category: "explanation",
+  section: "analytics",
   order: 2
 }
 ---

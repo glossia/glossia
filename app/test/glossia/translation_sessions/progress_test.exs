@@ -54,7 +54,13 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              done: 1,
              failed: 1,
              cancelled: 0,
-             running: 0
+             running: 0,
+             glossary: %{
+               applied_ids: [],
+               shadowed_ids: [],
+               files_with_applied: 0,
+               files_with_shadowed: 0
+             }
            }
   end
 
@@ -163,7 +169,13 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              done: 0,
              failed: 0,
              cancelled: 0,
-             running: 2
+             running: 2,
+             glossary: %{
+               applied_ids: [],
+               shadowed_ids: [],
+               files_with_applied: 0,
+               files_with_shadowed: 0
+             }
            }
   end
 
@@ -286,7 +298,13 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              done: 0,
              failed: 0,
              cancelled: 0,
-             running: 1
+             running: 1,
+             glossary: %{
+               applied_ids: [],
+               shadowed_ids: [],
+               files_with_applied: 0,
+               files_with_shadowed: 0
+             }
            }
   end
 
@@ -306,7 +324,13 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              done: 0,
              failed: 0,
              cancelled: 0,
-             running: 0
+             running: 0,
+             glossary: %{
+               applied_ids: [],
+               shadowed_ids: [],
+               files_with_applied: 0,
+               files_with_shadowed: 0
+             }
            }
   end
 

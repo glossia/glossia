@@ -109,7 +109,7 @@ defmodule Glossia.DiscussionsTest do
 
     {:ok, discussion} =
       Discussions.create_discussion(user.account, user, %{
-        "title" => "Suggest terminology",
+        "title" => "Suggest glossary",
         "body" => "Please apply",
         "kind" => "glossary_suggestion",
         "metadata" => %{"change_note" => "change"}

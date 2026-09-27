@@ -1,5 +1,5 @@
 defmodule Glossia.MCP.GetGlossaryTool do
-  @moduledoc "Get the current terminology for an account, optionally resolved for a specific locale."
+  @moduledoc "Get the current glossary for an account, optionally resolved for a specific locale."
 
   use Hermes.Server.Component, type: :tool
 
@@ -9,7 +9,7 @@ defmodule Glossia.MCP.GetGlossaryTool do
   alias Hermes.Server.Response
 
   schema do
-    field :handle, {:required, :string}, description: "Account handle to get terminology for."
+    field :handle, {:required, :string}, description: "Account handle to get glossary for."
 
     field :locale, :string,
       description:
@@ -43,7 +43,7 @@ defmodule Glossia.MCP.GetGlossaryTool do
 
       case glossary do
         nil ->
-          {:error, Hermes.MCP.Error.execution("No terminology configured for '#{handle}'"), frame}
+          {:error, Hermes.MCP.Error.execution("No glossary configured for '#{handle}'"), frame}
 
         %Accounts.Glossary{} = g ->
           response =
@@ -55,7 +55,7 @@ defmodule Glossia.MCP.GetGlossaryTool do
         %{} = resolved ->
           response =
             Response.tool()
-            |> Response.text(JSON.encode!(resolved))
+            |> Response.text(JSON.encode!(serialize_resolved(resolved)))
 
           {:reply, response, frame}
       end
@@ -63,6 +63,27 @@ defmodule Glossia.MCP.GetGlossaryTool do
       {:error, error} -> {:error, error, frame}
     end
   end
+
+  # See the sibling REST controller for why we strip row ids and expose the
+  # logical key as `id` from locale-resolved reads.
+  defp serialize_resolved(%{entries: entries} = resolved) do
+    %{
+      version: resolved[:version],
+      locale: resolved[:locale],
+      entries:
+        Enum.map(entries, fn entry ->
+          %{
+            id: entry[:logical_key] || to_string(entry[:id] || ""),
+            term: entry[:term],
+            definition: entry[:definition],
+            case_sensitive: entry[:case_sensitive],
+            translation: entry[:translation]
+          }
+        end)
+    }
+  end
+
+  defp serialize_resolved(other), do: other
 
   defp serialize_glossary(glossary) do
     %{
@@ -72,6 +93,7 @@ defmodule Glossia.MCP.GetGlossaryTool do
       entries:
         Enum.map(glossary.entries, fn entry ->
           %{
+            id: entry.logical_key,
             term: entry.term,
             definition: entry.definition,
             case_sensitive: entry.case_sensitive,

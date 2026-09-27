@@ -44,7 +44,7 @@ Glossia 使用 OAuth 2.1 结合 PKCE 进行所有 API 认证。该流程支持�
 
 访问控制使用两层。所述 [身份验证文档](/docs/reference/apis/authentication) 详细介绍了范围、角色以及完整的权限矩阵。
 
-**范围** 定义了令牌可访问的资源类别。拥有 `voice:read` 可读取语音配置但无法修改它们。范围遵循 `resource:action` 模式： `account:read`, `organization:write`, `glossary:admin` for terminology administration, and so on.
+**范围** 定义了令牌可访问的资源类别。拥有 `voice:read` 可读取语音配置但无法修改它们。范围遵循 `resource:action` 模式： `account:read`, `organization:write`, `glossary:admin` 用于词汇表管理，等等。
 
 **Policies** verify the relationship between the user and the specific resource. A valid token with the right scope still cannot access an organization the user does not belong to. Every request is checked against both layers.
 

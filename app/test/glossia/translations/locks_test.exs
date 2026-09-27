@@ -164,6 +164,54 @@ defmodule Glossia.Translations.LocksTest do
     end
   end
 
+  describe "context_stale?/2" do
+    setup do
+      hash_state =
+        Locks.build_hash_state("md", "docs/a.md", "hello", "anthropic", "opus-4.7", "", "")
+
+      %{state: hash_state}
+    end
+
+    test "returns true when the lock is missing", %{state: state} do
+      assert Locks.context_stale?(nil, state)
+    end
+
+    test "returns false when the lock matches the current tree", %{state: state} do
+      lock = %{"hash" => state.hash, "hash_tree" => state.tree}
+      refute Locks.context_stale?(lock, state)
+    end
+
+    test "returns false when only the source content changed", %{state: state} do
+      changed =
+        Locks.build_hash_state("md", "docs/a.md", "hello world", "anthropic", "opus-4.7", "", "")
+
+      lock = %{"hash" => state.hash, "hash_tree" => state.tree}
+      refute Locks.context_stale?(lock, changed)
+    end
+
+    test "returns true when the provider (a config node) changed", %{state: state} do
+      changed = Locks.build_hash_state("md", "docs/a.md", "hello", "openai", "opus-4.7", "", "")
+      lock = %{"hash" => state.hash, "hash_tree" => state.tree}
+      assert Locks.context_stale?(lock, changed)
+    end
+
+    test "returns true when the project context body changed", %{state: state} do
+      changed =
+        Locks.build_hash_state(
+          "md",
+          "docs/a.md",
+          "hello",
+          "anthropic",
+          "opus-4.7",
+          "new project context",
+          ""
+        )
+
+      lock = %{"hash" => state.hash, "hash_tree" => state.tree}
+      assert Locks.context_stale?(lock, changed)
+    end
+  end
+
   describe "po_status/3 degrades gracefully on non-invertible target shapes" do
     test "a plural unit whose target has zero translations is dropped and retranslated" do
       # A pathological target where a plural entry has no msgstr at all.

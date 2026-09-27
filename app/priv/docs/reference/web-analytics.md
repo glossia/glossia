@@ -2,6 +2,7 @@
   title: "Analytics SDK",
   summary: "The collected fields, the events endpoint, and the privacy model behind Glossia web analytics.",
   category: "reference",
+  section: "analytics",
   order: 1
 }
 ---

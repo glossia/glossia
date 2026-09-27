@@ -1,0 +1,53 @@
+defmodule Glossia.DocsTest do
+  use ExUnit.Case, async: true
+
+  alias Glossia.Docs
+
+  defp category(key, locale \\ "en"),
+    do: Enum.find(Docs.navigation(locale), &(&1.key == key))
+
+  defp section_pages(category, section_key) do
+    group = Enum.find(category.sections, &(&1.key == section_key))
+    Enum.map(group.pages, & &1.slug) ++ Enum.map(group.subcategories, & &1.key)
+  end
+
+  describe "navigation/1" do
+    test "groups pages under their frontmatter section, in section order" do
+      explanation = category("explanation")
+
+      assert Enum.map(explanation.sections, & &1.key) == ["translation", "platform", "analytics"]
+      assert "glossary" in section_pages(explanation, "translation")
+      assert section_pages(explanation, "platform") == ["account-models"]
+      assert section_pages(explanation, "analytics") == ["localization-analytics"]
+    end
+
+    test "places reference subcategories in their section" do
+      reference = category("reference")
+      platform = section_pages(reference, "platform")
+
+      assert "cli" in platform
+      assert "apis" in platform
+      assert "mcp" in platform
+      assert "glossary" in section_pages(reference, "translation")
+    end
+
+    test "lists pages without a section first, under an untitled group" do
+      tutorials = category("tutorials")
+
+      assert [%{key: nil, title: nil} = group] = tutorials.sections
+      assert Enum.map(group.pages, & &1.slug) == ["getting-started"]
+    end
+
+    test "gives section groups a title and an icon" do
+      explanation = category("explanation")
+
+      assert %{title: "Translation", icon: "language"} =
+               Enum.find(explanation.sections, &(&1.key == "translation"))
+    end
+
+    test "translated pages keep the English page's section" do
+      explanation = category("explanation", "es")
+      assert "glossary" in section_pages(explanation, "translation")
+    end
+  end
+end

@@ -16,6 +16,7 @@ defmodule Glossia.Translations.Frontmatter do
   """
 
   alias __MODULE__
+  alias Glossia.Accounts.GlossaryEntry
   alias Glossia.Translations.JsonArray
 
   defstruct locale: nil,
@@ -33,11 +34,13 @@ defmodule Glossia.Translations.Frontmatter do
             prompt: nil,
             check_cmd: nil,
             check_cmds: nil,
-            retries: nil
+            retries: nil,
+            glossary: nil
 
   # Fields propagated by `merge/2` (matches the Rust merge macro; `locale` is not merged).
   @merge_fields ~w(source_language model validation sources targets target_path output
-                   translate exclude preserve frontmatter prompt check_cmd check_cmds retries)a
+                   translate exclude preserve frontmatter prompt check_cmd check_cmds retries
+                   glossary)a
 
   @default_retries 3
 
@@ -46,7 +49,7 @@ defmodule Glossia.Translations.Frontmatter do
   # useful to readers.
   @nimble_publisher_identifier_keys ~w(
     author authors canonical canonical_url cover date datetime draft id image layout
-    order permalink published_at slug template updated_at url
+    order permalink published_at section slug template updated_at url
   )a
 
   @type t :: %Frontmatter{}
@@ -231,15 +234,45 @@ defmodule Glossia.Translations.Frontmatter do
     end
   end
 
-  @doc "Overlays non-nil fields of `other` onto `base` (child-wins inheritance)."
+  @doc """
+  Overlays non-nil fields of `other` onto `base` (child-wins inheritance).
+
+  `glossary` is merged per entry rather than replaced: a nested document adds
+  entries and overrides the parent's entries that share an id (or, without an
+  id, the same slugified source), so a subdirectory can refine the root
+  glossary without repeating it.
+  """
   def merge(%Frontmatter{} = base, %Frontmatter{} = other) do
-    Enum.reduce(@merge_fields, base, fn field, acc ->
-      case Map.get(other, field) do
-        nil -> acc
-        value -> Map.put(acc, field, value)
-      end
+    Enum.reduce(@merge_fields, base, fn
+      :glossary, acc ->
+        Map.put(acc, :glossary, merge_glossary(acc.glossary, other.glossary))
+
+      field, acc ->
+        case Map.get(other, field) do
+          nil -> acc
+          value -> Map.put(acc, field, value)
+        end
     end)
   end
+
+  @doc "Merges glossary values from a parent and a child document (child wins)."
+  def merge_glossary(base, nil), do: base
+  def merge_glossary(nil, other), do: other
+  def merge_glossary(base, other) when is_map(base) and is_map(other), do: Map.merge(base, other)
+
+  def merge_glossary(base, other) when is_list(base) and is_list(other) do
+    overridden = MapSet.new(other, &glossary_key/1)
+    Enum.reject(base, &MapSet.member?(overridden, glossary_key(&1))) ++ other
+  end
+
+  def merge_glossary(_base, other), do: other
+
+  defp glossary_key(%{"id" => id}) when is_binary(id) and id != "", do: id
+
+  defp glossary_key(%{"source" => source}) when is_binary(source),
+    do: GlossaryEntry.slugify(source)
+
+  defp glossary_key(entry), do: entry
 
   @doc "source_language, defaulting to `\"en\"`."
   def source_language(%Frontmatter{source_language: nil}), do: "en"
@@ -398,9 +431,17 @@ defmodule Glossia.Translations.Frontmatter do
       prompt: string_field(map["prompt"]),
       check_cmd: string_field(map["check_cmd"]),
       check_cmds: string_map(map["check_cmds"]),
-      retries: int_field(map["retries"])
+      retries: int_field(map["retries"]),
+      glossary: glossary_value(map["glossary"])
     }
   end
+
+  # `L10N.md` declares a list of terms; `L10N/<locale>.md` a map of term to
+  # translation. Both are validated later by `RepoGlossary.resolve/3` so a
+  # malformed glossary degrades to "no repository glossary" instead of failing
+  # planning.
+  defp glossary_value(value) when is_list(value) or is_map(value), do: value
+  defp glossary_value(_), do: nil
 
   defp parse_translate(list) when is_list(list), do: Enum.map(list, &parse_rule/1)
   defp parse_translate(_), do: nil

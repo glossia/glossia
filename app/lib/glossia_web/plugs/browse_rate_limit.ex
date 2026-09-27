@@ -1,7 +1,7 @@
 defmodule GlossiaWeb.Plugs.BrowseRateLimit do
   @moduledoc """
   Rate limits HTML browsing of the public-account platform scope: the
-  account, project, translations, session, voice, terminology, discussion
+  account, project, translations, session, voice, glossary, discussion
   and ticket routes served under `pipe_through [:browser, :platform,
   :public_page_challenge, :browse_rate_limit]`. The authenticated-only
   dashboard settings scope (tokens, OAuth apps, LLM models, project

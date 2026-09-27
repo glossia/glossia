@@ -2,6 +2,7 @@
   title: "L10N.md",
   summary: "Reference for repository translation settings and context.",
   category: "reference",
+  section: "translation",
   order: 1
 }
 ---
@@ -58,6 +59,7 @@ Provider credentials belong in account settings, never in `L10N.md`. The optiona
 | `check_cmds` | map | no | Named check commands available to the translation workflow. |
 | `retries` | integer | no | Number of retry attempts after a failed check. Defaults to `2`. |
 | `locale` | string | no | Locale attached to a locale-specific context file. |
+| `glossary` | list or map | no | In `L10N.md`, a list of glossary terms. In `L10N/<locale>.md`, a map from each term to its translation in that language. Nested files add to and override the inherited entries. See the [glossary reference](/docs/reference/glossary). |
 
 Unknown frontmatter fields are ignored.
 

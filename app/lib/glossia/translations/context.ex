@@ -5,7 +5,7 @@ defmodule Glossia.Translations.Context do
 
   A translation run captures the latest voice and glossary version numbers. The
   database-owning node resolves those immutable versions once per locale. The
-  isolated repository runner then matches the resolved terminology against source
+  isolated repository runner then matches the resolved glossary against source
   files locally, avoiding both repeated database queries and sending the
   repository's complete source corpus over the node connection.
 
@@ -26,8 +26,8 @@ defmodule Glossia.Translations.Context do
   @word_grapheme ~r/^[\p{L}\p{N}_]$/u
   @unspaced_grapheme ~r/^[\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}\p{Thai}\p{Lao}\p{Khmer}\p{Myanmar}]$/u
   @unspaced_character_class "\\p{Han}\\p{Hiragana}\\p{Katakana}\\p{Hangul}\\p{Thai}\\p{Lao}\\p{Khmer}\\p{Myanmar}"
-  @max_terminology_entries 50
-  @max_terminology_prompt_bytes 12_000
+  @max_glossary_entries 50
+  @max_glossary_prompt_bytes 12_000
   @max_voice_prompt_bytes 8_000
   @max_voice_scalar_bytes 80
   @truncation_marker " … [truncated]"
@@ -35,7 +35,7 @@ defmodule Glossia.Translations.Context do
   @doc "The version of the deterministic server-context compiler."
   def compiler_version, do: @compiler_version
 
-  @doc "The version of the terminology selection rules."
+  @doc "The version of the glossary selection rules."
   def selector_version, do: @selector_version
 
   @doc "The maximum number of bytes of organization voice context in one prompt."
@@ -58,7 +58,8 @@ defmodule Glossia.Translations.Context do
       locale: locale,
       snapshot: empty_snapshot(),
       voice: nil,
-      terminology: []
+      glossary: [],
+      shadowed_glossary: []
     }
   end
 
@@ -91,7 +92,7 @@ defmodule Glossia.Translations.Context do
   @doc """
   Resolves context for a batch of work items.
 
-  Voice and terminology are loaded once per locale. Matching still happens
+  Voice and glossary are loaded once per locale. Matching still happens
   independently for every source.
   """
   def resolve_many(%Account{} = account, snapshot, requests)
@@ -107,7 +108,7 @@ defmodule Glossia.Translations.Context do
     {:ok, bundles}
   end
 
-  @doc "Loads the effective voice and terminology once for every requested locale."
+  @doc "Loads the effective voice and glossary once for every requested locale."
   def resolve_locales(%Account{} = account, snapshot, locales)
       when is_map(snapshot) and is_list(locales) do
     locales
@@ -116,7 +117,7 @@ defmodule Glossia.Translations.Context do
       {locale,
        %{
          voice: resolve_voice(account, snapshot.voice_version, locale),
-         terminology: resolve_terminology(account, snapshot.glossary_version, locale)
+         glossary: resolve_glossary(account, snapshot.glossary_version, locale)
        }}
     end)
   end
@@ -145,20 +146,61 @@ defmodule Glossia.Translations.Context do
   @doc """
   Compiles term matchers once after locale context reaches the repository runner.
 
-  Compiled matchers remain process-local and are excluded from prompts, hashes,
-  and lockfile provenance.
+  Compiled matchers remain process-local and are excluded from prompts,
+  hashes, and lockfile provenance.
   """
   def prepare_locale_contexts(locale_contexts) when is_map(locale_contexts) do
     Map.new(locale_contexts, fn {locale, context} ->
-      {locale, Map.update!(context, :terminology, &prepare_entries/1)}
+      {locale, Map.update!(context, :glossary, &prepare_entries(&1 || []))}
     end)
   end
 
-  @doc "Builds one file-level bundle from already resolved locale context."
-  def build_bundle(snapshot, locale_contexts, locale, source, preserve)
+  @doc """
+  Merges platform and repo entries for a single target locale.
+
+  Repo entries take precedence when the source term matches case-insensitively.
+  The displaced platform entries are returned as `shadowed` so callers can
+  surface the resolution in the UI and the lockfile provenance.
+  """
+  def merge_glossaries(platform_entries, repo_entries)
+      when is_list(platform_entries) and is_list(repo_entries) do
+    repo_terms = MapSet.new(repo_entries, &normalized_term/1)
+
+    {kept, shadowed} =
+      Enum.split_with(platform_entries, fn entry ->
+        not MapSet.member?(repo_terms, normalized_term(entry))
+      end)
+
+    %{entries: repo_entries ++ kept, shadowed: shadowed}
+  end
+
+  # The merge equivalence must match the source-matching equivalence in
+  # `select_entries` (which uses regex `iu` — simple case-insensitive
+  # comparison, not full Unicode case folding). `:string.casefold/1` folds
+  # `ß` -> `ss` which the matcher does not, so a repository entry `STRASSE`
+  # would silently shadow a platform entry `straße` that could then never
+  # be matched. `String.downcase/1` behaves the same as the regex `iu`
+  # flag for our purposes.
+  defp normalized_term(%{term: term}) when is_binary(term), do: String.downcase(term)
+  defp normalized_term(_), do: ""
+
+  @doc """
+  Builds one file-level bundle from already resolved locale context.
+
+  `repo_entries` are the file's `L10N.md` glossary entries for this locale,
+  already resolved by `RepoGlossary.resolve/3`. They are merged with the
+  server glossary for this locale: for an identical source term (case-insensitively equal) the
+  repository entry wins and the platform entry is recorded as shadowed. A
+  repository entry with no translation for the locale yields to the platform.
+  """
+  def build_bundle(snapshot, locale_contexts, locale, source, preserve, repo_entries \\ [])
       when is_map(snapshot) and is_map(locale_contexts) and is_binary(locale) and
-             is_binary(source) and is_list(preserve) do
+             is_binary(source) and is_list(preserve) and is_list(repo_entries) do
     context = Map.fetch!(locale_contexts, locale)
+
+    repo = prepare_entries(repo_entries)
+
+    merged = merge_glossaries(context.glossary || [], repo)
 
     %{
       compiler_version: @compiler_version,
@@ -166,8 +208,22 @@ defmodule Glossia.Translations.Context do
       locale: locale,
       snapshot: snapshot,
       voice: context.voice,
-      terminology: select_entries(context.terminology, source, preserve)
+      glossary: select_entries(merged.entries, source, preserve),
+      shadowed_glossary: select_shadowed(merged.shadowed, source, preserve)
     }
+  end
+
+  # A shadowed entry is only relevant to a file if the shadowing repo term
+  # actually occurs in the file's source. Otherwise the file's provenance
+  # would list every locale-level conflict, most of them unrelated. Reuses
+  # the file-level matcher without the file's active-entry claim tracking.
+  defp select_shadowed(entries, source, preserve) do
+    text = translatable_text(source, preserve)
+    casefolded_text = :string.casefold(text)
+
+    Enum.filter(entries, fn entry ->
+      valid_entry?(entry) and likely_present?(entry, text, casefolded_text)
+    end)
   end
 
   @doc """
@@ -217,7 +273,7 @@ defmodule Glossia.Translations.Context do
   @doc """
   Renders only the server context relevant to one translation segment.
 
-  Voice remains present for every segment. The file-level terminology candidates
+  Voice remains present for every segment. The file-level glossary candidates
   are matched again so a segment sees only the terms it contains.
   """
   def prompt_body(bundle, segment, preserve)
@@ -233,30 +289,37 @@ defmodule Glossia.Translations.Context do
   """
   def prompt(bundle, segment, preserve)
       when is_map(bundle) and is_binary(segment) and is_list(preserve) do
-    terminology = select_entries(bundle.terminology || [], segment, preserve)
+    glossary = select_entries(bundle.glossary || [], segment, preserve)
 
     {voice_body, voice_truncated} = render_voice_with_budget(bundle.voice)
-    {terminology_body, terminology_budget} = render_terminology_with_budget(terminology)
+    {glossary_body, glossary_budget} = render_glossary_with_budget(glossary)
 
     body =
-      [voice_body, terminology_body]
+      [voice_body, glossary_body]
       |> Enum.reject(&(&1 == ""))
       |> Enum.join("\n\n")
 
     %{
       body: body,
-      budget: Map.put(terminology_budget, :voice_truncated, voice_truncated)
+      budget: Map.put(glossary_budget, :voice_truncated, voice_truncated)
     }
   end
 
   @doc """
   Returns raw-free provenance for the lockfile.
 
-  The effective voice and terminology are represented by hashes. Raw server
+  The effective voice and glossary are represented by hashes. Raw server
   guidance and translated terms never need to be committed to the repository.
+  The `glossary.applied` list records the namespaced ids that reached the
+  file's prompt candidate pool, and `glossary.shadowed` records platform
+  entries the repo displaced. Both are namespaced (`repo:<key>` or
+  `account:<key>`) so consumers can render them without back-referencing the
+  server.
   """
   def provenance(bundle) when is_map(bundle) do
     snapshot = bundle.snapshot || empty_snapshot()
+    applied = bundle.glossary || []
+    shadowed = Map.get(bundle, :shadowed_glossary, [])
 
     %{
       "compiler_version" => bundle.compiler_version || @compiler_version,
@@ -265,11 +328,20 @@ defmodule Glossia.Translations.Context do
         "version" => snapshot.voice_version,
         "content_hash" => content_hash(render_voice(bundle.voice))
       },
-      "terminology" => %{
-        "glossary_version" => snapshot.glossary_version,
-        "content_hash" => content_hash(normalized_terminology(bundle.terminology || []))
+      "glossary" => %{
+        "version" => snapshot.glossary_version,
+        "content_hash" => content_hash(normalized_glossary(applied)),
+        "applied" => Enum.map(applied, &namespaced_id_of/1) |> Enum.sort() |> Enum.uniq(),
+        "shadowed" => Enum.map(shadowed, &namespaced_id_of/1) |> Enum.sort() |> Enum.uniq()
       }
     }
+  end
+
+  defp namespaced_id_of(entry) do
+    case Map.get(entry, :namespaced_id) do
+      value when is_binary(value) -> value
+      _ -> "account:" <> to_string(Map.get(entry, :logical_key, Map.get(entry, :id, "")))
+    end
   end
 
   @doc "Returns the effective content fingerprints that affect generated output."
@@ -280,7 +352,7 @@ defmodule Glossia.Translations.Context do
       "compiler_version" => provenance["compiler_version"],
       "selector_version" => provenance["selector_version"],
       "voice_content_hash" => get_in(provenance, ["voice", "content_hash"]),
-      "terminology_content_hash" => get_in(provenance, ["terminology", "content_hash"])
+      "glossary_content_hash" => get_in(provenance, ["glossary", "content_hash"])
     }
   end
 
@@ -293,9 +365,9 @@ defmodule Glossia.Translations.Context do
     end
   end
 
-  defp resolve_terminology(_account, nil, _locale), do: []
+  defp resolve_glossary(_account, nil, _locale), do: []
 
-  defp resolve_terminology(account, version, locale) do
+  defp resolve_glossary(account, version, locale) do
     account
     |> Glossaries.get_resolved_glossary_version(version, locale)
     |> Map.get(:entries, [])
@@ -428,19 +500,19 @@ defmodule Glossia.Translations.Context do
     {body, truncated}
   end
 
-  defp render_terminology_with_budget([]) do
+  defp render_glossary_with_budget([]) do
     {"",
      %{
-       terminology_matched: 0,
-       terminology_included: 0,
-       terminology_omitted: 0,
-       terminology_definitions_omitted: 0
+       glossary_matched: 0,
+       glossary_included: 0,
+       glossary_omitted: 0,
+       glossary_definitions_omitted: 0
      }}
   end
 
-  defp render_terminology_with_budget(entries) do
+  defp render_glossary_with_budget(entries) do
     header =
-      "Required terminology:\nUse each target term whenever its corresponding source term appears."
+      "Required glossary:\nUse each target term whenever its corresponding source term appears."
 
     prioritized =
       entries
@@ -455,9 +527,9 @@ defmodule Glossia.Translations.Context do
           entry.id || ""
         }
       end)
-      |> Enum.take(@max_terminology_entries)
+      |> Enum.take(@max_glossary_entries)
 
-    {included, rendered_bytes} = fitting_terminology(prioritized, byte_size(header))
+    {included, rendered_bytes} = fitting_glossary(prioritized, byte_size(header))
 
     {rendered_lines, definitions_included} =
       included
@@ -475,20 +547,20 @@ defmodule Glossia.Translations.Context do
 
     {body,
      %{
-       terminology_matched: length(entries),
-       terminology_included: length(included),
-       terminology_omitted: length(entries) - length(included),
-       terminology_definitions_omitted: definitions_available - definitions_included
+       glossary_matched: length(entries),
+       glossary_included: length(included),
+       glossary_omitted: length(entries) - length(included),
+       glossary_definitions_omitted: definitions_available - definitions_included
      }}
   end
 
-  defp fitting_terminology(entries, initial_bytes) do
+  defp fitting_glossary(entries, initial_bytes) do
     entries
     |> Enum.reduce({[], initial_bytes}, fn entry, {included, bytes} ->
-      line = terminology_line(entry)
+      line = glossary_line(entry)
       next_bytes = bytes + 1 + byte_size(line)
 
-      if next_bytes <= @max_terminology_prompt_bytes do
+      if next_bytes <= @max_glossary_prompt_bytes do
         {[{entry, line} | included], next_bytes}
       else
         {included, bytes}
@@ -503,7 +575,7 @@ defmodule Glossia.Translations.Context do
       definition = optional_definition(entry.definition)
       next_bytes = bytes + byte_size(definition)
 
-      if definition != "" and next_bytes <= @max_terminology_prompt_bytes do
+      if definition != "" and next_bytes <= @max_glossary_prompt_bytes do
         {line <> definition, {next_bytes, included_count + 1}}
       else
         {line, {bytes, included_count}}
@@ -512,7 +584,7 @@ defmodule Glossia.Translations.Context do
     |> then(fn {lines, {_bytes, included_count}} -> {lines, included_count} end)
   end
 
-  defp terminology_line(entry) do
+  defp glossary_line(entry) do
     suffix = if entry.case_sensitive, do: " (case-sensitive)", else: ""
     "- #{JSON.encode!(entry.term)} → #{JSON.encode!(entry.translation)}#{suffix}"
   end
@@ -550,7 +622,7 @@ defmodule Glossia.Translations.Context do
     end
   end
 
-  defp normalized_terminology(entries) do
+  defp normalized_glossary(entries) do
     entries
     |> Enum.map(&Map.take(&1, [:term, :definition, :case_sensitive, :translation]))
     |> Enum.sort_by(&{&1.term, &1.translation, &1.definition || "", &1.case_sensitive})

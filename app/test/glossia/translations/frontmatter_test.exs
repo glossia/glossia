@@ -189,5 +189,70 @@ defmodule Glossia.Translations.FrontmatterTest do
       assert merged.source_language == "en"
       assert merged.locale == nil
     end
+
+    test "merges glossary entries by id so a nested document refines the root glossary" do
+      {:ok, %{frontmatter: parent}} =
+        Frontmatter.parse_content("""
+        ---
+        glossary:
+          - id: commit
+            source: commit
+            targets: {es: commit}
+          - source: repository
+            targets: {es: repositorio}
+        ---
+        """)
+
+      {:ok, %{frontmatter: child}} =
+        Frontmatter.parse_content("""
+        ---
+        glossary:
+          - id: commit
+            source: commit
+            targets: {es: confirmación}
+          - source: branch
+            targets: {es: rama}
+        ---
+        """)
+
+      merged = Frontmatter.merge(parent, child)
+
+      assert Enum.map(merged.glossary, & &1["source"]) == ["repository", "commit", "branch"]
+
+      assert Enum.find(merged.glossary, &(&1["source"] == "commit"))["targets"] == %{
+               "es" => "confirmación"
+             }
+    end
+
+    test "a child without a glossary keeps the parent's entries" do
+      {:ok, %{frontmatter: parent}} =
+        Frontmatter.parse_content("---\nglossary:\n  - source: commit\n---\n")
+
+      {:ok, %{frontmatter: child}} = Frontmatter.parse_content("---\nmodel: x\n---\n")
+
+      assert Frontmatter.merge(parent, child).glossary == [%{"source" => "commit"}]
+    end
+  end
+
+  describe "glossary field" do
+    test "keeps a locale overlay's map of translations" do
+      {:ok, %{frontmatter: fm}} =
+        Frontmatter.parse_content("---\nlocale: es\nglossary:\n  commit: commit\n---\n")
+
+      assert fm.glossary == %{"commit" => "commit"}
+    end
+
+    test "merges translation maps with the child winning per term" do
+      assert Frontmatter.merge_glossary(%{"commit" => "commit", "branch" => "rama"}, %{
+               "commit" => "confirmación"
+             }) == %{"commit" => "confirmación", "branch" => "rama"}
+    end
+
+    test "ignores a scalar glossary value" do
+      {:ok, %{frontmatter: fm}} =
+        Frontmatter.parse_content("---\nglossary: .glossia/glossary.yaml\n---\n")
+
+      assert fm.glossary == nil
+    end
   end
 end

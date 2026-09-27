@@ -219,7 +219,7 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "passes only segment-relevant server terminology to the model", %{tmp_dir: dir} do
+    test "passes only segment-relevant server glossary to the model", %{tmp_dir: dir} do
       source = Path.join(dir, "guide.txt")
 
       File.write!(
@@ -231,7 +231,7 @@ defmodule Glossia.Translations.EngineTest do
       bundle = %{
         Context.empty_bundle("es")
         | voice: nil,
-          terminology: [
+          glossary: [
             %{
               id: "account",
               term: "Account",
@@ -267,13 +267,13 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "keeps terminology selection aligned when preservation is disabled", %{tmp_dir: dir} do
+    test "keeps glossary selection aligned when preservation is disabled", %{tmp_dir: dir} do
       source = Path.join(dir, "guide.txt")
       File.write!(source, "Use `Account` here.")
 
       bundle = %{
         Context.empty_bundle("es")
-        | terminology: [
+        | glossary: [
             %{
               id: "account",
               term: "Account",
@@ -317,7 +317,7 @@ defmodule Glossia.Translations.EngineTest do
         end
 
       File.write!(source, Enum.map_join(entries, " ", & &1.term))
-      bundle = %{Context.empty_bundle("es") | terminology: entries}
+      bundle = %{Context.empty_bundle("es") | glossary: entries}
 
       stub_stream(fn _account, payload, _on_event ->
         if payload["last_error"], do: translated("good"), else: translated("bad")
@@ -347,11 +347,11 @@ defmodule Glossia.Translations.EngineTest do
 
       assert_receive {:context_budget,
                       %{
-                        segments_with_terminology_omissions: 1,
-                        terminology_matched: 60,
-                        terminology_included: 50,
-                        terminology_omitted: 10,
-                        terminology_definitions_omitted: 0,
+                        segments_with_glossary_omissions: 1,
+                        glossary_matched: 60,
+                        glossary_included: 50,
+                        glossary_omitted: 10,
+                        glossary_definitions_omitted: 0,
                         voice_truncated: false
                       }}
 

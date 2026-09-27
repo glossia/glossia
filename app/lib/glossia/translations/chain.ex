@@ -82,8 +82,10 @@ defmodule Glossia.Translations.Chain do
   @doc """
   Loads the `L10N/<locale>.md` overlay chain for `locale`.
 
-  Returns `{:ok, %{merged_body, files, model, validation}}`. A `model` declared in
-  a deeper overlay wins; an overlay that declares a mismatched locale is an error.
+  Returns `{:ok, %{merged_body, files, model, validation, glossary}}`. A `model`
+  declared in a deeper overlay wins, `glossary` translations merge with deeper
+  overlays winning per term, and an overlay that declares a mismatched locale is
+  an error.
   """
   def load_locale_override(start_dir, repo_root, locale) do
     if String.contains?(locale, "/") or String.contains?(locale, "\\") do
@@ -93,7 +95,7 @@ defmodule Glossia.Translations.Chain do
         start_dir
         |> directories_up_to(repo_root)
         |> Enum.reduce_while(
-          {:ok, %{files: [], model: nil, validation: nil}},
+          {:ok, %{files: [], model: nil, validation: nil, glossary: nil}},
           fn dir, {:ok, acc} ->
             path = Path.join([dir, "L10N", "#{locale}.md"])
 
@@ -117,7 +119,8 @@ defmodule Glossia.Translations.Chain do
            merged_body: merged_body,
            files: acc.files,
            model: acc.model,
-           validation: acc.validation
+           validation: acc.validation,
+           glossary: acc.glossary
          }}
       end
     end
@@ -138,6 +141,7 @@ defmodule Glossia.Translations.Chain do
             %{
               files: acc.files ++ [file],
               model: file.frontmatter.model || acc.model,
+              glossary: Frontmatter.merge_glossary(acc.glossary, file.frontmatter.glossary),
               validation:
                 declared_validation(
                   file.frontmatter.validation,

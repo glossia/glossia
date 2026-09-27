@@ -361,6 +361,7 @@ defmodule GlossiaWeb.Router do
   scope "/mcp" do
     pipe_through [
       :api,
+      GlossiaWeb.Plugs.EnforceMcpOrigin,
       GlossiaWeb.Plugs.BearerAuth,
       GlossiaWeb.Plugs.RequireApiAuth,
       GlossiaWeb.Plugs.McpRateLimit,
@@ -374,6 +375,7 @@ defmodule GlossiaWeb.Router do
   scope "/admin/mcp" do
     pipe_through [
       :api,
+      GlossiaWeb.Plugs.EnforceMcpOrigin,
       GlossiaWeb.Plugs.BearerAuth,
       GlossiaWeb.Plugs.RequireApiAuth,
       GlossiaWeb.Plugs.McpRateLimit,
@@ -539,12 +541,17 @@ defmodule GlossiaWeb.Router do
       live "/:handle/-/voice/suggestion/new", DashboardLive, :voice_suggestion_new
       live "/:handle/-/voice/request/new", DashboardLive, :voice_suggestion_new
       live "/:handle/-/voice/:version", DashboardLive, :voice_version
-      live "/:handle/-/terminology", DashboardLive, :glossary
-      live "/:handle/-/terminology/suggestion/new", DashboardLive, :glossary_suggestion_new
-      live "/:handle/-/terminology/request/new", DashboardLive, :glossary_suggestion_new
-      live "/:handle/-/terminology/terms/new", DashboardLive, :glossary_entry_new
-      live "/:handle/-/terminology/terms/:entry_index", DashboardLive, :glossary_entry
-      live "/:handle/-/terminology/:version", DashboardLive, :glossary_version
+      live "/:handle/-/glossary", DashboardLive, :glossary
+      live "/:handle/-/glossary/suggestion/new", DashboardLive, :glossary_suggestion_new
+      live "/:handle/-/glossary/request/new", DashboardLive, :glossary_suggestion_new
+      live "/:handle/-/glossary/terms/new", DashboardLive, :glossary_entry_new
+      live "/:handle/-/glossary/terms/:entry_index", DashboardLive, :glossary_entry
+      live "/:handle/-/glossary/:version", DashboardLive, :glossary_version
+
+      # Deprecated `glossary` URLs kept as redirects so bookmarks and
+      # inbound links from before the rename continue to resolve.
+      get "/:handle/-/terminology", RedirectController, :terminology_to_glossary
+      get "/:handle/-/terminology/*rest", RedirectController, :terminology_to_glossary
       live "/:handle/-/suggestions/:suggestion_number", DashboardLive, :discussion_show
       live "/:handle/-/discussions/:discussion_number", DashboardLive, :discussion_show
       live "/:handle/-/tickets/:ticket_number", DashboardLive, :discussion_show

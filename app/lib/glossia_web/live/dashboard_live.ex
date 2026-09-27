@@ -314,7 +314,7 @@ defmodule GlossiaWeb.DashboardLive do
 
     socket
     |> assign(
-      page_title: gettext("Terminology"),
+      page_title: gettext("Glossary"),
       glossary: glossary,
       glossary_versions: versions,
       glossary_suggestions: glossary_suggestions,
@@ -329,16 +329,16 @@ defmodule GlossiaWeb.DashboardLive do
       glossary_form_params: %{},
       glossary_suggestion_draft: existing_draft,
       glossary_draft_token: existing_token,
-      terminology_entry_index: nil,
+      glossary_entry_index: nil,
       pending_glossary_suggestion_redirect:
         socket.assigns[:pending_glossary_suggestion_redirect] || false,
-      glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", existing_token),
+      glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", existing_token),
       change_summary: "",
       generating_summary?: false,
       summary_generation: 0,
       summary_timer_ref: nil,
       summary_task_ref: nil,
-      breadcrumb_items: [{gettext("Terminology"), "/" <> handle <> "/-/terminology"}]
+      breadcrumb_items: [{gettext("Glossary"), "/" <> handle <> "/-/glossary"}]
     )
   end
 
@@ -364,7 +364,7 @@ defmodule GlossiaWeb.DashboardLive do
     entry_index = length(entries)
 
     socket
-    |> assign_terminology_entry_state(
+    |> assign_glossary_entry_state(
       glossary: glossary,
       original_entries: entries,
       editable_entries: editable_entries,
@@ -375,7 +375,7 @@ defmodule GlossiaWeb.DashboardLive do
       can_glossary_propose: can_glossary_propose,
       can_discussion_write: can_discussion_write,
       breadcrumb_items: [
-        {gettext("Terminology"), "/" <> handle <> "/-/terminology"},
+        {gettext("Glossary"), "/" <> handle <> "/-/glossary"},
         {gettext("New term"), nil}
       ]
     )
@@ -402,19 +402,19 @@ defmodule GlossiaWeb.DashboardLive do
     end
 
     socket
-    |> assign_terminology_entry_state(
+    |> assign_glossary_entry_state(
       glossary: glossary,
       original_entries: entries,
       editable_entries: entries,
       entry_index: entry_index,
-      page_title: terminology_term_label(entry),
+      page_title: glossary_term_label(entry),
       glossary_changed?: false,
       can_glossary_write: can_glossary_write,
       can_glossary_propose: can_glossary_propose,
       can_discussion_write: can_discussion_write,
       breadcrumb_items: [
-        {gettext("Terminology"), "/" <> handle <> "/-/terminology"},
-        {terminology_term_label(entry), nil}
+        {gettext("Glossary"), "/" <> handle <> "/-/glossary"},
+        {glossary_term_label(entry), nil}
       ]
     )
   end
@@ -462,7 +462,7 @@ defmodule GlossiaWeb.DashboardLive do
       end
 
     assign(socket,
-      page_title: gettext("Suggest terminology changes"),
+      page_title: gettext("Suggest glossary changes"),
       glossary: glossary,
       glossary_versions: [],
       glossary_suggestions: [],
@@ -477,15 +477,15 @@ defmodule GlossiaWeb.DashboardLive do
       glossary_form_params: glossary_form_params,
       glossary_draft_token: draft_token,
       pending_glossary_suggestion_redirect: false,
-      glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", draft_token),
+      glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", draft_token),
       change_summary: change_summary,
       generating_summary?: false,
       summary_generation: 0,
       summary_timer_ref: nil,
       summary_task_ref: nil,
       breadcrumb_items: [
-        {gettext("Terminology"),
-         maybe_with_draft_param("/" <> handle <> "/-/terminology", draft_token)},
+        {gettext("Glossary"),
+         maybe_with_draft_param("/" <> handle <> "/-/glossary", draft_token)},
         {gettext("Suggest changes"), nil}
       ]
     )
@@ -505,12 +505,12 @@ defmodule GlossiaWeb.DashboardLive do
     previous = Glossaries.get_previous_glossary_version(account, version)
 
     assign(socket,
-      page_title: gettext("Terminology #%{version}", version: version),
+      page_title: gettext("Glossary #%{version}", version: version),
       glossary: glossary,
       previous_glossary: previous,
       can_glossary_write: socket.assigns[:can_glossary_write] || false,
       breadcrumb_items: [
-        {gettext("Terminology"), "/" <> handle <> "/-/terminology"},
+        {gettext("Glossary"), "/" <> handle <> "/-/glossary"},
         {"##{version}", nil}
       ]
     )
@@ -1330,7 +1330,7 @@ defmodule GlossiaWeb.DashboardLive do
     )
   end
 
-  defp assign_terminology_entry_state(socket, opts) do
+  defp assign_glossary_entry_state(socket, opts) do
     handle = socket.assigns.handle
     existing_draft = socket.assigns[:glossary_suggestion_draft]
     existing_token = socket.assigns[:glossary_draft_token]
@@ -1343,7 +1343,7 @@ defmodule GlossiaWeb.DashboardLive do
       glossary_entries: Keyword.fetch!(opts, :editable_entries),
       original_glossary: Keyword.fetch!(opts, :glossary),
       original_glossary_entries: Keyword.fetch!(opts, :original_entries),
-      terminology_entry_index: Keyword.fetch!(opts, :entry_index),
+      glossary_entry_index: Keyword.fetch!(opts, :entry_index),
       can_glossary_write: Keyword.fetch!(opts, :can_glossary_write),
       can_glossary_propose: Keyword.fetch!(opts, :can_glossary_propose),
       can_glossary_suggest?: Keyword.fetch!(opts, :can_discussion_write),
@@ -1354,7 +1354,7 @@ defmodule GlossiaWeb.DashboardLive do
       glossary_draft_token: existing_token,
       pending_glossary_suggestion_redirect:
         socket.assigns[:pending_glossary_suggestion_redirect] || false,
-      glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", existing_token),
+      glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", existing_token),
       change_summary: "",
       generating_summary?: false,
       summary_generation: 0,
@@ -1393,7 +1393,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   @acronyms ~w(api llm oauth)
 
-  defp humanize_scope_group("glossary"), do: gettext("Terminology")
+  defp humanize_scope_group("glossary"), do: gettext("Glossary")
 
   defp humanize_scope_group(group) do
     group
@@ -2064,7 +2064,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   # ---------------------------------------------------------------------------
-  # Terminology events
+  # Glossary events
   # ---------------------------------------------------------------------------
 
   def handle_event("save_glossary", params, socket) do
@@ -2144,13 +2144,13 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  def handle_event("select_terminology_revision", params, socket) do
+  def handle_event("select_glossary_revision", params, socket) do
     case noora_select_value(params) do
       nil ->
         {:noreply, socket}
 
       version ->
-        {:noreply, push_patch(socket, to: "/#{socket.assigns.handle}/-/terminology/#{version}")}
+        {:noreply, push_patch(socket, to: "/#{socket.assigns.handle}/-/glossary/#{version}")}
     end
   end
 
@@ -2167,7 +2167,7 @@ defmodule GlossiaWeb.DashboardLive do
       )
 
     if socket.assigns.live_action == :glossary_entry_new do
-      {:noreply, push_patch(socket, to: "/#{socket.assigns.handle}/-/terminology")}
+      {:noreply, push_patch(socket, to: "/#{socket.assigns.handle}/-/glossary")}
     else
       {:noreply, socket}
     end
@@ -3340,7 +3340,7 @@ defmodule GlossiaWeb.DashboardLive do
             )
         end
 
-      context_label = if context == :voice, do: "voice configuration", else: "terminology"
+      context_label = if context == :voice, do: "voice configuration", else: "glossary"
 
       task = Task.async(fn -> ChangeSummary.generate(diff, context_label) end)
       bar_id = save_bar_id(socket)
@@ -3727,11 +3727,11 @@ defmodule GlossiaWeb.DashboardLive do
           suggestion_mode?={false}
         />
       <% action when action in [:glossary_entry, :glossary_entry_new] -> %>
-        <.terminology_entry_page
+        <.glossary_entry_page
           glossary={@glossary}
           glossary_entries={@glossary_entries}
           original_glossary_entries={@original_glossary_entries}
-          terminology_entry_index={@terminology_entry_index}
+          glossary_entry_index={@glossary_entry_index}
           handle={@handle}
           can_glossary_write={@can_glossary_write}
           can_glossary_propose={@can_glossary_propose}
@@ -4979,35 +4979,33 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   # ---------------------------------------------------------------------------
-  # Page: Terminology
+  # Page: Glossary
   # ---------------------------------------------------------------------------
 
   defp glossary_page(assigns) do
     assigns = assign_new(assigns, :suggestion_mode?, fn -> false end)
 
     ~H"""
-    <div class="dash-page noora-terminology-page">
+    <div class="dash-page noora-glossary-page">
       <div class="noora-page-header">
         <div data-part="copy">
           <h1 data-part="page-title">
             {if @suggestion_mode?,
-              do: gettext("Suggest terminology changes"),
-              else: gettext("Terminology")}
+              do: gettext("Suggest glossary changes"),
+              else: gettext("Glossary")}
           </h1>
           <p data-part="page-subtitle">
             <%= if @suggestion_mode? do %>
-              {gettext(
-                "Create a suggestion with title, description, and proposed terminology updates."
-              )}
+              {gettext("Create a suggestion with title, description, and proposed glossary updates.")}
             <% else %>
               {gettext("Approved terms and translations to keep your content consistent.")}
             <% end %>
           </p>
         </div>
-        <div :if={not @suggestion_mode?} data-part="actions" class="terminology-revision-actions">
+        <div :if={not @suggestion_mode?} data-part="actions" class="glossary-revision-actions">
           <Noora.Button.button
             :if={@can_glossary_submit?}
-            patch={"/" <> @handle <> "/-/terminology/terms/new"}
+            patch={"/" <> @handle <> "/-/glossary/terms/new"}
             label={gettext("Add term")}
             variant="secondary"
             size="medium"
@@ -5016,11 +5014,11 @@ defmodule GlossiaWeb.DashboardLive do
           </Noora.Button.button>
           <Noora.Select.select
             :if={@glossary && @glossary_versions != []}
-            id="terminology-revision-select"
-            name="terminology_version"
+            id="glossary-revision-select"
+            name="glossary_version"
             value={to_string(@glossary.version)}
             label={gettext("Revision")}
-            on_value_change="select_terminology_revision"
+            on_value_change="select_glossary_revision"
           >
             <:item
               :for={version <- @glossary_versions}
@@ -5086,7 +5084,7 @@ defmodule GlossiaWeb.DashboardLive do
 
           <div class="ticket-form-actions">
             <Noora.Button.button
-              patch={@glossary_back_path || "/" <> @handle <> "/-/terminology"}
+              patch={@glossary_back_path || "/" <> @handle <> "/-/glossary"}
               label={gettext("Cancel")}
               variant="secondary"
             >
@@ -5105,29 +5103,29 @@ defmodule GlossiaWeb.DashboardLive do
             <Noora.Card.card_section class="noora-resource-table-card">
               <p data-part="resource-description">
                 {gettext(
-                  "Canonical terms and their approved translations. Terms are matched during content processing to keep terminology consistent."
+                  "Canonical terms and their approved translations. Terms are matched during content processing to keep glossary consistent."
                 )}
               </p>
 
               <Noora.Table.table
-                id="terminology-terms"
-                rows={terminology_table_rows(@glossary_entries)}
-                row_key={fn row -> "terminology-term-#{row.index}" end}
+                id="glossary-terms"
+                rows={glossary_table_rows(@glossary_entries)}
+                row_key={fn row -> "glossary-term-#{row.index}" end}
                 row_navigate={
                   fn row ->
-                    "/" <> @handle <> "/-/terminology/terms/" <> to_string(row.index)
+                    "/" <> @handle <> "/-/glossary/terms/" <> to_string(row.index)
                   end
                 }
               >
                 <:col :let={row} label={gettext("Term")}>
                   <Noora.Table.text_and_description_cell
                     icon="file_text"
-                    label={terminology_term_label(row.entry)}
+                    label={glossary_term_label(row.entry)}
                     description={glossary_entry_value(row.entry, :definition)}
                   />
                 </:col>
                 <:col :let={row} label={gettext("Translations")}>
-                  <Noora.Table.text_cell label={terminology_translations_summary(row.entry)} />
+                  <Noora.Table.text_cell label={glossary_translations_summary(row.entry)} />
                 </:col>
                 <:col :let={row} label={gettext("Matching")}>
                   <Noora.Table.status_badge_cell
@@ -5169,7 +5167,7 @@ defmodule GlossiaWeb.DashboardLive do
                   row_key={fn version -> "glossary-version-#{version.id}" end}
                   row_navigate={
                     fn version ->
-                      "/" <> @handle <> "/-/terminology/" <> to_string(version.version)
+                      "/" <> @handle <> "/-/glossary/" <> to_string(version.version)
                     end
                   }
                 >
@@ -5271,28 +5269,28 @@ defmodule GlossiaWeb.DashboardLive do
     """
   end
 
-  defp terminology_entry_page(assigns) do
-    entry = Enum.at(assigns.glossary_entries || [], assigns.terminology_entry_index) || %{}
+  defp glossary_entry_page(assigns) do
+    entry = Enum.at(assigns.glossary_entries || [], assigns.glossary_entry_index) || %{}
 
     assigns =
       assigns
       |> assign_new(:new_term?, fn -> false end)
-      |> assign(:terminology_entry, entry)
+      |> assign(:glossary_entry_state, entry)
 
     ~H"""
-    <div class="dash-page noora-terminology-page">
+    <div class="dash-page noora-glossary-page">
       <div class="noora-page-header">
         <div data-part="copy">
           <h1 data-part="page-title">
-            {if @new_term?, do: gettext("New term"), else: terminology_term_label(@terminology_entry)}
+            {if @new_term?, do: gettext("New term"), else: glossary_term_label(@glossary_entry_state)}
           </h1>
           <p data-part="page-subtitle">
-            {gettext("Edit one terminology term and its approved translations.")}
+            {gettext("Edit one glossary term and its approved translations.")}
           </p>
         </div>
         <div data-part="actions">
           <Noora.Button.button
-            patch={"/" <> @handle <> "/-/terminology"}
+            patch={"/" <> @handle <> "/-/glossary"}
             label={gettext("Back to terms")}
             variant="secondary"
             size="medium"
@@ -5303,25 +5301,25 @@ defmodule GlossiaWeb.DashboardLive do
       <form
         phx-change="glossary_validate"
         phx-submit="save_glossary"
-        class="voice-form terminology-entry-form"
+        class="voice-form glossary-entry-form"
         id="glossary-entry-form"
       >
         <%= for {entry, idx} <- Enum.with_index(@glossary_entries) do %>
-          <%= if idx != @terminology_entry_index do %>
-            <.terminology_entry_hidden_fields entry={entry} index={idx} />
+          <%= if idx != @glossary_entry_index do %>
+            <.glossary_entry_hidden_fields entry={entry} index={idx} />
           <% end %>
         <% end %>
 
         <div class="voice-section">
-          <Noora.Card.card_section class="voice-card terminology-detail-card">
+          <Noora.Card.card_section class="voice-card glossary-detail-card">
             <div class="voice-card-fields">
               <div class="voice-field-row">
                 <div class="voice-field">
                   <Noora.Label.label label={gettext("Term")} required />
                   <Noora.TextInput.text_input
-                    id={"glossary-entry-#{@terminology_entry_index}-term"}
-                    name={"entries[#{@terminology_entry_index}][term]"}
-                    value={glossary_entry_value(@terminology_entry, :term)}
+                    id={"glossary-entry-#{@glossary_entry_index}-term"}
+                    name={"entries[#{@glossary_entry_index}][term]"}
+                    value={glossary_entry_value(@glossary_entry_state, :term)}
                     placeholder={gettext("Term")}
                     disabled={!@can_glossary_submit?}
                     required
@@ -5332,12 +5330,12 @@ defmodule GlossiaWeb.DashboardLive do
                 <div class="voice-field">
                   <Noora.Label.label label={gettext("Case sensitive")} />
                   <Noora.Select.select
-                    id={"glossary-entry-#{@terminology_entry_index}-case-sensitive"}
-                    name={"entries[#{@terminology_entry_index}][case_sensitive]"}
-                    value={glossary_case_sensitive_value(@terminology_entry)}
+                    id={"glossary-entry-#{@glossary_entry_index}-case-sensitive"}
+                    name={"entries[#{@glossary_entry_index}][case_sensitive]"}
+                    value={glossary_case_sensitive_value(@glossary_entry_state)}
                     label={gettext("No")}
                     disabled={!@can_glossary_submit?}
-                    on_value_change={"select_glossary_case_sensitive:#{@terminology_entry_index}"}
+                    on_value_change={"select_glossary_case_sensitive:#{@glossary_entry_index}"}
                   >
                     <:item value="false" label={gettext("No")} icon="settings" />
                     <:item value="true" label={gettext("Yes")} icon="check" />
@@ -5347,9 +5345,9 @@ defmodule GlossiaWeb.DashboardLive do
 
               <div class="voice-field">
                 <Noora.TextInput.text_input
-                  id={"glossary-entry-#{@terminology_entry_index}-definition"}
-                  name={"entries[#{@terminology_entry_index}][definition]"}
-                  value={glossary_entry_value(@terminology_entry, :definition)}
+                  id={"glossary-entry-#{@glossary_entry_index}-definition"}
+                  name={"entries[#{@glossary_entry_index}][definition]"}
+                  value={glossary_entry_value(@glossary_entry_state, :definition)}
                   label={gettext("Definition")}
                   placeholder={gettext("What this term means")}
                   disabled={!@can_glossary_submit?}
@@ -5357,8 +5355,8 @@ defmodule GlossiaWeb.DashboardLive do
                 />
               </div>
 
-              <div class="terminology-translations-section">
-                <div class="terminology-translations-header">
+              <div class="glossary-translations-section">
+                <div class="glossary-translations-header">
                   <Noora.Label.label label={gettext("Translations")} />
                   <Noora.Button.button
                     :if={@can_glossary_submit?}
@@ -5366,33 +5364,33 @@ defmodule GlossiaWeb.DashboardLive do
                     label={gettext("Add translation")}
                     variant="secondary"
                     size="small"
-                    phx-click={"add_glossary_translation:#{@terminology_entry_index}"}
+                    phx-click={"add_glossary_translation:#{@glossary_entry_index}"}
                   >
                     <:icon_left><Noora.Icon.plus /></:icon_left>
                   </Noora.Button.button>
                 </div>
 
-                <div class="terminology-translations-list">
+                <div class="glossary-translations-list">
                   <div
-                    :if={map_get(@terminology_entry, :translations, []) != []}
-                    class="terminology-translations-columns"
+                    :if={map_get(@glossary_entry_state, :translations, []) != []}
+                    class="glossary-translations-columns"
                   >
                     <span>{gettext("Language")}</span>
                     <span>{gettext("Translation")}</span>
                     <span aria-hidden="true"></span>
                   </div>
 
-                  <%= for {translation, t_idx} <- Enum.with_index(map_get(@terminology_entry, :translations, [])) do %>
-                    <div class="terminology-translation-row">
-                      <div class="voice-field terminology-translation-locale">
+                  <%= for {translation, t_idx} <- Enum.with_index(map_get(@glossary_entry_state, :translations, [])) do %>
+                    <div class="glossary-translation-row">
+                      <div class="voice-field glossary-translation-locale">
                         <Noora.Select.select
-                          id={"glossary-entry-#{@terminology_entry_index}-translation-#{t_idx}-locale"}
-                          name={"entries[#{@terminology_entry_index}][translations][#{t_idx}][locale]"}
+                          id={"glossary-entry-#{@glossary_entry_index}-translation-#{t_idx}-locale"}
+                          name={"entries[#{@glossary_entry_index}][translations][#{t_idx}][locale]"}
                           value={glossary_translation_value(translation, :locale)}
                           label={gettext("Select language")}
                           disabled={!@can_glossary_submit?}
                           on_value_change={
-                            "select_glossary_translation_locale:#{@terminology_entry_index}:#{t_idx}"
+                            "select_glossary_translation_locale:#{@glossary_entry_index}:#{t_idx}"
                           }
                         >
                           <:item
@@ -5403,24 +5401,24 @@ defmodule GlossiaWeb.DashboardLive do
                           />
                         </Noora.Select.select>
                       </div>
-                      <div class="voice-field terminology-translation-value">
+                      <div class="voice-field glossary-translation-value">
                         <Noora.TextInput.text_input
-                          id={"glossary-entry-#{@terminology_entry_index}-translation-#{t_idx}-value"}
-                          name={"entries[#{@terminology_entry_index}][translations][#{t_idx}][translation]"}
+                          id={"glossary-entry-#{@glossary_entry_index}-translation-#{t_idx}-value"}
+                          name={"entries[#{@glossary_entry_index}][translations][#{t_idx}][translation]"}
                           value={glossary_translation_value(translation, :translation)}
                           placeholder={gettext("Approved translation")}
                           disabled={!@can_glossary_submit?}
                           phx-debounce="300"
                         />
                       </div>
-                      <div class="terminology-translation-actions">
+                      <div class="glossary-translation-actions">
                         <Noora.Button.button
                           :if={@can_glossary_submit?}
                           type="button"
                           label={gettext("Remove")}
                           variant="secondary"
                           size="small"
-                          phx-click={"remove_glossary_translation:#{@terminology_entry_index}:#{t_idx}"}
+                          phx-click={"remove_glossary_translation:#{@glossary_entry_index}:#{t_idx}"}
                         />
                       </div>
                     </div>
@@ -5452,7 +5450,7 @@ defmodule GlossiaWeb.DashboardLive do
   attr(:entry, :any, required: true)
   attr(:index, :integer, required: true)
 
-  defp terminology_entry_hidden_fields(assigns) do
+  defp glossary_entry_hidden_fields(assigns) do
     ~H"""
     <input
       type="hidden"
@@ -5485,12 +5483,12 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   # ---------------------------------------------------------------------------
-  # Page: Terminology version
+  # Page: Glossary version
   # ---------------------------------------------------------------------------
 
   defp glossary_version_page(assigns) do
     ~H"""
-    <div class="dash-page noora-terminology-page noora-version-page">
+    <div class="dash-page noora-glossary-page noora-version-page">
       <div class="noora-page-header">
         <div data-part="copy">
           <h1 data-part="page-title">
@@ -5527,12 +5525,12 @@ defmodule GlossiaWeb.DashboardLive do
         <div data-part="header">
           <div data-part="title-group">
             <h2>{gettext("Terms")}</h2>
-            <p>{gettext("Terminology entries in this version.")}</p>
+            <p>{gettext("Glossary entries in this version.")}</p>
           </div>
         </div>
         <Noora.Table.table
           id="glossary-version-terms"
-          rows={terminology_version_table_rows(@glossary, @previous_glossary)}
+          rows={glossary_version_table_rows(@glossary, @previous_glossary)}
           row_key={fn row -> "glossary-version-term-#{row.term}" end}
         >
           <:col :let={row} label={gettext("Term")}>
@@ -5543,7 +5541,7 @@ defmodule GlossiaWeb.DashboardLive do
             />
           </:col>
           <:col :let={row} label={gettext("Translations")}>
-            <Noora.Table.text_cell label={terminology_translations_summary(row.entry)} />
+            <Noora.Table.text_cell label={glossary_translations_summary(row.entry)} />
           </:col>
           <:col :let={row} label={gettext("Matching")}>
             <Noora.Table.status_badge_cell
@@ -5573,7 +5571,7 @@ defmodule GlossiaWeb.DashboardLive do
               <.noora_empty_state
                 icon="file_text"
                 title={gettext("No terms")}
-                subtitle={gettext("This revision does not contain terminology entries.")}
+                subtitle={gettext("This revision does not contain glossary entries.")}
               />
             </Noora.Table.table_empty_state>
           </:empty_state>
@@ -8073,8 +8071,30 @@ defmodule GlossiaWeb.DashboardLive do
           {gettext("%{n} up to date", n: @summary.skipped)}
         </span>
       <% end %>
+      <%= if translation_progress_glossary_applied_count(@summary) > 0 do %>
+        <span id="translation-progress-summary-glossary" data-part="glossary">
+          {gettext("%{n} glossary terms applied",
+            n: translation_progress_glossary_applied_count(@summary)
+          )}
+        </span>
+      <% end %>
+      <%= if translation_progress_glossary_shadowed_count(@summary) > 0 do %>
+        <span id="translation-progress-summary-glossary-shadowed" data-part="glossary-shadowed">
+          {gettext("%{n} platform terms overridden by repo glossary",
+            n: translation_progress_glossary_shadowed_count(@summary)
+          )}
+        </span>
+      <% end %>
     </div>
     """
+  end
+
+  defp translation_progress_glossary_applied_count(summary) do
+    summary |> Map.get(:glossary, %{}) |> Map.get(:applied_ids, []) |> length()
+  end
+
+  defp translation_progress_glossary_shadowed_count(summary) do
+    summary |> Map.get(:glossary, %{}) |> Map.get(:shadowed_ids, []) |> length()
   end
 
   attr(:items, :list, required: true)
@@ -9785,9 +9805,9 @@ defmodule GlossiaWeb.DashboardLive do
         </div>
       </div>
       <Noora.Table.table
-        id="terminology-proposed-changes"
+        id="glossary-proposed-changes"
         rows={@change_details}
-        row_key={fn change -> "terminology-proposed-change-#{change.term}" end}
+        row_key={fn change -> "glossary-proposed-change-#{change.term}" end}
       >
         <:col :let={change} label={gettext("Term")}>
           <% entry = glossary_change_display_entry(change) %>
@@ -9799,7 +9819,7 @@ defmodule GlossiaWeb.DashboardLive do
         </:col>
         <:col :let={change} label={gettext("Translations")}>
           <% entry = glossary_change_display_entry(change) %>
-          <Noora.Table.text_cell label={terminology_translations_summary(entry)} />
+          <Noora.Table.text_cell label={glossary_translations_summary(entry)} />
         </:col>
         <:col :let={change} label={gettext("Matching")}>
           <% entry = glossary_change_display_entry(change) %>
@@ -9823,7 +9843,7 @@ defmodule GlossiaWeb.DashboardLive do
           <Noora.Table.table_empty_state>
             <.noora_empty_state
               icon="file_text"
-              title={gettext("No proposed terminology changes")}
+              title={gettext("No proposed glossary changes")}
               subtitle={gettext("Go back to edit your draft before creating a suggestion.")}
             />
           </Noora.Table.table_empty_state>
@@ -10338,9 +10358,7 @@ defmodule GlossiaWeb.DashboardLive do
         if is_binary(token) and token != "" do
           socket
           |> assign(pending_glossary_suggestion_redirect: false)
-          |> push_patch(
-            to: maybe_with_draft_param("/#{handle}/-/terminology/suggestion/new", token)
-          )
+          |> push_patch(to: maybe_with_draft_param("/#{handle}/-/glossary/suggestion/new", token))
         else
           assign(socket, pending_glossary_suggestion_redirect: false)
         end
@@ -10528,7 +10546,7 @@ defmodule GlossiaWeb.DashboardLive do
         })
 
       handle = socket.assigns.handle
-      glossary_draft_path = maybe_with_draft_param("/#{handle}/-/terminology", draft_token)
+      glossary_draft_path = maybe_with_draft_param("/#{handle}/-/glossary", draft_token)
 
       {:noreply,
        socket
@@ -10545,7 +10563,7 @@ defmodule GlossiaWeb.DashboardLive do
          },
          glossary_draft_token: draft_token,
          pending_glossary_suggestion_redirect: true,
-         glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", draft_token)
+         glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", draft_token)
        )
        |> push_patch(to: glossary_draft_path)}
     end
@@ -10839,6 +10857,7 @@ defmodule GlossiaWeb.DashboardLive do
     |> Map.new(fn {entry, idx} ->
       {to_string(idx),
        %{
+         "id" => glossary_entry_value(entry, :logical_key),
          "term" => glossary_entry_value(entry, :term),
          "definition" => glossary_entry_value(entry, :definition),
          "case_sensitive" => glossary_case_sensitive_value(entry),
@@ -10868,16 +10887,16 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp glossary_translation_value(translation, field), do: map_get(translation, field, "") || ""
 
-  defp terminology_table_rows(entries) do
+  defp glossary_table_rows(entries) do
     entries
     |> List.wrap()
     |> Enum.with_index()
     |> Enum.map(fn {entry, index} ->
-      %{id: "terminology-term-#{index}", entry: entry, index: index}
+      %{id: "glossary-term-#{index}", entry: entry, index: index}
     end)
   end
 
-  defp terminology_version_table_rows(glossary, previous_glossary) do
+  defp glossary_version_table_rows(glossary, previous_glossary) do
     current_entries = List.wrap(glossary && glossary.entries)
     previous_entries = List.wrap(previous_glossary && previous_glossary.entries)
 
@@ -10902,7 +10921,7 @@ defmodule GlossiaWeb.DashboardLive do
     end)
   end
 
-  defp terminology_term_label(entry) do
+  defp glossary_term_label(entry) do
     entry
     |> glossary_entry_value(:term)
     |> case do
@@ -10911,7 +10930,7 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
-  defp terminology_translations_summary(entry) do
+  defp glossary_translations_summary(entry) do
     translations =
       entry
       |> map_get(:translations, [])
@@ -11115,12 +11134,12 @@ defmodule GlossiaWeb.DashboardLive do
       title:
         if(suggestion_title_text != "",
           do: suggestion_title_text,
-          else: suggestion_title(gettext("Terminology"), change_note)
+          else: suggestion_title(gettext("Glossary"), change_note)
         ),
       body:
         if(suggestion_body_text != "",
           do: suggestion_body_text,
-          else: suggestion_body(gettext("terminology"), change_note)
+          else: suggestion_body(gettext("glossary"), change_note)
         ),
       kind: "glossary_suggestion",
       metadata: %{
@@ -11139,18 +11158,18 @@ defmodule GlossiaWeb.DashboardLive do
            glossary_suggestion_draft: nil,
            glossary_draft_token: nil,
            pending_glossary_suggestion_redirect: false,
-           glossary_back_path: "/#{handle}/-/terminology"
+           glossary_back_path: "/#{handle}/-/glossary"
          )
          |> put_flash(
            :info,
-           gettext("Terminology suggestion submitted as suggestion #%{number}.",
+           gettext("Glossary suggestion submitted as suggestion #%{number}.",
              number: ticket.number
            )
          )
          |> push_patch(to: suggestion_path(handle, ticket))}
 
       {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to submit terminology suggestion."))}
+        {:noreply, put_flash(socket, :error, gettext("Failed to submit glossary suggestion."))}
     end
   end
 
@@ -11163,7 +11182,7 @@ defmodule GlossiaWeb.DashboardLive do
       suggestion_title_text != "" -> suggestion_title_text
       summary != "" -> summary
       draft_note != "" -> draft_note
-      true -> gettext("Terminology suggestion")
+      true -> gettext("Glossary suggestion")
     end
   end
 
@@ -11211,6 +11230,7 @@ defmodule GlossiaWeb.DashboardLive do
           end)
 
         %{
+          id: non_empty(e["id"]),
           term: e["term"],
           definition: non_empty(e["definition"]),
           case_sensitive: e["case_sensitive"] == "true",
@@ -11305,7 +11325,7 @@ defmodule GlossiaWeb.DashboardLive do
               )
 
             {:ok,
-             gettext("Applied terminology suggestion as version #%{version}.",
+             gettext("Applied glossary suggestion as version #%{version}.",
                version: glossary.version
              )}
 
@@ -12149,7 +12169,7 @@ defmodule GlossiaWeb.DashboardLive do
           glossary_changed?: changed?,
           change_summary: to_string(decoded["change_summary"] || ""),
           glossary_draft_token: token,
-          glossary_back_path: maybe_with_draft_param("/#{handle}/-/terminology", token)
+          glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", token)
         )
 
       _ ->
@@ -12172,14 +12192,13 @@ defmodule GlossiaWeb.DashboardLive do
               glossary_changed?: changed?,
               change_summary: draft[:change_summary] || "",
               glossary_draft_token: fallback_token,
-              glossary_back_path:
-                maybe_with_draft_param("/#{handle}/-/terminology", fallback_token)
+              glossary_back_path: maybe_with_draft_param("/#{handle}/-/glossary", fallback_token)
             )
 
           _ ->
             assign(socket,
               glossary_draft_token: nil,
-              glossary_back_path: "/#{handle}/-/terminology"
+              glossary_back_path: "/#{handle}/-/glossary"
             )
         end
     end
@@ -12486,7 +12505,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp ticket_kind_variant(_), do: "neutral"
 
   defp ticket_kind_label("voice_suggestion"), do: gettext("Voice suggestion")
-  defp ticket_kind_label("glossary_suggestion"), do: gettext("Terminology suggestion")
+  defp ticket_kind_label("glossary_suggestion"), do: gettext("Glossary suggestion")
   defp ticket_kind_label("general"), do: gettext("General")
   defp ticket_kind_label(other), do: other
 
@@ -12502,7 +12521,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp ticket_reopen_label(_ticket), do: gettext("Reopen")
 
   defp ticket_back_path(handle, %{kind: "voice_suggestion"}), do: "/#{handle}/-/voice"
-  defp ticket_back_path(handle, %{kind: "glossary_suggestion"}), do: "/#{handle}/-/terminology"
+  defp ticket_back_path(handle, %{kind: "glossary_suggestion"}), do: "/#{handle}/-/glossary"
   defp ticket_back_path(handle, _ticket), do: "/#{handle}"
 
   defp suggestion_path(handle, ticket), do: "/#{handle}/-/suggestions/#{ticket.number}"

@@ -2,6 +2,7 @@
   title: "Social images",
   summary: "Daily dashboard previews, browser rendering, storage, and traffic limits.",
   category: "reference",
+  section: "analytics",
   order: 30
 }
 ---

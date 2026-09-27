@@ -31,7 +31,7 @@ defmodule Glossia.Translations.ContextTest do
       assert Enum.map(selected, & &1.id) == ["account", "cafe"]
     end
 
-    test "matches terminology in unspaced scripts and Latin terms beside them" do
+    test "matches glossary in unspaced scripts and Latin terms beside them" do
       entries = [
         entry("japanese", "日本語", "Japanese"),
         entry("ai", "AI", "artificial intelligence")
@@ -100,7 +100,7 @@ defmodule Glossia.Translations.ContextTest do
   end
 
   describe "prompt_body/3" do
-    test "keeps voice context but narrows terminology to the current segment" do
+    test "keeps voice context but narrows glossary to the current segment" do
       bundle = %{
         Context.empty_bundle("es-MX")
         | voice: %{
@@ -115,7 +115,7 @@ defmodule Glossia.Translations.ContextTest do
               "US" => "Use American English."
             }
           },
-          terminology: [
+          glossary: [
             entry("account", "Account", "Cuenta", %{definition: "A customer organization."}),
             entry("project", "Project", "Proyecto")
           ]
@@ -151,7 +151,7 @@ defmodule Glossia.Translations.ContextTest do
                "Cultural guidance for MX:\nUse Mexican Spanish."
     end
 
-    test "bounds terminology while prioritizing frequent matches" do
+    test "bounds glossary while prioritizing frequent matches" do
       entries =
         for index <- 1..60 do
           entry(
@@ -166,17 +166,17 @@ defmodule Glossia.Translations.ContextTest do
         ["Term60", "Term60", "Term60" | Enum.map(1..59, &"Term#{&1}")]
         |> Enum.join(" ")
 
-      bundle = %{Context.empty_bundle("es") | terminology: entries}
+      bundle = %{Context.empty_bundle("es") | glossary: entries}
       result = Context.prompt(bundle, source, [])
       prompt = result.body
 
       assert length(:binary.matches(prompt, " → ")) == 50
       assert prompt =~ ~s("Term60" → "Término60")
       assert byte_size(prompt) <= 12_000
-      assert result.budget.terminology_matched == 60
-      assert result.budget.terminology_included == 50
-      assert result.budget.terminology_omitted == 10
-      assert result.budget.terminology_definitions_omitted > 0
+      assert result.budget.glossary_matched == 60
+      assert result.budget.glossary_included == 50
+      assert result.budget.glossary_omitted == 10
+      assert result.budget.glossary_definitions_omitted > 0
     end
 
     test "bounds server-defined voice prose while preserving its structure" do
@@ -259,16 +259,16 @@ defmodule Glossia.Translations.ContextTest do
     end
   end
 
-  test "normalizes terminology with equal terms before rendering and hashing" do
+  test "normalizes glossary with equal terms before rendering and hashing" do
     first = %{
       Context.empty_bundle("es")
-      | terminology: [
+      | glossary: [
           entry("account-general", "Account", "Cuenta", %{definition: "A user account."}),
           entry("account-billing", "Account", "Cuenta", %{definition: "A billing account."})
         ]
     }
 
-    second = %{first | terminology: Enum.reverse(first.terminology)}
+    second = %{first | glossary: Enum.reverse(first.glossary)}
 
     assert Context.prompt_body(first, "Account", []) == Context.prompt_body(second, "Account", [])
     assert Context.provenance(first) == Context.provenance(second)
@@ -292,15 +292,15 @@ defmodule Glossia.Translations.ContextTest do
           guidelines: "Private voice guidance",
           cultural_notes: %{}
         },
-        terminology: [entry("entry-id", "Account", "Cuenta")]
+        glossary: [entry("entry-id", "Account", "Cuenta")]
     }
 
     provenance = Context.provenance(bundle)
     encoded = Jason.encode!(provenance)
 
     assert get_in(provenance, ["voice", "version"]) == 4
-    assert get_in(provenance, ["terminology", "glossary_version"]) == 9
-    refute Map.has_key?(provenance["terminology"], "term_keys")
+    assert get_in(provenance, ["glossary", "version"]) == 9
+    refute Map.has_key?(provenance["glossary"], "term_keys")
     refute encoded =~ "Private voice guidance"
     refute encoded =~ "Cuenta"
   end
@@ -349,5 +349,101 @@ defmodule Glossia.Translations.ContextTest do
                Context.empty_snapshot(),
                ["es"]
              )
+  end
+
+  describe "build_bundle/6 with L10N.md glossary entries" do
+    setup do
+      locale_contexts =
+        Context.prepare_locale_contexts(%{
+          "es" => %{
+            voice: nil,
+            glossary: [
+              entry("row-1", "commit", "cometer", %{
+                namespaced_id: "account:commit",
+                logical_key: "commit"
+              }),
+              entry("row-2", "branch", "rama", %{
+                namespaced_id: "account:branch",
+                logical_key: "branch"
+              })
+            ]
+          }
+        })
+
+      {:ok, repo} =
+        Glossia.Translations.RepoGlossary.resolve(
+          [%{"source" => "commit"}],
+          %{"commit" => "commit"},
+          "es"
+        )
+
+      %{locale_contexts: locale_contexts, repo: repo}
+    end
+
+    test "the repository entry wins and the platform entry is shadowed", ctx do
+      bundle =
+        Context.build_bundle(
+          Context.empty_snapshot(),
+          ctx.locale_contexts,
+          "es",
+          "Make a commit on this branch.",
+          [],
+          ctx.repo
+        )
+
+      assert Enum.map(bundle.glossary, &{&1.term, &1.translation}) |> Enum.sort() ==
+               [{"branch", "rama"}, {"commit", "commit"}]
+
+      assert Enum.map(bundle.shadowed_glossary, & &1.namespaced_id) == ["account:commit"]
+
+      provenance = Context.provenance(bundle)
+      assert provenance["glossary"]["applied"] == ["account:branch", "repo:commit"]
+      assert provenance["glossary"]["shadowed"] == ["account:commit"]
+    end
+
+    test "shadowed entries are omitted when the file does not use the term", ctx do
+      bundle =
+        Context.build_bundle(
+          Context.empty_snapshot(),
+          ctx.locale_contexts,
+          "es",
+          "Switch to another branch.",
+          [],
+          ctx.repo
+        )
+
+      assert bundle.shadowed_glossary == []
+    end
+  end
+
+  describe "merge_glossaries/2" do
+    test "keeps every platform entry when no repo entries collide" do
+      platform = [entry("account:a", "commit", "confirmación")]
+      repo = [entry("repo:api", "API", "API")]
+      merged = Context.merge_glossaries(platform, repo)
+      terms = Enum.map(merged.entries, & &1.term) |> Enum.sort()
+      assert terms == ["API", "commit"]
+      assert merged.shadowed == []
+    end
+
+    test "repo entry wins over platform entry with an equivalent source" do
+      platform = [entry("account:commit", "commit", "cometer")]
+      repo = [entry("repo:commit", "COMMIT", "confirmación")]
+      merged = Context.merge_glossaries(platform, repo)
+      assert Enum.map(merged.entries, & &1.term) == ["COMMIT"]
+      assert Enum.map(merged.shadowed, & &1.id) == ["account:commit"]
+    end
+
+    test "does not use full Unicode case folding, matching the source matcher" do
+      # Regex `iu` treats `straße` and `STRASSE` as different — the merge
+      # must not shadow the platform entry with a repo entry the matcher
+      # would never touch.
+      platform = [entry("account:street", "straße", "calle")]
+      repo = [entry("repo:street", "STRASSE", "Straße")]
+      merged = Context.merge_glossaries(platform, repo)
+      terms = merged.entries |> Enum.map(& &1.term) |> Enum.sort()
+      assert "straße" in terms
+      assert merged.shadowed == []
+    end
   end
 end

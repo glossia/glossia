@@ -25,6 +25,7 @@ defmodule Glossia.Translations.RepositoryRun do
   alias Glossia.Translations.Failure
   alias Glossia.Translations.Locks
   alias Glossia.Translations.Planner
+  alias Glossia.Translations.RepoGlossary
   alias Glossia.Translations.Validate
   alias Glossia.TranslationSessions
 
@@ -534,6 +535,22 @@ defmodule Glossia.Translations.RepositoryRun do
     end
   end
 
+  # An invalid `glossary` in L10N.md must not block translation: the file is
+  # translated with the platform glossary only and the problem is logged.
+  defp repo_glossary_for(item) do
+    case RepoGlossary.resolve(item[:glossary], item[:glossary_translations], item.locale) do
+      {:ok, entries} ->
+        entries
+
+      {:error, reason} ->
+        Logger.warning(
+          "ignoring invalid L10N.md glossary for #{item.source_path}: #{inspect(reason)}"
+        )
+
+        []
+    end
+  end
+
   # Resolving an item's lock state means building its context bundle, which is
   # the expensive half of the assessment. A repository whose files are almost
   # all up to date therefore spends most of the run here, so report how far the
@@ -596,7 +613,8 @@ defmodule Glossia.Translations.RepositoryRun do
           locale_contexts,
           item.locale,
           translatable_source,
-          item.preserve || []
+          item.preserve || [],
+          repo_glossary_for(item)
         )
 
       item = Map.put(item, :server_context, server_context)
@@ -635,9 +653,27 @@ defmodule Glossia.Translations.RepositoryRun do
       item = attach_po_diff(item, po_status)
 
       cond do
+        # Context change (glossary, voice, model, prompt, config) invalidates
+        # every translation in the file, even msgstrs whose per-message
+        # source hash still matches — preserving them would keep an outdated
+        # translation under the new context. Drop the po_diff so the engine
+        # retranslates the whole catalog.
+        Locks.context_stale?(lock, hash_state) ->
+          %{
+            index: index,
+            item: Map.delete(item, :po_diff),
+            provider: provider,
+            hash_state: hash_state,
+            status: :translation_needed
+          }
+
         po_status == :fresh ->
           %{index: index, status: :up_to_date}
 
+        # A pure source change (added / modified msgid) with stable context
+        # follows the per-message diff path when one exists — every unchanged
+        # msgstr is preserved from the previous run and only the changed
+        # msgids reach the model.
         Locks.stale?(lock, hash_state, item.output_path, current_output_hash) ->
           %{
             index: index,
@@ -818,6 +854,8 @@ defmodule Glossia.Translations.RepositoryRun do
 
           case publish_completed_item(after_item_completed, repo_path, item) do
             :ok ->
+              glossary_summary = glossary_summary_for(item)
+
               broadcast(
                 session,
                 %{
@@ -825,7 +863,9 @@ defmodule Glossia.Translations.RepositoryRun do
                   index: index,
                   output_path: item.output_path,
                   output_preview: completed_output_preview(result.text),
-                  model_calls: Process.get(model_calls_key, 0)
+                  model_calls: Process.get(model_calls_key, 0),
+                  glossary_applied: glossary_summary.applied,
+                  glossary_shadowed: glossary_summary.shadowed
                 },
                 progress_node
               )
@@ -1252,4 +1292,24 @@ defmodule Glossia.Translations.RepositoryRun do
     do: %{type: "error", reason: Failure.from({:llm_failed, reason})}
 
   defp normalize_event(_other), do: %{type: "unknown"}
+
+  # Snapshot of the glossary entries that shaped this file's translation, sent
+  # alongside item_completed so the session view can render "N terms applied,
+  # M platform terms shadowed by the repo glossary" without loading lockfiles.
+  # The lockfile still carries the full namespaced ids in `context_provenance`.
+  defp glossary_summary_for(item) do
+    context = Map.get(item, :server_context) || %{}
+    applied = Map.get(context, :glossary, []) |> Enum.map(&entry_summary/1)
+    shadowed = Map.get(context, :shadowed_glossary, []) |> Enum.map(&entry_summary/1)
+    %{applied: applied, shadowed: shadowed}
+  end
+
+  defp entry_summary(entry) do
+    %{
+      id:
+        Map.get(entry, :namespaced_id) ||
+          "account:" <> to_string(Map.get(entry, :logical_key, Map.get(entry, :id, ""))),
+      origin: Map.get(entry, :origin, :account)
+    }
+  end
 end

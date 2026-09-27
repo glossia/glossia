@@ -66,6 +66,46 @@ defmodule Glossia.Translations.Locks do
   end
 
   @doc """
+  Whether anything OTHER than the source content or output file changed.
+
+  A change to the glossary, voice, model, prompt, or any other translation
+  configuration node in the hash tree means every msgstr produced under the
+  old context is potentially wrong. A pure `msgid` addition (with the same
+  context) does not: unchanged msgstrs can still be preserved through
+  `po_units` per-message inspection.
+
+  Compares the compatibility-normalized hash tree with the `source` node
+  removed on both sides. Returns `true` when the two differ or when the lock
+  is missing entirely.
+  """
+  def context_stale?(nil, _hash_state), do: true
+
+  def context_stale?(lock, %{tree: %{"root" => current_root}}) do
+    stored_root = get_in(lock, ["hash_tree", "root"])
+
+    if is_nil(stored_root) do
+      # Old lock format without a hash tree — treat as context-fresh, since
+      # `stale?/4` will still catch source/output changes and the caller falls
+      # back to the whole-file `hash` compare there.
+      false
+    else
+      strip_source(normalize_tree_for_compatibility(stored_root)) !=
+        strip_source(normalize_tree_for_compatibility(current_root))
+    end
+  end
+
+  def context_stale?(_lock, _hash_state), do: false
+
+  @doc false
+  # Test hook: exposes the source-stripped normalized tree so a test can
+  # assert on what `context_stale?/2` actually compares.
+  def __strip_source_for_test__(node) do
+    node
+    |> normalize_tree_for_compatibility()
+    |> strip_source()
+  end
+
+  @doc """
   Classifies a PO source against a lock and its current output.
 
   Returns one of:
@@ -273,10 +313,13 @@ defmodule Glossia.Translations.Locks do
             %{"content_hash" => server_hash_input["voice_content_hash"]},
             []
           ),
+          # The label reads "terminology" for lockfile hash-tree backward
+          # compatibility. Renaming it would flip every existing lockfile
+          # stale for one deploy because it flows into the node hash.
           hash_node(
             "context",
             "terminology",
-            %{"content_hash" => server_hash_input["terminology_content_hash"]},
+            %{"content_hash" => server_hash_input["glossary_content_hash"]},
             []
           )
         ]
@@ -496,6 +539,19 @@ defmodule Glossia.Translations.Locks do
     end)
     |> update_in(["children"], fn children ->
       Enum.map(children || [], &normalize_tree_for_compatibility/1)
+    end)
+  end
+
+  # Drops the `source` child from a normalized tree, leaving config and
+  # context. Used to distinguish "only source content changed" (which the PO
+  # per-msgid path can handle) from "context / config changed" (which invalidates
+  # every msgstr, no matter what its source hash is).
+  defp strip_source(node) do
+    node
+    |> update_in(["children"], fn children ->
+      children
+      |> Enum.reject(&(Map.get(&1, "kind") == "source"))
+      |> Enum.map(&strip_source/1)
     end)
   end
 end

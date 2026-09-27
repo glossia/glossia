@@ -12,4 +12,10 @@ defmodule GlossiaWeb.RedirectController do
   def account(conn, %{"handle" => handle}) do
     redirect(conn, to: "/#{handle}")
   end
+
+  def terminology_to_glossary(conn, %{"handle" => handle} = params) do
+    rest = params |> Map.get("rest", []) |> Enum.join("/")
+    suffix = if rest == "", do: "", else: "/" <> rest
+    redirect(conn, to: "/#{handle}/-/glossary" <> suffix)
+  end
 end

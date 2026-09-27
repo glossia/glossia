@@ -124,15 +124,15 @@ defmodule Glossia.Translations.ContextResolutionTest do
 
     assert bundle.voice.guidelines == "Evita anglicismos innecesarios."
     assert bundle.voice.cultural_notes["MX"] == "Use respectful and direct language."
-    assert [%{term: "Account", translation: "Cuenta"}] = bundle.terminology
+    assert [%{term: "Account", translation: "Cuenta"}] = bundle.glossary
 
     assert [%{term: "Workspace", translation: "Espacio de trabajo"}] =
-             workspace_bundle.terminology
+             workspace_bundle.glossary
 
     assert fallback_bundle.voice.guidelines == "Usa un español claro."
 
     assert [%{term: "Workspace", translation: "Espacio de trabajo"}] =
-             fallback_bundle.terminology
+             fallback_bundle.glossary
 
     prompt = Context.prompt_body(bundle, "Create an Account.", [])
     assert prompt =~ "Evita anglicismos innecesarios."
@@ -150,7 +150,7 @@ defmodule Glossia.Translations.ContextResolutionTest do
                user.account,
                %{
                  guidelines: "Base voice",
-                 cultural_notes: %{"CN" => "Use terminology familiar in mainland China."},
+                 cultural_notes: %{"CN" => "Use glossary familiar in mainland China."},
                  overrides: [
                    %{locale: "zh", guidelines: "Chinese voice"},
                    %{locale: "zh-Hans", guidelines: "Simplified Chinese voice"}
@@ -186,11 +186,11 @@ defmodule Glossia.Translations.ContextResolutionTest do
              )
 
     assert bundle.voice.guidelines == "Simplified Chinese voice"
-    assert [%{term: "Account", translation: "账户"}] = bundle.terminology
+    assert [%{term: "Account", translation: "账户"}] = bundle.glossary
 
     prompt = Context.prompt_body(bundle, "Open the Account.", [])
     assert prompt =~ "Cultural guidance for CN"
-    assert prompt =~ "Use terminology familiar in mainland China."
+    assert prompt =~ "Use glossary familiar in mainland China."
   end
 
   @tag :tmp_dir
@@ -247,10 +247,10 @@ defmodule Glossia.Translations.ContextResolutionTest do
 
     assert get_in(lock, ["server_context", "voice", "version"]) == voice.version
 
-    assert get_in(lock, ["server_context", "terminology", "glossary_version"]) ==
+    assert get_in(lock, ["server_context", "glossary", "version"]) ==
              glossary.version
 
-    refute Map.has_key?(lock["server_context"]["terminology"], "term_keys")
+    refute Map.has_key?(lock["server_context"]["glossary"], "term_keys")
     refute File.read!(lock_path) =~ "Cuenta"
     refute File.read!(lock_path) =~ "Use concise sentences."
   end

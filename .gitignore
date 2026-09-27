@@ -23,6 +23,10 @@ preprocessed_configs/
 
 /tmp
 
+# Reviewer artifacts written by ad-hoc agent runs (Codex, Claude review passes).
+# Kept out of the repo; the reviews live in the PR discussion instead.
+/.review-*.md
+
 # ClickHouse local data (created when starting clickhouse in the worktree)
 /data
 /metadata
