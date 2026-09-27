@@ -1,31 +1,32 @@
 %{
-  title: "Por que a análise de localização",
+  title: "Por que análises de localização",
   summary:
-    "Como os sinais coletados se traduzem em decisões de localização, e por que a métrica de lacuna importa.",
-  category: "explicação",
+    "Como os sinais coletados se traduzem em decisões de localização e por que a métrica da lacuna importa.",
+  category: "Explicação",
+  section: "Análises",
   order: 2
 }
 ---
-Escolher o próximo idioma para traduzir é uma aposta: custa tempo e dinheiro, e o retorno depende de uma demanda que geralmente não é visível. A análise de localização torna essa demanda visível.
+Escolher para qual idioma traduzir a seguir é uma aposta: custa tempo e dinheiro, e o retorno depende da demanda que você geralmente não consegue ver. As análises de localização tornam essa demanda visível.
 
 ## A decisão, não o painel
 
-O propósito de coletar análises aqui é estreito e deliberado: para responder "devemos traduzir para o idioma X?" Os sinais são escolhidos para alimentar essa pergunta, não para ser uma suíte de análise de propósito geral.
+O objetivo de coletar análises aqui é específico e deliberado: para responder "deveríamos localizar para o idioma X?" Os sinais são escolhidos para alimentar essa pergunta, não para ser uma suíte de análises de propósito geral.
 
-Três entradas impulsionam a decisão:
+Três fatores impulsionam a decisão:
 
-1. **Demanda.** Quantos visitantes desejam este idioma? Os idiomas do navegador e o país indicam onde o interesse está.
-2. **A lacuna.** Essa demanda já é atendida? Comparar os idiomas preferidos com os idiomas-alvo do seu projeto revela a parcela do tráfego que encontra barreiras.
-3. **Valor.** Vale a pena localizar? O gap de engajamento por localidade, as páginas onde o tráfego não atendido chega, e a origem desse tráfego indicam se uma nova localidade converte.
+1. **Demanda.** Quantos visitantes desejam este idioma? Os idiomas do navegador e o país indicam onde está o interesse.
+2. **A lacuna.** Essa demanda já está atendida? Comparar os idiomas preferidos com os idiomas-alvo do projeto revela a proporção de tráfego que encontra uma barreira.
+3. **Valor.** Vale a pena localizar? O gap de engajamento por localização, as páginas onde o tráfego não atendido termina e a origem deste tráfego indicam se um novo locale converte.
 
-## Por que o gap é calculado no momento da ingestão
+## Por que o gap é computado no momento da ingestão
 
-`served_locale` e `has_locale_gap` armazenados por evento, calculados em relação aos seus idiomas alvo conforme eles eram no momento da visita. Isso significa que os dados históricos refletem a oportunidade que você enfrentou na época, não uma recomputação contra os alvos de hoje. Se você adicionar Português no próximo mês, o gap do mês passado não encolhe retroativamente; você mantém um registro honesto de quanto demanda estava sem atendimento.
+`served_locale` e `has_locale_gap` são armazenados por evento, computados contra seus idiomas alvo conforme eram no momento da visita. Isso significa que os dados históricos refletem a oportunidade que você enfrentou naquela época, e não uma recomputação contra os alvos de hoje. Se você adicionar o Português no próximo mês, o gap do mês passado não diminui retroativamente; você mantém um registro honesto de quanto da demanda estava sem atendimento.
 
 ## Por que sem cookies, especificamente
 
-O instinto quando você quer "visitantes únicos" é definir um cookie ou criar uma impressão digital do navegador. Ambos criam identificadores de longa duração, e a impressão digital é, sob a maioria dos regimes de privacidade, mais difícil de limpar do que um cookie. Nenhum dos dois é necessário aqui.
+O instinto quando você quer "visitantes únicos" é definir um cookie ou fingerprintar o navegador. Ambos criam identificadores de longa duração, e o fingerprinting é, sob a maioria dos regimes de privacidade, mais difícil de limpar que um cookie. Nenhum é necessário aqui.
 
-Visitantes únicos para um dia exigem apenas um identificador que seja estável *dentro do dia*. Um hash do IP e User-Agent, rotacionado diariamente e com escopo por projeto, fornece contagens únicas diárias e semanais precisas, tornando impossível vincular um visitante através de dias ou sites. Você abre mão do rastreamento de visitantes retornantes de longo prazo, que é exatamente a capacidade que cria a exposição de privacidade para a qual você normalmente precisaria de um banner de consentimento para operar legalmente.
+Visitantes únicos para um dia exigem apenas um identificador estável *dentro do dia*. Um hash do IP e do User-Agent, rotacionado diariamente e limitado ao projeto, fornece contagens de visitantes únicos diárias e semanais precisas, tornando impossível vincular um visitante entre dias ou entre sites. Você abre mão do rastreamento de longo prazo de visitantes recorrentes, que é exatamente a capacidade que cria a exposição de privacidade pela qual, de outra forma, você precisaria de um banner de consentimento para operar legalmente.
 
-A compensação é intencional: os analytics de localização devem ser algo que você possa implementar em qualquer lugar, para cada visitante, sem atrito legal.
+A troca é intencional: as análises de localização devem ser algo que você possa distribuir em todos os lugares, para cada visitante, sem atrito legal.
