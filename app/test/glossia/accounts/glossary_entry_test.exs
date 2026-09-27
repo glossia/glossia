@@ -27,7 +27,9 @@ defmodule Glossia.Accounts.GlossaryEntryTest do
     end
 
     test "promotes a binary `id` to logical_key" do
-      changeset = GlossaryEntry.changeset(%GlossaryEntry{}, %{"term" => "commit", "id" => "vcs-commit"})
+      changeset =
+        GlossaryEntry.changeset(%GlossaryEntry{}, %{"term" => "commit", "id" => "vcs-commit"})
+
       assert Ecto.Changeset.get_field(changeset, :logical_key) == "vcs-commit"
     end
 

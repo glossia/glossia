@@ -10,7 +10,9 @@ defmodule GlossiaWeb.Plugs.EnforceMcpOriginTest do
     endpoint_config = Application.get_env(:glossia, GlossiaWeb.Endpoint)
     extra_origins = Application.get_env(:glossia, :mcp_extra_allowed_origins)
 
-    Application.put_env(:glossia, GlossiaWeb.Endpoint,
+    Application.put_env(
+      :glossia,
+      GlossiaWeb.Endpoint,
       Keyword.merge(endpoint_config || [], url: [host: "glossia.example"])
     )
 
