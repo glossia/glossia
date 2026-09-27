@@ -1,5 +1,5 @@
 {
-  "hash": "2b505a1c60bfe2f4c43c1d19a02ce32724e33489a6dac08f3c27319b740d21ba",
+  "hash": "b9c0ac9f1c8b909f1a5c2fa0e146850c2d08bbb0d2d9c177c9261bbc5bbfac12",
   "hash_tree": {
     "root": {
       "children": [
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
@@ -83,20 +83,20 @@
               }
             }
           ],
-          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "2b505a1c60bfe2f4c43c1d19a02ce32724e33489a6dac08f3c27319b740d21ba",
+      "hash": "b9c0ac9f1c8b909f1a5c2fa0e146850c2d08bbb0d2d9c177c9261bbc5bbfac12",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/apis/account-tokens.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "99e16818c17142f73dc329a740cc1a54a73b890d485d0276c960317d560e6e5f",
+  "output_hash": "bb30e21050297d6c52321e70fde43cdadf0b201a367d88e060042e0c371cadff",
   "output_path": "app/priv/i18n/fr/docs/reference/apis/account-tokens.md",
   "provider": "",
   "server_context": {
@@ -112,5 +112,5 @@
     }
   },
   "source_path": "app/priv/docs/reference/apis/account-tokens.md",
-  "translated_at": "2026-09-12T09:45:18.783318Z"
+  "translated_at": "2026-09-27T16:43:42.248693Z"
 }
