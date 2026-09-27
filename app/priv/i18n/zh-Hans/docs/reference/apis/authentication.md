@@ -1,6 +1,6 @@
 %{
-  title: "身份验证与授权",
-  summary: "Glossia 如何验证用户身份并授权 API 访问权限。",
+  title: "认证与授权",
+  summary: "Glossia 如何认证用户并授权 API 访问。",
   category: "参考",
   subcategory: "API",
   order: 1
@@ -8,15 +8,15 @@
 ---
 ## 认证方法
 
-Glossia 根据上下文支持两种认证方法。
+Glossia 支持两种认证方法，具体取决于上下文。
 
 ### 浏览器会话
 
-当您通过 Web 界面登录时，Glossia 使用基于会话的认证。您通过第三方提供商（GitHub 或 GitLab）进行身份验证，使用 [Assent](https://github.com/pow-auth/assent) 库。成功登录后，将设置会话 cookie 并用于后续请求。
+当通过 Web 界面登录时，Glossia 使用基于会话的认证。您通过第三方提供商（GitHub 或 GitLab）使用 [Assent](https://github.com/pow-auth/assent) 库。登录成功后，会设置一个会话 cookie 并用于后续请求。
 
-### 授权令牌 (OAuth 2.1)
+### Bearer 令牌（OAuth 2.1）
 
-对于 API 访问（例如来自 CLI 或其他工具），Glossia 使用授权码流程和 PKCE 实现 OAuth 2.1。客户端获取授权令牌并将其包含在 `Authorization` 标题：
+对于 API 访问（如来自 CLI 或其他工具），Glossia 使用授权码流程和 PKCE 实现 OAuth 2.1。客户端获取 Bearer 令牌并将其包含在 `Authorization` header:
 
     Authorization: Bearer <access_token>
 
@@ -24,7 +24,7 @@ Glossia 根据上下文支持两种认证方法。
 
 ### 1\. 动态客户端注册
 
-客户端通过调用 `POST /oauth/register` 及其元数据。这遵循 [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
+客户端通过调用自行注册 `POST /oauth/register` 及其元数据。这遵循 [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)。
 
 ```json
 {
@@ -38,26 +38,26 @@ Glossia 根据上下文支持两种认证方法。
 
 ### 2\. 授权请求
 
-客户端将用户重定向到 `/oauth/authorize` 带有 PKCE 参数：
+客户端将用户重定向到 `/oauth/authorize` 包含 PKCE 参数：
 
     GET /oauth/authorize?response_type=code&client_id=<id>&redirect_uri=<uri>&code_challenge=<challenge>&code_challenge_method=S256&state=<state>
 
-**所有客户端都必须使用 PKCE。** 仅 `S256` 支持挑战方法。
+**所有客户端均需使用 PKCE。** 仅 `S256` 支持挑战方法。
 
 ### 3\. 令牌交换
 
-用户批准后，客户端将授权代码交换为令牌 在 `POST /oauth/token`:
+用户批准后，客户端将授权码在此处换取令牌 `POST /oauth/token`:
 
     POST /oauth/token
     Content-Type: application/x-www-form-urlencoded
     
     grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<id>&code_verifier=<verifier>
 
-响应包括访问令牌和可选的刷新令牌。
+响应中包含访问令牌和可选的刷新令牌。
 
 ### 4\. 令牌刷新
 
-访问令牌过期时，请使用刷新令牌：
+当访问令牌过期时，使用刷新令牌：
 
     POST /oauth/token
     Content-Type: application/x-www-form-urlencoded
@@ -70,47 +70,47 @@ Glossia 根据上下文支持两种认证方法。
 
 | 范围 | 描述 |
 |-------|-------------|
-| `user:read` | 查看用户个人资料信息 |
-| `user:write` | 更新用户个人资料 |
+| `user:read` | 读取用户资料信息 |
+| `user:write` | 更新用户资料 |
 | `account:read` | 列出您有权访问的组织账户 |
-| `organization:read` | 查看组织详情（并列出您的组织） |
+| `organization:read` | 查看组织详情 ( 并列出您的组织 ) |
 | `organization:write` | 创建或更新组织 |
 | `organization:delete` | 删除组织 |
 | `organization:admin` | 组织管理操作 |
-| `members:read` | 读取组织成员和邀请 |
+| `members:read` | 查看组织成员和邀请 |
 | `members:write` | 管理组织成员和邀请 |
-| `project:read` | 读取项目 |
+| `project:read` | 查看项目 |
 | `project:write` | 创建或更新项目 |
-| `project:admin` | 项目管理的操作 |
+| `project:admin` | 项目管理操作 |
 | `project:delete` | 删除项目 |
-| `voice:read` | 读取语音配置 |
+| `voice:read` | 查看语音配置 |
 | `voice:write` | 创建或更新语音配置 |
-| `voice:admin` | 管理语音操作 |
-| `glossary:read` | 查看术语条目 |
-| `glossary:write` | 创建或更新术语条目 |
-| `glossary:admin` | 管理术语设置 |
+| `voice:admin` | 语音管理操作 |
+| `glossary:read` | 查看术语表条目 |
+| `glossary:write` | 创建或更新术语表条目 |
+| `glossary:admin` | 管理术语表设置 |
 
 ## 授权模型
 
 Glossia 强制执行 **两层** 针对 REST API 和 MCP 服务器：
 
-1. **作用域检查**: 访问令牌必须包含所需的 `object:action` 作用域。
-2. **资源级别策略**: 当前用户必须对特定资源进行授权，通过 `Glossia.Policy`。
+1. **作用域检查**：访问令牌必须包含所需的 `object:action` 作用域。
+2. **资源级别策略**: 当前用户必须通过特定资源获得授权 `Glossia.Policy`.
 
-作用域代表 *最大* 令牌的能力。策略系统强制执行 *实际* 特定资源的权限。
+作用域代表 *最大* 令牌能力。策略系统强制 *实际* 特定资源的权限。
 
 ### 角色
 
-| 角色 | 说明 |
+| 角色 | 描述 |
 |------|-------------|
 | `self` | 访问自己资源的用户 |
-| `organization_member` | 资源所属组织的成员 |
+| `organization_member` | 拥有该资源的组织成员 |
 | `organization_admin` | 资源所属组织的管理员 |
-| `public_account` | 该账户为公开（仅读） |
+| `public_account` | 账户是公开（只读） |
 
 ### 角色权限
 
-| 范围 | 自身 | 组织成员 | 组织管理员 | 公共账户 |
+| 作用域 | 自身 | 组织成员 | 组织管理员 | 公共账户 |
 |-------|------|----------------------|--------------------|----------------|
 | `user:read` | 是 | 是 | | |
 | `user:write` | 是 | | | |
@@ -134,7 +134,7 @@ Glossia 强制执行 **两层** 针对 REST API 和 MCP 服务器：
 
 ## 发现端点
 
-Glossia 在标准知名 URL 处发布元数据，以便客户端能够自动发现端点。
+Glossia 会在标准众所周知的 URL 上发布元数据，以便客户端可以自动发现端点。
 
 ### OAuth 授权服务器元数据 (RFC 8414)
 
@@ -146,11 +146,11 @@ Glossia 在标准知名 URL 处发布元数据，以便客户端能够自动发�
 
     GET /.well-known/oauth-protected-resource
 
-返回资源标识符、授权服务器、支持的作用域以及令牌方法。
+返回资源标识符、授权服务器、支持的作用域以及凭证方法。
 
-## 限流
+## 速率限制
 
-OAuth 端点按 IP 地址限制速率：
+OAuth 端点按 IP 地址进行速率限制：
 
 | 端点 | 限制 |
 |----------|-------|
@@ -159,4 +159,4 @@ OAuth 端点按 IP 地址限制速率：
 | `POST /oauth/revoke` | 每分钟 30 次请求 |
 | `POST /oauth/introspect` | 每分钟 30 次请求 |
 
-当受到速率限制时，服务器将返回 HTTP 429（请求过多）。
+当触发限流时，服务器返回 HTTP 429 (请求过多)。
