@@ -1,26 +1,27 @@
 %{
-  title: "Configure um provedor de modelo",
-  summary: "Adicione um modelo de conta e referencie-o com segurança a partir dos repositórios.",
+  title: "Configure um provedor de modelos",
+  summary: "Adicione um modelo de conta e referencie-o com segurança a partir de repositórios.",
   category: "Tutorial",
+  section: "Tradução",
   order: 3
 }
 ---
-A configuração do projeto e as execuções de tradução usam modelos configurados para a conta atual do Glossia. Configure pelo menos um modelo antes de criar um projeto.
+A configuração do projeto e as execuções de tradução utilizam modelos configurados para a conta atual do Glossia. Configure pelo menos um modelo antes de criar um projeto.
 
 ## Adicionar um modelo
 
 1. Abrir **Configurações** e selecione **Modelos**.
 2. Selecionar **Novo modelo**.
-3. Digite um identificador único, como `translation-default`.
-4. Abra o seletor de modelos e digite parte do nome de um provedor ou do modelo para filtrar a lista.
-5. Selecione um modelo e insira sua chave de provedor.
-6. Salve o modelo.
+3. Digite um handle exclusivo, como `translation-default`.
+4. Abra o seletor de modelos e digite parte do nome de um provedor ou modelo para filtrar a lista.
+5. Selecione o modelo e insira sua chave do provedor.
+6. Salvar o modelo.
 
-O identificador permanece estável mesmo quando você posteriormente altera o modelo do provedor subjacente. O primeiro modelo adicionado a uma conta torna-se seu padrão.
+O handle é estável mesmo que você altere o modelo do provedor por trás dele mais tarde. O primeiro modelo adicionado a uma conta se torna o padrão.
 
-## Referenciar o modelo a partir de um repositório
+## Referencie o modelo de um repositório
 
-Definir `model` no relevante `L10N.md` frontmatter:
+Defina `model` no relevante `L10N.md` frontmatter:
 
 ```yaml
 ---
@@ -32,16 +33,16 @@ O repositório armazena apenas o handle. A chave do provedor permanece nas confi
 
 ## Escolha qual modelo será usado por padrão
 
-Quando `L10N.md` omite `model`, O Glossia usa o modelo padrão da conta. Para alterá-lo, abra o modelo que deve se tornar o padrão e selecione **Tornar padrão**.
+Quando `L10N.md` omite `model`Fluta utiliza o modelo padrão da conta. Para alterar, abra o modelo que deverá se tornar o padrão e selecione **Definir como padrão**.
 
-, Para comportamento previsível entre vários modelos, referencie explicitamente um handle em `L10N.md`.
+Para comportamento previsível entre vários modelos, referencie explicitamente um handle em `L10N.md`.
 
-Você pode colocar um diferente `model` handle em um aninhado `L10N.md` , para uma área de conteúdo, ou em `L10N/<locale>.md` para uma única localidade de destino. O Glossia usa a configuração mais próxima aplicável para cada documento e localidade. Ele não divide automaticamente o trabalho entre os modelos configurados.
+Você pode colocar um `model` handle em `L10N.md` para uma área de conteúdo, ou em `L10N/<locale>.md` para um único locale de destino. O Glossia utiliza a configuração aplicável mais próxima para cada documento e locale. Ele não divide automaticamente o trabalho entre os modelos configurados.
 
-Se um identificador explícito não existir na conta, a tradução para com um erro. Ela não recorre a outro modelo.
+Se um manipulador explícito não existir na conta, a tradução é interrompida com um erro. Ela não retorna para outro modelo.
 
 ## Alterar ou rotacionar uma chave de provedor
 
-Abrir **Configurações**, selecione **Modelos**, e abra o identificador do modelo. Insira uma nova chave de provedor e salve. Deixar o campo da chave em branco mantém a chave atual.
+Abrir **Configurações**, selecione **Modelos**, e abra o manipulador do modelo. Insira uma nova chave de provedor e salve. Deixar o campo de chave em branco mantém a chave atual.
 
-Repositórios que referenciam o identificador não precisam ser alterados.
+Repositórios que referenciam o handle não precisam ser alterados.
