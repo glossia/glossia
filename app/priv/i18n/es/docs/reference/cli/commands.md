@@ -1,7 +1,6 @@
 %{
   title: "Comandos",
-  summary:
-    "Referencia para todos los comandos de la línea de comandos de Glossia y sus banderas.",
+  summary: "Referencia para todos los comandos de línea de comandos de Glossia y sus opciones.",
   category: "referencia",
   subcategory: "cli",
   order: 1
@@ -9,7 +8,7 @@
 ---
 ## `glossia init`
 
-Crear un inicial `L10N.md` archivo de configuración en el repositorio actual.
+Crea un inicializador `L10N.md` un archivo de configuración en el repositorio actual.
 
 ```bash
 glossia init
@@ -19,30 +18,30 @@ Falla si `L10N.md` ya existe.
 
 ## La traducción es del lado del servidor
 
-La traducción se ejecuta en el servidor de Glossia, no en la interfaz de línea de comandos. Cuando se realiza un commit,
-Glossia planifica el trabajo desde tus `L10N.md` archivos, traduce cada archivo con
-tu modelo configurado en tu cuenta, y abre una solicitud de extracción con los resultados. Tu
-puede observar cada archivo y los turnos del modelo en vivo en la página de la sesión de traducción.
+La traducción se ejecuta en el servidor de Glossia, no en la interfaz de línea de comandos. Cuando se incorpora un commit,
+Glossia planifica el trabajo desde sus `L10N.md` archivos, traduce cada archivo con
+el modelo configurado de tu cuenta, y abre un pull request con los resultados. Tú
+puedes ver cada archivo y los turnos del modelo en vivo en la página de sesión de traducción.
 
-El modelo se elige por documento: un `L10N.md` `model:` nombrada una de tus
-gestores de modelo de tu cuenta lo eligen; de lo contrario, se utiliza el modelo por defecto de la cuenta.
+El modelo se elige por documento: un `L10N.md` `model:` nombrando uno de tus
+manejos del modelo de tu cuenta lo seleccionan; de lo contrario, se utiliza el modelo predeterminado de tu cuenta.
 
-La interfaz de línea de comandos deliberadamente no planifica, traduce, valida,
-inspecciona, ni elimina las traducciones generadas. Tampoco lee los del servidor
+La interfaz de línea de comandos intencionalmente no planifica, traduce, valida,
+inspeccionar, ni eliminar las traducciones generadas. Tampoco lee del servidor.
 archivos de bloqueo de traducción.
 
 ## `glossia revisit`
 
-Reservado para un paso futuro de revisión del idioma de origen. La línea de comandos de Rust
-interfaz actualmente devuelve un error de no implementación para este comando.
+Reservado para una revisión futura del lenguaje de origen. La línea de comandos de Rust
+interfaz actualmente devuelve un error no implementado para este comando.
 
 ```bash
 glossia revisit
 ```
 
-## Opciones globales
+## Banderas globales
 
-| Opción | Descripción |
+| Bandera | Descripción |
 |---|---|
-| `--path <PATH>` | Sobreescribir el directorio raíz del proyecto |
+| `--path <PATH>` | Sobrescribir el directorio raíz del proyecto |
 | `--no-color` | Desactivar salida coloreada |
