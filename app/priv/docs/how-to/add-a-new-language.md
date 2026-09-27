@@ -2,6 +2,7 @@
   title: "Add a new language",
   summary: "How to add a target language to an existing Glossia setup.",
   category: "how-to",
+  section: "translation",
   order: 1
 }
 ---

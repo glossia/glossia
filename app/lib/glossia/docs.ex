@@ -9,6 +9,7 @@ defmodule Glossia.Docs.Page do
     :summary,
     :category,
     :subcategory,
+    :section,
     :order,
     :body,
     :toc,
@@ -99,12 +100,23 @@ defmodule Glossia.Docs do
     }
   }
 
+  # Sidebar groups inside a category. A page opts in with `section:` in its
+  # frontmatter; pages without one are listed first, without a heading.
+  @section_order ~w(translation platform analytics)
+
+  @sections %{
+    "translation" => %{key: "translation", title: "Translation", icon: "language"},
+    "platform" => %{key: "platform", title: "Platform", icon: "users"},
+    "analytics" => %{key: "analytics", title: "Analytics", icon: "chart_column"}
+  }
+
   @subcategories %{
     "reference/cli" => %{
       category: "reference",
       key: "cli",
       title: "CLI",
       summary: "Command-line tool documentation and release history.",
+      section: "platform",
       order: 2
     },
     "reference/apis" => %{
@@ -112,6 +124,7 @@ defmodule Glossia.Docs do
       key: "apis",
       title: "APIs",
       summary: "Authentication and REST interfaces.",
+      section: "platform",
       order: 3
     },
     "reference/mcp" => %{
@@ -119,6 +132,7 @@ defmodule Glossia.Docs do
       key: "mcp",
       title: "MCP",
       summary: "Model Context Protocol server, tools, and prompts.",
+      section: "platform",
       order: 4
     }
   }
@@ -132,8 +146,16 @@ defmodule Glossia.Docs do
 
   @content_pages Enum.sort_by(@content_pages, & &1.order)
 
+  # `section` is a routing identifier like `category`: translated pages take it
+  # from their English original so a localized or missing value never regroups
+  # the sidebar.
+  @english_sections Map.new(@content_pages, &{&1.id, &1.section})
+
   @content_pages_by_locale Map.new(@content_pages_by_locale, fn {locale, pages} ->
-                             {locale, Enum.sort_by(pages, & &1.order)}
+                             {locale,
+                              pages
+                              |> Enum.map(&%{&1 | section: Map.get(@english_sections, &1.id)})
+                              |> Enum.sort_by(& &1.order)}
                            end)
 
   @synthetic_pages [
@@ -309,6 +331,7 @@ defmodule Glossia.Docs do
           %{
             key: subcategory.key,
             title: translate_meta(subcategory).title,
+            section: subcategory[:section],
             pages: subcategory_pages(category, subcategory.key, locale)
           }
         end)
@@ -318,12 +341,38 @@ defmodule Glossia.Docs do
       %{
         key: category,
         title: meta.title,
-        direct_pages: direct_pages,
-        subcategories: subcategories
+        sections: navigation_sections(direct_pages, subcategories)
       }
     end)
-    |> Enum.reject(&(&1.direct_pages == [] and &1.subcategories == []))
+    |> Enum.reject(&(&1.sections == []))
   end
+
+  # Groups a category's pages and subcategories by their `section`. Unsectioned
+  # entries come first with a nil title; unknown section keys are treated as
+  # unsectioned so a typo in frontmatter never hides a page.
+  defp navigation_sections(pages, subcategories) do
+    [nil | @section_order]
+    |> Enum.map(fn key ->
+      %{
+        section: key && translate_section(Map.fetch!(@sections, key)),
+        pages: Enum.filter(pages, &(section_key(&1.section) == key)),
+        subcategories: Enum.filter(subcategories, &(section_key(&1.section) == key))
+      }
+    end)
+    |> Enum.reject(&(&1.pages == [] and &1.subcategories == []))
+    |> Enum.map(fn group ->
+      %{
+        key: group.section && group.section.key,
+        title: group.section && group.section.title,
+        icon: group.section && group.section.icon,
+        pages: group.pages,
+        subcategories: group.subcategories
+      }
+    end)
+  end
+
+  defp section_key(key) when is_map_key(@sections, key), do: key
+  defp section_key(_key), do: nil
 
   def get_page!(category, subcategory, slug, locale \\ Glossia.I18n.default_locale())
 
@@ -361,6 +410,13 @@ defmodule Glossia.Docs do
 
   # The Diataxis labels live in code rather than in content, so they go through
   # Gettext instead of through the translated markdown.
+  defp translate_section(%{key: key} = section),
+    do: %{section | title: translated_section_title(key)}
+
+  defp translated_section_title("translation"), do: gettext("Translation")
+  defp translated_section_title("platform"), do: gettext("Platform")
+  defp translated_section_title("analytics"), do: gettext("Analytics")
+
   defp translate_meta(%{key: key} = meta) do
     %{meta | title: translated_title(key), summary: translated_summary(key)}
   end

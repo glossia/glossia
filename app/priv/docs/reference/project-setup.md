@@ -2,6 +2,7 @@
   title: "Project setup",
   summary: "States, progress information, and outcomes of repository setup.",
   category: "reference",
+  section: "translation",
   order: 2
 }
 ---

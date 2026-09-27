@@ -2,6 +2,7 @@
   title: "Retry project setup",
   summary: "Recover a project after setup reports a failure.",
   category: "how-to",
+  section: "translation",
   order: 4
 }
 ---

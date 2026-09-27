@@ -93,6 +93,7 @@ Markdown content here...
 - `summary` (required): one-line description shown on the docs index page.
 - `category` (required): one of `tutorials`, `how-to`, `reference`, `explanation`.
 - `order` (required): integer that controls sort order within its category.
+- `section` (optional): sidebar group within the category. One of `translation`, `platform`, or `analytics` (defined in `Glossia.Docs`). Pages without a section are listed first, without a heading. Translated pages always inherit the English page's section.
 
 ### Layout
 

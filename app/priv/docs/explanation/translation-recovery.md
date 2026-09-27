@@ -2,6 +2,7 @@
   title: "Translation recovery",
   summary: "How Glossia recovers from provider throttling and interrupted translations.",
   category: "explanation",
+  section: "translation",
   order: 8
 }
 ---

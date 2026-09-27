@@ -2,6 +2,7 @@
   title: "Configure a model provider",
   summary: "Add an account model and reference it safely from repositories.",
   category: "how-to",
+  section: "translation",
   order: 3
 }
 ---

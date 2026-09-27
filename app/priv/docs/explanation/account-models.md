@@ -2,6 +2,7 @@
   title: "Account models",
   summary: "Why model providers are configured once per account and referenced by handle.",
   category: "explanation",
+  section: "platform",
   order: 2
 }
 ---

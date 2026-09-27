@@ -2,6 +2,7 @@
   title: "Progressive refinement",
   summary: "Why content quality converges over time, not in a single pass.",
   category: "explanation",
+  section: "translation",
   order: 1
 }
 ---

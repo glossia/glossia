@@ -2,6 +2,7 @@
   title: "Install web analytics",
   summary: "Add the Glossia web SDK to your site with one line of HTML or via npm, and start collecting localization signals.",
   category: "how-to",
+  section: "analytics",
   order: 1
 }
 ---

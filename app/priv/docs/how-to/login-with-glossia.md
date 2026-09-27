@@ -2,6 +2,7 @@
   title: "Login with Glossia",
   summary: "Let users sign in to your app with their Glossia account using OAuth 2.1.",
   category: "how-to",
+  section: "platform",
   order: 2
 }
 ---

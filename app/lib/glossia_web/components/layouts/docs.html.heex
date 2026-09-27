@@ -168,70 +168,85 @@
           </.tab_menu_vertical>
         </a>
 
-        <section
-          :for={category <- Enum.filter(@docs_navigation, &(&1.key == @docs_current_category))}
-          data-part="nav-section"
-        >
-          <.line_divider />
-          <div data-part="content-divider">
-            <span>{category.title}</span>
-          </div>
-          <div data-part="nav-items">
-            <a href={locale_path(~p"/docs/#{category.key}")} data-part="nav-link">
-              <.tab_menu_vertical
-                label={gettext("Overview")}
-                data-selected={
-                  @docs_current_category == category.key and is_nil(@docs_current_slug)
-                }
-              />
-            </a>
+        <%= for category <- Enum.filter(@docs_navigation, &(&1.key == @docs_current_category)) do %>
+          <section data-part="nav-section">
+            <.line_divider />
+            <div data-part="content-divider">
+              <span>{category.title}</span>
+            </div>
+            <div data-part="nav-items">
+              <a href={locale_path(~p"/docs/#{category.key}")} data-part="nav-link">
+                <.tab_menu_vertical
+                  label={gettext("Overview")}
+                  data-selected={
+                    @docs_current_category == category.key and is_nil(@docs_current_slug)
+                  }
+                />
+              </a>
+            </div>
+          </section>
 
-            <a
-              :for={page <- category.direct_pages}
-              href={locale_path(~p"/docs/#{category.key}/#{page.slug}")}
-              data-part="nav-link"
-            >
-              <.tab_menu_vertical
-                label={page.title}
-                data-selected={
-                  @docs_current_category == category.key and is_nil(@docs_current_subcategory) and
-                    @docs_current_slug == page.slug
-                }
-              />
-            </a>
-
-            <details
-              :for={subcategory <- category.subcategories}
-              data-part="nav-collapsible"
-              open={
-                @docs_current_category == category.key and
-                  @docs_current_subcategory == subcategory.key
-              }
-            >
-              <summary>
-                <.tab_menu_vertical label={subcategory.title}>
-                  <:icon_right><.chevron_down /></:icon_right>
-                </.tab_menu_vertical>
-              </summary>
-              <div data-part="nav-children">
-                <a
-                  :for={page <- subcategory.pages}
-                  href={locale_path(~p"/docs/#{category.key}/#{subcategory.key}/#{page.slug}")}
-                  data-part="nav-link"
-                >
-                  <.tab_menu_vertical
-                    label={page.title}
-                    data-selected={
-                      @docs_current_category == category.key and
-                        @docs_current_subcategory == subcategory.key and
-                        @docs_current_slug == page.slug
-                    }
-                  />
-                </a>
+          <section
+            :for={group <- category.sections}
+            data-part="nav-section"
+            data-section={group.key}
+          >
+            <%= if group.title do %>
+              <.line_divider />
+              <div data-part="content-divider">
+                <Icon.icon name={group.icon} />
+                <span>{group.title}</span>
               </div>
-            </details>
-          </div>
-        </section>
+            <% end %>
+            <div data-part="nav-items">
+              <a
+                :for={page <- group.pages}
+                href={locale_path(~p"/docs/#{category.key}/#{page.slug}")}
+                data-part="nav-link"
+              >
+                <.tab_menu_vertical
+                  label={page.title}
+                  data-selected={
+                    @docs_current_category == category.key and
+                      is_nil(@docs_current_subcategory) and
+                      @docs_current_slug == page.slug
+                  }
+                />
+              </a>
+
+              <details
+                :for={subcategory <- group.subcategories}
+                data-part="nav-collapsible"
+                open={
+                  @docs_current_category == category.key and
+                    @docs_current_subcategory == subcategory.key
+                }
+              >
+                <summary>
+                  <.tab_menu_vertical label={subcategory.title}>
+                    <:icon_right><.chevron_down /></:icon_right>
+                  </.tab_menu_vertical>
+                </summary>
+                <div data-part="nav-children">
+                  <a
+                    :for={page <- subcategory.pages}
+                    href={locale_path(~p"/docs/#{category.key}/#{subcategory.key}/#{page.slug}")}
+                    data-part="nav-link"
+                  >
+                    <.tab_menu_vertical
+                      label={page.title}
+                      data-selected={
+                        @docs_current_category == category.key and
+                          @docs_current_subcategory == subcategory.key and
+                          @docs_current_slug == page.slug
+                      }
+                    />
+                  </a>
+                </div>
+              </details>
+            </div>
+          </section>
+        <% end %>
       </div>
     </nav>
 
