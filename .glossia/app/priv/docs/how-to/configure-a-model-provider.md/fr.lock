@@ -1,15 +1,15 @@
 {
-  "hash": "a32d82c0a7128aa2a875c3fd30d2996e0a26091e7657ed71ce32336ffe5fde73",
+  "hash": "c7e0cd5a94d294427f97bdff967efb34563c51922f17e56c6ba33a485372bbe4",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "09e8309cc212a33942e6b7b9fe34e4442993f71ef6564ca53c1dac9e17fec7b1",
+          "hash": "0a4cf82583911b711f8c1c05dddf8dc37ffbff877294354f621b0f7d3fc888e9",
           "kind": "source",
           "label": "app/priv/docs/how-to/configure-a-model-provider.md",
           "metadata": {
-            "content_hash": "cba272636eea1e44d148cf2affc61465a22bcebc6a2415caa371b1da623cc6b7"
+            "content_hash": "17befaa67e65a8dc26afa257518a9bee7df6dce4f8b3c3c9264d519b7f4c7faa"
           }
         },
         {
@@ -37,11 +37,11 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
@@ -83,20 +83,20 @@
               }
             }
           ],
-          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "a32d82c0a7128aa2a875c3fd30d2996e0a26091e7657ed71ce32336ffe5fde73",
+      "hash": "c7e0cd5a94d294427f97bdff967efb34563c51922f17e56c6ba33a485372bbe4",
       "kind": "translation_input",
       "label": "app/priv/docs/how-to/configure-a-model-provider.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "f45a31c8122e68c75befc9cd03bb6ad07c768e6f0769c638aafdf2707c79c870",
+  "output_hash": "71813a6d9070986aad6ebf4f1f7d7724b8da1854fdcceae350e240d0910ef6aa",
   "output_path": "app/priv/i18n/fr/docs/how-to/configure-a-model-provider.md",
   "provider": "",
   "server_context": {
@@ -112,5 +112,5 @@
     }
   },
   "source_path": "app/priv/docs/how-to/configure-a-model-provider.md",
-  "translated_at": "2026-09-12T09:26:11.995423Z"
+  "translated_at": "2026-09-27T14:34:01.747962Z"
 }
