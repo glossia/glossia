@@ -37,8 +37,13 @@
 }
 
 :root {
-  --noora-font-heading: var(--font-heading);
-  --noora-font-body: var(--font-body);
+  /* Noora's composite typography tokens (--noora-font-heading-large, ...)
+   * bake in the value of --noora-font-{heading,body} at THIS :root scope, so
+   * a later .noora-shell override never reaches them. Point straight at the
+   * sans stack instead — pointing at --font-heading would leak the marketing
+   * serif into every Noora component. */
+  --noora-font-heading: var(--font-family-sans);
+  --noora-font-body: var(--font-family-sans);
   --noora-font-code: var(--font-code);
   --noora-surface-background-primary: var(--color-surface);
   --noora-surface-background-secondary: var(--color-bg-subtle);
