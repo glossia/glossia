@@ -37,6 +37,15 @@
     padding: var(--noora-spacing-7);
   }
 
+  /* Noora zeroes the left padding of `[data-part="cell"]` when it sits
+   * inside `[data-part="expand-cell"]` so the disclosure chevron's
+   * flex-gap sets the spacing; our custom wrapper needs the same
+   * treatment, otherwise the chevron and the file path drift 20px
+   * apart. */
+  & [data-part="expand-cell"] > [data-part="file-cell"] {
+    padding-left: var(--space-0);
+  }
+
   & [data-part="path"] {
     min-width: var(--space-0);
     font-family: var(--font-family-mono);
