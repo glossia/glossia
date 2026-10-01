@@ -5,14 +5,10 @@ defmodule GlossiaWeb.AuthController do
   alias Glossia.Accounts
   alias Glossia.Cloudflare.Turnstile
   alias Glossia.Events
+  alias Glossia.Interest
   alias GlossiaWeb.SignupProtection
 
   @dev_routes Application.compile_env(:glossia, :dev_routes, false)
-
-  # The Turnstile-verified flag is written on the sign-up form submit
-  # and consumed in the OAuth callback; anything older than this window
-  # forces the user through the widget again.
-  @signup_gate_ttl_seconds 15 * 60
 
   @login_rate_limit [
     key_prefix: "auth_login_page",
@@ -30,6 +26,16 @@ defmodule GlossiaWeb.AuthController do
     format: :text
   ]
 
+  plug GlossiaWeb.Plugs.RateLimit,
+       [
+         key_prefix: "signup_interest",
+         scale: :timer.minutes(10),
+         limit: 5,
+         by: :ip,
+         format: :text
+       ]
+       when action == :show_interest
+
   plug GlossiaWeb.Plugs.RateLimit, @login_rate_limit when action in [:login, :signup]
 
   plug GlossiaWeb.Plugs.RateLimit,
@@ -44,16 +50,24 @@ defmodule GlossiaWeb.AuthController do
       subtitle: gettext("Welcome back. Choose a sign-in method to continue."),
       switch_prompt: gettext("New to Glossia?"),
       switch_href: ~p"/signup",
-      switch_label: gettext("Sign up")
+      switch_label: gettext("Show interest")
     )
   end
 
   def signup(conn, _params) do
+    render_interest(conn, Interest.changeset(%{}))
+  end
+
+  defp render_interest(conn, changeset) do
     render_auth_entry(conn,
       mode: :signup,
-      page_title: gettext("Sign up"),
-      title: gettext("Sign up for Glossia"),
-      subtitle: gettext("Choose a provider to create your account and start using Glossia."),
+      page_title: gettext("Show interest"),
+      title: gettext("Interested in Glossia?"),
+      subtitle:
+        gettext(
+          "We’re onboarding teams gradually. Leave your email and we’ll get back to you to help you get started."
+        ),
+      interest_form: Phoenix.Component.to_form(changeset, as: :interest),
       switch_prompt: gettext("Already have an account?"),
       switch_href: ~p"/auth/login",
       switch_label: gettext("Log in")
@@ -67,6 +81,7 @@ defmodule GlossiaWeb.AuthController do
     |> put_layout(false)
     |> render(:login,
       dev_routes: @dev_routes,
+      interest_form: assigns[:interest_form],
       providers: supported_login_providers(),
       mode: assigns[:mode],
       turnstile_required?: turnstile_required?,
@@ -81,42 +96,47 @@ defmodule GlossiaWeb.AuthController do
     )
   end
 
-  @doc """
-  Sign-up gate. The sign-up form posts here per provider button; on
-  success we stamp `:signup_gate_verified_at` in the session and hand
-  off to the normal OAuth start endpoint. On failure we bounce back to
-  `/signup` with a flash message.
+  def show_interest(conn, params) do
+    changeset = Interest.changeset(params["interest"] || %{})
 
-  When Turnstile is not required (dev, kill switch on) this becomes a
-  pass-through — the session flag is still written so the OAuth
-  callback's gate check is uniform across environments.
-  """
-  def verify_signup_gate(conn, %{"provider" => provider_param} = params) do
-    case safe_parse_provider(provider_param) do
-      {:ok, provider} ->
-        if provider in supported_login_providers() do
-          case SignupProtection.verify(session_bucket_key(conn), params, "signup") do
-            :ok ->
-              conn
-              |> put_session(:signup_gate_verified_at, System.system_time(:second))
-              |> redirect(to: ~p"/auth/#{provider}")
-
-            {:error, reason} ->
-              conn
-              |> put_flash(:error, signup_gate_error_message(reason))
-              |> redirect(to: ~p"/signup")
-          end
-        else
-          conn
-          |> put_flash(:error, gettext("That sign-in method is not available."))
-          |> redirect(to: ~p"/signup")
-        end
-
-      :error ->
+    if changeset.valid? do
+      with :ok <- SignupProtection.verify(session_bucket_key(conn), params, "signup"),
+           {:ok, _metadata} <- Interest.deliver(changeset) do
         conn
-        |> put_flash(:error, gettext("That sign-in method is not available."))
+        |> put_flash(
+          :info,
+          gettext(
+            "Thanks for your interest! We’ll get back to you by email to help you get started."
+          )
+        )
         |> redirect(to: ~p"/signup")
+      else
+        {:error, reason} when is_atom(reason) ->
+          conn
+          |> put_flash(:error, signup_gate_error_message(reason))
+          |> render_interest(changeset)
+
+        {:error, _reason} ->
+          conn
+          |> put_status(:service_unavailable)
+          |> put_flash(
+            :error,
+            gettext("We couldn’t send your request. Please try again in a moment.")
+          )
+          |> render_interest(changeset)
+      end
+    else
+      conn
+      |> put_status(:unprocessable_entity)
+      |> render_interest(%{changeset | action: :validate})
     end
+  end
+
+  # Old signup forms and bookmarks must never enable account creation.
+  def verify_signup_gate(conn, _params) do
+    conn
+    |> delete_session(:signup_gate_verified_at)
+    |> redirect(to: ~p"/signup")
   end
 
   def request(conn, %{"provider" => provider}) do
@@ -144,10 +164,9 @@ defmodule GlossiaWeb.AuthController do
   def callback(conn, %{"provider" => provider} = params) do
     provider = parse_provider!(provider)
     session_params = get_session(conn, :oauth_session_params)
-    gate_verified? = signup_gate_verified?(conn)
 
-    # Consume the one-shot flags on every code path so a solved
-    # Turnstile can't be replayed against a second provider start.
+    # Clear authentication state, including signup grants issued before
+    # public registration was replaced by the interest form.
     conn =
       conn
       |> delete_session(:oauth_session_params)
@@ -155,49 +174,26 @@ defmodule GlossiaWeb.AuthController do
 
     case Auth.callback(provider, params, session_params) do
       {:ok, oauth_response} ->
-        provider_uid = to_string(oauth_response.user["sub"])
+        case Accounts.sign_in_user_from_oauth(provider, oauth_response) do
+          {:ok, user} ->
+            finalize_session(conn, user, "user.signed_in", "Signed in")
 
-        cond do
-          Accounts.get_identity(provider, provider_uid) != nil ->
-            complete_login(conn, provider, oauth_response)
-
-          gate_verified? ->
-            complete_signup(conn, provider, oauth_response)
-
-          true ->
-            # The user reached the callback without a fresh sign-up
-            # gate. Bounce them to /signup so they see the widget
-            # instead of silently failing.
+          {:error, :not_registered} ->
             conn
             |> put_flash(
-              :error,
-              gettext("Please complete the sign-up challenge before continuing.")
+              :info,
+              gettext("We’re onboarding teams gradually. Leave your email to show your interest.")
             )
             |> redirect(to: ~p"/signup")
+
+          {:error, _reason} ->
+            callback_error(conn)
         end
 
       {:error, _error} ->
         conn
         |> put_flash(:error, gettext("Authentication failed. Please try again."))
         |> redirect(to: ~p"/auth/login")
-    end
-  end
-
-  defp complete_login(conn, provider, oauth_response) do
-    case Accounts.find_or_create_user_from_oauth(provider, oauth_response,
-           locale: conn.assigns[:locale]
-         ) do
-      {:ok, user} -> finalize_session(conn, user, "user.signed_in", "Signed in")
-      {:error, _changeset} -> callback_error(conn)
-    end
-  end
-
-  defp complete_signup(conn, provider, oauth_response) do
-    case Accounts.find_or_create_user_from_oauth(provider, oauth_response,
-           locale: conn.assigns[:locale]
-         ) do
-      {:ok, user} -> finalize_session(conn, user, "user.signed_up", "Signed up")
-      {:error, _changeset} -> callback_error(conn)
     end
   end
 
@@ -219,7 +215,7 @@ defmodule GlossiaWeb.AuthController do
 
   defp callback_error(conn) do
     conn
-    |> put_flash(:error, gettext("There was a problem creating your account. Please try again."))
+    |> put_flash(:error, gettext("There was a problem signing you in. Please try again."))
     |> redirect(to: ~p"/auth/login")
   end
 
@@ -266,37 +262,19 @@ defmodule GlossiaWeb.AuthController do
     |> redirect(to: ~p"/")
   end
 
-  defp signup_gate_verified?(conn) do
-    if Turnstile.required?() do
-      case get_session(conn, :signup_gate_verified_at) do
-        ts when is_integer(ts) ->
-          System.system_time(:second) - ts <= @signup_gate_ttl_seconds
-
-        _ ->
-          false
-      end
-    else
-      # Off in dev / kill switch flipped — the gate is not enforced.
-      true
-    end
-  end
-
   defp signup_gate_error_message(:rate_limited),
-    do:
-      gettext(
-        "Too many sign-up attempts from this session. Please wait a few minutes and try again."
-      )
+    do: gettext("Too many requests from this session. Please wait a few minutes and try again.")
 
   defp signup_gate_error_message(:missing_session),
     do: gettext("Your session expired. Please reload the page and try again.")
 
   defp signup_gate_error_message(:turnstile_failed),
-    do: gettext("The sign-up challenge did not pass. Please try again.")
+    do: gettext("The verification challenge did not pass. Please try again.")
 
   defp signup_gate_error_message(:misconfigured),
     do:
       gettext(
-        "Sign-up is temporarily unavailable while we fix a configuration issue. Please try again shortly."
+        "The interest form is temporarily unavailable while we fix a configuration issue. Please try again shortly."
       )
 
   # The raw, unmasked CSRF token Phoenix stashes in the session. Unlike
@@ -305,12 +283,6 @@ defmodule GlossiaWeb.AuthController do
   # value is stable across a browser session, which is exactly what the
   # registration rate-limit bucket needs to fence a persistent client.
   defp session_bucket_key(conn), do: get_session(conn, "_csrf_token")
-
-  defp safe_parse_provider(provider) do
-    {:ok, parse_provider!(provider)}
-  rescue
-    Glossia.Auth.InvalidProviderError -> :error
-  end
 
   defp parse_provider!("github"), do: :github
   defp parse_provider!("gitlab"), do: :gitlab

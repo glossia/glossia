@@ -160,6 +160,7 @@ defmodule GlossiaWeb.Router do
     pipe_through :browser
 
     get "/signup", AuthController, :signup
+    post "/signup", AuthController, :show_interest
   end
 
   if Application.compile_env(:glossia, :dev_routes) do

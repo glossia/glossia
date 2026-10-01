@@ -130,6 +130,14 @@ defmodule Glossia.Accounts do
     end
   end
 
+  @doc "Signs in an existing provider identity without creating an account."
+  def sign_in_user_from_oauth(provider, %{user: user_info, token: token_info}) do
+    case get_identity(provider, to_string(user_info["sub"])) do
+      nil -> {:error, :not_registered}
+      identity -> update_identity_tokens(identity, token_info)
+    end
+  end
+
   def update_user_locale(%User{} = user, locale) do
     user
     |> User.locale_changeset(%{locale: locale})
