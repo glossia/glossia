@@ -7,14 +7,31 @@
 }
 ---
 
-Project setup prepares a connected repository for Glossia. It begins after a user selects a repository and at least one target language in the **New project** flow.
+Project setup prepares a connected repository for Glossia. After a user selects a repository in the **New project** flow, they choose one of two setup modes.
+
+## Setup modes
+
+| Mode | What Glossia does | When to choose it |
+|---|---|---|
+| **Automated setup** | Inspects the repository and opens a pull request with the generated `L10N.md` configuration for the selected target languages. | The repository has no localization configuration yet. |
+| **Manual configuration** | Creates the project immediately. It does not inspect the repository, change it, or open a pull request. | The repository already has an `L10N.md` file, or a maintainer will write it. |
+
+The states, progress information, and pull request described below apply to automated setup only.
+
+## Manual configuration
+
+A manually configured project has no setup state. It is usable as soon as it is created and is never discarded by a failed setup.
+
+Glossia starts a translation run on the next push to the repository's default branch. The run translates into every target declared in the repository's [`L10N.md`](/docs/reference/l10n-md) files, because no target languages are selected in the **New project** flow.
+
+Until the first translation run, the project overview shows a notice explaining that Glossia is waiting for a push that includes an `L10N.md` file.
 
 ## Prerequisites
 
 - The account has at least one configured model.
 - The Glossia GitHub App can access the selected repository.
 - The user can create projects in the account.
-- At least one target language is selected.
+- For automated setup, at least one target language is selected.
 
 ## States
 

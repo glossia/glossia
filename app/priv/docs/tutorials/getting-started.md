@@ -37,19 +37,23 @@ If Glossia asks for repository access, follow the link to GitHub and grant the G
 
 Select the repository you want to localize. Glossia only lists repositories available through the current account's GitHub App installation.
 
-Continue to the language step.
+## 4. Choose how to set up the project
 
-## 4. Choose target languages
+Select **Automated setup** to let Glossia inspect the repository and propose the localization configuration in a pull request. This tutorial follows that path.
+
+If the repository already has an `L10N.md` file, or you prefer to write it yourself, select **Manual configuration** instead. Glossia creates the project straight away and you can skip the remaining steps. See [Project setup](/docs/reference/project-setup) for what each mode does.
+
+## 5. Choose target languages
 
 Select one or more languages that should be produced from the repository's source content, then start setup.
 
-## 5. Follow setup progress
+## 6. Follow setup progress
 
 Keep the setup page open while Glossia prepares the project. The progress card shows the current state and recent activity, including repository preparation, file inspection, changes, checks, and completion.
 
 You can leave the page and return to the project overview without losing the setup state. If setup fails, the same card explains what needs attention and offers **Retry setup**.
 
-## 6. Review the result
+## 7. Review the result
 
 When setup completes, open the project overview and review the pull request created for the repository. The proposed baseline normally includes:
 
