@@ -96,6 +96,8 @@ Those corrections also need to be taken into account so future translations don'
 
 This is Glossia. We already use it to translate Glossia, and I'm working on setting it up to translate Tuist's documentation, marketing site, and dashboard into the languages of our communities.
 
+María José and I are building Glossia in our spare time, following a curiosity that has been part of our conversations for years.
+
 In programming, many people are questioning the role of programmers and how it will evolve. I think the localization industry would benefit from a similar questioning of its assumptions and models. How can we help our industry translate more, faster, and at a lower cost, without compromising quality?
 
 We don't have answers to all the questions yet. But we believe we're heading in the right direction, with the simplicity and attention to craft we like to pour into everything we do.
