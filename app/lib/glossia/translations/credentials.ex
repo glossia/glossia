@@ -35,6 +35,7 @@ defmodule Glossia.Translations.Credentials do
   # `model` field in the request body. ReqLLM still needs a spec to pick a
   # client, so substitute an OpenAI-compatible passthrough identifier.
   @gateway_passthrough_model "openai/gateway"
+  @gateway_harness_provider "gateway"
   @development_session_keys %{
     claude: "development-session:claude",
     codex: "development-session:codex",
@@ -407,19 +408,42 @@ defmodule Glossia.Translations.Credentials do
     end
   end
 
-  defp api_key_harness_credential(credential, key, base_url) do
+  defp api_key_harness_credential(credential, key, nil) do
     model = open_code_model(credential.model)
-    [provider | _rest] = String.split(model, "/", parts: 2)
-
-    options =
-      %{"apiKey" => key}
-      |> maybe_put("baseURL", base_url)
+    provider = ModelIdentifier.provider(model)
 
     %{
       model: model,
       opencode_config: %{
         "model" => model,
-        "provider" => %{provider => %{"options" => options}}
+        "provider" => %{provider => %{"options" => %{"apiKey" => key}}}
+      },
+      opencode_auth: %{},
+      source: credential.source
+    }
+  end
+
+  # A base URL means an OpenAI-compatible gateway serving a model name of its
+  # own choosing. OpenCode only accepts a built-in provider's catalogued models
+  # (anything else fails with "Model not found" before a request is made) and
+  # speaks the OpenAI provider's native protocol rather than chat completions,
+  # so the gateway is declared as its own provider that lists the model.
+  defp api_key_harness_credential(credential, key, base_url) do
+    gateway_model = ModelIdentifier.provider_model(credential.model)
+    model = ModelIdentifier.join(@gateway_harness_provider, gateway_model)
+
+    %{
+      model: model,
+      opencode_config: %{
+        "model" => model,
+        "provider" => %{
+          @gateway_harness_provider => %{
+            "npm" => "@ai-sdk/openai-compatible",
+            "name" => "Gateway",
+            "options" => %{"apiKey" => key, "baseURL" => base_url},
+            "models" => %{gateway_model => %{"name" => gateway_model}}
+          }
+        }
       },
       opencode_auth: %{},
       source: credential.source
