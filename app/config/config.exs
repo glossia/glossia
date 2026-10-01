@@ -173,8 +173,9 @@ config :glossia, Oban,
      ]}
   ]
 
-# Sandbox context: the Kata-scheduled adapter and its knobs. Overridable at
-# runtime via `GLOSSIA_SANDBOX_*` env vars.
+# Sandbox context: the Kubernetes pod adapter and its knobs. Placement and the
+# runtime class are not set here: sandbox pods follow the managed runner
+# settings (`GLOSSIA_MANAGED_*`), the same as runner pods and translation Jobs.
 config :glossia, Glossia.Sandbox,
   adapter: Glossia.Sandbox.KataAdapter,
   enabled: true,
@@ -186,7 +187,6 @@ config :glossia, Glossia.Sandbox,
   reaper_interval_ms: 60_000,
   delete_retry_after_ms: 60_000,
   image: "ghcr.io/glossia/glossia:main",
-  runtime_class_name: "kata-qemu",
   repo_path: "/tmp/glossia/repo"
 
 # Project setup harness configuration. `harness_timeout_ms` is the ceiling on
