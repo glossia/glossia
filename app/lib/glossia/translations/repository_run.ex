@@ -850,7 +850,7 @@ defmodule Glossia.Translations.RepositoryRun do
       case Engine.apply_item(item, account, on_event, validate, engine_opts) do
         {:ok, result} ->
           write_output(item, result.text)
-          write_lock(repo_path, item, provider, hash_state, result.text)
+          write_lock(repo_path, session, item, provider, hash_state, result.text)
 
           case publish_completed_item(after_item_completed, repo_path, item) do
             :ok ->
@@ -1011,7 +1011,7 @@ defmodule Glossia.Translations.RepositoryRun do
     end
   end
 
-  defp write_lock(repo_path, item, provider, hash_state, text) do
+  defp write_lock(repo_path, session, item, provider, hash_state, text) do
     lock =
       Locks.build_lock(
         provider,
@@ -1023,6 +1023,10 @@ defmodule Glossia.Translations.RepositoryRun do
         hash_state.tree,
         Context.provenance(item.server_context),
         po_units_for(item, text)
+      )
+      |> Locks.add_baseline(
+        source_commit_sha: session.commit_sha,
+        translation_session_id: session.id
       )
 
     Locks.write_lock(repo_path, item.source_path, item.locale, lock)

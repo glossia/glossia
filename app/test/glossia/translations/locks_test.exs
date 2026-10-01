@@ -4,6 +4,194 @@ defmodule Glossia.Translations.LocksTest do
   alias Glossia.Translations.Locks
   alias Glossia.Translations.Po
 
+  # A minimal lock the way `RepositoryRun.write_lock` composes it — provider,
+  # model, source/output paths, output content, and a hash. The baseline fields
+  # go on top via `add_baseline/2`.
+  defp minimal_lock do
+    Locks.build_lock(
+      "openai",
+      "gpt-x",
+      "docs/index.md",
+      "docs/es/index.md",
+      "hola",
+      "input-hash-1234"
+    )
+  end
+
+  describe "add_baseline/2" do
+    test "attaches every baseline field on a freshly written lock" do
+      lock =
+        minimal_lock()
+        |> Locks.add_baseline(
+          source_commit_sha: "abc123",
+          translation_session_id: "sess-42"
+        )
+
+      assert lock["baseline_schema_version"] == Locks.baseline_schema_version()
+      assert lock["source_commit_sha"] == "abc123"
+      assert lock["translation_session_id"] == "sess-42"
+      assert lock["protection_state"] == "recorded"
+    end
+
+    test "defaults protection_state to \"recorded\" when omitted" do
+      lock = Locks.add_baseline(minimal_lock(), source_commit_sha: "abc123")
+      assert lock["protection_state"] == "recorded"
+    end
+
+    test "accepts an explicit protection_state override within the valid set" do
+      for state <- Locks.valid_protection_states() do
+        lock =
+          Locks.add_baseline(minimal_lock(),
+            source_commit_sha: "abc123",
+            protection_state: state
+          )
+
+        # Nil-SHA takes precedence over any requested state, but a real SHA
+        # must honor an explicit valid-state override.
+        assert lock["protection_state"] == state
+      end
+    end
+
+    test "rejects an unknown protection_state" do
+      # Typos in a free-form string field would quietly become policy once
+      # Phase 2 consumers switch on this value. The write path must raise.
+      assert_raise ArgumentError, ~r/invalid protection_state/, fn ->
+        Locks.add_baseline(minimal_lock(),
+          source_commit_sha: "abc123",
+          protection_state: "activated"
+        )
+      end
+    end
+
+    test "raises when source_commit_sha keyword is not supplied at all" do
+      assert_raise KeyError, fn -> Locks.add_baseline(minimal_lock(), []) end
+    end
+
+    test "nil source_commit_sha downgrades protection_state to unknown_provenance" do
+      # Codex caught this: `Keyword.fetch!` only guards against a missing key,
+      # not a nil value. Live-translation tests build sessions without a commit
+      # SHA, and we must not silently claim a trustworthy baseline for them.
+      lock = Locks.add_baseline(minimal_lock(), source_commit_sha: nil)
+
+      assert lock["source_commit_sha"] == nil
+      assert lock["protection_state"] == "unknown_provenance"
+    end
+
+    test "empty-string source_commit_sha is treated as nil" do
+      lock = Locks.add_baseline(minimal_lock(), source_commit_sha: "")
+
+      assert lock["source_commit_sha"] == nil
+      assert lock["protection_state"] == "unknown_provenance"
+    end
+
+    test "nil source_commit_sha overrides a requested recorded state" do
+      lock =
+        Locks.add_baseline(minimal_lock(),
+          source_commit_sha: nil,
+          protection_state: "recorded"
+        )
+
+      assert lock["protection_state"] == "unknown_provenance"
+    end
+
+    test "keeps existing lock fields intact" do
+      base = minimal_lock()
+
+      lock = Locks.add_baseline(base, source_commit_sha: "abc123")
+
+      for key <- ["hash", "provider", "model", "source_path", "output_path", "output_hash"] do
+        assert lock[key] == base[key]
+      end
+    end
+  end
+
+  describe "baseline/1" do
+    test "returns nil for a missing lock" do
+      assert Locks.baseline(nil) == nil
+    end
+
+    test "returns the recorded fields for a new-format lock" do
+      lock = Locks.add_baseline(minimal_lock(), source_commit_sha: "abc123")
+
+      assert Locks.baseline(lock) == %{
+               schema_version: Locks.baseline_schema_version(),
+               source_commit_sha: "abc123",
+               translation_session_id: nil,
+               protection_state: "recorded"
+             }
+    end
+
+    test "reads a legacy lock (no baseline fields) as unknown_provenance at version 0" do
+      assert Locks.baseline(minimal_lock()) == %{
+               schema_version: 0,
+               source_commit_sha: nil,
+               translation_session_id: nil,
+               protection_state: "unknown_provenance"
+             }
+    end
+
+    test "treats a non-integer baseline_schema_version as corrupted" do
+      # Codex found this: a string version would crash on case match. Corrupted
+      # locks must never masquerade as a trustworthy baseline, so they read as
+      # unknown_provenance.
+      corrupted = Map.put(minimal_lock(), "baseline_schema_version", "one")
+
+      assert Locks.baseline(corrupted) == %{
+               schema_version: 0,
+               source_commit_sha: nil,
+               translation_session_id: nil,
+               protection_state: "unknown_provenance"
+             }
+    end
+
+    test "treats a negative baseline_schema_version as corrupted" do
+      corrupted = Map.put(minimal_lock(), "baseline_schema_version", -1)
+      assert Locks.baseline(corrupted).protection_state == "unknown_provenance"
+    end
+
+    test "treats non-map input as corrupted" do
+      # `read_lock/3` returns whatever `JSON.decode` returns; a stray JSON array
+      # or scalar must not crash downstream.
+      assert Locks.baseline([1, 2, 3]).protection_state == "unknown_provenance"
+      assert Locks.baseline("not a lock").protection_state == "unknown_provenance"
+    end
+  end
+
+  describe "baseline persistence round-trip" do
+    setup do
+      root = System.tmp_dir!() |> Path.join("locks_test_#{System.unique_integer([:positive])}")
+      File.mkdir_p!(root)
+      on_exit(fn -> File.rm_rf!(root) end)
+      %{root: root}
+    end
+
+    test "baseline fields survive write+read", %{root: root} do
+      lock =
+        minimal_lock()
+        |> Locks.add_baseline(
+          source_commit_sha: "abc123",
+          translation_session_id: "sess-42"
+        )
+
+      Locks.write_lock(root, "docs/index.md", "es", lock)
+      read = Locks.read_lock(root, "docs/index.md", "es")
+
+      assert read["baseline_schema_version"] == Locks.baseline_schema_version()
+      assert read["source_commit_sha"] == "abc123"
+      assert read["translation_session_id"] == "sess-42"
+      assert read["protection_state"] == "recorded"
+    end
+
+    test "reading a legacy lock file with no baseline fields still works", %{root: root} do
+      legacy = minimal_lock()
+      Locks.write_lock(root, "docs/index.md", "es", legacy)
+      read = Locks.read_lock(root, "docs/index.md", "es")
+
+      assert Locks.baseline(read).protection_state == "unknown_provenance"
+      assert Locks.baseline(read).schema_version == 0
+    end
+  end
+
   # English source with a header, one singular msgid, and one plural entry.
   # `apply_plural_count/2` in `Po` writes target catalogs at the target
   # locale's declared `nplurals`, so a real-world catalog for ja/ko/zh-Hans

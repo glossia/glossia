@@ -14,12 +14,42 @@ defmodule Glossia.Translations.Locks do
   invalidates just those msgids' translations; every other locale keeps its
   existing msgstrs from the output file and the engine only ships the changed
   strings to the model.
+
+  On top of that, `add_baseline/2` attaches the fields the Phase 0 baseline
+  extension needs (see `plans/translation-history-reconciliation.md`):
+  `source_commit_sha`, `translation_session_id`, `protection_state`, and a
+  `baseline_schema_version` so future migrations can tell when a lock was
+  written. A lock without these fields is a legacy lock; readers should treat
+  its `protection_state` as `"unknown_provenance"` and its baseline commit as
+  unknown.
+
+  The `source_commit_sha` recorded here is the commit the translation RUN was
+  executed against, not a per-segment baseline. For PO files whose status is
+  partial preservation (unchanged msgids keep their prior msgstrs while
+  changed msgids are retranslated), some preserved msgstrs may still represent
+  an older source revision than the one stored here. Per-msgid provenance is
+  Phase 2 work. Phase 0 readers must treat `source_commit_sha` as
+  "most-recent-run SHA" rather than "the SHA each segment was translated from."
+
+  Baseline target content is NOT stored in the lock. The three-way merge
+  retrieves it from git via `output_hash` plus `source_commit_sha` lookup, so
+  the lock remains a small pointer rather than a duplicate copy of every
+  translated byte.
   """
 
   alias Glossia.Translations.Context
   alias Glossia.Translations.Format
   alias Glossia.Translations.Po
   alias Glossia.Translations.Prompt
+
+  @baseline_schema_version 1
+
+  # Freshly recorded baselines use `recorded`. `active` is reserved for Phase 2
+  # (externally edited content whose protection has been activated); `released`
+  # and `superseded` are Phase 2 state transitions. `unknown_provenance` marks
+  # a baseline we cannot vouch for — legacy locks and runs where
+  # `source_commit_sha` was absent.
+  @valid_protection_states ~w(recorded active released superseded unknown_provenance)
 
   @doc "Path to the lockfile for a source/locale under the repo root."
   def lock_path(root, source_path, locale) do
@@ -254,6 +284,101 @@ defmodule Glossia.Translations.Locks do
 
     if po_units, do: Map.put(base, "po_units", po_units), else: base
   end
+
+  @doc """
+  Attaches Phase 0 baseline fields to a lock built by `build_lock/*`.
+
+  Required option: `:source_commit_sha` — the SHA the translation RUN was
+  executed against (see the module doc for the caveat about PO preservation).
+  A missing or blank SHA (`nil`, `""`) downgrades `protection_state` to
+  `"unknown_provenance"` and leaves the SHA field `nil`; the write still
+  succeeds so that in-progress development or tests without a webhook SHA
+  don't tip over, but readers get the honest answer that the provenance is
+  missing.
+
+  Optional: `:translation_session_id`, `:protection_state`
+  (`"recorded"` by default — a freshly written translation with intact
+  baseline fields; must be one of `#{Enum.join(@valid_protection_states, " | ")}`).
+  """
+  def add_baseline(lock, opts) when is_map(lock) and is_list(opts) do
+    unless Keyword.has_key?(opts, :source_commit_sha) do
+      raise KeyError, key: :source_commit_sha, term: opts
+    end
+
+    source_commit_sha = normalize_sha(Keyword.get(opts, :source_commit_sha))
+    translation_session_id = Keyword.get(opts, :translation_session_id)
+    requested_state = Keyword.get(opts, :protection_state, "recorded")
+
+    unless requested_state in @valid_protection_states do
+      raise ArgumentError,
+            "invalid protection_state #{inspect(requested_state)}; " <>
+              "expected one of #{inspect(@valid_protection_states)}"
+    end
+
+    protection_state =
+      if is_nil(source_commit_sha), do: "unknown_provenance", else: requested_state
+
+    lock
+    |> Map.put("baseline_schema_version", @baseline_schema_version)
+    |> Map.put("source_commit_sha", source_commit_sha)
+    |> Map.put("translation_session_id", translation_session_id)
+    |> Map.put("protection_state", protection_state)
+  end
+
+  defp normalize_sha(nil), do: nil
+  defp normalize_sha(""), do: nil
+  defp normalize_sha(sha) when is_binary(sha), do: sha
+  defp normalize_sha(_other), do: nil
+
+  @doc """
+  Baseline view of a lock. Returns a map with `:schema_version`,
+  `:source_commit_sha`, `:translation_session_id`, and `:protection_state`, or
+  `nil` if the lock is absent. A legacy lock (no baseline fields) reads back as
+  `schema_version: 0`, `protection_state: "unknown_provenance"`, and the other
+  fields `nil` — the honest answer when the machinery predates baseline
+  recording.
+
+  A non-map lock, or one whose `baseline_schema_version` is not a non-negative
+  integer, is treated as corrupted and read back as `unknown_provenance` at
+  `schema_version: 0` so a bad file can never masquerade as a trustworthy
+  baseline.
+  """
+  def baseline(nil), do: nil
+
+  def baseline(lock) when is_map(lock) do
+    case Map.get(lock, "baseline_schema_version") do
+      nil ->
+        unknown_baseline(0)
+
+      version when is_integer(version) and version >= 0 ->
+        %{
+          schema_version: version,
+          source_commit_sha: Map.get(lock, "source_commit_sha"),
+          translation_session_id: Map.get(lock, "translation_session_id"),
+          protection_state: Map.get(lock, "protection_state", "unknown_provenance")
+        }
+
+      _corrupted ->
+        unknown_baseline(0)
+    end
+  end
+
+  def baseline(_other), do: unknown_baseline(0)
+
+  defp unknown_baseline(schema_version) do
+    %{
+      schema_version: schema_version,
+      source_commit_sha: nil,
+      translation_session_id: nil,
+      protection_state: "unknown_provenance"
+    }
+  end
+
+  @doc "The baseline schema version this build of Glossia writes."
+  def baseline_schema_version, do: @baseline_schema_version
+
+  @doc "All `protection_state` values this build of Glossia will accept on write."
+  def valid_protection_states, do: @valid_protection_states
 
   @doc """
   Builds the complete dependency tree for one translation work item.

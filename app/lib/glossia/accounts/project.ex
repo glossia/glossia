@@ -82,3 +82,7 @@ defmodule Glossia.Accounts.Project do
     end)
   end
 end
+
+defimpl FunWithFlags.Actor, for: Glossia.Accounts.Project do
+  def id(%{id: id}), do: "project:#{id}"
+end
