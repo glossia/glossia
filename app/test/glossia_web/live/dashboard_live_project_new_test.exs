@@ -30,8 +30,8 @@ defmodule GlossiaWeb.DashboardLiveProjectNewTest do
 
     assert_patch(view, "/#{user.account.handle}/-/projects/new?step=mode")
     assert has_element?(view, "#setup-mode-picker", "acme/website")
-    assert has_element?(view, "#setup-modes", "Automated setup")
-    assert has_element?(view, "#setup-modes", "Manual configuration")
+    assert has_element?(view, "#setup-mode-picker [data-mode=automated]", "Automated setup")
+    assert has_element?(view, "#setup-mode-picker [data-mode=manual]", "Manual configuration")
   end
 
   test "automated setup continues to the target languages", %{conn: conn, user: user} do
@@ -42,6 +42,11 @@ defmodule GlossiaWeb.DashboardLiveProjectNewTest do
 
     assert_patch(view, "/#{user.account.handle}/-/projects/new?step=languages")
     assert has_element?(view, "#language-picker")
+
+    refute has_element?(view, "#language-es[data-selected]")
+    view |> element("#language-es") |> render_click()
+    assert has_element?(view, "#language-es[data-selected]")
+    assert has_element?(view, "#language-picker", "1 language selected")
     assert Projects.get_project(user.account, "website") == nil
   end
 

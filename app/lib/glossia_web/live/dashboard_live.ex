@@ -916,7 +916,7 @@ defmodule GlossiaWeb.DashboardLive do
           page_title: gettext("New project"),
           wizard_step: "repo",
           breadcrumb_items: [
-            {gettext("New project"), "/" <> handle <> "/-/projects/new"}
+            {gettext("New project"), ~p"/#{handle}/-/projects/new"}
           ]
         )
       else
@@ -988,7 +988,7 @@ defmodule GlossiaWeb.DashboardLive do
           wizard_project: nil,
           setup_events: [],
           breadcrumb_items: [
-            {gettext("New project"), "/" <> handle <> "/-/projects/new"}
+            {gettext("New project"), ~p"/#{handle}/-/projects/new"}
           ]
         )
       end
@@ -2928,7 +2928,7 @@ defmodule GlossiaWeb.DashboardLive do
           {:noreply,
            socket
            |> assign(wizard_project: project)
-           |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=setup")}
+           |> push_patch(to: ~p"/#{socket.assigns.handle}/-/projects/new?#{[step: "setup"]}")}
 
         {:error, reason} ->
           error = gettext("Project setup could not be started.")
@@ -2985,7 +2985,9 @@ defmodule GlossiaWeb.DashboardLive do
                 {:noreply,
                  socket
                  |> assign(wizard_project: nil, setup_events: [])
-                 |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=languages")}
+                 |> push_patch(
+                   to: ~p"/#{socket.assigns.handle}/-/projects/new?#{[step: "languages"]}"
+                 )}
               end
           end
 
@@ -3004,7 +3006,8 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("wizard_back", %{"step" => step}, socket) do
-    {:noreply, push_patch(socket, to: "/#{socket.assigns.handle}/-/projects/new?step=#{step}")}
+    {:noreply,
+     push_patch(socket, to: ~p"/#{socket.assigns.handle}/-/projects/new?#{[step: step]}")}
   end
 
   def handle_event("search_repos", %{"value" => query}, socket) do
@@ -3600,7 +3603,7 @@ defmodule GlossiaWeb.DashboardLive do
          socket
          |> assign(wizard_project: nil, setup_events: [])
          |> put_flash(:error, message)
-         |> push_patch(to: "/#{socket.assigns.handle}/-/projects/new?step=languages")}
+         |> push_patch(to: ~p"/#{socket.assigns.handle}/-/projects/new?#{[step: "languages"]}")}
 
       project && to_string(project.id) == to_string(project_id) ->
         {:noreply,
@@ -4032,7 +4035,7 @@ defmodule GlossiaWeb.DashboardLive do
         </Noora.Button.link_button>
         <div :if={@can_write} data-part="actions">
           <Noora.Button.button
-            patch={"/" <> @handle <> "/-/projects/new"}
+            patch={~p"/#{@handle}/-/projects/new"}
             label={gettext("New project")}
             size="large"
           >
@@ -8940,19 +8943,16 @@ defmodule GlossiaWeb.DashboardLive do
         |> assign(:body_html, setup_event_body_html(event_type, content))
 
       ~H"""
-      <div
-        class={"setup-event-row #{if @status == "information", do: "setup-event-row-no-badge", else: ""}"}
-        data-status={@status}
-      >
+      <div data-part="event" data-status={@status}>
         <Noora.Badge.status_badge
           :if={@status != "information"}
           status={setup_event_badge_status(@status)}
           label={setup_event_status_label(@status)}
           type="dot"
         />
-        <div class="setup-event-row-content">
-          <div class="setup-event-row-header">
-            <span class="setup-event-row-title">{@title}</span>
+        <div data-part="event-content">
+          <div data-part="event-header">
+            <span data-part="event-title">{@title}</span>
             <Noora.Button.button
               :if={@event_type == "pr_created"}
               href={@content}
@@ -8963,8 +8963,8 @@ defmodule GlossiaWeb.DashboardLive do
               rel="noopener noreferrer"
             />
           </div>
-          <p :if={@description != ""} class="setup-event-row-description">{@description}</p>
-          <div :if={@body_html != ""} class="setup-event-row-body prose">{raw(@body_html)}</div>
+          <p :if={@description != ""} data-part="event-description">{@description}</p>
+          <div :if={@body_html != ""} data-part="event-body" class="prose">{raw(@body_html)}</div>
         </div>
       </div>
       """
@@ -8986,7 +8986,31 @@ defmodule GlossiaWeb.DashboardLive do
           label={project_setup_status_label(@status)}
         />
       </:actions>
-      <Noora.Card.card_section class="setup-progress-section">
+      <Noora.Card.card_section data-part="content">
+        <Noora.Alert.alert
+          :if={@status == "pending"}
+          type="secondary"
+          status="information"
+          size="large"
+          title={gettext("Waiting to start")}
+          description={
+            gettext("Setup is queued and starts shortly. You can leave this page and come back.")
+          }
+        />
+
+        <Noora.Alert.alert
+          :if={@status == "running"}
+          type="secondary"
+          status="information"
+          size="large"
+          title={gettext("Setting up localization")}
+          description={
+            gettext(
+              "Glossia is inspecting the repository and preparing a pull request. This usually takes a few minutes, and you can leave this page and come back."
+            )
+          }
+        />
+
         <Noora.Alert.alert
           :if={@status == "failed"}
           type="secondary"
@@ -9418,8 +9442,8 @@ defmodule GlossiaWeb.DashboardLive do
               }
             />
           </:actions>
-          <Noora.Card.card_section class="project-setup-picker-section">
-            <form phx-change="search_repos" class="project-setup-search-form">
+          <Noora.Card.card_section data-part="picker">
+            <form phx-change="search_repos" data-part="search">
               <Noora.TextInput.text_input
                 id="repository-search"
                 type="search"
@@ -9436,6 +9460,7 @@ defmodule GlossiaWeb.DashboardLive do
               id="repositories"
               rows={@filtered_repos}
               row_key={fn repo -> "repository-" <> to_string(repo["id"]) end}
+              row_click={&select_repo_attrs/1}
             >
               <:col :let={repo} label={gettext("Repository")}>
                 <Noora.Table.text_and_description_cell
@@ -9446,25 +9471,6 @@ defmodule GlossiaWeb.DashboardLive do
               </:col>
               <:col :let={repo} label={gettext("Language")}>
                 <Noora.Table.text_cell label={repo["language"] || gettext("Not detected")} />
-              </:col>
-              <:col :let={repo}>
-                <Noora.Table.button_cell>
-                  <:button>
-                    <Noora.Button.button
-                      type="button"
-                      label={gettext("Select")}
-                      size="small"
-                      phx-click="select_repo"
-                      phx-value-repo-id={repo["id"]}
-                      phx-value-full-name={repo["full_name"]}
-                      phx-value-name={repo["name"]}
-                      phx-value-default-branch={repo["default_branch"]}
-                      phx-value-description={repo["description"]}
-                      phx-value-development={if(repo["development"], do: "true", else: "false")}
-                      phx-value-owner-login={get_in(repo, ["owner", "login"])}
-                    />
-                  </:button>
-                </Noora.Table.button_cell>
               </:col>
               <:empty_state>
                 <Noora.Table.table_empty_state>
@@ -9486,7 +9492,7 @@ defmodule GlossiaWeb.DashboardLive do
             >
               <:action>
                 <Noora.Button.button
-                  href={"/" <> @handle <> "/-/projects/install-github"}
+                  href={~p"/#{@handle}/-/projects/install-github"}
                   label={gettext("Configure repository access")}
                   variant="secondary"
                   size="small"
@@ -9509,7 +9515,7 @@ defmodule GlossiaWeb.DashboardLive do
         >
           <:action>
             <Noora.Button.button
-              href={"/" <> @handle <> "/-/projects/install-github"}
+              href={~p"/#{@handle}/-/projects/install-github"}
               label={gettext("Configure repository access")}
               size="small"
             />
@@ -9527,7 +9533,7 @@ defmodule GlossiaWeb.DashboardLive do
         >
           <:action>
             <Noora.Button.button
-              href={"/" <> @handle <> "/-/projects/install-github"}
+              href={~p"/#{@handle}/-/projects/install-github"}
               label={gettext("Install GitHub App")}
               size="small"
             />
@@ -9537,25 +9543,21 @@ defmodule GlossiaWeb.DashboardLive do
     """
   end
 
-  defp wizard_mode_step(assigns) do
-    assigns =
-      assign(assigns, :modes, [
-        %{
-          id: "automated",
-          icon: "git_branch",
-          label: gettext("Automated setup"),
-          description: gettext("Glossia opens a pull request with a generated L10N.md."),
-          action: gettext("Continue")
-        },
-        %{
-          id: "manual",
-          icon: "pencil",
-          label: gettext("Manual configuration"),
-          description: gettext("The repository has an L10N.md, or you will write it."),
-          action: gettext("Create project")
-        }
-      ])
+  # The whole row selects the repository, so the table needs no action column.
+  defp select_repo_attrs(repo) do
+    %{
+      "phx-click" => "select_repo",
+      "phx-value-repo-id" => repo["id"],
+      "phx-value-full-name" => repo["full_name"],
+      "phx-value-name" => repo["name"],
+      "phx-value-default-branch" => repo["default_branch"],
+      "phx-value-description" => repo["description"],
+      "phx-value-development" => if(repo["development"], do: "true", else: "false"),
+      "phx-value-owner-login" => get_in(repo, ["owner", "login"])
+    }
+  end
 
+  defp wizard_mode_step(assigns) do
     ~H"""
     <Noora.Card.card id="setup-mode-picker" icon="settings" title={gettext("Setup")}>
       <:actions>
@@ -9568,46 +9570,49 @@ defmodule GlossiaWeb.DashboardLive do
           phx-value-step="repo"
         />
       </:actions>
-      <Noora.Card.card_section class="project-setup-picker-section">
+      <Noora.Card.card_section data-part="picker">
         <Noora.Alert.alert
           type="secondary"
           status="information"
           size="large"
           title={@selected_repo["full_name"]}
-          description={
-            gettext(
-              "Choose who writes the localization configuration. With manual configuration the project is created right away and translated on the next push."
-            )
-          }
+          description={gettext("Choose who writes the localization configuration.")}
         />
 
-        <Noora.Table.table
-          id="setup-modes"
-          rows={@modes}
-          row_key={fn mode -> "setup-mode-" <> mode.id end}
-        >
-          <:col :let={mode} label={gettext("Option")}>
-            <Noora.Table.text_and_description_cell
-              icon={mode.icon}
-              label={mode.label}
-              description={mode.description}
-            />
-          </:col>
-          <:col :let={mode}>
-            <Noora.Table.button_cell>
-              <:button>
-                <Noora.Button.button
-                  type="button"
-                  label={mode.action}
-                  variant={if mode.id == "automated", do: "primary", else: "secondary"}
-                  size="small"
-                  phx-click="choose_setup_mode"
-                  phx-value-mode={mode.id}
-                />
-              </:button>
-            </Noora.Table.button_cell>
-          </:col>
-        </Noora.Table.table>
+        <div data-part="option" data-mode="automated">
+          <span data-part="title">{gettext("Automated setup")}</span>
+          <span data-part="description">
+            {gettext(
+              "Glossia inspects the repository and opens a pull request with a generated L10N.md for the languages you choose."
+            )}
+          </span>
+          <Noora.Button.button
+            type="button"
+            label={gettext("Continue")}
+            size="medium"
+            phx-click="choose_setup_mode"
+            phx-value-mode="automated"
+          />
+        </div>
+
+        <Noora.LineDivider.line_divider text={gettext("OR")} />
+
+        <div data-part="option" data-mode="manual">
+          <span data-part="title">{gettext("Manual configuration")}</span>
+          <span data-part="description">
+            {gettext(
+              "The repository already has an L10N.md, or you will write it. Glossia creates the project now and translates on the next push."
+            )}
+          </span>
+          <Noora.Button.button
+            type="button"
+            label={gettext("Create project")}
+            variant="secondary"
+            size="medium"
+            phx-click="choose_setup_mode"
+            phx-value-mode="manual"
+          />
+        </div>
       </Noora.Card.card_section>
     </Noora.Card.card>
     """
@@ -9656,7 +9661,7 @@ defmodule GlossiaWeb.DashboardLive do
           disabled={@selected_count == 0}
         />
       </:actions>
-      <Noora.Card.card_section class="project-setup-picker-section">
+      <Noora.Card.card_section data-part="picker">
         <Noora.Alert.alert
           type="secondary"
           status="information"
@@ -9665,7 +9670,7 @@ defmodule GlossiaWeb.DashboardLive do
           description={@selected_summary}
         />
 
-        <form phx-change="search_languages" class="project-setup-search-form">
+        <form phx-change="search_languages" data-part="search">
           <Noora.TextInput.text_input
             id="language-search"
             type="search"
@@ -9678,59 +9683,30 @@ defmodule GlossiaWeb.DashboardLive do
           />
         </form>
 
-        <Noora.Table.table
-          id="languages"
-          rows={@filtered_languages}
-          row_key={fn language -> "language-" <> language.code end}
-        >
-          <:col :let={language} label={gettext("Language")}>
-            <Noora.Table.text_and_description_cell
-              icon="language"
-              label={language.name}
-              description={language.native}
-            />
-          </:col>
-          <:col :let={language} label={gettext("Code")}>
-            <Noora.Table.tag_cell label={language.code} />
-          </:col>
-          <:col :let={language} label={gettext("Selection")}>
-            <Noora.Table.status_badge_cell
-              status={if language.code in @selected_languages, do: "success", else: "disabled"}
-              label={
-                if language.code in @selected_languages,
-                  do: gettext("Selected"),
-                  else: gettext("Not selected")
-              }
-            />
-          </:col>
-          <:col :let={language}>
-            <Noora.Table.button_cell>
-              <:button>
-                <Noora.Button.button
-                  type="button"
-                  label={
-                    if language.code in @selected_languages,
-                      do: gettext("Remove"),
-                      else: gettext("Select")
-                  }
-                  variant={if language.code in @selected_languages, do: "secondary", else: "primary"}
-                  size="small"
-                  phx-click="toggle_language"
-                  phx-value-code={language.code}
-                />
-              </:button>
-            </Noora.Table.button_cell>
-          </:col>
-          <:empty_state>
-            <Noora.Table.table_empty_state>
-              <.noora_empty_state
-                icon="search"
-                title={gettext("No matching languages")}
-                subtitle={gettext("Try adjusting your search query.")}
-              />
-            </Noora.Table.table_empty_state>
-          </:empty_state>
-        </Noora.Table.table>
+        <div :if={@filtered_languages != []} id="languages" data-part="language-list">
+          <label
+            :for={language <- @filtered_languages}
+            id={"language-" <> language.code}
+            data-part="language"
+            data-selected={language.code in @selected_languages}
+            phx-click="toggle_language"
+            phx-value-code={language.code}
+          >
+            <Noora.CheckboxControl.checkbox_control checked={language.code in @selected_languages} />
+            <div data-part="body">
+              <span data-part="label">{language.name}</span>
+              <span data-part="description">{language.native}</span>
+            </div>
+            <Noora.Tag.tag label={language.code} />
+          </label>
+        </div>
+
+        <.noora_empty_state
+          :if={@filtered_languages == []}
+          icon="search"
+          title={gettext("No matching languages")}
+          subtitle={gettext("Try adjusting your search query.")}
+        />
       </Noora.Card.card_section>
     </Noora.Card.card>
     """
@@ -9770,7 +9746,7 @@ defmodule GlossiaWeb.DashboardLive do
       )
 
     ~H"""
-    <div class="wizard-setup-container">
+    <div data-part="setup">
       <.setup_progress_panel
         status={@status || "pending"}
         events={@setup_events}
@@ -9779,7 +9755,7 @@ defmodule GlossiaWeb.DashboardLive do
         pr_url={@pr_url}
       />
 
-      <div :if={@status in ["completed", "failed"]} class="wizard-footer">
+      <div :if={@status in ["completed", "failed"]} data-part="footer">
         <Noora.Button.button
           type="button"
           label={gettext("Go to project")}
