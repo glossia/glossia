@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light only" />
+    <meta name="supported-color-schemes" content="light only" />
+    <title><%= escape(@title) %></title>
+  </head>
+  <body style="margin: 0; padding: 0; background-color: <%= @theme.background %>; color: <%= @theme.text %>; font-family: Inter, Arial, sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: <%= @theme.background %>;">
+      <tr>
+        <td align="center" style="padding: <%= @theme.spacing.xlarge %>px <%= @theme.spacing.medium %>px;">
+          <div style="max-width: 640px; margin: 0 auto;">
+            <div style="text-align: center; padding-bottom: <%= @theme.spacing.large %>px;">
+              <a href="<%= escape(@home_url) %>"><img src="<%= escape(@logo_url) %>" alt="Glossia" width="<%= @theme.spacing.logo %>" height="<%= @theme.spacing.logo %>" style="display: block; margin: 0 auto; border: 0; border-radius: <%= @theme.radius %>px;" /></a>
+            </div>
+            <div style="background-color: <%= @theme.surface %>; border: 1px solid <%= @theme.border %>; border-radius: <%= @theme.radius %>px; padding: <%= @theme.spacing.xlarge %>px <%= @theme.spacing.large %>px; text-align: center;">
+              <h1 style="font-weight: 500; font-size: <%= @theme.font_heading %>px; line-height: 1.25; margin: 0 0 <%= @theme.spacing.large %>px; color: <%= @theme.text %>;"><%= escape(@title) %></h1>
+              <%= for paragraph <- @paragraphs do %>
+                <p style="font-size: <%= @theme.font_body %>px; line-height: <%= @theme.spacing.large %>px; margin: 0 0 <%= @theme.spacing.large %>px;"><%= escape(paragraph) %></p>
+              <% end %>
+              <p style="margin: <%= @theme.spacing.xlarge %>px 0;">
+                <a href="<%= escape(@action_url) %>" style="display: inline-block; padding: <%= @theme.spacing.medium %>px <%= @theme.spacing.large %>px; background-color: <%= @theme.primary %>; color: <%= @theme.on_primary %>; font-size: <%= @theme.font_body %>px; font-weight: 500; text-decoration: none; border-radius: <%= @theme.radius %>px;"><%= escape(@action_label) %></a>
+              </p>
+              <p style="font-size: <%= @theme.font_body %>px; line-height: <%= @theme.spacing.large %>px; margin: 0; color: <%= @theme.muted %>;"><%= escape(@footnote) %></p>
+            </div>
+            <footer style="text-align: center; padding: <%= @theme.spacing.large %>px 0; color: <%= @theme.muted %>;">
+              <p style="font-size: <%= @theme.font_footer %>px; line-height: <%= @theme.spacing.large %>px; margin: 0;">Sent by <a href="<%= escape(@home_url) %>" style="color: <%= @theme.primary %>;">Glossia</a> · <a href="<%= escape(@privacy_url) %>" style="color: <%= @theme.primary %>;">Privacy policy</a></p>
+            </footer>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
