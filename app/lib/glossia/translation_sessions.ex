@@ -85,9 +85,15 @@ defmodule Glossia.TranslationSessions do
         do: 0.0,
         else: Float.round(totals.content_hits * 100 / checked_content, 1)
 
+    # Unbounded by the reporting window: tells a project that has never been
+    # translated apart from one that was simply quiet for the last few days.
+    has_sessions =
+      Repo.exists?(from(s in TranslationSession, where: s.project_id == ^project.id))
+
     totals
     |> Map.put(:hit_rate, hit_rate)
     |> Map.put(:days, days)
+    |> Map.put(:has_sessions, has_sessions)
   end
 
   def sessions_by_commit_sha(%Project{} = project) do

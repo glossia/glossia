@@ -105,7 +105,9 @@ internalBabel:
 # Every setting has a matching `GLOSSIA_MANAGED_*` env var so the
 # operator can tune at runtime without rebuilding the image. Placement
 # (nodeSelector, tolerations, affinity, runtimeClassName) is shared with the
-# detached translation Job below — the two workloads land on the same nodes.
+# detached translation Job below and with project-setup sandbox pods — all
+# three land on the same nodes. Only set runtimeClassName to a RuntimeClass
+# that exists in the cluster: the API server rejects pods naming a missing one.
 managedRunner:
   min: 0
   max: 10

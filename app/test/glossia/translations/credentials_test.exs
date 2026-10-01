@@ -50,6 +50,86 @@ defmodule Glossia.Translations.CredentialsTest do
               "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1"}
   end
 
+  test "the setup harness uses the provider's own endpoint when there is no gateway", %{
+    user: user,
+    account: account
+  } do
+    {:ok, _model} =
+      LLMModels.create_model(account, user, %{
+        "handle" => "translator",
+        "model" => "anthropic/claude-sonnet-4-20250514",
+        "api_key" => "sk-account-key",
+        "default" => true
+      })
+
+    put_config([])
+
+    assert {:ok, harness} = Credentials.setup_harness_credential(account)
+    assert harness.model == "anthropic/claude-sonnet-4-20250514"
+
+    assert harness.opencode_config == %{
+             "model" => "anthropic/claude-sonnet-4-20250514",
+             "provider" => %{"anthropic" => %{"options" => %{"apiKey" => "sk-account-key"}}}
+           }
+  end
+
+  test "the setup harness declares a gateway as its own OpenAI-compatible provider", %{
+    user: user,
+    account: account
+  } do
+    {:ok, _model} =
+      LLMModels.create_model(account, user, %{
+        "handle" => "atlas",
+        "model" => "openai/Translator",
+        "api_key" => "sk-atlas",
+        "base_url" => "https://atlas.tuist.dev/inference/v1",
+        "default" => true
+      })
+
+    put_config([])
+
+    assert {:ok, harness} = Credentials.setup_harness_credential(account)
+    assert harness.model == "gateway/Translator"
+
+    assert harness.opencode_config == %{
+             "model" => "gateway/Translator",
+             "provider" => %{
+               "gateway" => %{
+                 "npm" => "@ai-sdk/openai-compatible",
+                 "name" => "Gateway",
+                 "options" => %{
+                   "apiKey" => "sk-atlas",
+                   "baseURL" => "https://atlas.tuist.dev/inference/v1"
+                 },
+                 "models" => %{"Translator" => %{"name" => "Translator"}}
+               }
+             }
+           }
+  end
+
+  test "the setup harness keeps a gateway model name that contains a slash", %{
+    user: user,
+    account: account
+  } do
+    {:ok, _model} =
+      LLMModels.create_model(account, user, %{
+        "handle" => "gated",
+        "model" => "togetherai/Qwen/Qwen3.5-9B",
+        "api_key" => "sk-account-key",
+        "base_url" => "http://glossia-bifrost.glossia.svc.cluster.local:8080/v1",
+        "default" => true
+      })
+
+    put_config([])
+
+    assert {:ok, harness} = Credentials.setup_harness_credential(account)
+    assert harness.model == "gateway/Qwen/Qwen3.5-9B"
+
+    assert Map.keys(harness.opencode_config["provider"]["gateway"]["models"]) == [
+             "Qwen/Qwen3.5-9B"
+           ]
+  end
+
   test "substitutes a passthrough model when only a base_url is configured", %{
     user: user,
     account: account
