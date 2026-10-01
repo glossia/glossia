@@ -121,6 +121,12 @@
     }
   }
 
+  & [data-part="interest-form"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-5);
+  }
+
   & .noora-alert {
     width: 100%;
   }
@@ -163,6 +169,7 @@
   }
 
   @media (max-width: 768px) {
+    flex-direction: column;
     padding: var(--noora-spacing-6);
 
     & [data-part="content"] {

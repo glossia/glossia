@@ -10,7 +10,7 @@
 //    for hours during the 2026-09-03 outage.
 //  * Module-level singleton promise: only inject api.js once even if
 //    this module runs twice (initial paint + phx:page-loading-stop).
-//  * Optimistic submit: if the user clicks a provider button before
+//  * Optimistic submit: if the user submits the interest form before
 //    the token arrives, park the intent, show "Verifying...", and
 //    re-fire the submit as soon as the callback lands.
 //  * Fail-open UI: on api-load-failure the buttons stay clickable and
@@ -105,24 +105,13 @@ export default function initSignupTurnstile() {
   let pendingSubmitForm = null
   let apiFailed = false
 
-  const forms = document.querySelectorAll("form[data-part='provider-form']")
+  const forms = document.querySelectorAll("form[data-part='interest-form']")
   forms.forEach(form => {
     form.addEventListener("submit", event => {
       if (apiFailed) return
       if (hasToken) {
-        // The token is single-use at Cloudflare; if OAuth bounces the
-        // user back to /signup (provider cancel, session expiry, etc.)
-        // the mirrored value would fail siteverify silently on the
-        // next provider click. Consume it locally and re-solve.
-        hasToken = false
-        clearToken()
-        if (widgetId !== null && window.turnstile) {
-          try {
-            window.turnstile.reset(widgetId)
-          } catch (_error) {
-            /* iframe already gone */
-          }
-        }
+        // Keep the solved token in the submitted form. Navigation consumes
+        // it; clearing it here would send an empty challenge response.
         return
       }
       event.preventDefault()
@@ -166,7 +155,7 @@ export default function initSignupTurnstile() {
               root,
               "error",
               root.dataset.errorLabel ||
-                "The sign-up challenge didn't complete. Please try again."
+                "The verification challenge didn't complete. Please try again."
             )
           },
           "timeout-callback": () => {
@@ -181,7 +170,7 @@ export default function initSignupTurnstile() {
           root,
           "unavailable",
           root.dataset.unavailableLabel ||
-            "Sign-up challenge is unavailable. Try again in a moment."
+            "Verification challenge is unavailable. Try again in a moment."
         )
       }
 
@@ -191,7 +180,7 @@ export default function initSignupTurnstile() {
           root,
           "unavailable",
           root.dataset.unavailableLabel ||
-            "Sign-up challenge is unavailable. Try again in a moment."
+            "Verification challenge is unavailable. Try again in a moment."
         )
       }
     },
@@ -201,7 +190,7 @@ export default function initSignupTurnstile() {
         root,
         "unavailable",
         root.dataset.unavailableLabel ||
-          "Sign-up challenge is unavailable. Try again in a moment."
+          "Verification challenge is unavailable. Try again in a moment."
       )
     }
   )

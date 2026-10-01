@@ -4,6 +4,21 @@ defmodule Glossia.Emails do
 
   @from {"Glossia", "noreply@glossia.ai"}
 
+  def interest_email(email) do
+    new()
+    |> to("pedro@glossia.ai")
+    |> from(@from)
+    |> reply_to(email)
+    |> subject("New interest in Glossia")
+    |> text_body("""
+    Someone has expressed interest in Glossia and would like help getting started.
+
+    Email: #{email}
+
+    Reply to this email to get in touch and arrange onboarding.
+    """)
+  end
+
   def invitation_email(%Glossia.Accounts.OrganizationInvitation{} = invitation, org_name) do
     url = invitation_url(invitation.token)
 
