@@ -58,6 +58,10 @@ The public marketing site is served once per locale: English unprefixed (`/blog`
 - A custom Credo check (`Glossia.CredoChecks.NoTypeAnnotations`, ID `GL3001`) flags `@type` and `@spec` in `app/lib` and `app/test`. Run `mix credo` locally to see violations; do not introduce new ones.
 - Typespecs on public APIs of third-party dependencies (e.g. behaviours we implement) are out of scope for this rule.
 
+## Web analytics installation
+
+- External installation snippets use `https://glossia.ai/assets/glossia-web.js`; the tracker derives `https://glossia.ai/v1/collect` from that origin. Keep the dashboard snippet, English setup guide, and `sdk/web` examples aligned.
+
 ## Documentation
 
 Documentation lives in `app/priv/docs/` and is served at `/docs` using NimblePublisher (same pattern as the blog). It follows the [Diataxis framework](https://diataxis.fr/) to organize content into four categories:

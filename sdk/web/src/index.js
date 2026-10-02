@@ -208,7 +208,7 @@ function hookHistory() {
 }
 
 // Auto-initialize from a classic script tag:
-//   <script defer src="https://cdn.glossia.ai/web.js" data-domain="example.com"></script>
+//   <script defer src="https://glossia.ai/assets/glossia-web.js" data-domain="example.com"></script>
 //
 // `data-domain` is optional; if omitted, the SDK falls back to the current
 // hostname. `data-endpoint` is also optional and selects a custom collection endpoint.

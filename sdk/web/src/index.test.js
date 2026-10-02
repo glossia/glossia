@@ -191,7 +191,7 @@ describe("init()", () => {
   });
 
   it("uses the configured endpoint instead of the script origin", async () => {
-    stubCurrentScript(makeFakeScript({ src: "https://cdn.glossia.ai/web.js" }));
+    stubCurrentScript(makeFakeScript({ src: "https://glossia.ai/assets/glossia-web.js" }));
     const sendBeacon = stubSendBeacon();
     const { init } = await loadFresh();
     // Importing with a `<script>` tag present auto-inits and sends a pageview;
@@ -209,7 +209,7 @@ describe("init()", () => {
   });
 
   it("derives the endpoint from the current script src when none is provided", async () => {
-    stubCurrentScript(makeFakeScript({ src: "https://cdn.glossia.ai/web.js" }));
+    stubCurrentScript(makeFakeScript({ src: "https://glossia.ai/assets/glossia-web.js" }));
     const sendBeacon = stubSendBeacon();
     const { init } = await loadFresh();
     sendBeacon.mockClear();
@@ -217,7 +217,7 @@ describe("init()", () => {
     init({ domain: "example.com" });
 
     const [url] = sendBeacon.mock.calls[0];
-    expect(url).toBe("https://cdn.glossia.ai/v1/collect");
+    expect(url).toBe("https://glossia.ai/v1/collect");
   });
 });
 
@@ -426,7 +426,7 @@ describe("auto-init from <script> tag", () => {
   it("uses data-domain and data-endpoint from the current script tag", async () => {
     stubCurrentScript(
       makeFakeScript({
-        src: "https://cdn.glossia.ai/web.js",
+        src: "https://glossia.ai/assets/glossia-web.js",
         domain: "example.com",
         endpoint: "https://api.example.com/v1/collect",
       }),
@@ -443,7 +443,7 @@ describe("auto-init from <script> tag", () => {
 
   it("falls back to window.location.hostname when no data-domain is set", async () => {
     stubLocation("https://example.com/landing");
-    stubCurrentScript(makeFakeScript({ src: "https://cdn.glossia.ai/web.js" }));
+    stubCurrentScript(makeFakeScript({ src: "https://glossia.ai/assets/glossia-web.js" }));
     const sendBeacon = stubSendBeacon();
     await loadFresh();
 

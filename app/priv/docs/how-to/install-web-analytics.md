@@ -14,10 +14,12 @@ This guide assumes you have a Glossia project with its site domain configured in
 Add this snippet to every page, ideally in the `<head>`:
 
 ```html
-<script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
+<script defer data-domain="example.com" src="https://glossia.ai/assets/glossia-web.js"></script>
 ```
 
 The SDK auto-initializes, sends a pageview on load, and records subsequent pageviews on client-side navigation in single-page apps. `data-domain` defaults to `window.location.hostname` when omitted, so you can drop it on a single-domain site. To use a custom collection endpoint, add `data-endpoint="https://collect.your-host.com"`.
+
+If your site uses a content security policy, allow `https://glossia.ai` in both `script-src` (or `script-src-elem` when present) and `connect-src`. The script loads from `/assets/glossia-web.js` and sends events to `/v1/collect` on the same origin.
 
 ## Option B: npm
 
@@ -46,8 +48,10 @@ glossia.track("signup");
 ## Verify it works
 
 1. Open your site in a browser.
-2. Open the network tab and confirm a `POST` request to `/api/analytics/events` returns `202 Accepted`.
-3. Within a minute, the pageview appears in your project's analytics dashboard.
+2. Open the network tab and confirm a `POST` request to `https://glossia.ai/v1/collect` returns `202 Accepted`.
+3. Within a minute, the pageview appears under **Analytics** in your project's dashboard. Translation runs on the Overview page are separate from website traffic.
+
+A `202 Accepted` response confirms the request reached the collector. Unknown or unverified domains are also accepted but do not record events, so confirm the configured domain is verified in the project's analytics settings.
 
 ## What is collected
 
