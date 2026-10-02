@@ -260,7 +260,7 @@ defmodule Glossia.Accounts do
   defp ensure_unique_handle(base) do
     if Repo.exists?(from a in Account, where: a.handle == ^base) do
       suffix =
-        :crypto.strong_rand_bytes(3) |> Base.url_encode64(padding: false) |> String.downcase()
+        :crypto.strong_rand_bytes(3) |> Base.encode16(case: :lower)
 
       ensure_unique_handle("#{String.slice(base, 0, 31)}-#{suffix}")
     else
@@ -270,7 +270,7 @@ defmodule Glossia.Accounts do
 
   defp generate_random_handle do
     suffix =
-      :crypto.strong_rand_bytes(6) |> Base.url_encode64(padding: false) |> String.downcase()
+      :crypto.strong_rand_bytes(6) |> Base.encode16(case: :lower)
 
     "user-#{suffix}"
   end

@@ -94,7 +94,7 @@ https://glossia.ai/oauth/authorize?
 | `redirect_uri` | Yes | Must match a registered callback URL |
 | `code_challenge` | Yes | The PKCE code challenge (S256) |
 | `code_challenge_method` | Yes | Always `S256` |
-| `scope` | No | Space-separated list of [scopes](/docs/reference/apis/authentication). Defaults to minimum access if omitted |
+| `scope` | No | Space-separated list of [scopes](/docs/reference/apis/authorization). No action scopes are granted if omitted |
 | `state` | Recommended | A random string to prevent CSRF attacks. Verify it matches when the user returns |
 
 The user will see a consent screen showing your application name and the requested scopes. After they approve, Glossia redirects back to your callback URL with an authorization code.
@@ -178,9 +178,9 @@ Request only the scopes your application needs. Here are some common combination
 | Read user profile | `user:read` |
 | Read projects and content | `user:read project:read voice:read` |
 | Manage projects | `user:read project:read project:write` |
-| Full organization access | `user:read organization:read organization:write members:read members:write project:read project:write` |
+| Manage organization resources | `user:read organization:read organization:write members:read members:write project:read project:write` |
 
-See the [full scopes reference](/docs/reference/apis/authentication) for all available scopes.
+See the [scopes reference](/docs/reference/apis/authorization) for all available scopes.
 
 ## Discovery endpoints
 

@@ -1,100 +1,39 @@
 %{
   title: "Social images",
-  summary: "Daily dashboard previews, browser rendering, storage, and traffic limits.",
+  summary: "Dashboard link previews, project branding, image updates, and availability.",
   category: "reference",
   section: "analytics",
   order: 30
 }
 ---
 
-Dashboard pages advertise a 1200 × 630 image through [Open Graph](https://ogp.me/)
-and Twitter large-image metadata. Public projects include their name, section,
-and uploaded logo. Public accounts receive a section-specific preview. Private
-accounts and personal settings use generic Glossia branding.
+Glossia generates social images for dashboard links on its hosted service.
 
-## Image identity and lifetime
+## Link previews
 
-The image digest includes the displayed content, project logo revision, template,
-styles, renderer, fonts, brand asset, dependency lockfile, and current day in
-[Coordinated Universal Time](https://www.timeanddate.com/time/aboututc.html).
-Changing any of these creates a new address. Sorting the attributes and signing
-at midnight keeps the complete address stable throughout the day.
+Dashboard pages advertise a 1200 × 630 image through [Open Graph](https://ogp.me/) and Twitter large-image metadata. Sharing a link in a service that reads this metadata can display the preview. The sharing service decides when to fetch or refresh it.
 
-The signed payload cannot be changed by a visitor. It is valid for two days,
-but only the current day's payload may generate a missing image. Yesterday's
-stored images remain readable. Query parameters never become object-store keys.
+Public projects include their name, section, and uploaded logo. Public accounts receive a section-specific preview. Private accounts and personal settings use generic Glossia branding.
 
-Successful images are persisted under `og/images/<digest>.jpg` in the configured
-[Amazon Simple Storage Service](https://aws.amazon.com/s3/)-compatible bucket.
-Only an explicit missing-object response starts generation. Storage failures
-return an uncacheable temporary failure, without starting Chrome. An upload must
-succeed before a newly rendered image is served.
+## Project branding
 
-## Rendering and limits
+Upload or replace the project's logo in Glossia to change the branding used in its public preview. Logos are limited to five million bytes, matching project uploads.
 
-Rendering uses BrowseChrome with viewport sizing and capture in a single browser
-session, so Chrome retains the dimensions while capturing the full canvas.
-The supervised pool contains two browsers. Each render has a 15-second deadline;
-each application instance permits at most twelve new renders per minute.
-Stored-image requests do not consume that allowance.
+Private project information is not included in a public social-image preview. A preview does not grant access to the linked dashboard page.
 
-Cachex combines concurrent requests for the same image and retains up to 100
-images for five minutes. A nonblocking PostgreSQL advisory lock prevents
-different application replicas from rendering the same image simultaneously.
-Other replicas receive a temporary failure and can retry once the object exists.
+## Image updates
 
-The template pairs a Noora section badge with Glossia's warm background, serif
-heading, gradient accent, and understated footer. Source Serif 4 and Inter are
-bundled locally so previews do not depend on a font service. Fonts and raster
-logos are embedded. The document's content security policy blocks scripts and
-external resources. Logos are loaded only from the application's avatar storage
-prefix and are limited to five million bytes, matching project uploads.
+Image addresses change when the displayed content, project logo, daily image version, or Glossia rendering implementation changes. A successful image can be cached for one day. Sharing services may retain their own cached preview, so replacing a logo does not guarantee an immediate update everywhere.
 
-## Response behavior
+Glossia manages image generation, storage, fonts, and caching.
 
-| Result | Status | Cache behavior |
-|---|---|---|
-| Stored or newly persisted image | 200 | Public, one day, immutable |
-| Invalid, expired, or altered signature | 404 | No storage |
-| Yesterday's image missing from storage | 404 | No storage |
-| Browser busy, render failure, or storage unavailable | 503 | No storage; retry after 60 seconds |
-| Origin request allowance exceeded | 429 | No storage; retry interval in response |
+## Availability
 
-The origin permits thirty requests per minute per client address, including
-invalid requests.
+| Result | Response |
+|---|---|
+| Image available | 200 |
+| Invalid or expired image address | 404 |
+| Image temporarily unavailable | 503, with a retry delay of 60 seconds |
+| Request limit exceeded | 429, with a retry delay in the response |
 
-## Cloudflare
-
-The `social-images-rate-limit.yaml` resource in the infrastructure repository
-matches `GET` and `HEAD` requests under `/og/`, including verified crawlers. It
-permits twenty requests per ten seconds per client address and Cloudflare
-location. Exceeding the limit blocks requests for ten seconds. The general
-public-page challenge rules exclude this path so image crawlers never need to
-solve a browser challenge.
-
-Cloudflare's [default cache behavior](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/)
-caches `.jpg` responses and honors origin cache headers. Keep the signed query
-string in the default cache key. Do not apply an overriding cache duration that
-caches error responses or ignores `no-store`. The deterministic signature avoids
-one cache entry per page request.
-
-Deploy the infrastructure resource alongside the application. Ensure the origin
-is reachable only through the trusted ingress, since forwarded client addresses
-are trusted by the existing request limiter. The browser pool and render budget
-also bound distributed misses and direct-origin requests.
-
-## Local configuration
-
-Set `GLOSSIA_OG_IMAGES=true` to enable the browser pool in development. Install
-Google Chrome or Chromium, build assets with `mix assets.build`, and configure
-the existing object-storage environment variables:
-
-- `GLOSSIA_S3_ACCESS_KEY_ID`
-- `GLOSSIA_S3_SECRET_ACCESS_KEY`
-- `GLOSSIA_S3_ENDPOINT`
-- `GLOSSIA_S3_REGION`
-- `GLOSSIA_S3_BUCKET`
-
-Run `mix ecto.setup` and `mix phx.server`. With storage configured, seeds give
-the public `dev/glossia` project a logo. Inspect the `og:image` metadata on a
-dashboard page to get its signed image address.
+If a preview is missing, open the dashboard page and share its current link. For a temporary failure, retry after the indicated delay. If the problem persists, contact Glossia support.

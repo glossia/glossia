@@ -6,6 +6,18 @@ defmodule Glossia.AccountsTest do
   alias Glossia.Organizations
   alias Glossia.TestHelpers
 
+  test "fallback and duplicate handles always satisfy account validation" do
+    Repo.insert!(
+      Glossia.Accounts.Account.changeset(%Glossia.Accounts.Account{}, %{handle: "taken"})
+    )
+
+    for _ <- 1..128, username <- [nil, "taken"] do
+      handle = Accounts.generate_handle(username)
+
+      assert Glossia.Accounts.Account.changeset(%Glossia.Accounts.Account{}, %{handle: handle}).valid?
+    end
+  end
+
   describe "personal organizations" do
     test "OAuth users are created with a personal organization" do
       {:ok, user} =

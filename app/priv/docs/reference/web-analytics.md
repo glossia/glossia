@@ -21,7 +21,7 @@ The project is resolved by the site domain the snippet declares. `d` is authorit
 
 | Field | Type   | Description                                                  |
 |-------|--------|--------------------------------------------------------------|
-| `d`   | string | Site domain that identifies the project (e.g. `example.com`). Required. |
+| `d`   | string | Site domain that identifies the project (e.g. `example.com`). Sent by the browser library; fallback resolution is described above. |
 | `n`   | string | Event name. Defaults to `pageview`.                          |
 | `u`   | string | Page URL (`location.href`).                                  |
 | `r`   | string | Referrer (`document.referrer`).                              |
@@ -52,7 +52,7 @@ These are computed at ingestion and stored server-side. The raw IP and User-Agen
 
 ## Privacy model
 
-- **No client-side storage.** The SDK sets no cookies and stores only a per-tab session id in `sessionStorage`, which the browser clears on close.
+- **No persistent cross-session identifier.** The SDK sets no cookies and stores only a per-tab session id in `sessionStorage`, which the browser clears on close.
 - **No fingerprinting.** Canvas, WebGL, font, and audio fingerprints are not collected. The daily-rotated server hash provides uniques without them.
 - **No raw identifiers persisted.** IP and User-Agent are read once, hashed with a server secret and a daily salt, then discarded.
 - **Per-project scoping.** The same browser on two projects yields unrelated visitor ids, so visitors cannot be tracked across Glossia customers.

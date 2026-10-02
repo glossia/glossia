@@ -3,6 +3,13 @@ defmodule Glossia.Accounts.Organization do
   import Ecto.Changeset
 
   schema "organizations" do
+    field :auth_provider, :string
+    field :auth_domain, :string
+    field :auth_domain_token, :string
+    field :auth_domain_verified_at, :utc_datetime_usec
+    field :auth_issuer, :string
+    field :auth_client_id, :string
+    field :auth_client_secret, Glossia.Encrypted.Binary, redact: true
     field :name, :string
     field :claimable, :boolean, default: false
 

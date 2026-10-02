@@ -1,0 +1,17 @@
+#authentication-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-6);
+  & [data-part="form"], & [data-part="verification"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-5);
+  }
+  & .noora-button, & .noora-badge {
+    align-self: flex-start;
+  }
+  & p {
+    color: var(--noora-surface-label-secondary);
+    font: var(--noora-font-body-medium);
+  }
+}
