@@ -664,23 +664,30 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
   gap: var(--space-1);
 }
 
+.nav-links .nav-cta,
+#language-switcher [data-part="toggle"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  padding: var(--space-1-5) var(--space-4);
+  border: var(--space-px) solid transparent;
+  border-radius: var(--radius-default);
+}
+
 #language-switcher {
   position: relative;
   display: inline-flex;
 }
 
 #language-switcher [data-part="toggle"] {
-  display: inline-flex;
-  align-items: center;
   gap: var(--space-1);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   color: var(--color-text-muted);
   background: none;
-  border: var(--space-px) solid var(--color-border);
-  border-radius: var(--radius-default);
-  padding: var(--space-1) var(--space-2-5);
+  border-color: var(--color-border);
   cursor: pointer;
   transition: all var(--transition);
 }
