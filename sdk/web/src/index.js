@@ -113,8 +113,20 @@ function send(payload) {
   if (!siteDomain) return;
   const body = JSON.stringify(payload);
 
-  // Prefer sendBeacon for reliability during page unload; fall back to fetch.
-  if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+  // Cross-origin beacons include credentials, which the public collector does
+  // not accept. Use credential-free keepalive fetch for external collectors.
+  let sameOrigin = false;
+  try {
+    sameOrigin =
+      new URL(endpoint, window.location.href).origin === window.location.origin;
+  } catch {
+    /* Fall through to fetch when the origin cannot be determined. */
+  }
+  if (
+    sameOrigin &&
+    typeof navigator !== "undefined" &&
+    typeof navigator.sendBeacon === "function"
+  ) {
     try {
       const blob = new Blob([body], { type: "application/json" });
       if (navigator.sendBeacon(endpoint, blob)) return;
@@ -131,6 +143,8 @@ function send(payload) {
       keepalive: true,
       credentials: "omit",
       mode: "cors",
+    }).catch(() => {
+      /* Analytics must never break the host page. */
     });
   } catch {
     /* Analytics must never break the host page. */
@@ -208,7 +222,7 @@ function hookHistory() {
 }
 
 // Auto-initialize from a classic script tag:
-//   <script defer src="https://cdn.glossia.ai/web.js" data-domain="example.com"></script>
+//   <script defer src="https://glossia.ai/assets/glossia-web.js" data-domain="example.com"></script>
 //
 // `data-domain` is optional; if omitted, the SDK falls back to the current
 // hostname. `data-endpoint` is also optional and selects a custom collection endpoint.

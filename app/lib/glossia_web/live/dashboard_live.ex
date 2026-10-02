@@ -7339,7 +7339,8 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp analytics_snippet(domain) do
     domain = if domain in [nil, ""], do: "example.com", else: domain
-    ~s(<script defer data-domain="#{domain}" src="https://cdn.glossia.ai/web.js"></script>)
+
+    ~s(<script defer data-domain="#{domain}" src="https://glossia.ai/assets/glossia-web.js"></script>)
   end
 
   defp project_avatar_display_url(nil), do: nil
