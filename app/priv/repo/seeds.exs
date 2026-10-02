@@ -94,6 +94,24 @@ defmodule Glossia.Seeds do
     ensure_member!(acme, maria, "linguist")
     ensure_member!(northwind, dev, "member")
 
+    {:ok, _} =
+      Glossia.MemberPermissions.update(
+        acme,
+        dev,
+        maria,
+        Glossia.MemberPermissions.basic_scopes() ++
+          ~w(translation:write glossary:write discussion:write)
+      )
+
+    # A pending Google Workspace domain, ready to exercise ownership verification.
+    if is_nil(acme.auth_provider) and is_nil(acme.auth_domain) do
+      {:ok, _} =
+        Glossia.OrganizationAuthentication.save(acme, dev, %{
+          "auth_provider" => "google",
+          "auth_domain" => "acme.test"
+        })
+    end
+
     # Pending invitations for testing the acceptance flow.
     ensure_invitation!(acme, dev, email: "prospect@acme.test", role: "member")
     ensure_invitation!(northwind, alex, email: "vendor@northwind.test", role: "member")

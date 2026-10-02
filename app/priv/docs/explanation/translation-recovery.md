@@ -25,8 +25,7 @@ smaller batches. Successful neighboring batches do not need to be translated aga
 
 ## Provider throttling
 
-Workers using the same credential and model share request admission through the
-database, including workers on different application replicas. A rate-limit
+Glossia coordinates translation requests that use the same credential and model. A rate-limit
 response extends their shared cooldown and increases spacing between new requests.
 Successful traffic gradually reduces that spacing after a minute without throttling.
 Already-running requests are allowed to finish.

@@ -3,7 +3,7 @@
   summary: "Create and manage account tokens for authenticating with the Glossia API.",
   category: "reference",
   subcategory: "apis",
-  order: 2
+  order: 3
 }
 ---
 
@@ -36,7 +36,7 @@ curl -H "Authorization: Bearer glsa_abc123def456..." \
   https://glossia.ai/api/projects
 ```
 
-Account tokens follow the same [authorization model](/docs/reference/apis/authentication) as OAuth tokens. The token's scopes define the maximum set of actions it can perform, and resource-level policies still apply based on your account's relationships.
+Account tokens follow the same [authorization model](/docs/reference/apis/authorization) as OAuth tokens. The token's scopes define the maximum set of actions it can perform, and resource-level policies still apply based on your account's relationships.
 
 ## Token format
 
@@ -44,7 +44,7 @@ All account tokens begin with the `glsa_` prefix followed by a random hex string
 
 ## Scopes
 
-Account tokens support the same scopes as OAuth tokens. See the [scopes reference](/docs/reference/apis/authentication) for the full list.
+Account tokens support the same scopes as OAuth tokens. See the [scopes reference](/docs/reference/apis/authorization) for the full list.
 
 When creating a token, select only the scopes your use case requires. For example:
 

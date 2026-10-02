@@ -193,7 +193,7 @@
                 open: @live_action in [:members],
                 items:
                   [
-                    assigns[:is_admin] &&
+                    assigns[:can_manage_members] &&
                       %{
                         label: gettext("Members"),
                         navigate: "/#{@handle}/-/members",
@@ -251,12 +251,16 @@
           <% end %>
 
           <.sidebar_group
-            :if={assigns[:is_admin]}
+            :if={
+              assigns[:is_admin] || assigns[:can_manage_credentials] ||
+                assigns[:can_manage_models]
+            }
             id="organization-settings-navigation"
             label={gettext("Settings")}
             icon="settings"
             default_open={
               @live_action in [
+                :authentication_settings,
                 :api_tokens,
                 :api_tokens_new,
                 :api_token_edit,
@@ -270,6 +274,7 @@
             }
             selected={
               @live_action in [
+                :authentication_settings,
                 :api_tokens,
                 :api_tokens_new,
                 :api_token_edit,
@@ -284,24 +289,35 @@
             }
           >
             <.sidebar_item
+              :if={assigns[:is_admin]}
+              label={gettext("Authentication")}
+              icon="lock_password"
+              navigate={~p"/#{@handle}/-/settings/authentication"}
+              selected={@live_action == :authentication_settings}
+            />
+            <.sidebar_item
+              :if={assigns[:can_manage_credentials]}
               label={gettext("Tokens")}
               icon="lock_password"
               navigate={"/#{@handle}/-/settings/tokens"}
               selected={@live_action in [:api_tokens, :api_tokens_new, :api_token_edit]}
             />
             <.sidebar_item
+              :if={assigns[:can_manage_credentials]}
               label={gettext("OAuth apps")}
               icon="apps"
               navigate={"/#{@handle}/-/settings/apps"}
               selected={@live_action in [:api_apps, :api_apps_new, :api_app_edit]}
             />
             <.sidebar_item
+              :if={assigns[:can_manage_models]}
               label={gettext("Models")}
               icon="api"
               navigate={~p"/#{@handle}/-/settings/models"}
               selected={@live_action in [:llm_models, :llm_model_new, :llm_model_edit]}
             />
             <.sidebar_item
+              :if={assigns[:can_manage_models]}
               label={gettext("Routing")}
               icon="git_branch"
               navigate={~p"/#{@handle}/-/settings/models/routing"}

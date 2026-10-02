@@ -26,5 +26,5 @@ This follows the same principle behind Kaizen in manufacturing and successive ap
 
 - Do not expect perfection on the first run. Plan for one or two review cycles.
 - Invest time in writing clear context files. They are the highest-leverage improvement you can make.
-- Use the server translation session to track which files were translated,
+- Use the translation session in Glossia to track which files were translated,
   skipped, or failed.

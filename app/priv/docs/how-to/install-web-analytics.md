@@ -51,7 +51,7 @@ glossia.track("signup");
 
 1. Open your site in a browser.
 2. Open the network tab and confirm a `POST` request to `https://glossia.ai/v1/collect` returns `202 Accepted`.
-3. Within a minute, the pageview appears under **Analytics** in your project's dashboard. Translation runs on the Overview page are separate from website traffic.
+3. After collection and processing, the pageview appears under **Analytics** in your project's dashboard. Translation runs on the Overview page are separate from website traffic.
 
 A `202 Accepted` response confirms the request reached the collector. Unknown or unverified domains are also accepted but do not record events, so confirm the configured domain is verified in the project's analytics settings.
 

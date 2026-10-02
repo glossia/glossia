@@ -19,7 +19,7 @@ Fails if `L10N.md` already exists.
 
 ## Translation is server-side
 
-Translation runs on the Glossia server, not in the command-line interface. When a commit lands,
+Translation runs in the hosted Glossia service, not in the command-line interface. When a commit lands,
 Glossia plans the work from your `L10N.md` files, translates each file with
 your account's configured model, and opens a pull request with the results. You
 can watch each file and the model's turns live on the translation session page.
@@ -28,8 +28,7 @@ The model is chosen per document: a `L10N.md` `model:` naming one of your
 account model handles selects it; otherwise your account's default model is used.
 
 The command-line interface intentionally does not plan, translate, validate,
-inspect, or delete generated translations. It also does not read the server's
-translation lockfiles.
+inspect, or delete generated translations. It also does not read the translation lockfiles published by Glossia.
 
 ## `glossia revisit`
 

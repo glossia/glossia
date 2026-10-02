@@ -83,6 +83,7 @@ defmodule GlossiaWeb.AuthController do
       dev_routes: @dev_routes,
       interest_form: assigns[:interest_form],
       providers: supported_login_providers(),
+      organization_form: Phoenix.Component.to_form(%{}, as: :organization),
       mode: assigns[:mode],
       turnstile_required?: turnstile_required?,
       turnstile_site_key: turnstile_required? && Turnstile.site_key(),
@@ -140,6 +141,7 @@ defmodule GlossiaWeb.AuthController do
   end
 
   def request(conn, %{"provider" => provider}) do
+    conn = delete_session(conn, :organization_auth)
     provider = parse_provider!(provider)
 
     if provider in supported_login_providers() do
@@ -174,7 +176,7 @@ defmodule GlossiaWeb.AuthController do
 
     case Auth.callback(provider, params, session_params) do
       {:ok, oauth_response} ->
-        case Accounts.sign_in_user_from_oauth(provider, oauth_response) do
+        case sign_in(provider, oauth_response, conn) do
           {:ok, user} ->
             finalize_session(conn, user, "user.signed_in", "Signed in")
 
@@ -186,6 +188,16 @@ defmodule GlossiaWeb.AuthController do
             )
             |> redirect(to: ~p"/signup")
 
+          {:error, :identity_not_linked} ->
+            conn
+            |> put_flash(
+              :error,
+              gettext(
+                "Sign in with your existing method first, then return to this page to connect your work identity."
+              )
+            )
+            |> redirect(to: ~p"/auth/login")
+
           {:error, _reason} ->
             callback_error(conn)
         end
@@ -196,6 +208,21 @@ defmodule GlossiaWeb.AuthController do
         |> redirect(to: ~p"/auth/login")
     end
   end
+
+  defp sign_in(:google, response, conn) do
+    case Glossia.OrganizationAuthentication.for_email(response.user["email"]) do
+      %{auth_provider: "google"} = organization ->
+        Glossia.OrganizationAuthentication.sign_in(organization, response,
+          link_user_id: conn.assigns[:current_user] && conn.assigns.current_user.id
+        )
+
+      _ ->
+        Accounts.sign_in_user_from_oauth(:google, response)
+    end
+  end
+
+  defp sign_in(provider, response, _conn),
+    do: Accounts.sign_in_user_from_oauth(provider, response)
 
   defp finalize_session(conn, user, event_type, summary) do
     return_to = get_session(conn, :return_to)
@@ -284,6 +311,7 @@ defmodule GlossiaWeb.AuthController do
   # registration rate-limit bucket needs to fence a persistent client.
   defp session_bucket_key(conn), do: get_session(conn, "_csrf_token")
 
+  defp parse_provider!("google"), do: :google
   defp parse_provider!("github"), do: :github
   defp parse_provider!("gitlab"), do: :gitlab
 
@@ -293,7 +321,7 @@ defmodule GlossiaWeb.AuthController do
   defp supported_login_providers do
     :glossia
     |> Application.get_env(:oauth_providers, [])
-    |> Keyword.take([:github, :gitlab])
+    |> Keyword.take([:github, :gitlab, :google])
     |> Keyword.keys()
   end
 end

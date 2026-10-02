@@ -11,25 +11,19 @@ Glossia exposes a [Model Context Protocol](https://modelcontextprotocol.io) (MCP
 
 ## What the MCP server provides
 
-Once connected, a coding agent can:
+Once connected, a coding agent can list accounts and projects, create projects, manage organization members and invitations, read or update voice and glossary settings, and manage account models and tokens, subject to its permissions.
 
-- Query translation status across your projects
-- Trigger translations and revisions
-- Inspect configuration and content entries
-- Access project context for smarter code suggestions
+The server does not currently expose tools to start translations or revisions, or to inspect per-file translation status. See the [tool reference](/docs/reference/mcp) for the available tools.
 
 ## Server URL
 
-| Environment | URL |
-|---|---|
-| Production | `https://glossia.ai/mcp` |
-| Local development | `http://localhost:4050/mcp` |
+Connect to Glossia's hosted service at `https://glossia.ai/mcp`. Glossia runs and maintains this endpoint; you only configure the connection in your coding agent.
 
 ## Authentication flow
 
 The MCP server uses the standard OAuth 2.1 authorization code flow with PKCE. You do not need to create OAuth clients manually. The flow works like this:
 
-1. The agent discovers your server through `/.well-known/oauth-authorization-server`
+1. The agent discovers Glossia through `https://glossia.ai/.well-known/oauth-authorization-server`
 2. It registers itself as an OAuth client via the dynamic registration endpoint
 3. It opens your browser for login and consent
 4. After you approve, the agent receives an access token and attaches it to all MCP requests
@@ -38,7 +32,7 @@ The MCP server uses the standard OAuth 2.1 authorization code flow with PKCE. Yo
 
 ### OpenAI Codex
 
-Add the server to your Codex configuration file at `~/.codex/config.toml`:
+Following the [Codex connection guide](https://developers.openai.com/codex/mcp), add the server to your Codex configuration file at `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.glossia]
@@ -59,40 +53,26 @@ To verify the connection:
 codex mcp list
 ```
 
-For local development, replace the URL:
-
-```toml
-[mcp_servers.glossia-local]
-url = "http://localhost:4050/mcp"
-```
-
 ### Claude Code
 
-Add the server to your Claude Code MCP settings (`.claude/settings.json` or the global settings file):
+Add the hosted server with the command documented in [Claude Code's connection guide](https://code.claude.com/docs/en/mcp):
 
-```json
-{
-  "mcpServers": {
-    "glossia": {
-      "url": "https://glossia.ai/mcp",
-      "transport": "streamable-http"
-    }
-  }
-}
+```bash
+claude mcp add --transport http glossia https://glossia.ai/mcp
 ```
 
-Claude Code will handle the OAuth flow automatically when it first connects.
+Run `/mcp` inside Claude Code and follow the browser authentication flow.
 
 ### Other MCP clients
 
-Any client that supports the [MCP authorization spec](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) will work. The key requirements are:
+A client must support the [Model Context Protocol authorization flow](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) implemented by Glossia. The connection requires:
 
 - **Transport**: Streamable HTTP
 - **Discovery**: The client must support OAuth 2.0 Protected Resource Metadata ([RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728))
-- **Registration**: Dynamic Client Registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)) or Client ID Metadata Documents
+- **Registration**: Dynamic Client Registration ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591))
 - **Auth flow**: Authorization code with PKCE (S256)
 
-Point the client at your Glossia MCP server URL and let it handle discovery and registration automatically.
+Point the client at `https://glossia.ai/mcp` and let it handle discovery and registration automatically.
 
 ## Discovery endpoints
 
@@ -124,7 +104,7 @@ The dynamic registration endpoint only accepts specific `token_endpoint_auth_met
 
 ### "Invalid OAuth callback" after approving
 
-Make sure your Glossia server is running and reachable at the URL you configured. The callback happens on a local port that the coding agent opens temporarily. Firewalls or VPNs can sometimes block this.
+Confirm that your coding agent can reach `https://glossia.ai`. The callback happens on a local port that the coding agent opens temporarily on your computer. Glossia remains hosted; this local listener belongs to your agent. Firewalls or virtual private networks can sometimes block the callback.
 
 ### Token exchange fails
 
@@ -132,4 +112,4 @@ Check that the `code_challenge_methods_supported` field is present in the author
 
 ### Agent cannot reach the server
 
-For local development, make sure the Phoenix server is running (`mix phx.server`) and listening on the expected port (default: 4050). The MCP endpoint must be accessible from the agent process.
+Check that the configured endpoint is `https://glossia.ai/mcp` and that your network allows your coding agent to reach it. If the hosted service remains unavailable, contact Glossia support.

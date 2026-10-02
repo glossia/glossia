@@ -1,19 +1,23 @@
 %{
-  title: "Authentication and authorization",
-  summary: "How Glossia authenticates users and authorizes API access.",
+  title: "Authentication",
+  summary: "Browser sign-in, access tokens, and authentication endpoints.",
   category: "reference",
   subcategory: "apis",
   order: 1
 }
 ---
 
+This page describes [Open Authorization](https://oauth.net/2.1/) (OAuth), [Proof Key for Code Exchange](https://datatracker.ietf.org/doc/html/rfc7636) (PKCE), and the [application programming interface](https://developer.mozilla.org/en-US/docs/Glossary/API) (API). Protocol specifications linked below are published as Requests for Comments (RFCs).
+
 ## Authentication methods
 
-Glossia supports two authentication methods depending on the context.
+Glossia supports browser sessions and bearer tokens. Bearer tokens can be issued through the authorization flow below or created as [account tokens](/docs/reference/apis/account-tokens).
 
 ### Browser sessions
 
-When you sign in through the web interface, Glossia uses session-based authentication. You authenticate via a third-party provider (GitHub or GitLab) using the [Assent](https://github.com/pow-auth/assent) library. After a successful sign-in, a session cookie is set and used for subsequent requests.
+When you sign in through the web interface, Glossia uses session-based authentication. You authenticate via GitHub, GitLab, Google, or a configured organization identity provider using the [Assent](https://github.com/pow-auth/assent) library. After a successful sign-in, a session cookie is set and used for subsequent requests.
+
+Organizations can configure Google Workspace or Okta and verify their work email domain before allowing automatic enrollment. See [Configure organization sign-in](/docs/how-to/organization-sign-in) for setup and account-linking requirements.
 
 ### Bearer tokens (OAuth 2.1)
 
@@ -37,7 +41,7 @@ Clients register themselves by calling `POST /oauth/register` with their metadat
 }
 ```
 
-The server returns `client_id` and `client_secret`.
+Glossia returns `client_id` and `client_secret`. The `localhost` redirect in this example belongs to your application during development. Production applications should register their own secure callback address.
 
 ### 2. Authorization request
 
@@ -57,7 +61,7 @@ After the user approves, the client exchanges the authorization code for tokens 
 POST /oauth/token
 Content-Type: application/x-www-form-urlencoded
 
-grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<id>&code_verifier=<verifier>
+grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<id>&client_secret=<secret>&code_verifier=<verifier>
 ```
 
 The response includes an access token and optionally a refresh token.
@@ -73,73 +77,7 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=refresh_token&refresh_token=<token>&client_id=<id>&client_secret=<secret>
 ```
 
-## Scopes
-
-Scopes control what actions a token can perform. They follow the `object:action` pattern.
-
-| Scope | Description |
-|-------|-------------|
-| `user:read` | Read user profile information |
-| `user:write` | Update user profile |
-| `account:read` | List organization accounts you can access |
-| `organization:read` | Read organization details (and list your organizations) |
-| `organization:write` | Create or update organizations |
-| `organization:delete` | Delete organizations |
-| `organization:admin` | Administrative organization actions |
-| `members:read` | Read organization members and invitations |
-| `members:write` | Manage organization members and invitations |
-| `project:read` | Read projects |
-| `project:write` | Create or update projects |
-| `project:admin` | Administrative project actions |
-| `project:delete` | Delete projects |
-| `voice:read` | Read voice configuration |
-| `voice:write` | Create or update voice configuration |
-| `voice:admin` | Administrative voice actions |
-| `glossary:read` | Read glossary entries |
-| `glossary:write` | Create or update glossary entries |
-| `glossary:admin` | Manage glossary settings |
-
-## Authorization model
-
-Glossia enforces **two layers** for the REST API and MCP server:
-
-1. **Scope check**: the access token must include the required `object:action` scope.
-2. **Resource-level policy**: the current user must be authorized for the specific resource via `Glossia.Policy`.
-
-Scopes represent the *maximum* capability of a token. The policy system enforces the *actual* permission for a specific resource.
-
-### Roles
-
-| Role | Description |
-|------|-------------|
-| `self` | The user accessing their own resources |
-| `organization_member` | A member of the organization that owns the resource |
-| `organization_admin` | An administrator of the organization that owns the resource |
-| `public_account` | The account is public (read-only) |
-
-### Role permissions
-
-| Scope | self | organization_member | organization_admin | public_account |
-|-------|------|----------------------|--------------------|----------------|
-| `user:read` | Yes | Yes | | |
-| `user:write` | Yes | | | |
-| `account:read` | | Yes | Yes | Yes |
-| `organization:read` | | Yes | Yes | |
-| `organization:write` | | | Yes | |
-| `organization:delete` | | | Yes | |
-| `organization:admin` | | | Yes | |
-| `members:read` | | Yes | Yes | |
-| `members:write` | | | Yes | |
-| `project:read` | | Yes | Yes | Yes |
-| `project:write` | | | Yes | |
-| `project:admin` | | | Yes | |
-| `project:delete` | | | Yes | |
-| `voice:read` | | Yes | Yes | Yes |
-| `voice:write` | | | Yes | |
-| `voice:admin` | | | Yes | |
-| `glossary:read` | | Yes | Yes | |
-| `glossary:write` | | | Yes | |
-| `glossary:admin` | | | Yes | |
+See [Authorization](/docs/reference/apis/authorization) for permission scopes, member access, and resource-level checks.
 
 ## Discovery endpoints
 
@@ -163,7 +101,7 @@ Returns the resource identifier, authorization servers, supported scopes, and be
 
 ## Rate limiting
 
-OAuth endpoints are rate limited per IP address:
+Registration is limited by client address. Token, revocation, and introspection requests are limited by both client address and client identifier:
 
 | Endpoint | Limit |
 |----------|-------|

@@ -133,7 +133,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_voice_propose = socket.assigns[:can_voice_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     voice = Voices.get_latest_voice(account)
     {:ok, {versions, _meta}} = Voices.list_voice_versions(account)
@@ -188,7 +188,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_voice_propose = socket.assigns[:can_voice_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     unless can_discussion_write and (can_voice_propose or can_voice_write) do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
@@ -303,7 +303,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_glossary_propose = socket.assigns[:can_glossary_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     glossary = Glossaries.get_latest_glossary(account)
     {:ok, {versions, _meta}} = Glossaries.list_glossary_versions(account)
@@ -351,7 +351,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_glossary_propose = socket.assigns[:can_glossary_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     unless can_discussion_write and (can_glossary_propose or can_glossary_write) do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
@@ -390,7 +390,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_glossary_propose = socket.assigns[:can_glossary_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     glossary = Glossaries.get_latest_glossary(account)
     entries = if glossary, do: glossary.entries || [], else: []
@@ -428,7 +428,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_glossary_propose = socket.assigns[:can_glossary_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     unless can_discussion_write and (can_glossary_propose or can_glossary_write) do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
@@ -525,7 +525,11 @@ defmodule GlossiaWeb.DashboardLive do
       else
         account = socket.assigns.account
 
-        unless socket.assigns.is_admin do
+        unless Glossia.Authz.authorize?(
+                 :members_write,
+                 socket.assigns.current_user,
+                 socket.assigns.account
+               ) do
           raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
         end
 
@@ -559,7 +563,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :api_tokens, params) do
-    require_admin!(socket)
+    require_action!(socket, :api_credentials_read)
     account = socket.assigns.account
     handle = socket.assigns.handle
 
@@ -603,7 +607,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :api_tokens_new, _params) do
-    require_admin!(socket)
+    require_action!(socket, :api_credentials_write)
     handle = socket.assigns.handle
 
     assign(socket,
@@ -624,7 +628,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :api_token_edit, params) do
-    require_admin!(socket)
+    require_action!(socket, :api_credentials_write)
     account = socket.assigns.account
     handle = socket.assigns.handle
     token = AccountTokens.get_account_token!(params["token_id"], account.id)
@@ -653,7 +657,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :api_apps, params) do
-    require_admin!(socket)
+    require_action!(socket, :api_credentials_read)
     account = socket.assigns.account
     handle = socket.assigns.handle
 
@@ -695,7 +699,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :api_apps_new, _params) do
-    require_admin!(socket)
+    require_action!(socket, :api_credentials_write)
     handle = socket.assigns.handle
 
     assign(socket,
@@ -714,7 +718,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :api_app_edit, %{"app_id" => app_id}) do
-    require_admin!(socket)
+    require_action!(socket, :api_credentials_write)
     account = socket.assigns.account
     handle = socket.assigns.handle
     app = AccountTokens.get_oauth_application!(app_id, account.id)
@@ -753,7 +757,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :llm_models, params) do
-    require_admin!(socket)
+    require_action!(socket, :llm_model_read)
     account = socket.assigns.account
     handle = socket.assigns.handle
 
@@ -794,7 +798,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :llm_model_new, _params) do
-    require_admin!(socket)
+    require_action!(socket, :llm_model_write)
     handle = socket.assigns.handle
     model_picker_options = model_picker_options()
 
@@ -824,7 +828,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :llm_routing, _params) do
-    require_admin!(socket)
+    require_action!(socket, :llm_model_write)
     account = socket.assigns.account
     handle = socket.assigns.handle
 
@@ -859,7 +863,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :llm_model_edit, %{"model_id" => model_id}) do
-    require_admin!(socket)
+    require_action!(socket, :llm_model_write)
     account = socket.assigns.account
     handle = socket.assigns.handle
     model = LLMModels.get_model!(model_id, account.id)
@@ -1103,7 +1107,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :project_settings, %{"project" => project_handle}) do
-    require_admin!(socket)
+    require_action!(socket, :project_admin)
     account = socket.assigns.account
     handle = socket.assigns.handle
     project = Glossia.Projects.get_project(account, project_handle)
@@ -1155,7 +1159,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_action(socket, :project_analytics_settings, %{"project" => project_handle}) do
-    require_admin!(socket)
+    require_action!(socket, :project_admin)
     account = socket.assigns.account
     handle = socket.assigns.handle
     project = Glossia.Projects.get_project(account, project_handle)
@@ -1364,23 +1368,11 @@ defmodule GlossiaWeb.DashboardLive do
     )
   end
 
-  defp require_admin!(socket) do
-    unless socket.assigns.is_admin do
-      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
-    end
-  end
-
-  defp require_write!(socket) do
-    unless socket.assigns.can_write do
-      raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
-    end
-  end
-
   defp require_action!(socket, action) do
     user = socket.assigns.current_user
     account = socket.assigns.account
 
-    unless Glossia.Policy.authorize?(action, user, account) do
+    unless Glossia.Authz.authorize?(action, user, account) do
       raise Ecto.NoResultsError, queryable: Glossia.Accounts.Account
     end
   end
@@ -1496,7 +1488,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("create_model", %{"model" => params}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :llm_model_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -1519,7 +1515,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("update_model", %{"model" => params}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :llm_model_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -1554,7 +1554,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("set_default_model", %{"id" => model_id}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :llm_model_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -1581,7 +1585,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("delete_model", %{"id" => model_id}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :llm_model_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -1614,7 +1622,11 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
 
   def handle_event("create_routing_rule", %{"routing" => params}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :llm_model_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -1676,7 +1688,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("edit_routing_rule", %{"id" => rule_id}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :llm_model_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -1705,7 +1721,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("update_routing_rule", %{"routing" => params}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :llm_model_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -1758,7 +1778,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("quick_add_catch_all", _params, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :llm_model_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -1786,7 +1810,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("delete_routing_rule", %{"id" => rule_id}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :llm_model_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -1813,7 +1841,11 @@ defmodule GlossiaWeb.DashboardLive do
 
   def handle_event("move_routing_rule", %{"id" => rule_id, "direction" => direction}, socket)
       when direction in ["up", "down"] do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :llm_model_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -1926,7 +1958,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_propose = socket.assigns[:can_voice_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     cond do
       can_discussion_write and (can_propose or can_write) ->
@@ -1944,7 +1976,7 @@ defmodule GlossiaWeb.DashboardLive do
     suggestion_body_text = suggestion_text_param(params, "suggestion_body", "request_body")
 
     cond do
-      is_nil(user) or not Glossia.Policy.authorize?(:discussion_write, user, account) ->
+      is_nil(user) or not Glossia.Authz.authorize?(:discussion_write, user, account) ->
         {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
       not ((socket.assigns[:can_voice_propose] || false) or
@@ -2074,7 +2106,7 @@ defmodule GlossiaWeb.DashboardLive do
     can_propose = socket.assigns[:can_glossary_propose] || false
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     cond do
       can_discussion_write and (can_propose or can_write) ->
@@ -2093,7 +2125,7 @@ defmodule GlossiaWeb.DashboardLive do
     change_note = glossary_suggestion_change_note(params, socket)
 
     cond do
-      is_nil(user) or not Glossia.Policy.authorize?(:discussion_write, user, account) ->
+      is_nil(user) or not Glossia.Authz.authorize?(:discussion_write, user, account) ->
         {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
       not ((socket.assigns[:can_glossary_propose] || false) or
@@ -2375,7 +2407,11 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
 
   def handle_event("send_invitation", %{"invite" => params}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :members_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       org = socket.assigns.organization
@@ -2429,7 +2465,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("revoke_invitation", %{"id" => invitation_id}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :members_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       org = socket.assigns.organization
@@ -2456,7 +2496,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("remove_member", %{"user-id" => user_id}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :members_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       org = socket.assigns.organization
@@ -2532,7 +2576,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("update_token", %{"token" => params}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :api_credentials_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       token = socket.assigns.editing_token
@@ -2560,7 +2608,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("create_token", %{"token" => params}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :api_credentials_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -2601,7 +2653,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("revoke_token", %{"id" => token_id}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :api_credentials_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -2648,7 +2704,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("create_oauth_app", %{"app" => params}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :api_credentials_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -2673,7 +2733,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("update_oauth_app", %{"app" => params}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :api_credentials_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       app = socket.assigns.oauth_app
@@ -2693,7 +2757,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("regenerate_secret", %{"id" => app_id}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :api_credentials_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -2714,7 +2782,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("delete_oauth_app", %{"id" => app_id}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :api_credentials_write,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       account = socket.assigns.account
@@ -2747,7 +2819,7 @@ defmodule GlossiaWeb.DashboardLive do
     account = socket.assigns.account
 
     cond do
-      is_nil(user) or not Glossia.Policy.authorize?(:discussion_write, user, account) ->
+      is_nil(user) or not Glossia.Authz.authorize?(:discussion_write, user, account) ->
         {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
 
       true ->
@@ -2771,7 +2843,7 @@ defmodule GlossiaWeb.DashboardLive do
     user = socket.assigns.current_user
     account = socket.assigns.account
 
-    if socket.assigns.can_write do
+    if Glossia.Authz.authorize?(:discussion_admin, user, account) do
       case Discussions.close_discussion(ticket, user, via: :dashboard) do
         {:ok, updated_ticket} ->
           ticket = Discussions.get_discussion_by_number!(updated_ticket.number, account.id)
@@ -2790,7 +2862,7 @@ defmodule GlossiaWeb.DashboardLive do
     user = socket.assigns.current_user
     account = socket.assigns.account
 
-    if socket.assigns.can_write do
+    if Glossia.Authz.authorize?(:discussion_admin, user, account) do
       case Discussions.reopen_discussion(ticket, user, via: :dashboard) do
         {:ok, updated_ticket} ->
           ticket = Discussions.get_discussion_by_number!(updated_ticket.number, account.id)
@@ -3075,7 +3147,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("update_project_settings", %{"project" => params}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :project_admin,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       project = socket.assigns.project
@@ -3118,7 +3194,11 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("update_analytics_settings", %{"analytics" => params}, socket) do
-    unless socket.assigns.is_admin do
+    unless Glossia.Authz.authorize?(
+             :project_admin,
+             socket.assigns.current_user,
+             socket.assigns.account
+           ) do
       {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     else
       project = socket.assigns.project
@@ -3173,7 +3253,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("cancel_translation_session", _params, socket) do
-    require_write!(socket)
+    require_action!(socket, :translation_write)
 
     case Glossia.TranslationSessions.cancel_session(socket.assigns.session) do
       {:ok, session} ->
@@ -3884,7 +3964,8 @@ defmodule GlossiaWeb.DashboardLive do
           invitations_sort_dir={@invitations_sort_dir}
           invite_form={@invite_form}
           handle={@handle}
-          can_write={@can_write}
+          can_manage_permissions={@is_admin}
+          can_write={Glossia.Authz.authorize?(:members_write, @current_user, @account)}
           current_user={@current_user}
         />
       <% action when action in [:api_tokens, :api_tokens_new, :api_token_edit] -> %>
@@ -5896,6 +5977,13 @@ defmodule GlossiaWeb.DashboardLive do
               <Noora.Table.time_cell time={member.inserted_at} />
             </:col>
             <:col :let={member}>
+              <Noora.Button.button
+                :if={@can_manage_permissions and member.role != "admin"}
+                navigate={~p"/#{@handle}/-/members/#{member.user.id}/permissions"}
+                label={gettext("Permissions")}
+                variant="secondary"
+                size="small"
+              />
               <Noora.Table.button_cell :if={
                 @can_write && @current_user && member.user.id != @current_user.id
               }>
@@ -10831,7 +10919,7 @@ defmodule GlossiaWeb.DashboardLive do
     user = socket.assigns.current_user
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     can_propose = socket.assigns[:can_voice_propose] || false
 
@@ -10900,7 +10988,7 @@ defmodule GlossiaWeb.DashboardLive do
     user = socket.assigns.current_user
 
     can_discussion_write =
-      not is_nil(user) and Glossia.Policy.authorize?(:discussion_write, user, account)
+      not is_nil(user) and Glossia.Authz.authorize?(:discussion_write, user, account)
 
     can_propose = socket.assigns[:can_glossary_propose] || false
 
@@ -11660,7 +11748,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_voice_suggestion(ticket, account, user, _handle) do
-    if not Glossia.Policy.authorize?(:voice_write, user, account) do
+    if not Glossia.Authz.authorize?(:voice_write, user, account) do
       {:error, :not_allowed}
     else
       metadata = ticket.metadata || %{}
@@ -11687,7 +11775,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp apply_glossary_suggestion(ticket, account, user, _handle) do
-    if not Glossia.Policy.authorize?(:glossary_write, user, account) do
+    if not Glossia.Authz.authorize?(:glossary_write, user, account) do
       {:error, :not_allowed}
     else
       metadata = ticket.metadata || %{}

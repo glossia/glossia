@@ -3,6 +3,7 @@ defmodule Glossia.Accounts.OrganizationMembership do
   import Ecto.Changeset
 
   schema "organization_memberships" do
+    field :scopes, {:array, :string}
     field :role, :string, default: "member"
 
     belongs_to :user, Glossia.Accounts.User
@@ -13,7 +14,8 @@ defmodule Glossia.Accounts.OrganizationMembership do
 
   def changeset(membership, attrs) do
     membership
-    |> cast(attrs, [:role])
+    |> cast(attrs, [:role, :scopes])
+    |> validate_subset(:scopes, Glossia.MemberPermissions.available_scopes())
     |> validate_required([:role])
     |> validate_inclusion(:role, ["admin", "member", "linguist"])
     |> unique_constraint([:user_id, :organization_id])

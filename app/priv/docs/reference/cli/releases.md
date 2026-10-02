@@ -27,8 +27,8 @@
 *2026-02-14*
 
 #### Bug Fixes
-- Make OAuth provider config optional in production. The app should boot even without GitHub/GitLab OAuth credentials set. Only configure providers when the env vars are present.
-- Default to port 4000 for production and keep 4050 for development. The production proxy expects the app on port 4000. The `runtime.exs` default was 4050, which caused health checks to fail during deployment.
+- Fix hosted login-provider configuration handling.
+- Fix hosted service health checks.
 
 #### Features
 - Add Phoenix app with OAuth login, docs enhancements, and UI improvements.

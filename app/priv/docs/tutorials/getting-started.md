@@ -51,7 +51,7 @@ Select one or more languages that should be produced from the repository's sourc
 
 Keep the setup page open while Glossia prepares the project. The progress card shows the current state and recent activity, including repository preparation, file inspection, changes, checks, and completion.
 
-You can leave the page and return to the project overview without losing the setup state. If setup fails, the same card explains what needs attention and offers **Retry setup**.
+You can leave the page and return to the project overview without losing the setup state. If setup fails, read the failure notice. Glossia discards the provisional project; fix the prerequisite and start again through **New project**. See [Retry project setup](/docs/how-to/retry-project-setup).
 
 ## 7. Review the result
 

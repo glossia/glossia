@@ -14,7 +14,7 @@ A glossary lives in two kinds of files you already use:
 - `L10N.md` declares the **terms**: what the word is and what it means. This is the same for every language.
 - `L10N/<locale>.md` declares the **translations** for one language. Each language's reviewers own their own file.
 
-If your account also has a glossary on the server, the two are merged at translation time. See [Glossary](/docs/explanation/glossary) for the rules and for [when to use which](/docs/explanation/glossary#when-to-use-which).
+If your account also has a glossary in Glossia, the two are merged at translation time. See [Glossary](/docs/explanation/glossary) for the rules and for [when to use which](/docs/explanation/glossary#when-to-use-which).
 
 ## 1. Declare the terms in L10N.md
 
@@ -64,7 +64,7 @@ glossary:
 ---
 ```
 
-Keys are the term's `source`. A language with no translation for a term falls back to the server glossary, or lets the model choose.
+Keys are the term's `source`. A language with no translation for a term falls back to the account glossary, or lets the model choose.
 
 ## 3. Add a term that only one language needs
 
@@ -117,10 +117,10 @@ Spanish files under `marketing/` translate "commit" as `compromiso`; the rest of
 
 Commit the change and push. On the next translation run, Glossia re-translates only the files that use the terms you added or changed, in the languages whose translations changed. Files that do not contain those terms keep their existing translations.
 
-If a glossary has a mistake, Glossia ignores the repository glossary for the affected files and uses the server glossary only, so check the [validation rules](/docs/reference/glossary#validation) when a term does not seem to apply.
+If a glossary has a mistake, Glossia ignores the repository glossary for the affected files and uses the account glossary only, so check the [validation rules](/docs/reference/glossary#validation) when a term does not seem to apply.
 
 ## See also
 
 - [Glossary reference](/docs/reference/glossary): every field and validation rule.
-- [Glossary](/docs/explanation/glossary): how the repository and server glossaries combine.
+- [Glossary](/docs/explanation/glossary): how the repository and account glossaries combine.
 - [L10N.md reference](/docs/reference/l10n-md): the other frontmatter fields.
