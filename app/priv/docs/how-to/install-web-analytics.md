@@ -32,7 +32,7 @@ Initialize it once in your application entrypoint:
 ```ts
 import glossia from "@glossia/web";
 
-glossia.init();
+glossia.init({ endpoint: "https://cdn.glossia.ai/v1/collect" });
 ```
 
 The `domain` is inferred from `window.location.hostname` so the SDK records against the project registered for your site. Pass `{ domain: "example.com" }` to override, for example to send events from a staging origin to the same project as production.
@@ -46,8 +46,8 @@ glossia.track("signup");
 ## Verify it works
 
 1. Open your site in a browser.
-2. Open the network tab and confirm a `POST` request to `/api/analytics/events` returns `202 Accepted`.
-3. Within a minute, the pageview appears in your project's analytics dashboard.
+2. Open the network tab and confirm a `POST` request to the collection endpoint returns `202 Accepted`. The script defaults to `https://cdn.glossia.ai/v1/collect`; a configured `data-endpoint` overrides it.
+3. After collection and processing, the pageview appears in your project's analytics dashboard.
 
 ## What is collected
 

@@ -7,13 +7,11 @@
 }
 ---
 
-Use **Retry setup** after fixing the condition that caused a project setup to fail.
+When automated setup fails, Glossia discards the provisional project so the repository can be selected again. A failure notice may appear in the setup flow, but the failed project and its progress history are not retained.
 
 ## 1. Read the failure
 
-Open the project overview. The setup progress card shows the failure and the latest setup activity.
-
-Common causes include:
+Read the failure notice before leaving the setup flow. Common causes include:
 
 - The account has no configured model.
 - The provider key is missing or no longer valid.
@@ -22,14 +20,14 @@ Common causes include:
 
 ## 2. Fix the prerequisite
 
-For model problems, open **Settings** and **Models**. For repository access problems, update the Glossia GitHub App installation in GitHub and grant it access to the repository.
+For model problems, open **Settings → Models**. For repository access problems, update the Glossia GitHub App installation in GitHub and grant it access to the repository.
 
-## 3. Retry
+## 3. Start setup again
 
-Return to the project overview and select **Retry setup**.
+Open **Projects → New project**, select the repository, choose **Automated setup**, and select the target languages again. Follow the new setup attempt until it completes.
 
-The card returns to **Pending**, then **Running**, and shows new activity as work proceeds. Retry is available only while the project is in **Failed** state, which prevents two setup attempts from running at the same time.
+If a failed project is still visible and offers **Retry setup**, that action starts another attempt. Do not rely on it remaining available: failed provisional projects are removed during cleanup.
 
 ## 4. Review completion
 
-When the state changes to **Completed**, review the resulting pull request in GitHub. If it fails again, use the new activity in the card rather than the previous attempt to identify the next action.
+When setup completes, review the resulting pull request in GitHub. See [Project setup](/docs/reference/project-setup) for the lifecycle and cleanup behavior.
