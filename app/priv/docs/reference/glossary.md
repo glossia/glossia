@@ -7,7 +7,7 @@
 }
 ---
 
-A repository glossary is split across two files. Glossia merges it with the account's server glossary for every file it translates. See [Glossary](/docs/explanation/glossary) for how the two combine.
+A repository glossary is split across two files. Glossia merges it with the account's account glossary for every file it translates. See [Glossary](/docs/explanation/glossary) for how the two combine.
 
 | File | `glossary` holds | Example |
 |---|---|---|
@@ -55,7 +55,7 @@ glossary:
 Each key is a term's `id` or its `source`, and each value is the approved translation for that language.
 
 - A key that matches no term in `L10N.md` declares a term for this language only.
-- A term without a translation in a language falls back to the server glossary for that language.
+- A term without a translation in a language falls back to the account glossary for that language.
 - To keep a name untranslated, map it to itself, for example `Glossia: Glossia`.
 
 ## Nested files
@@ -67,7 +67,7 @@ Every file is translated with the glossary of its directory chain:
 
 ## Validation
 
-If a glossary is invalid, Glossia translates the affected files with the server glossary only, so a typo never blocks translations. Common causes:
+If a glossary is invalid, Glossia translates the affected files with the account glossary only, so a typo never blocks translations. Common causes:
 
 - **Missing `source`.** Every term needs a non-empty one.
 - **Duplicate `id`.** Every term must resolve to a unique identifier, whether set explicitly or derived from `source`.
@@ -90,13 +90,13 @@ Each translated file's lockfile records the glossary entries that shaped it:
 }
 ```
 
-- `applied` lists the entries that matched the file. Repository entries appear as `repo:<id>`, server entries as `account:<id>`.
-- `shadowed` lists server entries that a repository entry replaced for this file.
+- `applied` lists the entries that matched the file. Repository entries appear as `repo:<id>`, account entries as `account:<id>`.
+- `shadowed` lists account entries that a repository entry replaced for this file.
 
 Editing a term or a translation only re-translates files that use it.
 
 ## See also
 
 - [Define a glossary](/docs/how-to/define-a-glossary): step-by-step guide.
-- [Glossary](/docs/explanation/glossary): how the repository and server glossaries combine.
+- [Glossary](/docs/explanation/glossary): how the repository and account glossaries combine.
 - [L10N.md reference](/docs/reference/l10n-md): the other frontmatter fields.

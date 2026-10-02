@@ -29,4 +29,4 @@ The instinct when you want "unique visitors" is to set a cookie or fingerprint t
 
 Unique visitors for a day only require an identifier that is stable *within the day*. A hash of the IP and User-Agent, rotated daily and scoped per project, supports daily visitor counts while making it impossible to link a visitor across days or across sites. This does not provide long-term returning-visitor tracking.
 
-This design limits the identifiers retained by analytics. It does not establish whether a particular deployment requires consent; that depends on how the site uses analytics and the rules that apply to it.
+This design limits the identifiers retained by analytics. It does not establish whether a particular website requires consent; that depends on how the site uses analytics and the rules that apply to it.

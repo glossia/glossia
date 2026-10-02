@@ -41,7 +41,7 @@ Clients register themselves by calling `POST /oauth/register` with their metadat
 }
 ```
 
-The server returns `client_id` and `client_secret`.
+Glossia returns `client_id` and `client_secret`. The `localhost` redirect in this example belongs to your application during development. Production applications should register their own secure callback address.
 
 ### 2. Authorization request
 
