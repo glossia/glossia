@@ -137,10 +137,10 @@ msgstr "연락하기"
 #: lib/glossia_web/components/layouts/app.html.heex:23
 #: lib/glossia_web/live/dashboard_live.ex:4722
 #: lib/glossia_web/live/dashboard_live.ex:5555
-#: lib/glossia_web/live/dashboard_live.ex:8392
-#: lib/glossia_web/live/dashboard_live.ex:9635
-#: lib/glossia_web/live/dashboard_live.ex:14030
-#: lib/glossia_web/live/dashboard_live.ex:14147
+#: lib/glossia_web/live/dashboard_live.ex:8393
+#: lib/glossia_web/live/dashboard_live.ex:9636
+#: lib/glossia_web/live/dashboard_live.ex:14031
+#: lib/glossia_web/live/dashboard_live.ex:14148
 #: lib/glossia_web/live/profile_live.ex:376
 #, elixir-autogen, elixir-format
 msgid "Language"
@@ -169,7 +169,7 @@ msgstr "메뉴"
 #: lib/glossia_web/live/dashboard_live.ex:984
 #: lib/glossia_web/live/dashboard_live.ex:995
 #: lib/glossia_web/live/dashboard_live.ex:4179
-#: lib/glossia_web/live/dashboard_live.ex:9531
+#: lib/glossia_web/live/dashboard_live.ex:9532
 #, elixir-autogen, elixir-format
 msgid "New project"
 msgstr "새 프로젝트"
@@ -261,7 +261,7 @@ msgid "Add language override"
 msgstr "언어 오버라이드 추가"
 
 #: lib/glossia_web/live/dashboard_live.ex:5124
-#: lib/glossia_web/live/dashboard_live.ex:10602
+#: lib/glossia_web/live/dashboard_live.ex:10603
 #, elixir-autogen, elixir-format
 msgid "Added"
 msgstr "추가됨"
@@ -301,7 +301,7 @@ msgstr "반려"
 #: lib/glossia_web/live/dashboard_live.ex:4760
 #: lib/glossia_web/live/dashboard_live.ex:5036
 #: lib/glossia_web/live/dashboard_live.ex:5141
-#: lib/glossia_web/live/dashboard_live.ex:10213
+#: lib/glossia_web/live/dashboard_live.ex:10214
 #, elixir-autogen, elixir-format
 msgid "Formality"
 msgstr "공식성"
@@ -309,7 +309,7 @@ msgstr "공식성"
 #: lib/glossia_web/live/dashboard_live.ex:4628
 #: lib/glossia_web/live/dashboard_live.ex:4793
 #: lib/glossia_web/live/dashboard_live.ex:5055
-#: lib/glossia_web/live/dashboard_live.ex:10227
+#: lib/glossia_web/live/dashboard_live.ex:10228
 #, elixir-autogen, elixir-format
 msgid "Guidelines"
 msgstr "가이드라인"
@@ -317,10 +317,10 @@ msgstr "가이드라인"
 #: lib/glossia_web/controllers/organization_html/new.html.heex:15
 #: lib/glossia_web/live/admin_live.ex:429
 #: lib/glossia_web/live/dashboard_live.ex:4231
-#: lib/glossia_web/live/dashboard_live.ex:11911
-#: lib/glossia_web/live/dashboard_live.ex:13285
-#: lib/glossia_web/live/dashboard_live.ex:13386
-#: lib/glossia_web/live/dashboard_live.ex:13552
+#: lib/glossia_web/live/dashboard_live.ex:11912
+#: lib/glossia_web/live/dashboard_live.ex:13286
+#: lib/glossia_web/live/dashboard_live.ex:13387
+#: lib/glossia_web/live/dashboard_live.ex:13553
 #, elixir-autogen, elixir-format
 msgid "Handle"
 msgstr "처리"
@@ -332,7 +332,7 @@ msgstr "언어는 비공식적이거나 공식적인 정도입니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:4664
 #: lib/glossia_web/live/dashboard_live.ex:5093
-#: lib/glossia_web/live/dashboard_live.ex:10247
+#: lib/glossia_web/live/dashboard_live.ex:10248
 #, elixir-autogen, elixir-format
 msgid "Language overrides"
 msgstr "언어 우선순위"
@@ -404,7 +404,7 @@ msgid "Remove"
 msgstr "삭제"
 
 #: lib/glossia_web/live/dashboard_live.ex:5128
-#: lib/glossia_web/live/dashboard_live.ex:10603
+#: lib/glossia_web/live/dashboard_live.ex:10604
 #, elixir-autogen, elixir-format
 msgid "Removed"
 msgstr "삭제됨"
@@ -433,7 +433,7 @@ msgstr "콘텐츠의 전반적인 성격과 공식성 수준을 설정하세요.
 #: lib/glossia_web/live/dashboard_live.ex:4612
 #: lib/glossia_web/live/dashboard_live.ex:4783
 #: lib/glossia_web/live/dashboard_live.ex:5043
-#: lib/glossia_web/live/dashboard_live.ex:10220
+#: lib/glossia_web/live/dashboard_live.ex:10221
 #, elixir-autogen, elixir-format
 msgid "Target audience"
 msgstr "대상 청중"
@@ -447,7 +447,7 @@ msgstr "작성문의 일반적인 성격을 나타냅니다."
 #: lib/glossia_web/live/dashboard_live.ex:4741
 #: lib/glossia_web/live/dashboard_live.ex:5031
 #: lib/glossia_web/live/dashboard_live.ex:5136
-#: lib/glossia_web/live/dashboard_live.ex:10206
+#: lib/glossia_web/live/dashboard_live.ex:10207
 #, elixir-autogen, elixir-format
 msgid "Tone"
 msgstr "톤"
@@ -687,8 +687,8 @@ msgstr "멤버"
 #: lib/glossia_web/live/dashboard_live.ex:6526
 #: lib/glossia_web/live/dashboard_live.ex:6993
 #: lib/glossia_web/live/dashboard_live.ex:7225
-#: lib/glossia_web/live/dashboard_live.ex:11885
-#: lib/glossia_web/live/dashboard_live.ex:11898
+#: lib/glossia_web/live/dashboard_live.ex:11886
+#: lib/glossia_web/live/dashboard_live.ex:11899
 #: lib/glossia_web/live/profile_live.ex:237
 #, elixir-autogen, elixir-format
 msgid "Name"
@@ -798,8 +798,8 @@ msgstr "이미 이 조직의 회원입니다."
 #: lib/glossia_web/live/dashboard_live.ex:2891
 #: lib/glossia_web/live/dashboard_live.ex:3155
 #: lib/glossia_web/live/dashboard_live.ex:3202
-#: lib/glossia_web/live/dashboard_live.ex:10926
-#: lib/glossia_web/live/dashboard_live.ex:10995
+#: lib/glossia_web/live/dashboard_live.ex:10927
+#: lib/glossia_web/live/dashboard_live.ex:10996
 #, elixir-autogen, elixir-format
 msgid "You don't have permission."
 msgstr "권한이 없습니다."
@@ -879,7 +879,7 @@ msgstr "조직의 유일한 관리자는 제거할 수 없습니다."
 #: lib/glossia_web/live/dashboard_live.ex:5316
 #: lib/glossia_web/live/dashboard_live.ex:5508
 #: lib/glossia_web/live/dashboard_live.ex:5730
-#: lib/glossia_web/live/dashboard_live.ex:10303
+#: lib/glossia_web/live/dashboard_live.ex:10304
 #, elixir-autogen, elixir-format
 msgid "Case sensitive"
 msgstr "대소문자 구별"
@@ -911,7 +911,7 @@ msgstr "초대를 찾을 수 없습니다."
 #: lib/glossia_web/live/dashboard_live.ex:372
 #: lib/glossia_web/live/dashboard_live.ex:379
 #: lib/glossia_web/live/dashboard_live.ex:5462
-#: lib/glossia_web/live/dashboard_live.ex:11401
+#: lib/glossia_web/live/dashboard_live.ex:11402
 #, elixir-autogen, elixir-format
 msgid "New term"
 msgstr "새 용어"
@@ -940,7 +940,7 @@ msgstr "언어 검색..."
 #: lib/glossia_web/live/dashboard_live.ex:5500
 #: lib/glossia_web/live/dashboard_live.ex:5503
 #: lib/glossia_web/live/dashboard_live.ex:5713
-#: lib/glossia_web/live/dashboard_live.ex:10285
+#: lib/glossia_web/live/dashboard_live.ex:10286
 #, elixir-autogen, elixir-format
 msgid "Term"
 msgstr "용어"
@@ -964,9 +964,9 @@ msgstr "번역"
 #: lib/glossia_web/live/dashboard_live.ex:5304
 #: lib/glossia_web/live/dashboard_live.ex:5537
 #: lib/glossia_web/live/dashboard_live.ex:5720
-#: lib/glossia_web/live/dashboard_live.ex:7514
-#: lib/glossia_web/live/dashboard_live.ex:7781
-#: lib/glossia_web/live/dashboard_live.ex:10293
+#: lib/glossia_web/live/dashboard_live.ex:7515
+#: lib/glossia_web/live/dashboard_live.ex:7782
+#: lib/glossia_web/live/dashboard_live.ex:10294
 #, elixir-autogen, elixir-format
 msgid "Translations"
 msgstr "번역들"
@@ -1066,8 +1066,8 @@ msgstr "앱으로 돌아가기"
 #: lib/glossia_web/live/admin_live.ex:699
 #: lib/glossia_web/live/dashboard_live.ex:4255
 #: lib/glossia_web/live/dashboard_live.ex:7015
-#: lib/glossia_web/live/dashboard_live.ex:7649
-#: lib/glossia_web/live/dashboard_live.ex:7876
+#: lib/glossia_web/live/dashboard_live.ex:7650
+#: lib/glossia_web/live/dashboard_live.ex:7877
 #, elixir-autogen, elixir-format
 msgid "Created"
 msgstr "생성됨"
@@ -1209,9 +1209,9 @@ msgstr "인증 콜백 URL"
 #: lib/glossia_web/live/dashboard_live.ex:4921
 #: lib/glossia_web/live/dashboard_live.ex:5265
 #: lib/glossia_web/live/dashboard_live.ex:5846
-#: lib/glossia_web/live/dashboard_live.ex:13006
-#: lib/glossia_web/live/dashboard_live.ex:13850
-#: lib/glossia_web/live/dashboard_live.ex:13908
+#: lib/glossia_web/live/dashboard_live.ex:13007
+#: lib/glossia_web/live/dashboard_live.ex:13851
+#: lib/glossia_web/live/dashboard_live.ex:13909
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr "취소"
@@ -1294,7 +1294,7 @@ msgstr "이 애플리케이션을 삭제하면 이를 통해 발급된 모든 �
 #: lib/glossia_web/live/dashboard_live.ex:6814
 #: lib/glossia_web/live/dashboard_live.ex:6827
 #: lib/glossia_web/live/dashboard_live.ex:7233
-#: lib/glossia_web/live/dashboard_live.ex:10199
+#: lib/glossia_web/live/dashboard_live.ex:10200
 #, elixir-autogen, elixir-format
 msgid "Description"
 msgstr "설명"
@@ -1529,7 +1529,7 @@ msgid "New token"
 msgstr "새 토큰"
 
 #: lib/glossia_web/live/admin_live.ex:803
-#: lib/glossia_web/live/dashboard_live.ex:13022
+#: lib/glossia_web/live/dashboard_live.ex:13023
 #, elixir-autogen, elixir-format
 msgid "Open"
 msgstr "열기"
@@ -1550,8 +1550,8 @@ msgid "Search by title..."
 msgstr "제목으로 검색..."
 
 #: lib/glossia_web/live/admin_live.ex:692
-#: lib/glossia_web/live/dashboard_live.ex:8395
-#: lib/glossia_web/live/dashboard_live.ex:11932
+#: lib/glossia_web/live/dashboard_live.ex:8396
+#: lib/glossia_web/live/dashboard_live.ex:11933
 #, elixir-autogen, elixir-format
 msgid "Status"
 msgstr "상태"
@@ -1644,7 +1644,7 @@ msgid "Briefly describe what you do and who you serve..."
 msgstr "무엇을 하고 누구를 위해 일하는지 간략히 설명하세요..."
 
 #: lib/glossia_web/live/dashboard_live.ex:4508
-#: lib/glossia_web/live/dashboard_live.ex:10240
+#: lib/glossia_web/live/dashboard_live.ex:10241
 #, elixir-autogen, elixir-format
 msgid "Cultural notes"
 msgstr "문화적 참고사항"
@@ -1670,9 +1670,9 @@ msgid "Generating cultural notes..."
 msgstr "문화적 참고사항 생성 중..."
 
 #: lib/glossia_web/live/dashboard_live.ex:5005
-#: lib/glossia_web/live/dashboard_live.ex:10502
-#: lib/glossia_web/live/dashboard_live.ex:10513
-#: lib/glossia_web/live/dashboard_live.ex:14152
+#: lib/glossia_web/live/dashboard_live.ex:10503
+#: lib/glossia_web/live/dashboard_live.ex:10514
+#: lib/glossia_web/live/dashboard_live.ex:14153
 #, elixir-autogen, elixir-format
 msgid "None"
 msgstr "없음"
@@ -1686,7 +1686,7 @@ msgstr "국가 검색..."
 #: lib/glossia_web/live/dashboard_live.ex:4461
 #: lib/glossia_web/live/dashboard_live.ex:4471
 #: lib/glossia_web/live/dashboard_live.ex:4997
-#: lib/glossia_web/live/dashboard_live.ex:10234
+#: lib/glossia_web/live/dashboard_live.ex:10235
 #, elixir-autogen, elixir-format
 msgid "Target countries"
 msgstr "대상 국가"
@@ -1733,7 +1733,7 @@ msgstr "에이전트 기반 로컬라이제이션 및 콘텐츠 재검토"
 msgid "All of your linguistic preferences live in one place. Every team draws from the same foundation, so your organization sounds consistent whether it is a product screen, a marketing campaign, or a support reply."
 msgstr "모든 어휘 선호도는 한곳에 모여 있습니다. 모든 팀이 같은 기초를 빌리기 때문에 제품 화면, 마케팅 캠페인, 지원 응답 어디에서나 조직의 목소리는 일관됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:9177
+#: lib/glossia_web/live/dashboard_live.ex:9178
 #, elixir-autogen, elixir-format
 msgid "An error occurred during setup."
 msgstr "설치 중 오류가 발생했습니다."
@@ -1779,12 +1779,12 @@ msgid "Built on the foundation, ready for your use cases"
 msgstr "견고한 기반 위에 구축되어, 지사의 사용 사례에 즉시 대응"
 
 #: lib/glossia_web/live/admin_live.ex:804
-#: lib/glossia_web/live/dashboard_live.ex:13023
+#: lib/glossia_web/live/dashboard_live.ex:13024
 #, elixir-autogen, elixir-format
 msgid "Closed"
 msgstr "종료"
 
-#: lib/glossia_web/live/dashboard_live.ex:13009
+#: lib/glossia_web/live/dashboard_live.ex:13010
 #, elixir-autogen, elixir-format
 msgid "Comment"
 msgstr "주석"
@@ -1806,7 +1806,7 @@ msgstr "맥락 그래프"
 
 #: lib/glossia_web/controllers/oauth/device_html/verify.html.heex:20
 #: lib/glossia_web/controllers/public_page_challenge_html.ex:145
-#: lib/glossia_web/live/dashboard_live.ex:9754
+#: lib/glossia_web/live/dashboard_live.ex:9755
 #, elixir-autogen, elixir-format
 msgid "Continue"
 msgstr "계속"
@@ -1914,7 +1914,7 @@ msgstr "유효하지 않은 사용자 코드."
 msgid "Language managers"
 msgstr "언어 관리자"
 
-#: lib/glossia_web/live/dashboard_live.ex:12999
+#: lib/glossia_web/live/dashboard_live.ex:13000
 #, elixir-autogen, elixir-format
 msgid "Leave a comment..."
 msgstr "댓글 작성..."
@@ -1970,7 +1970,7 @@ msgstr "당신의 소통 방식에 대한 진실의 원천"
 msgid "Open integrations"
 msgstr "연결된 통합"
 
-#: lib/glossia_web/live/dashboard_live.ex:12902
+#: lib/glossia_web/live/dashboard_live.ex:12903
 #, elixir-autogen, elixir-format
 msgid "Opened by %{author} on %{date}"
 msgstr "%{author}님이 %{date}에 열림"
@@ -2018,7 +2018,7 @@ msgstr "프로젝트 컨텍스트 (저장소 예시)"
 msgid "REST APIs"
 msgstr "REST API"
 
-#: lib/glossia_web/live/dashboard_live.ex:9615
+#: lib/glossia_web/live/dashboard_live.ex:9616
 #, elixir-autogen, elixir-format
 msgid "Search repositories..."
 msgstr "리포지토리 검색..."
@@ -2046,7 +2046,7 @@ msgstr "리포지토리 검색..."
 msgid "Settings"
 msgstr "설정"
 
-#: lib/glossia_web/live/dashboard_live.ex:9176
+#: lib/glossia_web/live/dashboard_live.ex:9177
 #, elixir-autogen, elixir-format
 msgid "Setup failed"
 msgstr "초기화 실패"
@@ -2164,7 +2164,7 @@ msgstr "작성 도구, 콘텐츠 플랫폼 및 AI 어시스턴트는 모두 시�
 msgid "and open standards like"
 msgstr "및 개방형 표준과 같은"
 
-#: lib/glossia_web/live/dashboard_live.ex:12937
+#: lib/glossia_web/live/dashboard_live.ex:12938
 #, elixir-autogen, elixir-format
 msgid "Comments (%{count})"
 msgstr "댓글 (%{count})"
@@ -2180,7 +2180,7 @@ msgstr "이미지 드롭하여 업로드"
 msgid "Filter"
 msgstr "필터"
 
-#: lib/glossia_web/live/dashboard_live.ex:9642
+#: lib/glossia_web/live/dashboard_live.ex:9643
 #, elixir-autogen, elixir-format
 msgid "No matching repositories"
 msgstr "일치하는 저장소가 없습니다."
@@ -2190,14 +2190,14 @@ msgstr "일치하는 저장소가 없습니다."
 msgid "Preview"
 msgstr "미리보기"
 
-#: lib/glossia_web/live/dashboard_live.ex:12966
+#: lib/glossia_web/live/dashboard_live.ex:12967
 #, elixir-autogen, elixir-format
 msgid "Quote reply"
 msgstr "인용 답장"
 
 #: lib/glossia_web/live/dashboard_live.ex:4246
-#: lib/glossia_web/live/dashboard_live.ex:9596
-#: lib/glossia_web/live/dashboard_live.ex:9628
+#: lib/glossia_web/live/dashboard_live.ex:9597
+#: lib/glossia_web/live/dashboard_live.ex:9629
 #, elixir-autogen, elixir-format
 msgid "Repository"
 msgstr "저장소"
@@ -2212,8 +2212,8 @@ msgstr "프로젝트 검색..."
 msgid "Sign in to continue."
 msgstr "계속하려면 로그인하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:9643
-#: lib/glossia_web/live/dashboard_live.ex:10059
+#: lib/glossia_web/live/dashboard_live.ex:9644
+#: lib/glossia_web/live/dashboard_live.ex:10060
 #, elixir-autogen, elixir-format
 msgid "Try adjusting your search query."
 msgstr "검색어를 조정해 보세요."
@@ -2224,7 +2224,7 @@ msgid "Write"
 msgstr "작성"
 
 #: lib/glossia_web/live/dashboard_live.ex:7217
-#: lib/glossia_web/live/dashboard_live.ex:13032
+#: lib/glossia_web/live/dashboard_live.ex:13033
 #, elixir-autogen, elixir-format
 msgid "General"
 msgstr "일반"
@@ -2247,34 +2247,34 @@ msgid "Provide a clear title, full context, and a concise summary of intent."
 msgstr "명확한 제목, 전체 컨텍스트, 그리고 의도에 대한 간략한 개요를 제공하세요."
 
 #: lib/glossia_web/live/dashboard_live.ex:4701
-#: lib/glossia_web/live/dashboard_live.ex:10605
+#: lib/glossia_web/live/dashboard_live.ex:10606
 #, elixir-autogen, elixir-format
 msgid "Changed"
 msgstr "변경됨"
 
-#: lib/glossia_web/live/dashboard_live.ex:10253
+#: lib/glossia_web/live/dashboard_live.ex:10254
 #, elixir-autogen, elixir-format
 msgid "No proposed changes detected."
 msgstr "제안된 변경 사항이 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:10191
-#: lib/glossia_web/live/dashboard_live.ex:10276
+#: lib/glossia_web/live/dashboard_live.ex:10192
+#: lib/glossia_web/live/dashboard_live.ex:10277
 #, elixir-autogen, elixir-format
 msgid "Proposed changes"
 msgstr "제안된 변경 사항"
 
-#: lib/glossia_web/live/dashboard_live.ex:10192
-#: lib/glossia_web/live/dashboard_live.ex:10277
+#: lib/glossia_web/live/dashboard_live.ex:10193
+#: lib/glossia_web/live/dashboard_live.ex:10278
 #, elixir-autogen, elixir-format
 msgid "This review is read-only. Go back to continue editing your draft."
 msgstr "이 검토는 읽기 전용입니다. 초안을 계속 편집하려면 이전 페이지로 돌아가세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:10604
+#: lib/glossia_web/live/dashboard_live.ex:10605
 #, elixir-autogen, elixir-format
 msgid "Updated"
 msgstr "업데이트됨"
 
-#: lib/glossia_web/live/dashboard_live.ex:10242
+#: lib/glossia_web/live/dashboard_live.ex:10243
 #, elixir-autogen, elixir-format
 msgid "Updated for: %{countries}"
 msgstr "다음으로 업데이트됨: %{countries}"
@@ -2305,17 +2305,17 @@ msgstr "프로젝트 설정 업데이트에 실패했습니다."
 msgid "Create a suggestion with title, description, and proposed voice updates."
 msgstr "제목, 설명, 그리고 제안하는 음성 업데이트로 제안 생성."
 
-#: lib/glossia_web/live/dashboard_live.ex:11591
+#: lib/glossia_web/live/dashboard_live.ex:11592
 #, elixir-autogen, elixir-format
 msgid "Failed to submit voice suggestion."
 msgstr "음성 제안 제출에 실패했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:7449
+#: lib/glossia_web/live/dashboard_live.ex:7450
 #, elixir-autogen, elixir-format
 msgid "File is too large (max 5 MB)"
 msgstr "파일이 너무 크며 (최대 5 MB)"
 
-#: lib/glossia_web/live/dashboard_live.ex:7450
+#: lib/glossia_web/live/dashboard_live.ex:7451
 #, elixir-autogen, elixir-format
 msgid "File type not accepted"
 msgstr "지원하지 않는 파일 형식"
@@ -2377,7 +2377,7 @@ msgstr "음성 변경 제안"
 msgid "Suggestion details"
 msgstr "제안 상세"
 
-#: lib/glossia_web/live/dashboard_live.ex:7451
+#: lib/glossia_web/live/dashboard_live.ex:7452
 #, elixir-autogen, elixir-format
 msgid "Too many files"
 msgstr "파일이 너무 많습니다"
@@ -2387,32 +2387,32 @@ msgstr "파일이 너무 많습니다"
 msgid "Upload an image to represent this project."
 msgstr "프로젝트를 대표하는 이미지를 업로드하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:7452
+#: lib/glossia_web/live/dashboard_live.ex:7453
 #, elixir-autogen, elixir-format
 msgid "Upload error"
 msgstr "업로드 오류"
 
-#: lib/glossia_web/live/dashboard_live.ex:13030
+#: lib/glossia_web/live/dashboard_live.ex:13031
 #, elixir-autogen, elixir-format
 msgid "Voice suggestion"
 msgstr "음성 제안"
 
-#: lib/glossia_web/live/dashboard_live.ex:11719
+#: lib/glossia_web/live/dashboard_live.ex:11720
 #, elixir-autogen, elixir-format
 msgid "suggestion"
 msgstr "제안"
 
-#: lib/glossia_web/live/dashboard_live.ex:9077
+#: lib/glossia_web/live/dashboard_live.ex:9078
 #, elixir-autogen, elixir-format
 msgid "%{count}d ago"
 msgstr "%{count}일 전"
 
-#: lib/glossia_web/live/dashboard_live.ex:9076
+#: lib/glossia_web/live/dashboard_live.ex:9077
 #, elixir-autogen, elixir-format
 msgid "%{count}h ago"
 msgstr "%{count} 시간 전"
 
-#: lib/glossia_web/live/dashboard_live.ex:9075
+#: lib/glossia_web/live/dashboard_live.ex:9076
 #, elixir-autogen, elixir-format
 msgid "%{count}m ago"
 msgstr "\"%{count} 분 전\""
@@ -2429,12 +2429,12 @@ msgstr "\"제안 설명이 필요합니다.\""
 msgid "A suggestion title is required."
 msgstr "\"제안 제목이 필요합니다.\""
 
-#: lib/glossia_web/live/dashboard_live.ex:11767
+#: lib/glossia_web/live/dashboard_live.ex:11768
 #, elixir-autogen, elixir-format
 msgid "Applied voice suggestion as version #%{version}."
 msgstr "\"스타일 제안이 버전 #%{version} 으로 적용되었습니다.\""
 
-#: lib/glossia_web/live/dashboard_live.ex:12914
+#: lib/glossia_web/live/dashboard_live.ex:12915
 #, elixir-autogen, elixir-format
 msgid "Apply suggestion"
 msgstr "\"제안 적용\""
@@ -2451,7 +2451,7 @@ msgstr "\"제안된 변경 사항의 간단한 요약\""
 msgid "Suggestion"
 msgstr "\"제안\""
 
-#: lib/glossia_web/live/dashboard_live.ex:9074
+#: lib/glossia_web/live/dashboard_live.ex:9075
 #, elixir-autogen, elixir-format
 msgid "just now"
 msgstr "\"방금\""
@@ -2466,8 +2466,8 @@ msgstr "총 %{count}개 토론"
 msgid "Close discussion"
 msgstr "토론 닫기"
 
-#: lib/glossia_web/live/dashboard_live.ex:7639
-#: lib/glossia_web/live/dashboard_live.ex:7817
+#: lib/glossia_web/live/dashboard_live.ex:7640
+#: lib/glossia_web/live/dashboard_live.ex:7818
 #, elixir-autogen, elixir-format
 msgid "Commit"
 msgstr "커밋"
@@ -2505,7 +2505,7 @@ msgstr "토의를 종료할 수 없습니다."
 msgid "Failed to reopen discussion."
 msgstr "토의를 재개할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:7868
+#: lib/glossia_web/live/dashboard_live.ex:7869
 #, elixir-autogen, elixir-format
 msgid "Languages"
 msgstr "언어"
@@ -2515,7 +2515,7 @@ msgstr "언어"
 msgid "No discussions found."
 msgstr "토의가 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8240
+#: lib/glossia_web/live/dashboard_live.ex:8241
 #, elixir-autogen, elixir-format
 msgid "No events recorded yet."
 msgstr "아직 기록된 이벤트가 없습니다."
@@ -2531,111 +2531,111 @@ msgid "Session"
 msgstr "세션"
 
 #: lib/glossia_web/live/dashboard_live.ex:1217
-#: lib/glossia_web/live/dashboard_live.ex:8072
-#: lib/glossia_web/live/dashboard_live.ex:8077
+#: lib/glossia_web/live/dashboard_live.ex:8073
+#: lib/glossia_web/live/dashboard_live.ex:8078
 #, elixir-autogen, elixir-format
 msgid "Translation session"
 msgstr "번역 세션"
 
-#: lib/glossia_web/live/dashboard_live.ex:8084
+#: lib/glossia_web/live/dashboard_live.ex:8085
 #, elixir-autogen, elixir-format
 msgid "Translation session details"
 msgstr "번역 세션 상세 정보"
 
-#: lib/glossia_web/live/dashboard_live.ex:7782
+#: lib/glossia_web/live/dashboard_live.ex:7783
 #, elixir-autogen, elixir-format
 msgid "Translation sessions for this project."
 msgstr "이 프로젝트의 번역 세션."
 
-#: lib/glossia_web/live/dashboard_live.ex:9990
+#: lib/glossia_web/live/dashboard_live.ex:9991
 #, elixir-autogen, elixir-format
 msgid "%{count} language selected"
 msgid_plural "%{count} languages selected"
 msgstr[0] "%{count} 개 언어 선택"
 
-#: lib/glossia_web/live/dashboard_live.ex:9729
-#: lib/glossia_web/live/dashboard_live.ex:9831
-#: lib/glossia_web/live/dashboard_live.ex:10001
+#: lib/glossia_web/live/dashboard_live.ex:9730
+#: lib/glossia_web/live/dashboard_live.ex:9832
+#: lib/glossia_web/live/dashboard_live.ex:10002
 #, elixir-autogen, elixir-format
 msgid "Back"
 msgstr "뒤로"
 
 #: lib/glossia_web/live/dashboard_live.ex:4325
-#: lib/glossia_web/live/dashboard_live.ex:8057
-#: lib/glossia_web/live/dashboard_live.ex:8156
-#: lib/glossia_web/live/dashboard_live.ex:11938
+#: lib/glossia_web/live/dashboard_live.ex:8058
+#: lib/glossia_web/live/dashboard_live.ex:8157
+#: lib/glossia_web/live/dashboard_live.ex:11939
 #, elixir-autogen, elixir-format
 msgid "Completed"
 msgstr "완료됨"
 
 #: lib/glossia_web/live/dashboard_live.ex:4326
-#: lib/glossia_web/live/dashboard_live.ex:8007
-#: lib/glossia_web/live/dashboard_live.ex:8058
-#: lib/glossia_web/live/dashboard_live.ex:8617
-#: lib/glossia_web/live/dashboard_live.ex:11939
-#: lib/glossia_web/live/dashboard_live.ex:11956
+#: lib/glossia_web/live/dashboard_live.ex:8008
+#: lib/glossia_web/live/dashboard_live.ex:8059
+#: lib/glossia_web/live/dashboard_live.ex:8618
+#: lib/glossia_web/live/dashboard_live.ex:11940
+#: lib/glossia_web/live/dashboard_live.ex:11957
 #, elixir-autogen, elixir-format
 msgid "Failed"
 msgstr "실패"
 
-#: lib/glossia_web/live/dashboard_live.ex:10114
+#: lib/glossia_web/live/dashboard_live.ex:10115
 #, elixir-autogen, elixir-format
 msgid "Go to project"
 msgstr "프로젝트로 이동"
 
-#: lib/glossia_web/live/dashboard_live.ex:9532
+#: lib/glossia_web/live/dashboard_live.ex:9533
 #, elixir-autogen, elixir-format
 msgid "Import a GitHub repository and set up localization."
 msgstr "GitHub 저장소를 가져오고 지역화 설정합니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:9700
+#: lib/glossia_web/live/dashboard_live.ex:9701
 #, elixir-autogen, elixir-format
 msgid "Install GitHub App"
 msgstr "GitHub 앱 설치"
 
 #: lib/glossia_web/live/dashboard_live.ex:4328
-#: lib/glossia_web/live/dashboard_live.ex:8001
-#: lib/glossia_web/live/dashboard_live.ex:8060
-#: lib/glossia_web/live/dashboard_live.ex:11936
+#: lib/glossia_web/live/dashboard_live.ex:8002
+#: lib/glossia_web/live/dashboard_live.ex:8061
+#: lib/glossia_web/live/dashboard_live.ex:11937
 #, elixir-autogen, elixir-format
 msgid "Pending"
 msgstr "대기"
 
 #: lib/glossia_web/live/dashboard_live.ex:4327
-#: lib/glossia_web/live/dashboard_live.ex:8002
-#: lib/glossia_web/live/dashboard_live.ex:8059
-#: lib/glossia_web/live/dashboard_live.ex:11937
+#: lib/glossia_web/live/dashboard_live.ex:8003
+#: lib/glossia_web/live/dashboard_live.ex:8060
+#: lib/glossia_web/live/dashboard_live.ex:11938
 #, elixir-autogen, elixir-format
 msgid "Running"
 msgstr "실행 중"
 
-#: lib/glossia_web/live/dashboard_live.ex:10030
+#: lib/glossia_web/live/dashboard_live.ex:10031
 #, elixir-autogen, elixir-format
 msgid "Search languages..."
 msgstr "언어 검색..."
 
-#: lib/glossia_web/live/dashboard_live.ex:10009
+#: lib/glossia_web/live/dashboard_live.ex:10010
 #, elixir-autogen, elixir-format
 msgid "Set up project"
 msgstr "프로젝트 설정"
 
-#: lib/glossia_web/live/dashboard_live.ex:9194
+#: lib/glossia_web/live/dashboard_live.ex:9195
 #, elixir-autogen, elixir-format
 msgid "Setup complete"
 msgstr "설정 완료"
 
-#: lib/glossia_web/live/dashboard_live.ex:9659
-#: lib/glossia_web/live/dashboard_live.ex:9682
+#: lib/glossia_web/live/dashboard_live.ex:9660
+#: lib/glossia_web/live/dashboard_live.ex:9683
 #, elixir-autogen, elixir-format
 msgid "Configure repository access"
 msgstr "저장소 접근 설정"
 
-#: lib/glossia_web/live/dashboard_live.ex:9692
+#: lib/glossia_web/live/dashboard_live.ex:9693
 #, elixir-autogen, elixir-format
 msgid "Connect a Git provider"
 msgstr "Git 제공업체 연결"
 
-#: lib/glossia_web/live/dashboard_live.ex:9653
+#: lib/glossia_web/live/dashboard_live.ex:9654
 #, elixir-autogen, elixir-format
 msgid "Don't see your repository?"
 msgstr "저장소를 보시지 못하셨나요?"
@@ -2645,7 +2645,7 @@ msgstr "저장소를 보시지 못하셨나요?"
 msgid "GitHub App is not configured. Set GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, and GITHUB_APP_SLUG."
 msgstr "GitHub 앱이 설정되지 않았습니다. GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, 및 GITHUB_APP_SLUG 를 설정하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:9694
+#: lib/glossia_web/live/dashboard_live.ex:9695
 #, elixir-autogen, elixir-format
 msgid "Install the Glossia GitHub App to import repositories and set up localization."
 msgstr "저장소를 가져오기 및 현지화 설정을 위해 Glossia GitHub 앱을 설치하세요."
@@ -2660,12 +2660,12 @@ msgstr "Glossia 계정에 연결된 타사 서비스 관리."
 msgid "Manage your personal profile and account information."
 msgstr "개인 프로필 및 계정 정보 관리."
 
-#: lib/glossia_web/live/dashboard_live.ex:10058
+#: lib/glossia_web/live/dashboard_live.ex:10059
 #, elixir-autogen, elixir-format
 msgid "No matching languages"
 msgstr "일치하는 언어 없음"
 
-#: lib/glossia_web/live/dashboard_live.ex:9672
+#: lib/glossia_web/live/dashboard_live.ex:9673
 #, elixir-autogen, elixir-format
 msgid "No repositories accessible"
 msgstr "접근 가능한 저장소 없음"
@@ -2684,7 +2684,7 @@ msgstr "프로필"
 msgid "Ready to suggest changes"
 msgstr "변경 사항 제안 준비 완료"
 
-#: lib/glossia_web/live/dashboard_live.ex:9674
+#: lib/glossia_web/live/dashboard_live.ex:9675
 #, elixir-autogen, elixir-format
 msgid "The GitHub App is installed but has no accessible repositories. Configure the installation to grant access to the repositories you want to import."
 msgstr "GitHub 앱이 설치되어 있지만 접근 가능한 저장소가 없습니다. 가져오고 싶은 저장소에 접근할 수 있도록 GitHub 앱 설치를 구성하세요."
@@ -2767,32 +2767,32 @@ msgstr "표시 이름"
 msgid "Connections"
 msgstr "연결"
 
-#: lib/glossia_web/live/dashboard_live.ex:7421
-#: lib/glossia_web/live/dashboard_live.ex:8177
-#: lib/glossia_web/live/dashboard_live.ex:9116
-#: lib/glossia_web/live/dashboard_live.ex:9200
+#: lib/glossia_web/live/dashboard_live.ex:7422
+#: lib/glossia_web/live/dashboard_live.ex:8178
+#: lib/glossia_web/live/dashboard_live.ex:9117
+#: lib/glossia_web/live/dashboard_live.ex:9201
 #, elixir-autogen, elixir-format
 msgid "Open pull request"
 msgstr "풀 리퀘스트 열기"
 
-#: lib/glossia_web/live/dashboard_live.ex:8886
+#: lib/glossia_web/live/dashboard_live.ex:8887
 #: lib/glossia_web/live/profile_live.ex:430
 #, elixir-autogen, elixir-format
 msgid "Provider"
 msgstr "제공자"
 
-#: lib/glossia_web/live/dashboard_live.ex:9195
+#: lib/glossia_web/live/dashboard_live.ex:9196
 #, elixir-autogen, elixir-format
 msgid "Your localization baseline is ready for review."
 msgstr "로컬라이제이션 베이스라인이 검토를 기다립니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13326
-#: lib/glossia_web/live/dashboard_live.ex:13421
+#: lib/glossia_web/live/dashboard_live.ex:13327
+#: lib/glossia_web/live/dashboard_live.ex:13422
 #, elixir-autogen, elixir-format
 msgid "API key"
 msgstr "API 키"
 
-#: lib/glossia_web/live/dashboard_live.ex:13501
+#: lib/glossia_web/live/dashboard_live.ex:13502
 #, elixir-autogen, elixir-format
 msgid "Are you sure you want to delete this model?"
 msgstr "이 모델을 삭제하시겠습니까?"
@@ -2812,8 +2812,8 @@ msgstr "모델을 삭제할 수 없습니다."
 msgid "Could not update model."
 msgstr "모델을 업데이트할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13488
-#: lib/glossia_web/live/dashboard_live.ex:13496
+#: lib/glossia_web/live/dashboard_live.ex:13489
+#: lib/glossia_web/live/dashboard_live.ex:13497
 #, elixir-autogen, elixir-format
 msgid "Delete model"
 msgstr "모델 삭제"
@@ -2823,23 +2823,23 @@ msgstr "모델 삭제"
 msgid "Glossia captures your linguistic preferences in one place so linguists and teams can shape how your organization speaks across every language and surface."
 msgstr "Glossia 는 언어 선호도를 한곳에 통합하여, 언어 전문가와 팀이 조직의 언어 사용 방식을 모든 언어와 플랫폼에 걸쳐 형성할 수 있도록 지원합니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13422
+#: lib/glossia_web/live/dashboard_live.ex:13423
 #, elixir-autogen, elixir-format
 msgid "Leave blank to keep current key"
 msgstr "공란으로 두면 현재 키를 유지합니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:11919
-#: lib/glossia_web/live/dashboard_live.ex:13298
-#: lib/glossia_web/live/dashboard_live.ex:13394
-#: lib/glossia_web/live/dashboard_live.ex:13571
-#: lib/glossia_web/live/dashboard_live.ex:13696
-#: lib/glossia_web/live/dashboard_live.ex:13829
+#: lib/glossia_web/live/dashboard_live.ex:11920
+#: lib/glossia_web/live/dashboard_live.ex:13299
+#: lib/glossia_web/live/dashboard_live.ex:13395
+#: lib/glossia_web/live/dashboard_live.ex:13572
+#: lib/glossia_web/live/dashboard_live.ex:13697
+#: lib/glossia_web/live/dashboard_live.ex:13830
 #, elixir-autogen, elixir-format
 msgid "Model"
 msgstr "모델"
 
-#: lib/glossia_web/live/dashboard_live.ex:13272
-#: lib/glossia_web/live/dashboard_live.ex:13378
+#: lib/glossia_web/live/dashboard_live.ex:13273
+#: lib/glossia_web/live/dashboard_live.ex:13379
 #, elixir-autogen, elixir-format
 msgid "Model configuration"
 msgstr "모델 구성"
@@ -2867,34 +2867,34 @@ msgstr "모델이 업데이트되었습니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:806
 #: lib/glossia_web/live/dashboard_live.ex:825
-#: lib/glossia_web/live/dashboard_live.ex:13261
-#: lib/glossia_web/live/dashboard_live.ex:13526
+#: lib/glossia_web/live/dashboard_live.ex:13262
+#: lib/glossia_web/live/dashboard_live.ex:13527
 #, elixir-autogen, elixir-format
 msgid "New model"
 msgstr "새 모델"
 
-#: lib/glossia_web/live/dashboard_live.ex:13490
+#: lib/glossia_web/live/dashboard_live.ex:13491
 #, elixir-autogen, elixir-format
 msgid "Permanently remove this model configuration. This cannot be undone."
 msgstr "이 모델 구성을 영구 삭제합니다. 이 작업은 되돌릴 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13328
+#: lib/glossia_web/live/dashboard_live.ex:13329
 #, elixir-autogen, elixir-format
 msgid "Your provider API key. This will be encrypted at rest."
 msgstr "제공자 API 키입니다. 이는 저장 시 암호화됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13286
+#: lib/glossia_web/live/dashboard_live.ex:13287
 #, elixir-autogen, elixir-format
 msgid "e.g. my-claude-model"
 msgstr "예: my-claude-model"
 
-#: lib/glossia_web/live/dashboard_live.ex:13327
+#: lib/glossia_web/live/dashboard_live.ex:13328
 #, elixir-autogen, elixir-format
 msgid "sk-..."
 msgstr "sk-..."
 
-#: lib/glossia_web/live/dashboard_live.ex:13175
-#: lib/glossia_web/live/dashboard_live.ex:13197
+#: lib/glossia_web/live/dashboard_live.ex:13176
+#: lib/glossia_web/live/dashboard_live.ex:13198
 #, elixir-autogen, elixir-format
 msgid "Select a model..."
 msgstr "모델 선택..."
@@ -2921,17 +2921,17 @@ msgstr "계속하시면 Glossia 의 약관에 동의합니다."
 
 #: lib/glossia_web/live/dashboard_live.ex:5317
 #: lib/glossia_web/live/dashboard_live.ex:5731
-#: lib/glossia_web/live/dashboard_live.ex:10304
+#: lib/glossia_web/live/dashboard_live.ex:10305
 #, elixir-autogen, elixir-format
 msgid "Case insensitive"
 msgstr "대소문자 구분 없음"
 
-#: lib/glossia_web/live/dashboard_live.ex:13038
+#: lib/glossia_web/live/dashboard_live.ex:13039
 #, elixir-autogen, elixir-format
 msgid "Close"
 msgstr "닫기"
 
-#: lib/glossia_web/live/dashboard_live.ex:13036
+#: lib/glossia_web/live/dashboard_live.ex:13037
 #, elixir-autogen, elixir-format
 msgid "Close suggestion"
 msgstr "제안 닫기"
@@ -2998,7 +2998,7 @@ msgstr "조직 접근 권한 관리"
 
 #: lib/glossia_web/live/dashboard_live.ex:5307
 #: lib/glossia_web/live/dashboard_live.ex:5723
-#: lib/glossia_web/live/dashboard_live.ex:10297
+#: lib/glossia_web/live/dashboard_live.ex:10298
 #, elixir-autogen, elixir-format
 msgid "Matching"
 msgstr "매칭"
@@ -3018,7 +3018,7 @@ msgstr "범위 없음"
 msgid "No terms yet"
 msgstr "아직 용례 없음"
 
-#: lib/glossia_web/live/dashboard_live.ex:11418
+#: lib/glossia_web/live/dashboard_live.ex:11419
 #, elixir-autogen, elixir-format
 msgid "No translations"
 msgstr "번역 없음"
@@ -3044,7 +3044,7 @@ msgstr "로컬라이제이션, 언어 시스템, 및 에이전트 워크플로�
 msgid "Projects connected to this organization."
 msgstr "이 조직에 연결된 프로젝트."
 
-#: lib/glossia_web/live/dashboard_live.ex:11723
+#: lib/glossia_web/live/dashboard_live.ex:11724
 #, elixir-autogen, elixir-format
 msgid "Proposed %{resource} update.\n\nChange note: %{note}\n\nUse the suggestion action to apply this when ready."
 msgstr "제안된 %{resource} 업데이트.\n\n변경 내용: %{note}\n\n준비되면 제안 작업을 사용하여 이를 적용하세요."
@@ -3054,12 +3054,12 @@ msgstr "제안된 %{resource} 업데이트.\n\n변경 내용: %{note}\n\n준비�
 msgid "Register an OAuth application to let external services access your account."
 msgstr "OAuth 애플리케이션을 등록하여 외부 서비스에서 계정에 액세스할 수 있도록 하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:13044
+#: lib/glossia_web/live/dashboard_live.ex:13045
 #, elixir-autogen, elixir-format
 msgid "Reopen"
 msgstr "다시 열기"
 
-#: lib/glossia_web/live/dashboard_live.ex:13042
+#: lib/glossia_web/live/dashboard_live.ex:13043
 #, elixir-autogen, elixir-format
 msgid "Reopen suggestion"
 msgstr "제안 다시 열기"
@@ -3134,7 +3134,7 @@ msgstr "토큰은 자동화 도구가 Glossia 와 인증할 수 있게 합니다
 msgid "Tokens you have generated that can be used to access Glossia programmatically."
 msgstr "프로그래밍 방식으로 Glossia 에 접근할 수 있도록 생성한 토큰입니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:11586
+#: lib/glossia_web/live/dashboard_live.ex:11587
 #, elixir-autogen, elixir-format
 msgid "Voice suggestion submitted as suggestion #%{number}."
 msgstr "음성 제안이 제안 #%{number} 로 제출되었습니다."
@@ -3149,33 +3149,33 @@ msgstr "다시 오셨습니다. 계속하기 위한 로그인 방법을 선택�
 msgid "What this term means"
 msgstr "이 용어의 의미"
 
-#: lib/glossia_web/live/dashboard_live.ex:8268
+#: lib/glossia_web/live/dashboard_live.ex:8269
 #, elixir-autogen, elixir-format
 msgid "Checking %{checked} of %{total} file for updates"
 msgid_plural "Checking %{checked} of %{total} files for updates"
 msgstr[0] "%{checked} 개의 파일을 %{total} 개 중 업데이트 확인 중입니다"
 
-#: lib/glossia_web/live/dashboard_live.ex:8264
+#: lib/glossia_web/live/dashboard_live.ex:8265
 #, elixir-autogen, elixir-format
 msgid "No translations needed"
 msgstr "번역이 필요하지 않습니다"
 
-#: lib/glossia_web/live/dashboard_live.ex:8278
+#: lib/glossia_web/live/dashboard_live.ex:8279
 #, elixir-autogen, elixir-format
 msgid "%{done}/%{total} translated"
 msgstr "%{done}개/%{total}개 번역됨"
 
-#: lib/glossia_web/live/dashboard_live.ex:8291
+#: lib/glossia_web/live/dashboard_live.ex:8292
 #, elixir-autogen, elixir-format
 msgid "%{n} failed"
 msgstr "%{n}개 실패"
 
-#: lib/glossia_web/live/dashboard_live.ex:8286
+#: lib/glossia_web/live/dashboard_live.ex:8287
 #, elixir-autogen, elixir-format
 msgid "%{n} in progress"
 msgstr "%{n}개 진행 중"
 
-#: lib/glossia_web/live/dashboard_live.ex:8296
+#: lib/glossia_web/live/dashboard_live.ex:8297
 #, elixir-autogen, elixir-format
 msgid "%{n} up to date"
 msgstr "%{n} 동기화됨"
@@ -3202,7 +3202,7 @@ msgid "Application registered"
 msgstr "애플리케이션 등록됨"
 
 #: lib/glossia_web/live/dashboard_live.ex:5735
-#: lib/glossia_web/live/dashboard_live.ex:10308
+#: lib/glossia_web/live/dashboard_live.ex:10309
 #, elixir-autogen, elixir-format
 msgid "Change"
 msgstr "변경"
@@ -3232,8 +3232,8 @@ msgstr "이제 클라이언트 시크릿을 복사하세요. 다시 볼 수 없�
 msgid "Copy your new client secret now. You will not be able to see it again."
 msgstr "이제 새 클라이언트 시크릿을 복사하세요. 다시 볼 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8616
-#: lib/glossia_web/live/dashboard_live.ex:9386
+#: lib/glossia_web/live/dashboard_live.ex:8617
+#: lib/glossia_web/live/dashboard_live.ex:9387
 #, elixir-autogen, elixir-format
 msgid "Done"
 msgstr "완료"
@@ -3244,7 +3244,7 @@ msgstr "완료"
 msgid "Explain what the application does and who owns it."
 msgstr "애플리케이션의 기능과 소유자를 설명하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:10320
+#: lib/glossia_web/live/dashboard_live.ex:10321
 #, elixir-autogen, elixir-format
 msgid "Go back to edit your draft before creating a suggestion."
 msgstr "제안을 작성하기 전에 초안을 수정하세요."
@@ -3274,12 +3274,12 @@ msgstr "아직 연결이 없습니다"
 msgid "No terms"
 msgstr "용어 없음"
 
-#: lib/glossia_web/live/dashboard_live.ex:7896
+#: lib/glossia_web/live/dashboard_live.ex:7897
 #, elixir-autogen, elixir-format
 msgid "No translation sessions yet"
 msgstr "아직 번역 세션 없음"
 
-#: lib/glossia_web/live/dashboard_live.ex:8043
+#: lib/glossia_web/live/dashboard_live.ex:8044
 #, elixir-autogen, elixir-format
 msgid "Not configured"
 msgstr "설정되지 않음"
@@ -3289,7 +3289,7 @@ msgstr "설정되지 않음"
 msgid "Register application"
 msgstr "애플리케이션 등록"
 
-#: lib/glossia_web/live/dashboard_live.ex:7794
+#: lib/glossia_web/live/dashboard_live.ex:7795
 #, elixir-autogen, elixir-format
 msgid "Search translation sessions..."
 msgstr "번역 세션 검색..."
@@ -3323,12 +3323,12 @@ msgstr "애플리케이션의 공개 홈페이지입니다 (있는 경우)."
 msgid "The stable identifier integrations use to start authorization."
 msgstr "인증 시작을 위해 통합이 사용하는 안정적인 식별자입니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8615
+#: lib/glossia_web/live/dashboard_live.ex:8616
 #, elixir-autogen, elixir-format
 msgid "Translating"
 msgstr "번역 중"
 
-#: lib/glossia_web/live/dashboard_live.ex:7898
+#: lib/glossia_web/live/dashboard_live.ex:7899
 #, elixir-autogen, elixir-format
 msgid "Translation sessions will show up here once content is translated."
 msgstr "콘텐츠가 번역되면 번역 세션이 여기에 표시됩니다."
@@ -3343,18 +3343,18 @@ msgstr "변경 없음"
 msgid "Used by the internal content dashboard."
 msgstr "내부 콘텐츠 대시보드에서 사용됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13213
+#: lib/glossia_web/live/dashboard_live.ex:13214
 #, elixir-autogen, elixir-format
 msgid "Search models"
 msgstr "모델 검색"
 
-#: lib/glossia_web/live/dashboard_live.ex:13176
-#: lib/glossia_web/live/dashboard_live.ex:13212
+#: lib/glossia_web/live/dashboard_live.ex:13177
+#: lib/glossia_web/live/dashboard_live.ex:13213
 #, elixir-autogen, elixir-format
 msgid "Search models..."
 msgstr "모델 검색..."
 
-#: lib/glossia_web/live/dashboard_live.ex:9602
+#: lib/glossia_web/live/dashboard_live.ex:9603
 #, elixir-autogen, elixir-format
 msgid "%{count} repository"
 msgid_plural "%{count} repositories"
@@ -3366,12 +3366,12 @@ msgstr[0] "%{count}개의 저장소"
 msgid "Could not retry project setup."
 msgstr "프로젝트 설정을 다시 시도할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:9311
+#: lib/glossia_web/live/dashboard_live.ex:9312
 #, elixir-autogen, elixir-format
 msgid "Finished %{step}"
 msgstr "%{step} 완료"
 
-#: lib/glossia_web/live/dashboard_live.ex:9139
+#: lib/glossia_web/live/dashboard_live.ex:9140
 #, elixir-autogen, elixir-format
 msgid "Localization setup"
 msgstr "로컬라이제이션 설정"
@@ -3382,93 +3382,93 @@ msgstr "로컬라이제이션 설정"
 #: lib/glossia_web/live/dashboard_live.ex:824
 #: lib/glossia_web/live/dashboard_live.ex:859
 #: lib/glossia_web/live/dashboard_live.ex:903
-#: lib/glossia_web/live/dashboard_live.ex:13516
+#: lib/glossia_web/live/dashboard_live.ex:13517
 #, elixir-autogen, elixir-format
 msgid "Models"
 msgstr "모델"
 
-#: lib/glossia_web/live/dashboard_live.ex:13601
+#: lib/glossia_web/live/dashboard_live.ex:13602
 #, elixir-autogen, elixir-format
 msgid "Models will show up here once you configure one."
 msgstr "모델을 설정하면 여기에 표시됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13600
+#: lib/glossia_web/live/dashboard_live.ex:13601
 #, elixir-autogen, elixir-format
 msgid "No models yet"
 msgstr "아직 모델이 없습니다"
 
-#: lib/glossia_web/live/dashboard_live.ex:9636
+#: lib/glossia_web/live/dashboard_live.ex:9637
 #, elixir-autogen, elixir-format
 msgid "Not detected"
 msgstr "감지되지 않음"
 
-#: lib/glossia_web/live/dashboard_live.ex:9305
+#: lib/glossia_web/live/dashboard_live.ex:9306
 #, elixir-autogen, elixir-format
 msgid "Pull request created"
 msgstr "풀 리퀘스트가 생성됨"
 
-#: lib/glossia_web/live/dashboard_live.ex:9182
+#: lib/glossia_web/live/dashboard_live.ex:9183
 #, elixir-autogen, elixir-format
 msgid "Retry setup"
 msgstr "설정을 다시 시도"
 
-#: lib/glossia_web/live/dashboard_live.ex:10033
+#: lib/glossia_web/live/dashboard_live.ex:10034
 #, elixir-autogen, elixir-format
 msgid "Search languages"
 msgstr "언어 검색"
 
-#: lib/glossia_web/live/dashboard_live.ex:9618
+#: lib/glossia_web/live/dashboard_live.ex:9619
 #, elixir-autogen, elixir-format
 msgid "Search repositories"
 msgstr "저장소 검색"
 
-#: lib/glossia_web/live/dashboard_live.ex:9317
+#: lib/glossia_web/live/dashboard_live.ex:9318
 #, elixir-autogen, elixir-format
 msgid "Setup assistant update"
 msgstr "설정 비서 업데이트"
 
-#: lib/glossia_web/live/dashboard_live.ex:9299
+#: lib/glossia_web/live/dashboard_live.ex:9300
 #, elixir-autogen, elixir-format
 msgid "Setup error"
 msgstr "설정 오류"
 
-#: lib/glossia_web/live/dashboard_live.ex:9302
+#: lib/glossia_web/live/dashboard_live.ex:9303
 #, elixir-autogen, elixir-format
 msgid "Setup instructions prepared"
 msgstr "설정 지침 준비 완료"
 
-#: lib/glossia_web/live/dashboard_live.ex:9314
-#: lib/glossia_web/live/dashboard_live.ex:9320
+#: lib/glossia_web/live/dashboard_live.ex:9315
+#: lib/glossia_web/live/dashboard_live.ex:9321
 #, elixir-autogen, elixir-format
 msgid "Setup update"
 msgstr "설정 업데이트"
 
-#: lib/glossia_web/live/dashboard_live.ex:9997
+#: lib/glossia_web/live/dashboard_live.ex:9998
 #, elixir-autogen, elixir-format
 msgid "Target languages"
 msgstr "대상 언어"
 
-#: lib/glossia_web/live/dashboard_live.ex:9332
+#: lib/glossia_web/live/dashboard_live.ex:9333
 #, elixir-autogen, elixir-format
 msgid "The localization baseline is ready for review and merge."
 msgstr "로컬라이제이션 기준은 검토 및 병합을 위해 준비되었습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:9329
+#: lib/glossia_web/live/dashboard_live.ex:9330
 #, elixir-autogen, elixir-format
 msgid "The repository and language choices are ready for the setup assistant."
 msgstr "저장소 및 언어 선택이 설정 비서를 위해 준비되었습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:9336
+#: lib/glossia_web/live/dashboard_live.ex:9337
 #, elixir-autogen, elixir-format
 msgid "The setup assistant is applying the next repository change."
 msgstr "설정 비서는 다음 저장소 변경 사항을 적용하고 있습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:9654
+#: lib/glossia_web/live/dashboard_live.ex:9655
 #, elixir-autogen, elixir-format
 msgid "Update the GitHub App installation to change repository access."
 msgstr "저장소 접근을 변경하려면 GitHub App 설치를 업데이트하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:9308
+#: lib/glossia_web/live/dashboard_live.ex:9309
 #, elixir-autogen, elixir-format
 msgid "Working on %{step}"
 msgstr "현재 %{step} 작업을 진행 중입니다."
@@ -3478,7 +3478,7 @@ msgstr "현재 %{step} 작업을 진행 중입니다."
 msgid "You cannot retry this project setup."
 msgstr "이 프로젝트 설정을 다시 시도할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:9427
+#: lib/glossia_web/live/dashboard_live.ex:9428
 #, elixir-autogen, elixir-format
 msgid "repository setup"
 msgstr "저장소 설정"
@@ -3493,151 +3493,151 @@ msgstr "기본 모델이 업데이트되었습니다."
 msgid "Could not update the default model."
 msgstr "기본 모델을 업데이트할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13387
+#: lib/glossia_web/live/dashboard_live.ex:13388
 #, elixir-autogen, elixir-format
 msgid "Use lowercase letters, numbers, and hyphens."
 msgstr "소문자, 숫자 및 하이픈만 사용하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:13454
+#: lib/glossia_web/live/dashboard_live.ex:13455
 #, elixir-autogen, elixir-format
 msgid "Account default"
 msgstr "기본 계정"
 
-#: lib/glossia_web/live/dashboard_live.ex:13470
-#: lib/glossia_web/live/dashboard_live.ex:13588
-#: lib/glossia_web/live/dashboard_live.ex:13591
+#: lib/glossia_web/live/dashboard_live.ex:13471
+#: lib/glossia_web/live/dashboard_live.ex:13589
+#: lib/glossia_web/live/dashboard_live.ex:13592
 #, elixir-autogen, elixir-format
 msgid "Default"
 msgstr "기본"
 
-#: lib/glossia_web/live/dashboard_live.ex:13477
+#: lib/glossia_web/live/dashboard_live.ex:13478
 #, elixir-autogen, elixir-format
 msgid "Make default"
 msgstr "기본으로 설정"
 
-#: lib/glossia_web/live/dashboard_live.ex:7403
+#: lib/glossia_web/live/dashboard_live.ex:7404
 #, elixir-autogen, elixir-format
 msgid "Setup pull request was closed"
 msgstr "설정용 풀 리퀘스트가 닫혔습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:7405
+#: lib/glossia_web/live/dashboard_live.ex:7406
 #, elixir-autogen, elixir-format
 msgid "Pull request #%{number} was closed without being merged. Reopen it to finish setting up localization."
 msgstr "풀 리퀘스트 #%{number} 가 병합되지 않고 닫혔습니다. 로케라이제이션 설정을 완료하려면 다시 열어주세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:7409
+#: lib/glossia_web/live/dashboard_live.ex:7410
 #, elixir-autogen, elixir-format
 msgid "View pull request"
 msgstr "풀 리퀘스트 보기"
 
-#: lib/glossia_web/live/dashboard_live.ex:7415
+#: lib/glossia_web/live/dashboard_live.ex:7416
 #, elixir-autogen, elixir-format
 msgid "Finish setting up Glossia"
 msgstr "Glossia 설정 완료"
 
-#: lib/glossia_web/live/dashboard_live.ex:7417
+#: lib/glossia_web/live/dashboard_live.ex:7418
 #, elixir-autogen, elixir-format
 msgid "Merge pull request #%{number} to activate this project's localization baseline."
 msgstr "풀 리퀘스트 #%{number} 를 병합하여 이 프로젝트의 로케라이제이션 베이스라인을 활성화하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:8352
+#: lib/glossia_web/live/dashboard_live.ex:8353
 #, elixir-autogen, elixir-format
 msgid "%{count} file was affected."
 msgid_plural "%{count} files were affected."
 msgstr[0] "%{count} 개 파일이 영향을 받았습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8726
+#: lib/glossia_web/live/dashboard_live.ex:8727
 #, elixir-autogen, elixir-format
 msgid "Model provider credit limit reached"
 msgstr "모델 제공자 계정의 크레딧 한도에 도달했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8728
+#: lib/glossia_web/live/dashboard_live.ex:8729
 #, elixir-autogen, elixir-format
 msgid "Add credits to your model provider account, then retry this translation session."
 msgstr "모델 제공자 계정에 크레딧을 추가한 후, 이 번역 세션을 다시 시도하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:8735
+#: lib/glossia_web/live/dashboard_live.ex:8736
 #, elixir-autogen, elixir-format
 msgid "Review provider billing"
 msgstr "공급자 청구 확인하기"
 
-#: lib/glossia_web/live/dashboard_live.ex:8741
+#: lib/glossia_web/live/dashboard_live.ex:8742
 #, elixir-autogen, elixir-format
 msgid "Model provider rate limit reached"
 msgstr "모델 공급자 속도 제한 도달"
 
-#: lib/glossia_web/live/dashboard_live.ex:8742
+#: lib/glossia_web/live/dashboard_live.ex:8743
 #, elixir-autogen, elixir-format
 msgid "Wait a moment, then retry this translation session."
 msgstr "잠시 대기한 후 번역 세션을 다시 시도해 주세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:8753
+#: lib/glossia_web/live/dashboard_live.ex:8754
 #, elixir-autogen, elixir-format
 msgid "Model provider credentials were rejected"
 msgstr "모델 공급자 인증 정보가 거부되었습니다"
 
-#: lib/glossia_web/live/dashboard_live.ex:8755
+#: lib/glossia_web/live/dashboard_live.ex:8756
 #, elixir-autogen, elixir-format
 msgid "Check the model provider credentials, then retry this translation session."
 msgstr "모델 공급자 인증 정보를 확인한 후 번역 세션을 다시 시도해 주세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:8766
+#: lib/glossia_web/live/dashboard_live.ex:8767
 #, elixir-autogen, elixir-format
 msgid "The model provider did not respond in time"
 msgstr "모델 공급자 응답 시간 초과"
 
-#: lib/glossia_web/live/dashboard_live.ex:8768
-#: lib/glossia_web/live/dashboard_live.ex:8779
+#: lib/glossia_web/live/dashboard_live.ex:8769
+#: lib/glossia_web/live/dashboard_live.ex:8780
 #, elixir-autogen, elixir-format
 msgid "Retry this translation session. If the problem continues, check the provider."
 msgstr "번역 세션을 다시 시도하세요. 문제가 계속되면 공급자를 확인하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:8870
+#: lib/glossia_web/live/dashboard_live.ex:8871
 #, elixir-autogen, elixir-format
 msgid "Translation failed"
 msgstr "번역 실패"
 
-#: lib/glossia_web/live/dashboard_live.ex:8452
+#: lib/glossia_web/live/dashboard_live.ex:8453
 #, elixir-autogen, elixir-format
 msgid "Diagnostic details"
 msgstr "진단 세부사항"
 
-#: lib/glossia_web/live/dashboard_live.ex:9387
+#: lib/glossia_web/live/dashboard_live.ex:9388
 #, elixir-autogen, elixir-format
 msgid "Error"
 msgstr "오류"
 
-#: lib/glossia_web/live/dashboard_live.ex:8825
+#: lib/glossia_web/live/dashboard_live.ex:8826
 #, elixir-autogen, elixir-format
 msgid "Glossia could not preserve every required token in this file after retrying."
 msgstr "Glossia 는 재시도 후에도 이 파일의 모든 필수 토큰을 보존할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8845
+#: lib/glossia_web/live/dashboard_live.ex:8846
 #, elixir-autogen, elixir-format
 msgid "Glossia could not produce output that passed this file's validation rules."
 msgstr "Glossia 는 이 파일의 유효성 검사 규칙을 통과하는 결과를 생성할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8791
+#: lib/glossia_web/live/dashboard_live.ex:8792
 #, elixir-autogen, elixir-format
 msgid "Glossia could not produce well-formed output for this file after retrying."
 msgstr "재시도 후에도 Glossia 는 이 파일에 대해 올바른 형식의 결과를 생성할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8854
+#: lib/glossia_web/live/dashboard_live.ex:8855
 #, elixir-autogen, elixir-format
 msgid "Glossia could not read this file as text."
 msgstr "Glossia 는 이 파일을 텍스트로 읽을 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8863
+#: lib/glossia_web/live/dashboard_live.ex:8864
 #, elixir-autogen, elixir-format
 msgid "Glossia could not read this source file."
 msgstr "Glossia 는 이 소스 파일을 읽을 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8873
+#: lib/glossia_web/live/dashboard_live.ex:8874
 #, elixir-autogen, elixir-format
 msgid "Glossia could not translate this file. Retry the translation session."
 msgstr "Glossia 는 이 파일을 번역할 수 없습니다. 번역 세션을 재시도하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:13177
+#: lib/glossia_web/live/dashboard_live.ex:13178
 #, elixir-autogen, elixir-format
 msgid "No models found."
 msgstr "모델을 찾을 수 없습니다."
@@ -3647,129 +3647,129 @@ msgstr "모델을 찾을 수 없습니다."
 msgid "Project setup failed, so the project was not created. %{reason}"
 msgstr "프로젝트 설정에 실패하여 프로젝트가 생성되지 않았습니다. %{reason}"
 
-#: lib/glossia_web/live/dashboard_live.ex:8888
+#: lib/glossia_web/live/dashboard_live.ex:8889
 #, elixir-autogen, elixir-format
 msgid "Provider error code"
 msgstr "제공자 오류 코드"
 
-#: lib/glossia_web/live/dashboard_live.ex:8889
+#: lib/glossia_web/live/dashboard_live.ex:8890
 #, elixir-autogen, elixir-format
 msgid "Provider request identifier"
 msgstr "제공자 요청 식별자"
 
-#: lib/glossia_web/live/dashboard_live.ex:8887
+#: lib/glossia_web/live/dashboard_live.ex:8888
 #, elixir-autogen, elixir-format
 msgid "Provider response status"
 msgstr "제공자 응답 상태"
 
-#: lib/glossia_web/live/dashboard_live.ex:13179
+#: lib/glossia_web/live/dashboard_live.ex:13180
 #, elixir-autogen, elixir-format
 msgid "Showing the first %{limit} matches. Keep typing to narrow the results."
 msgstr "처음 %{limit}개의 결과를 표시 중입니다. 결과를 좁히려면 계속 입력하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:8861
+#: lib/glossia_web/live/dashboard_live.ex:8862
 #, elixir-autogen, elixir-format
 msgid "Source file could not be read"
 msgstr "소스 파일을 읽을 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8852
+#: lib/glossia_web/live/dashboard_live.ex:8853
 #, elixir-autogen, elixir-format
 msgid "Source file is not valid text"
 msgstr "소스 파일이 유효한 텍스트가 아닙니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8777
+#: lib/glossia_web/live/dashboard_live.ex:8778
 #, elixir-autogen, elixir-format
 msgid "The model provider request failed"
 msgstr "모델 제공업체 요청이 실패했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:9351
+#: lib/glossia_web/live/dashboard_live.ex:9352
 #, elixir-autogen, elixir-format
 msgid "The setup assistant completed this step."
 msgstr "설정 보조자가 이 단계를 완료했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:9350
+#: lib/glossia_web/live/dashboard_live.ex:9351
 #, elixir-autogen, elixir-format
 msgid "The setup assistant could not complete this step."
 msgstr "설정 보조자는 이 단계를 완료하지 못했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:9340
-#: lib/glossia_web/live/dashboard_live.ex:9343
+#: lib/glossia_web/live/dashboard_live.ex:9341
+#: lib/glossia_web/live/dashboard_live.ex:9344
 #, elixir-autogen, elixir-format
 msgid "The setup assistant is continuing with the repository setup."
 msgstr "설정 보조자가 저장소 설정을 계속 진행합니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8835
+#: lib/glossia_web/live/dashboard_live.ex:8836
 #, elixir-autogen, elixir-format
 msgid "The validation command rejected the translated output for this file."
 msgstr "유효성 검사 명령어가 이 파일의 번역 출력을 거부했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8732
+#: lib/glossia_web/live/dashboard_live.ex:8733
 #, elixir-autogen, elixir-format
 msgid "This file could not be translated because the model provider account has no remaining credit."
 msgstr "모델 제공업체 계정에 잔여 크레딧이 없기 때문에 이 파일을 번역할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8781
+#: lib/glossia_web/live/dashboard_live.ex:8782
 #, elixir-autogen, elixir-format
 msgid "This file could not be translated because the model provider request failed."
 msgstr "모델 제공업체 요청이 실패했기 때문에 이 파일을 번역할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8770
+#: lib/glossia_web/live/dashboard_live.ex:8771
 #, elixir-autogen, elixir-format
 msgid "This file could not be translated because the provider did not respond in time."
 msgstr "해당 파일을 번역할 수 없습니다. 제공자가 응답하지 않았습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8744
+#: lib/glossia_web/live/dashboard_live.ex:8745
 #, elixir-autogen, elixir-format
 msgid "This file could not be translated because the provider is temporarily limiting requests."
 msgstr "해당 파일을 번역할 수 없습니다. 제공자가 요청을 일시 제한하고 있습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8757
+#: lib/glossia_web/live/dashboard_live.ex:8758
 #, elixir-autogen, elixir-format
 msgid "This file could not be translated because the provider rejected the configured credentials."
 msgstr "해당 파일을 번역할 수 없습니다. 제공자가 설정된 인증 정보를 거부했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8822
+#: lib/glossia_web/live/dashboard_live.ex:8823
 #, elixir-autogen, elixir-format
 msgid "Translated output changed protected content"
 msgstr "번역 결과가 보호된 내용을 변경했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8832
+#: lib/glossia_web/live/dashboard_live.ex:8833
 #, elixir-autogen, elixir-format
 msgid "Translated output did not pass the project check"
 msgstr "번역 결과가 프로젝트 검사를 통과하지 못했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8842
+#: lib/glossia_web/live/dashboard_live.ex:8843
 #, elixir-autogen, elixir-format
 msgid "Translated output did not pass validation"
 msgstr "번역 결과가 검증에 실패했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8788
+#: lib/glossia_web/live/dashboard_live.ex:8789
 #, elixir-autogen, elixir-format
 msgid "Translated output has invalid syntax"
 msgstr "번역 결과가 유효하지 않은 구문을 가집니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:9389
+#: lib/glossia_web/live/dashboard_live.ex:9390
 #, elixir-autogen, elixir-format
 msgid "Update"
 msgstr "업데이트"
 
-#: lib/glossia_web/live/dashboard_live.ex:9388
+#: lib/glossia_web/live/dashboard_live.ex:9389
 #, elixir-autogen, elixir-format
 msgid "Warning"
 msgstr "경고"
 
-#: lib/glossia_web/live/dashboard_live.ex:8426
+#: lib/glossia_web/live/dashboard_live.ex:8427
 #, elixir-autogen, elixir-format
 msgid "%{n} model call"
 msgid_plural "%{n} model calls"
 msgstr[0] "%{n} 모델 호출"
 
-#: lib/glossia_web/live/dashboard_live.ex:8566
+#: lib/glossia_web/live/dashboard_live.ex:8567
 #, elixir-autogen, elixir-format
 msgid "Front matter"
 msgstr "프론트 마터"
 
-#: lib/glossia_web/live/dashboard_live.ex:8576
+#: lib/glossia_web/live/dashboard_live.ex:8577
 #, elixir-autogen, elixir-format
 msgid "Segment %{index} of %{count}"
 msgstr "전체 %{count} 개 중 %{index} 번째 섹션"
@@ -3780,7 +3780,7 @@ msgstr "전체 %{count} 개 중 %{index} 번째 섹션"
 #: lib/glossia_web/live/dashboard_live.ex:1181
 #: lib/glossia_web/live/dashboard_live.ex:1317
 #: lib/glossia_web/live/dashboard_live.ex:1330
-#: lib/glossia_web/live/dashboard_live.ex:13888
+#: lib/glossia_web/live/dashboard_live.ex:13889
 #, elixir-autogen, elixir-format
 msgid "Analytics"
 msgstr "분석"
@@ -3796,7 +3796,7 @@ msgstr "분석 설정"
 msgid "Applies to the dashboard. Anything not translated yet falls back to English."
 msgstr "대시보드에 적용됩니다. 아직 번역되지 않은 항목은 영어로 표시됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13917
+#: lib/glossia_web/live/dashboard_live.ex:13918
 #, elixir-autogen, elixir-format
 msgid "Apply"
 msgstr "적용"
@@ -3816,21 +3816,21 @@ msgstr "배경, 디자인 결정, 및 개념."
 msgid "CLI"
 msgstr "CLI"
 
-#: lib/glossia_web/live/dashboard_live.ex:8100
+#: lib/glossia_web/live/dashboard_live.ex:8101
 #, elixir-autogen, elixir-format
 msgid "Cancel translation"
 msgstr "번역 취소"
 
-#: lib/glossia_web/live/dashboard_live.ex:8006
-#: lib/glossia_web/live/dashboard_live.ex:8061
-#: lib/glossia_web/live/dashboard_live.ex:8618
-#: lib/glossia_web/live/dashboard_live.ex:11940
-#: lib/glossia_web/live/dashboard_live.ex:11955
+#: lib/glossia_web/live/dashboard_live.ex:8007
+#: lib/glossia_web/live/dashboard_live.ex:8062
+#: lib/glossia_web/live/dashboard_live.ex:8619
+#: lib/glossia_web/live/dashboard_live.ex:11941
+#: lib/glossia_web/live/dashboard_live.ex:11956
 #, elixir-autogen, elixir-format
 msgid "Cancelled"
 msgstr "취소됨"
 
-#: lib/glossia_web/live/dashboard_live.ex:14202
+#: lib/glossia_web/live/dashboard_live.ex:14203
 #, elixir-autogen, elixir-format
 msgid "Choose a domain and install the Glossia snippet to start collecting analytics."
 msgstr "도메인을 선택하고 Glossia 스니펫을 설치하여 분석 데이터 수집을 시작하세요."
@@ -3865,13 +3865,13 @@ msgstr "웹 분석을 저장할 수 없습니다. 유효한 도메인을 입력�
 msgid "Could not update your language."
 msgstr "언어를 업데이트할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:14027
-#: lib/glossia_web/live/dashboard_live.ex:14115
+#: lib/glossia_web/live/dashboard_live.ex:14028
+#: lib/glossia_web/live/dashboard_live.ex:14116
 #, elixir-autogen, elixir-format
 msgid "Country"
 msgstr "국가"
 
-#: lib/glossia_web/live/dashboard_live.ex:14273
+#: lib/glossia_web/live/dashboard_live.ex:14274
 #, elixir-autogen, elixir-format
 msgid "Custom"
 msgstr "사용자 정의"
@@ -3886,12 +3886,12 @@ msgstr "대시보드 언어"
 msgid "Domain"
 msgstr "도메인"
 
-#: lib/glossia_web/live/dashboard_live.ex:14036
+#: lib/glossia_web/live/dashboard_live.ex:14037
 #, elixir-autogen, elixir-format
 msgid "EN tolerance"
 msgstr "영어 허용도"
 
-#: lib/glossia_web/live/dashboard_live.ex:13987
+#: lib/glossia_web/live/dashboard_live.ex:13988
 #, elixir-autogen, elixir-format
 msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
 msgstr "각 (국가, 언어) 쌍의 우선도는 해당 국가의 로컬 격차가 있는 방문자를 기준으로 하며, (1 - EF EPI 영어 허용도) 로 가중됩니다. 값이 높을수록 더 큰 기회를 놓친 것입니다."
@@ -3901,22 +3901,22 @@ msgstr "각 (국가, 언어) 쌍의 우선도는 해당 국가의 로컬 격차�
 msgid "Explanation"
 msgstr "설명"
 
-#: lib/glossia_web/live/dashboard_live.ex:14158
+#: lib/glossia_web/live/dashboard_live.ex:14159
 #, elixir-autogen, elixir-format
 msgid "Gap"
 msgstr "격차"
 
-#: lib/glossia_web/live/dashboard_live.ex:14155
+#: lib/glossia_web/live/dashboard_live.ex:14156
 #, elixir-autogen, elixir-format
 msgid "Gap?"
 msgstr "격차?"
 
-#: lib/glossia_web/live/dashboard_live.ex:14017
+#: lib/glossia_web/live/dashboard_live.ex:14018
 #, elixir-autogen, elixir-format
 msgid "High priority"
 msgstr "고우선순위"
 
-#: lib/glossia_web/live/dashboard_live.ex:13985
+#: lib/glossia_web/live/dashboard_live.ex:13986
 #, elixir-autogen, elixir-format
 msgid "How is this scored?"
 msgstr "이 점수는 어떻게 산정되나요?"
@@ -3931,7 +3931,7 @@ msgstr "사용 가이드"
 msgid "Install snippet"
 msgstr "코드 스니펫 설치"
 
-#: lib/glossia_web/live/dashboard_live.ex:14197
+#: lib/glossia_web/live/dashboard_live.ex:14198
 #, elixir-autogen, elixir-format
 msgid "Install the snippet on %{domain}, then return here once the domain has been verified."
 msgstr "%{domain}에 스니펫을 설치한 후, 도메인이 확인되면 여기로 돌아오세요."
@@ -3941,33 +3941,33 @@ msgstr "%{domain}에 스니펫을 설치한 후, 도메인이 확인되면 여�
 msgid "Language updated."
 msgstr "언어가 업데이트되었습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:14272
+#: lib/glossia_web/live/dashboard_live.ex:14273
 #, elixir-autogen, elixir-format
 msgid "Last 12 months"
 msgstr "지난 12 개월"
 
-#: lib/glossia_web/live/dashboard_live.ex:14269
+#: lib/glossia_web/live/dashboard_live.ex:14270
 #, elixir-autogen, elixir-format
 msgid "Last 24 hours"
 msgstr "지난 24 시간"
 
-#: lib/glossia_web/live/dashboard_live.ex:14271
+#: lib/glossia_web/live/dashboard_live.ex:14272
 #, elixir-autogen, elixir-format
 msgid "Last 30 days"
 msgstr "지난 30 일"
 
-#: lib/glossia_web/live/dashboard_live.ex:14270
+#: lib/glossia_web/live/dashboard_live.ex:14271
 #, elixir-autogen, elixir-format
 msgid "Last 7 days"
 msgstr "지난 7 일"
 
-#: lib/glossia_web/live/dashboard_live.ex:13947
-#: lib/glossia_web/live/dashboard_live.ex:13950
+#: lib/glossia_web/live/dashboard_live.ex:13948
+#: lib/glossia_web/live/dashboard_live.ex:13951
 #, elixir-autogen, elixir-format
 msgid "Locale-gap visits"
 msgstr "Locale-gap 방문"
 
-#: lib/glossia_web/live/dashboard_live.ex:14013
+#: lib/glossia_web/live/dashboard_live.ex:14014
 #, elixir-autogen, elixir-format
 msgid "Low priority"
 msgstr "낮은 우선순위"
@@ -3982,47 +3982,47 @@ msgstr "MCP"
 msgid "Model Context Protocol server, tools, and prompts."
 msgstr "Model Context Protocol 서버, 도구 및 프롬프트."
 
-#: lib/glossia_web/live/dashboard_live.ex:14124
+#: lib/glossia_web/live/dashboard_live.ex:14125
 #, elixir-autogen, elixir-format
 msgid "No country data yet"
 msgstr "아직 국가 데이터가 없습니다"
 
-#: lib/glossia_web/live/dashboard_live.ex:14173
+#: lib/glossia_web/live/dashboard_live.ex:14174
 #, elixir-autogen, elixir-format
 msgid "No language data yet"
 msgstr "아직 언어 데이터가 없습니다"
 
-#: lib/glossia_web/live/dashboard_live.ex:14044
+#: lib/glossia_web/live/dashboard_live.ex:14045
 #, elixir-autogen, elixir-format
 msgid "No locale-gap visits"
 msgstr "아직 Locale-gap 방문이 없습니다"
 
-#: lib/glossia_web/live/dashboard_live.ex:14096
+#: lib/glossia_web/live/dashboard_live.ex:14097
 #, elixir-autogen, elixir-format
 msgid "No pageviews yet"
 msgstr "아직 페이지뷰가 없습니다"
 
-#: lib/glossia_web/live/dashboard_live.ex:14097
+#: lib/glossia_web/live/dashboard_live.ex:14098
 #, elixir-autogen, elixir-format
 msgid "Once the snippet is live, pageviews will appear here."
 msgstr "스니펫이 활성화되면 페이지뷰가 여기에 표시됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:14126
+#: lib/glossia_web/live/dashboard_live.ex:14127
 #, elixir-autogen, elixir-format
 msgid "Once the snippet is live, visitor countries will appear here."
 msgstr "스니펫이 활성화되면 방문 국가가 여기에 표시됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:14174
+#: lib/glossia_web/live/dashboard_live.ex:14175
 #, elixir-autogen, elixir-format
 msgid "Once the snippet is live, visitor languages will appear here."
 msgstr "스니펫이 활성화되면 방문 언어가 여기에 표시됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:14046
+#: lib/glossia_web/live/dashboard_live.ex:14047
 #, elixir-autogen, elixir-format
 msgid "Once visitors land in a language the project does not serve, they will appear here."
 msgstr "사용자가 프로젝트에서 지원하지 않는 언어로 방문한 경우를 표시됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:14209
+#: lib/glossia_web/live/dashboard_live.ex:14210
 #, elixir-autogen, elixir-format
 msgid "Open analytics settings"
 msgstr "분석 설정 열기"
@@ -4032,13 +4032,13 @@ msgstr "분석 설정 열기"
 msgid "Operations"
 msgstr "운영"
 
-#: lib/glossia_web/live/dashboard_live.ex:13931
-#: lib/glossia_web/live/dashboard_live.ex:14090
+#: lib/glossia_web/live/dashboard_live.ex:13932
+#: lib/glossia_web/live/dashboard_live.ex:14091
 #, elixir-autogen, elixir-format
 msgid "Pageviews"
 msgstr "페이지뷰"
 
-#: lib/glossia_web/live/dashboard_live.ex:14087
+#: lib/glossia_web/live/dashboard_live.ex:14088
 #, elixir-autogen, elixir-format
 msgid "Path"
 msgstr "경로"
@@ -4056,7 +4056,7 @@ msgstr "특정 작업에 대한 실용적인 안내."
 msgid "Preferences"
 msgstr "선호 설정"
 
-#: lib/glossia_web/live/dashboard_live.ex:14039
+#: lib/glossia_web/live/dashboard_live.ex:14040
 #, elixir-autogen, elixir-format
 msgid "Priority"
 msgstr "우선순위"
@@ -4071,12 +4071,12 @@ msgstr "참고"
 msgid "Save analytics settings"
 msgstr "분석 설정 저장"
 
-#: lib/glossia_web/live/dashboard_live.ex:14163
+#: lib/glossia_web/live/dashboard_live.ex:14164
 #, elixir-autogen, elixir-format
 msgid "Served"
 msgstr "제공됨"
 
-#: lib/glossia_web/live/dashboard_live.ex:14150
+#: lib/glossia_web/live/dashboard_live.ex:14151
 #, elixir-autogen, elixir-format
 msgid "Served as"
 msgstr "제공 역할"
@@ -4086,12 +4086,12 @@ msgstr "제공 역할"
 msgid "Set the domain of the site you want to measure, then add the snippet below to every page. Glossia identifies traffic by this domain, so there is no key or secret to manage."
 msgstr "측정하려는 사이트의 도메인을 설정한 후, 아래 코드를 모든 페이지에 추가하세요. Glossia 는 해당 도메인을 기준으로 트래픽을 식별하므로 키나 비밀 정보를 관리할 필요가 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:14192
+#: lib/glossia_web/live/dashboard_live.ex:14193
 #, elixir-autogen, elixir-format
 msgid "Set up web analytics"
 msgstr "웹 분석 설정"
 
-#: lib/glossia_web/live/dashboard_live.ex:8578
+#: lib/glossia_web/live/dashboard_live.ex:8579
 #, elixir-autogen, elixir-format
 msgid "Show translated output"
 msgstr "번역 결과 보기"
@@ -4111,7 +4111,7 @@ msgstr "구성, CLI 및 API 기술 설명"
 msgid "This translation can no longer be cancelled."
 msgstr "해당 번역은 더 이상 취소할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13968
+#: lib/glossia_web/live/dashboard_live.ex:13969
 #, elixir-autogen, elixir-format
 msgid "Top country"
 msgstr "상위 국가"
@@ -4126,34 +4126,34 @@ msgstr "번역이 취소됨"
 msgid "Tutorials"
 msgstr "교육 자료"
 
-#: lib/glossia_web/live/dashboard_live.ex:13938
+#: lib/glossia_web/live/dashboard_live.ex:13939
 #, elixir-autogen, elixir-format
 msgid "Unique visitors"
 msgstr "유니크 방문자"
 
-#: lib/glossia_web/live/dashboard_live.ex:14191
+#: lib/glossia_web/live/dashboard_live.ex:14192
 #, elixir-autogen, elixir-format
 msgid "Verify web analytics"
 msgstr "웹 분석 확인"
 
-#: lib/glossia_web/live/dashboard_live.ex:14033
+#: lib/glossia_web/live/dashboard_live.ex:14034
 #, elixir-autogen, elixir-format
 msgid "Visitors"
 msgstr "방문자"
 
-#: lib/glossia_web/live/dashboard_live.ex:13951
+#: lib/glossia_web/live/dashboard_live.ex:13952
 #, elixir-autogen, elixir-format
 msgid "Visitors whose language the project does not serve."
 msgstr "프로젝트가 지원하지 않는 언어의 방문자입니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:14118
-#: lib/glossia_web/live/dashboard_live.ex:14167
+#: lib/glossia_web/live/dashboard_live.ex:14119
+#: lib/glossia_web/live/dashboard_live.ex:14168
 #, elixir-autogen, elixir-format
 msgid "Visits"
 msgstr "방문"
 
 #: lib/glossia_web/live/dashboard_live.ex:7277
-#: lib/glossia_web/live/dashboard_live.ex:14182
+#: lib/glossia_web/live/dashboard_live.ex:14183
 #, elixir-autogen, elixir-format
 msgid "Web analytics"
 msgstr "웹 분석"
@@ -4184,8 +4184,8 @@ msgstr "모든 역할"
 msgid "Are you sure you want to revoke this invitation?"
 msgstr "이 초대를 취소하시겠습니까?"
 
-#: lib/glossia_web/live/dashboard_live.ex:13336
-#: lib/glossia_web/live/dashboard_live.ex:13428
+#: lib/glossia_web/live/dashboard_live.ex:13337
+#: lib/glossia_web/live/dashboard_live.ex:13429
 #, elixir-autogen, elixir-format
 msgid "Base URL"
 msgstr "기본 URL"
@@ -4226,12 +4226,12 @@ msgstr "회원이 없습니다."
 msgid "No pending invitations"
 msgstr "보류 중인 초대장이 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13339
+#: lib/glossia_web/live/dashboard_live.ex:13340
 #, elixir-autogen, elixir-format
 msgid "Optional. Route this model through a custom gateway endpoint. Leave empty to use the provider default."
 msgstr "선택 사항. 이 모델을 사용자 정의 게이트웨이 엔드포인트를 통해 라우팅하세요. 기본값을 사용하려면 공백으로 두세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:13431
+#: lib/glossia_web/live/dashboard_live.ex:13432
 #, elixir-autogen, elixir-format
 msgid "Route this model through a custom gateway endpoint. Leave empty to use the provider default."
 msgstr "사용자 정의 게이트웨이 엔드포인트를 통해 이 모델을 라우팅하세요. 기본값을 사용하려면 공백으로 두세요."
@@ -4251,18 +4251,18 @@ msgstr "검색어를 변경해 보세요."
 msgid "Unknown"
 msgstr "알 수 없음"
 
-#: lib/glossia_web/live/dashboard_live.ex:13337
-#: lib/glossia_web/live/dashboard_live.ex:13429
+#: lib/glossia_web/live/dashboard_live.ex:13338
+#: lib/glossia_web/live/dashboard_live.ex:13430
 #, elixir-autogen, elixir-format
 msgid "e.g. https://api.together.ai/v1"
 msgstr "예시: https://api.together.ai/v1"
 
-#: lib/glossia_web/live/dashboard_live.ex:13274
+#: lib/glossia_web/live/dashboard_live.ex:13275
 #, elixir-autogen, elixir-format
 msgid "Add a named model configuration. Each translation uses one model handle from the nearest applicable L10N.md file, or the account default when no handle is set."
 msgstr "이름 지정 모델 구성을 추가하세요. 각 번역은 가장 적용 가능한 L10N.md 파일에서 모델 핸들 하나를 사용하며, 핸들이 설정되지 않은 경우 계정의 기본 값을 사용합니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8104
+#: lib/glossia_web/live/dashboard_live.ex:8105
 #, elixir-autogen, elixir-format
 msgid "Are you sure you want to cancel this translation?"
 msgstr "이 번역을 취소하시겠습니까?"
@@ -4272,15 +4272,15 @@ msgstr "이 번역을 취소하시겠습니까?"
 msgid "Claim organization"
 msgstr "조직 소유하기"
 
-#: lib/glossia_web/live/dashboard_live.ex:7618
-#: lib/glossia_web/live/dashboard_live.ex:7848
-#: lib/glossia_web/live/dashboard_live.ex:8166
-#: lib/glossia_web/live/dashboard_live.ex:8572
+#: lib/glossia_web/live/dashboard_live.ex:7619
+#: lib/glossia_web/live/dashboard_live.ex:7849
+#: lib/glossia_web/live/dashboard_live.ex:8167
+#: lib/glossia_web/live/dashboard_live.ex:8573
 #, elixir-autogen, elixir-format
 msgid "Content"
 msgstr "콘텐츠"
 
-#: lib/glossia_web/live/dashboard_live.ex:8570
+#: lib/glossia_web/live/dashboard_live.ex:8571
 #, elixir-autogen, elixir-format
 msgid "Content, segment %{index} of %{count}"
 msgstr "콘텐츠, 전체 %{count}개 중 %{index}번째 섹먼트"
@@ -4317,22 +4317,22 @@ msgstr "대시보드"
 msgid "Documentation navigation"
 msgstr "문서 탐색"
 
-#: lib/glossia_web/live/dashboard_live.ex:13518
+#: lib/glossia_web/live/dashboard_live.ex:13519
 #, elixir-autogen, elixir-format
 msgid "Each translation uses one configured model. L10N.md can select a handle for a content scope; work without a handle uses the account default."
 msgstr "각 번역은 하나의 구성된 모델을 사용합니다. L10N.md 에서는 콘텐츠 범위에 대한 핸들을 선택할 수 있으며, 핸들이 없으면 계정 기본값을 사용합니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8564
+#: lib/glossia_web/live/dashboard_live.ex:8565
 #, elixir-autogen, elixir-format
 msgid "Front matter, segment %{index} of %{count}"
 msgstr "프론트 매터, %{count} 개 중 %{index} 번째 세그먼트"
 
-#: lib/glossia_web/live/dashboard_live.ex:8801
+#: lib/glossia_web/live/dashboard_live.ex:8802
 #, elixir-autogen, elixir-format
 msgid "Glossia rejected this empty translation and did not publish any changes. A model that reasons before answering can spend its whole output budget thinking and return nothing."
 msgstr "Glossia 는 빈 번역을 거부하여 변경 사항을 게시하지 않았습니다. 답변 전에 추론하는 모델은 전체 출력 예산을 추론에만 사용하여 아무것도 반환하지 않을 수 있습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8813
+#: lib/glossia_web/live/dashboard_live.ex:8814
 #, elixir-autogen, elixir-format
 msgid "Glossia rejected this translation because it did not retain the source document layout."
 msgstr "Glossia 는 소스 문서 레이아웃을 유지하지 않았기 때문에 이 번역을 거부했습니다."
@@ -4342,7 +4342,7 @@ msgstr "Glossia 는 소스 문서 레이아웃을 유지하지 않았기 때문�
 msgid "L10N.md files sit alongside your content. They carry instructions, tone guidance, and per-language overrides that scope context to exactly where it is needed."
 msgstr "L10N.md 파일은 콘텐츠와 함께 위치하며, 지시사항, 톤 가이드 및 맥락이 필요한 위치에 적용되는 언어별 오버라이드를 포함합니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13461
+#: lib/glossia_web/live/dashboard_live.ex:13462
 #, elixir-autogen, elixir-format
 msgid "Make this the fallback for project setup and translations whose L10N.md configuration does not name a model handle."
 msgstr "프로젝트 설정 및 L10N.md 설정에서 모델 핸들이 지정되지 않은 번역 작업에 대한 기본값으로 설정하세요."
@@ -4396,12 +4396,12 @@ msgstr "소스"
 msgid "Table of contents"
 msgstr "목차"
 
-#: lib/glossia_web/live/dashboard_live.ex:8798
+#: lib/glossia_web/live/dashboard_live.ex:8799
 #, elixir-autogen, elixir-format
 msgid "The model returned empty output"
 msgstr "모델이 빈 출력을 반환했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13457
+#: lib/glossia_web/live/dashboard_live.ex:13458
 #, elixir-autogen, elixir-format
 msgid "This model is used for project setup and translations whose L10N.md configuration does not name a model handle."
 msgstr "이 모델은 L10N.md 설정에서 모델 핸들이 지정되지 않은 프로젝트 설정 및 번역에 사용됩니다."
@@ -4421,7 +4421,7 @@ msgstr "이 조직은 더 이상 확보할 수 없습니다."
 msgid "Toggle documentation navigation"
 msgstr "문서 탐색 전환"
 
-#: lib/glossia_web/live/dashboard_live.ex:8810
+#: lib/glossia_web/live/dashboard_live.ex:8811
 #, elixir-autogen, elixir-format
 msgid "Translated output changed document structure"
 msgstr "번역 출력이 문서 구조를 변경했습니다."
@@ -4431,7 +4431,7 @@ msgstr "번역 출력이 문서 구조를 변경했습니다."
 msgid "Type at least two characters to search the documentation."
 msgstr "문서 검색하려면 최소 2 자를 입력하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:13288
+#: lib/glossia_web/live/dashboard_live.ex:13289
 #, elixir-autogen, elixir-format
 msgid "Use lowercase letters, numbers, and hyphens. Reference this handle from L10N.md to choose the model for a content scope."
 msgstr "소문자, 숫자, 하이픈만 사용하세요. 콘텐츠 범위의 모델을 선택하려면 L10N.md 에서 이 핸들을 참조하세요."
@@ -4447,149 +4447,149 @@ msgstr "마크다운 보기"
 msgid "You now own this organization."
 msgstr "이제 이 조직을 소유하게 되었습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8041
+#: lib/glossia_web/live/dashboard_live.ex:8042
 #, elixir-autogen, elixir-format
 msgid "%{count} content hit"
 msgid_plural "%{count} content hits"
 msgstr[0] "%{count}건의 결과"
 
-#: lib/glossia_web/live/dashboard_live.ex:8038
+#: lib/glossia_web/live/dashboard_live.ex:8039
 #, elixir-autogen, elixir-format
 msgid "%{count} translated"
 msgid_plural "%{count} translated"
 msgstr[0] "%{count} 건 번역됨"
 
-#: lib/glossia_web/live/dashboard_live.ex:8020
+#: lib/glossia_web/live/dashboard_live.ex:8021
 #, elixir-autogen, elixir-format
 msgid ", "
 msgstr ", "
 
-#: lib/glossia_web/live/dashboard_live.ex:8004
-#: lib/glossia_web/live/dashboard_live.ex:11953
+#: lib/glossia_web/live/dashboard_live.ex:8005
+#: lib/glossia_web/live/dashboard_live.ex:11954
 #, elixir-autogen, elixir-format
 msgid "Content hit"
 msgstr "콘텐츠 활성화"
 
-#: lib/glossia_web/live/dashboard_live.ex:7487
+#: lib/glossia_web/live/dashboard_live.ex:7488
 #, elixir-autogen, elixir-format
 msgid "Content hit rate"
 msgstr "콘텐츠 활성화 비율"
 
-#: lib/glossia_web/live/dashboard_live.ex:7460
-#: lib/glossia_web/live/dashboard_live.ex:7496
-#: lib/glossia_web/live/dashboard_live.ex:7526
+#: lib/glossia_web/live/dashboard_live.ex:7461
+#: lib/glossia_web/live/dashboard_live.ex:7497
+#: lib/glossia_web/live/dashboard_live.ex:7527
 #, elixir-autogen, elixir-format
 msgid "Content hits"
 msgstr "콘텐츠 활성화"
 
-#: lib/glossia_web/live/dashboard_live.ex:7499
+#: lib/glossia_web/live/dashboard_live.ex:7500
 #, elixir-autogen, elixir-format
 msgid "Content items already current and reused without another translation."
 msgstr "이미 최신 상태이며 다른 번역 없이 재사용된 콘텐츠 항목입니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:7507
+#: lib/glossia_web/live/dashboard_live.ex:7508
 #, elixir-autogen, elixir-format
 msgid "Content items that required translation."
 msgstr "번역이 필요한 콘텐츠 항목"
 
-#: lib/glossia_web/live/dashboard_live.ex:7467
-#: lib/glossia_web/live/dashboard_live.ex:7505
-#: lib/glossia_web/live/dashboard_live.ex:7530
+#: lib/glossia_web/live/dashboard_live.ex:7468
+#: lib/glossia_web/live/dashboard_live.ex:7506
+#: lib/glossia_web/live/dashboard_live.ex:7531
 #, elixir-autogen, elixir-format
 msgid "Content misses"
 msgstr "번역 누락 콘텐츠"
 
-#: lib/glossia_web/live/dashboard_live.ex:7536
+#: lib/glossia_web/live/dashboard_live.ex:7537
 #, elixir-autogen, elixir-format
 msgid "Content outcomes from runs started during the last 14 days."
 msgstr "지난 14 일 내 시작된 실행 결과 콘텐츠"
 
-#: lib/glossia_web/live/dashboard_live.ex:8030
+#: lib/glossia_web/live/dashboard_live.ex:8031
 #, elixir-autogen, elixir-format
 msgid "In progress"
 msgstr "진행 중"
 
-#: lib/glossia_web/live/dashboard_live.ex:7641
-#: lib/glossia_web/live/dashboard_live.ex:7819
+#: lib/glossia_web/live/dashboard_live.ex:7642
+#: lib/glossia_web/live/dashboard_live.ex:7820
 #, elixir-autogen, elixir-format
 msgid "Manual translation"
 msgstr "수동 번역"
 
-#: lib/glossia_web/live/dashboard_live.ex:8033
+#: lib/glossia_web/live/dashboard_live.ex:8034
 #, elixir-autogen, elixir-format
 msgid "No content translated"
 msgstr "번역된 콘텐츠 없음"
 
-#: lib/glossia_web/live/dashboard_live.ex:7670
+#: lib/glossia_web/live/dashboard_live.ex:7671
 #, elixir-autogen, elixir-format
 msgid "No translations yet"
 msgstr "아직 번역이 없습니다"
 
-#: lib/glossia_web/live/dashboard_live.ex:7596
-#: lib/glossia_web/live/dashboard_live.ex:7827
-#: lib/glossia_web/live/dashboard_live.ex:11948
+#: lib/glossia_web/live/dashboard_live.ex:7597
+#: lib/glossia_web/live/dashboard_live.ex:7828
+#: lib/glossia_web/live/dashboard_live.ex:11949
 #, elixir-autogen, elixir-format
 msgid "Outcome"
 msgstr "결과"
 
-#: lib/glossia_web/live/dashboard_live.ex:7560
+#: lib/glossia_web/live/dashboard_live.ex:7561
 #, elixir-autogen, elixir-format
 msgid "Recent activity"
 msgstr "최근 활동"
 
-#: lib/glossia_web/live/dashboard_live.ex:7561
+#: lib/glossia_web/live/dashboard_live.ex:7562
 #, elixir-autogen, elixir-format
 msgid "Recent translation activity for this project."
 msgstr "이 프로젝트의 최근 번역 활동"
 
-#: lib/glossia_web/live/dashboard_live.ex:7483
+#: lib/glossia_web/live/dashboard_live.ex:7484
 #, elixir-autogen, elixir-format
 msgid "Runs started during the last 14 days."
 msgstr "지난 14 일 동안 시작된 실행"
 
-#: lib/glossia_web/live/dashboard_live.ex:7573
+#: lib/glossia_web/live/dashboard_live.ex:7574
 #, elixir-autogen, elixir-format
 msgid "Search translations..."
 msgstr "번역 검색..."
 
-#: lib/glossia_web/live/dashboard_live.ex:8191
+#: lib/glossia_web/live/dashboard_live.ex:8192
 #, elixir-autogen, elixir-format
 msgid "Stopped because newer content arrived."
 msgstr "새 콘텐츠가 도착하여 멈춤."
 
-#: lib/glossia_web/live/dashboard_live.ex:8005
-#: lib/glossia_web/live/dashboard_live.ex:11954
+#: lib/glossia_web/live/dashboard_live.ex:8006
+#: lib/glossia_web/live/dashboard_live.ex:11955
 #, elixir-autogen, elixir-format
 msgid "Superseded"
 msgstr "대체됨"
 
-#: lib/glossia_web/live/dashboard_live.ex:7490
+#: lib/glossia_web/live/dashboard_live.ex:7491
 #, elixir-autogen, elixir-format
 msgid "The percentage of checked content reused without another translation."
 msgstr "다른 번역 없이 확인된 콘텐츠가 재사용된 비율입니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8003
-#: lib/glossia_web/live/dashboard_live.ex:11952
+#: lib/glossia_web/live/dashboard_live.ex:8004
+#: lib/glossia_web/live/dashboard_live.ex:11953
 #, elixir-autogen, elixir-format
 msgid "Translated"
 msgstr "번역됨"
 
-#: lib/glossia_web/live/dashboard_live.ex:7671
+#: lib/glossia_web/live/dashboard_live.ex:7672
 #, elixir-autogen, elixir-format
 msgid "Translation activity will appear here after the first run."
 msgstr "첫 실행 후 번역 활동이 여기에 표시됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:7522
+#: lib/glossia_web/live/dashboard_live.ex:7523
 #, elixir-autogen, elixir-format
 msgid "Translation chart legend"
 msgstr "번역 차트 범례"
 
-#: lib/glossia_web/live/dashboard_live.ex:7481
+#: lib/glossia_web/live/dashboard_live.ex:7482
 #, elixir-autogen, elixir-format
 msgid "Translation runs"
 msgstr "번역 실행"
 
-#: lib/glossia_web/live/dashboard_live.ex:8199
+#: lib/glossia_web/live/dashboard_live.ex:8200
 #, elixir-autogen, elixir-format
 msgid "View the translation this run continued"
 msgstr "이 실행으로 계속된 번역을 확인하세요."
@@ -4604,35 +4604,35 @@ msgstr "세션이 만료되었습니다. 페이지를 새로고침 후 다시 �
 msgid "Add a model before adding routing rules."
 msgstr "라우팅 규칙을 추가하기 전에 모델을 먼저 추가하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:13670
+#: lib/glossia_web/live/dashboard_live.ex:13671
 #, elixir-autogen, elixir-format
 msgid "Add a model first"
 msgstr "먼저 모델을 추가하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:13760
+#: lib/glossia_web/live/dashboard_live.ex:13761
 #, elixir-autogen, elixir-format
 msgid "Add a rule below to route certain locales to a specific model."
 msgstr "아래 규칙을 추가하여 특정 로케일을 특정 모델로 라우팅하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:13648
+#: lib/glossia_web/live/dashboard_live.ex:13649
 #, elixir-autogen, elixir-format
 msgid "Add catch-all rule"
 msgstr "전체 규칙 추가"
 
-#: lib/glossia_web/live/dashboard_live.ex:13796
+#: lib/glossia_web/live/dashboard_live.ex:13797
 #, elixir-autogen, elixir-format
 msgid "Add routing rule"
 msgstr "라우팅 규칙 추가"
 
-#: lib/glossia_web/live/dashboard_live.ex:13636
-#: lib/glossia_web/live/dashboard_live.ex:13861
+#: lib/glossia_web/live/dashboard_live.ex:13637
+#: lib/glossia_web/live/dashboard_live.ex:13862
 #, elixir-autogen, elixir-format
 msgid "Add rule"
 msgstr "규칙 추가"
 
-#: lib/glossia_web/live/dashboard_live.ex:13691
-#: lib/glossia_web/live/dashboard_live.ex:13810
-#: lib/glossia_web/live/dashboard_live.ex:13818
+#: lib/glossia_web/live/dashboard_live.ex:13692
+#: lib/glossia_web/live/dashboard_live.ex:13811
+#: lib/glossia_web/live/dashboard_live.ex:13819
 #, elixir-autogen, elixir-format
 msgid "Any locale"
 msgstr "모든 로케일"
@@ -4642,7 +4642,7 @@ msgstr "모든 로케일"
 msgid "Catch-all rule added."
 msgstr "Catch-all 규칙추가됨."
 
-#: lib/glossia_web/live/dashboard_live.ex:13833
+#: lib/glossia_web/live/dashboard_live.ex:13834
 #, elixir-autogen, elixir-format
 msgid "Choose a model"
 msgstr "모델 선택"
@@ -4667,57 +4667,57 @@ msgstr "라우팅 규칙을 제거할 수 없습니다."
 msgid "Could not update routing rule."
 msgstr "라우팅 규칙을 업데이트할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13743
+#: lib/glossia_web/live/dashboard_live.ex:13744
 #, elixir-autogen, elixir-format
 msgid "Delete"
 msgstr "삭제"
 
-#: lib/glossia_web/live/dashboard_live.ex:13713
+#: lib/glossia_web/live/dashboard_live.ex:13714
 #, elixir-autogen, elixir-format
 msgid "Edit"
 msgstr "수정"
 
-#: lib/glossia_web/live/dashboard_live.ex:13795
+#: lib/glossia_web/live/dashboard_live.ex:13796
 #, elixir-autogen, elixir-format
 msgid "Edit routing rule"
 msgstr "라우팅 규칙 편집"
 
-#: lib/glossia_web/live/dashboard_live.ex:13826
+#: lib/glossia_web/live/dashboard_live.ex:13827
 #, elixir-autogen, elixir-format
 msgid "Leave unset to make this a catch-all rule."
 msgstr "미설정 상태로 두면 이 규칙은 모든 요청에 적용됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13733
+#: lib/glossia_web/live/dashboard_live.ex:13734
 #, elixir-autogen, elixir-format
 msgid "Move down"
 msgstr "아래로 이동"
 
-#: lib/glossia_web/live/dashboard_live.ex:13723
+#: lib/glossia_web/live/dashboard_live.ex:13724
 #, elixir-autogen, elixir-format
 msgid "Move up"
 msgstr "위로 이동"
 
-#: lib/glossia_web/live/dashboard_live.ex:13758
+#: lib/glossia_web/live/dashboard_live.ex:13759
 #, elixir-autogen, elixir-format
 msgid "No routing rules yet"
 msgstr "라우팅 규칙이 없습니다"
 
-#: lib/glossia_web/live/dashboard_live.ex:13686
+#: lib/glossia_web/live/dashboard_live.ex:13687
 #, elixir-autogen, elixir-format
 msgid "Order"
 msgstr "순위"
 
-#: lib/glossia_web/live/dashboard_live.ex:13699
+#: lib/glossia_web/live/dashboard_live.ex:13700
 #, elixir-autogen, elixir-format
 msgid "Provider model"
 msgstr "제공자 모델"
 
-#: lib/glossia_web/live/dashboard_live.ex:13746
+#: lib/glossia_web/live/dashboard_live.ex:13747
 #, elixir-autogen, elixir-format
 msgid "Remove this routing rule?"
 msgstr "이 라우팅 규칙을 삭제하시겠습니까?"
 
-#: lib/glossia_web/live/dashboard_live.ex:13628
+#: lib/glossia_web/live/dashboard_live.ex:13629
 #, elixir-autogen, elixir-format
 msgid "Route translations to different models based on the target locale. Rules run top to bottom; the first match wins. A translation that hits no rule uses the account default."
 msgstr "목표 로케일별로 다른 모델로 번역 경로를 라우팅합니다. 규칙은 위에서 아래로 처리되며 첫 번째 일치 항목이 우선합니다. 규칙에 일치하지 않는 번역은 계정 기본값을 사용합니다."
@@ -4725,7 +4725,7 @@ msgstr "목표 로케일별로 다른 모델로 번역 경로를 라우팅합니
 #: lib/glossia_web/components/layouts/platform.html.heex:321
 #: lib/glossia_web/live/dashboard_live.ex:839
 #: lib/glossia_web/live/dashboard_live.ex:860
-#: lib/glossia_web/live/dashboard_live.ex:13626
+#: lib/glossia_web/live/dashboard_live.ex:13627
 #, elixir-autogen, elixir-format
 msgid "Routing"
 msgstr "라우팅"
@@ -4745,7 +4745,7 @@ msgstr "라우팅 규칙이 제거되었습니다."
 msgid "Routing rule updated."
 msgstr "라우팅 규칙이 업데이트되었습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13672
+#: lib/glossia_web/live/dashboard_live.ex:13673
 #, elixir-autogen, elixir-format
 msgid "Routing rules point at configured models. Add one under Models to get started."
 msgstr "라우팅 규칙은 설정된 모델을 가리킵니다. 시작하려면 모델 섹션에서 하나를 추가하세요."
@@ -4758,7 +4758,7 @@ msgstr "라우팅 규칙은 설정된 모델을 가리킵니다. 시작하려면
 msgid "Rule not found."
 msgstr "규칙을 찾을 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13860
+#: lib/glossia_web/live/dashboard_live.ex:13861
 #, elixir-autogen, elixir-format
 msgid "Save changes"
 msgstr "변경 사항 저장"
@@ -4768,8 +4768,8 @@ msgstr "변경 사항 저장"
 msgid "Select a model before adding a rule."
 msgstr "규칙 추가 전 모델을 선택하세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:13689
-#: lib/glossia_web/live/dashboard_live.ex:13806
+#: lib/glossia_web/live/dashboard_live.ex:13690
+#: lib/glossia_web/live/dashboard_live.ex:13807
 #, elixir-autogen, elixir-format
 msgid "Target locale"
 msgstr "대상 로케일"
@@ -4779,34 +4779,34 @@ msgstr "대상 로케일"
 msgid "Project setup could not be started."
 msgstr "프로젝트 설정을 시작할 수 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:13443
+#: lib/glossia_web/live/dashboard_live.ex:13444
 #, elixir-autogen, elixir-format
 msgid "Cap on concurrent translations sent to this model in a run. Leave empty to fan out as wide as the repository. Lower this if the provider's per-model rate limit rejects a large parallel run."
 msgstr "이번 실행 시 이 모델로 전송되는 동시 번역 수를 제한합니다. 저장소 전체 범위로 분산되도록 하려면 비워 두세요. 제공자의 모델별 속도 제한으로 큰 병렬 실행이 거절되는 경우 이 값을 낮추세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:13351
+#: lib/glossia_web/live/dashboard_live.ex:13352
 #, elixir-autogen, elixir-format
 msgid "Optional. Cap on concurrent translations sent to this model in a run. Leave empty to fan out as wide as the repository. Lower this if the provider's per-model rate limit rejects a large parallel run."
 msgstr "선택 사항. 이번 실행 시 이 모델로 전송되는 동시 번역 수를 제한합니다. 저장소 전체 범위로 분산되도록 하려면 비워 두세요. 제공자의 모델별 속도 제한으로 큰 병렬 실행이 거절되는 경우 이 값을 낮추세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:13348
-#: lib/glossia_web/live/dashboard_live.ex:13440
+#: lib/glossia_web/live/dashboard_live.ex:13349
+#: lib/glossia_web/live/dashboard_live.ex:13441
 #, elixir-autogen, elixir-format
 msgid "Translation concurrency"
 msgstr "번역 동시성"
 
-#: lib/glossia_web/live/dashboard_live.ex:13349
-#: lib/glossia_web/live/dashboard_live.ex:13441
+#: lib/glossia_web/live/dashboard_live.ex:13350
+#: lib/glossia_web/live/dashboard_live.ex:13442
 #, elixir-autogen, elixir-format
 msgid "e.g. 5"
 msgstr "예시 5"
 
-#: lib/glossia_web/live/dashboard_live.ex:8884
+#: lib/glossia_web/live/dashboard_live.ex:8885
 #, elixir-autogen, elixir-format
 msgid "Validation code"
 msgstr "검증 코드"
 
-#: lib/glossia_web/live/dashboard_live.ex:8885
+#: lib/glossia_web/live/dashboard_live.ex:8886
 #, elixir-autogen, elixir-format
 msgid "Validation message"
 msgstr "검증 메시지"
@@ -4891,53 +4891,53 @@ msgstr "인증에 실패했습니다. 다시 시도해주세요."
 msgid "Verify you're human"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:8226
+#: lib/glossia_web/live/dashboard_live.ex:8227
 #, elixir-autogen, elixir-format
 msgid "Activity"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:8134
+#: lib/glossia_web/live/dashboard_live.ex:8135
 #, elixir-autogen, elixir-format
 msgid "Open %{sha} on GitHub"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:8170
+#: lib/glossia_web/live/dashboard_live.ex:8171
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Pull request"
 msgstr "풀 리퀘스트가 생성됨"
 
-#: lib/glossia_web/live/dashboard_live.ex:8111
+#: lib/glossia_web/live/dashboard_live.ex:8112
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Session details"
 msgstr "세션"
 
-#: lib/glossia_web/live/dashboard_live.ex:8152
+#: lib/glossia_web/live/dashboard_live.ex:8153
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Started"
 msgstr "시작됨 %{time}"
 
-#: lib/glossia_web/live/dashboard_live.ex:8208
+#: lib/glossia_web/live/dashboard_live.ex:8209
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Translated files"
 msgstr "번역됨"
 
-#: lib/glossia_web/live/dashboard_live.ex:8081
+#: lib/glossia_web/live/dashboard_live.ex:8082
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Translation session · commit %{sha}"
 msgstr "번역 세션"
 
-#: lib/glossia_web/live/dashboard_live.ex:13318
-#: lib/glossia_web/live/dashboard_live.ex:13413
+#: lib/glossia_web/live/dashboard_live.ex:13319
+#: lib/glossia_web/live/dashboard_live.ex:13414
 #, elixir-autogen, elixir-format
 msgid "Clear selection"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:13403
+#: lib/glossia_web/live/dashboard_live.ex:13404
 #, elixir-autogen, elixir-format
 msgid "Leave blank when routing through a gateway that pins the model."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:13306
+#: lib/glossia_web/live/dashboard_live.ex:13307
 #, elixir-autogen, elixir-format
 msgid "The model to use, sourced from models.dev. Leave blank when routing through a gateway that pins the model (e.g. Atlas)."
 msgstr ""
@@ -4947,7 +4947,7 @@ msgstr ""
 msgid "A queryable map that connects your voices, glossary, audiences, and rules. Agents and integrations query it at runtime, so every decision a linguist makes flows through to every piece of content it touches."
 msgstr "귀하의 음성, 용어, 대상 및 규칙을 연결하는 검색 가능한 맵입니다. 에이전트 및 통합이 런타임에 이를 쿼리하므로, 번역가의 모든 결정은 관련 콘텐츠의 모든 부분에 연결됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:11801
+#: lib/glossia_web/live/dashboard_live.ex:11802
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Applied glossary suggestion as version #%{version}."
 msgstr "\"스타일 제안이 버전 #%{version} 으로 적용되었습니다.\""
@@ -4967,7 +4967,7 @@ msgstr "제목을, 설명, 및 제안된 용어 업데이트를 포함하여 제
 msgid "Create an organization, invite your team, and organize work into projects. Each project has its own voices, glossary, and rules that linguists iterate on together."
 msgstr "조직을 생성하고 팀을 초대하여 프로젝트를 구성하세요. 각 프로젝트는 언어 전문가들이 함께 개선하는 고유한 음성, 용어, 규칙을 갖추고 있습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8484
+#: lib/glossia_web/live/dashboard_live.ex:8485
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Current output"
 msgstr "현재"
@@ -4982,12 +4982,12 @@ msgstr "용어 항목 하나 및 승인된 번역을 편집하세요."
 msgid "Every change to a voice, glossary entry, or rule is versioned. See what changed, who changed it, and why. Roll back when needed."
 msgstr "음성, 용어 항목 또는 규칙의 모든 변경사항은 버전으로 관리됩니다. 무엇을, 누가, 그리고 왜 변경했는지 확인하세요. 필요 시 되돌리세요."
 
-#: lib/glossia_web/live/dashboard_live.ex:11645
+#: lib/glossia_web/live/dashboard_live.ex:11646
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Failed to submit glossary suggestion."
 msgstr "음성 제안 제출에 실패했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8378
+#: lib/glossia_web/live/dashboard_live.ex:8379
 #, elixir-autogen, elixir-format, fuzzy
 msgid "File"
 msgstr "필터"
@@ -5002,7 +5002,7 @@ msgstr "필터"
 #: lib/glossia_web/live/dashboard_live.ex:513
 #: lib/glossia_web/live/dashboard_live.ex:1388
 #: lib/glossia_web/live/dashboard_live.ex:5172
-#: lib/glossia_web/live/dashboard_live.ex:11610
+#: lib/glossia_web/live/dashboard_live.ex:11611
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Glossary"
 msgstr "Glossia"
@@ -5017,28 +5017,28 @@ msgstr ""
 msgid "Glossary entries in this version."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:11658
-#: lib/glossia_web/live/dashboard_live.ex:13031
+#: lib/glossia_web/live/dashboard_live.ex:11659
+#: lib/glossia_web/live/dashboard_live.ex:13032
 #, elixir-autogen, elixir-format
 msgid "Glossary suggestion"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:11638
+#: lib/glossia_web/live/dashboard_live.ex:11639
 #, elixir-autogen, elixir-format
 msgid "Glossary suggestion submitted as suggestion #%{number}."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:8492
+#: lib/glossia_web/live/dashboard_live.ex:8493
 #, elixir-autogen, elixir-format
 msgid "Incomplete output"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:10319
+#: lib/glossia_web/live/dashboard_live.ex:10320
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No proposed glossary changes"
 msgstr "제안된 용어 변경 없음"
 
-#: lib/glossia_web/live/dashboard_live.ex:8401
+#: lib/glossia_web/live/dashboard_live.ex:8402
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Progress"
 msgstr "진행 중"
@@ -5048,7 +5048,7 @@ msgstr "진행 중"
 msgid "Refine voice definitions, update glossary, and review content directly. Your expertise becomes the foundation that agents and integrations draw from across every project."
 msgstr "목소리 정의를 세분화하고 용어를 업데이트하며 내용을 직접 검토하세요. 여러분의 전문성이 모든 프로젝트에서 에이전트와 통합이 근간으로 삼는 활기가 됩니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8376
+#: lib/glossia_web/live/dashboard_live.ex:8377
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Show translation details"
 msgstr "번역 없음"
@@ -5069,7 +5069,7 @@ msgstr "용어 변경 제안"
 msgid "This revision does not contain glossary entries."
 msgstr "이 버전에는 용어 항목이 포함되어 없습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:8500
+#: lib/glossia_web/live/dashboard_live.ex:8501
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Translated output"
 msgstr "번역됨"
@@ -5084,17 +5084,17 @@ msgstr "플랫폼에는 음성, 용어, 수요자 프로필, 그리고 스타일
 msgid "We are building experiences where humans take part in the agentic loops through interfaces that run in the browser or on the go. Implementation details like tools, models, and environments are abstracted away so reviewers can focus on the content itself. We are also designing agentic experiences for linguists to contribute directly to the system, refining voice, glossary, and quality standards without needing to touch config files or code."
 msgstr "사람들이 브라우저나 이동 중 인터페이스를 통해 에이전틱 순환에 참여하는 경험을 구축하고 있습니다. 도구, 모델, 환경 같은 구현 세부 사항은 추상화되어 검토자가 내용 자체에 집중할 수 있습니다. 또한 언어학자들이 설정 파일이나 코드를 수정하지 않고도 음성과 용어, 품질 기준에 직접 참여하는 에이전틱 경험을 설계했습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex:11615
+#: lib/glossia_web/live/dashboard_live.ex:11616
 #, elixir-autogen, elixir-format
 msgid "glossary"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:8301
+#: lib/glossia_web/live/dashboard_live.ex:8302
 #, elixir-autogen, elixir-format
 msgid "%{n} glossary terms applied"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:8308
+#: lib/glossia_web/live/dashboard_live.ex:8309
 #, elixir-autogen, elixir-format
 msgid "%{n} platform terms overridden by repo glossary"
 msgstr ""
@@ -5104,23 +5104,23 @@ msgstr ""
 msgid "Platform"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9746
+#: lib/glossia_web/live/dashboard_live.ex:9747
 #, elixir-autogen, elixir-format
 msgid "Automated setup"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:7365
+#: lib/glossia_web/live/dashboard_live.ex:7366
 #, elixir-autogen, elixir-format
 msgid "Configure localization in the repository"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9791
-#: lib/glossia_web/live/dashboard_live.ex:9860
+#: lib/glossia_web/live/dashboard_live.ex:9792
+#: lib/glossia_web/live/dashboard_live.ex:9861
 #, elixir-autogen, elixir-format
 msgid "Create project"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9783
+#: lib/glossia_web/live/dashboard_live.ex:9784
 #, elixir-autogen, elixir-format
 msgid "Manual configuration"
 msgstr ""
@@ -5130,53 +5130,53 @@ msgstr ""
 msgid "Project created. Add an L10N.md file to the repository to start translating."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:7383
+#: lib/glossia_web/live/dashboard_live.ex:7384
 #, elixir-autogen, elixir-format
 msgid "Read the L10N.md reference"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9725
+#: lib/glossia_web/live/dashboard_live.ex:9726
 #, elixir-autogen, elixir-format
 msgid "Setup"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9742
+#: lib/glossia_web/live/dashboard_live.ex:9743
 #, elixir-autogen, elixir-format
 msgid "Choose who writes the localization configuration."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9748
+#: lib/glossia_web/live/dashboard_live.ex:9749
 #, elixir-autogen, elixir-format
 msgid "Glossia inspects the repository and opens a pull request with a generated L10N.md for the languages you choose."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9165
+#: lib/glossia_web/live/dashboard_live.ex:9166
 #, elixir-autogen, elixir-format
 msgid "Glossia is inspecting the repository and preparing a pull request. This usually takes a few minutes, and you can leave this page and come back."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9761
-#: lib/glossia_web/live/dashboard_live.ex:9780
+#: lib/glossia_web/live/dashboard_live.ex:9762
+#: lib/glossia_web/live/dashboard_live.ex:9781
 #, elixir-autogen, elixir-format
 msgid "OR"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9163
+#: lib/glossia_web/live/dashboard_live.ex:9164
 #, elixir-autogen, elixir-format
 msgid "Setting up localization"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9154
+#: lib/glossia_web/live/dashboard_live.ex:9155
 #, elixir-autogen, elixir-format
 msgid "Setup is queued and starts shortly. You can leave this page and come back."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9785
+#: lib/glossia_web/live/dashboard_live.ex:9786
 #, elixir-autogen, elixir-format
 msgid "The repository already has an L10N.md, or you will write it. Glossia creates the project now and translates on the next push."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9152
+#: lib/glossia_web/live/dashboard_live.ex:9153
 #, elixir-autogen, elixir-format
 msgid "Waiting to start"
 msgstr ""
@@ -5241,105 +5241,105 @@ msgstr ""
 msgid "We’re onboarding teams gradually. Leave your email to show your interest."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9851
+#: lib/glossia_web/live/dashboard_live.ex:9852
 #, elixir-autogen, elixir-format
 msgid "1. Create the project"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9867
+#: lib/glossia_web/live/dashboard_live.ex:9868
 #, elixir-autogen, elixir-format
 msgid "2. Connect your agent to Glossia"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9895
+#: lib/glossia_web/live/dashboard_live.ex:9896
 #, elixir-autogen, elixir-format
 msgid "3. Run this prompt in your local checkout"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9869
+#: lib/glossia_web/live/dashboard_live.ex:9870
 #, elixir-autogen, elixir-format
 msgid "Add this server to your agent, then sign in to Glossia and approve access."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9766
+#: lib/glossia_web/live/dashboard_live.ex:9767
 #, elixir-autogen, elixir-format
 msgid "Connect your coding agent to Glossia and set up localization in your local checkout. Review the changes before pushing them."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9885
+#: lib/glossia_web/live/dashboard_live.ex:9886
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Connection instructions"
 msgstr "연결"
 
-#: lib/glossia_web/live/dashboard_live.ex:9772
+#: lib/glossia_web/live/dashboard_live.ex:9773
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Continue locally"
 msgstr "계속"
 
-#: lib/glossia_web/live/dashboard_live.ex:9909
+#: lib/glossia_web/live/dashboard_live.ex:9910
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Copied!"
 msgstr "복사됨"
 
-#: lib/glossia_web/live/dashboard_live.ex:9905
-#: lib/glossia_web/live/dashboard_live.ex:9910
+#: lib/glossia_web/live/dashboard_live.ex:9906
+#: lib/glossia_web/live/dashboard_live.ex:9911
 #, elixir-autogen, elixir-format
 msgid "Copy prompt"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9853
+#: lib/glossia_web/live/dashboard_live.ex:9854
 #, elixir-autogen, elixir-format
 msgid "Create the project here so your agent can find it in Glossia. This does not start automated setup."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:7367
+#: lib/glossia_web/live/dashboard_live.ex:7368
 #, elixir-autogen, elixir-format
 msgid "Glossia starts translating on the next push to the default branch that includes an L10N.md file."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9871
+#: lib/glossia_web/live/dashboard_live.ex:9872
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Model Context Protocol"
 msgstr "Model Context Protocol 서버, 도구 및 프롬프트."
 
-#: lib/glossia_web/live/dashboard_live.ex:9845
+#: lib/glossia_web/live/dashboard_live.ex:9846
 #, elixir-autogen, elixir-format
 msgid "Open a local checkout of this repository in your coding agent. Glossia will translate after you push the configuration to the default branch."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9928
+#: lib/glossia_web/live/dashboard_live.ex:9929
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Open project"
 msgstr "새 프로젝트"
 
-#: lib/glossia_web/live/dashboard_live.ex:9864
+#: lib/glossia_web/live/dashboard_live.ex:9865
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Project created"
 msgstr "프로젝트 A"
 
-#: lib/glossia_web/live/dashboard_live.ex:9918
+#: lib/glossia_web/live/dashboard_live.ex:9919
 #, elixir-autogen, elixir-format
 msgid "Review and push"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9920
+#: lib/glossia_web/live/dashboard_live.ex:9921
 #, elixir-autogen, elixir-format
 msgid "Review the local changes and push or merge them into the default branch when ready."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9911
+#: lib/glossia_web/live/dashboard_live.ex:9912
 #, elixir-autogen, elixir-format
 msgid "Select and copy the prompt"
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex:9879
+#: lib/glossia_web/live/dashboard_live.ex:9880
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Server address"
 msgstr "제공 역할"
 
-#: lib/glossia_web/live/dashboard_live.ex:7375
-#: lib/glossia_web/live/dashboard_live.ex:9764
-#: lib/glossia_web/live/dashboard_live.ex:9825
+#: lib/glossia_web/live/dashboard_live.ex:7376
+#: lib/glossia_web/live/dashboard_live.ex:9765
+#: lib/glossia_web/live/dashboard_live.ex:9826
 #, elixir-autogen, elixir-format
 msgid "Set up locally with an agent"
 msgstr ""
