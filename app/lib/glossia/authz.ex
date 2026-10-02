@@ -44,7 +44,7 @@ defmodule Glossia.Authz do
     scopes = Keyword.get(opts, :scopes, :all)
 
     with :ok <- authorize_scope(action, scopes),
-         :ok <- do_authorize(action, subject, object, opts) do
+         :ok <- authorize_member(action, subject, object, opts) do
       :ok
     end
   end
@@ -67,6 +67,14 @@ defmodule Glossia.Authz do
       :ok
     else
       {:error, :insufficient_scope, required}
+    end
+  end
+
+  defp authorize_member(action, subject, object, opts) do
+    case Glossia.MemberPermissions.decision(action, subject, object, opts) do
+      :allow -> :ok
+      :deny -> {:error, :unauthorized}
+      :legacy -> do_authorize(action, subject, object, opts)
     end
   end
 

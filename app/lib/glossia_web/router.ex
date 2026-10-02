@@ -152,6 +152,8 @@ defmodule GlossiaWeb.Router do
     delete "/logout", AuthController, :logout
     get "/logout", AuthController, :logout
     post "/gate/:provider", AuthController, :verify_signup_gate
+    post "/organization", OrganizationAuthController, :request
+    get "/organization/callback", OrganizationAuthController, :callback
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
   end
@@ -486,6 +488,11 @@ defmodule GlossiaWeb.Router do
         {GlossiaWeb.PlatformHooks, :load_account},
         {GlossiaWeb.PlatformHooks, :check_write}
       ] do
+      live "/:handle/-/settings/authentication",
+           AuthenticationSettingsLive,
+           :authentication_settings
+
+      live "/:handle/-/members/:user_id/permissions", MemberPermissionsLive, :member_permissions
       live "/:handle/-/members", DashboardLive, :members
       live "/:handle/-/settings/tokens", DashboardLive, :api_tokens
       live "/:handle/-/settings/tokens/new", DashboardLive, :api_tokens_new

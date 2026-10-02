@@ -301,13 +301,20 @@ defmodule Glossia.Organizations do
       ])
 
       %OrganizationMembership{user_id: user_id, organization_id: org_id}
-      |> OrganizationMembership.changeset(%{role: role})
+      |> OrganizationMembership.changeset(%{
+        role: role,
+        scopes: if(role == "admin", do: nil, else: Glossia.MemberPermissions.basic_scopes())
+      })
       |> Repo.insert()
       |> case do
         {:ok, membership} ->
           case Roles.replace_organization_role(%User{id: user_id}, org_id, role) do
-            :ok -> {:ok, membership}
-            {:error, reason} -> {:error, reason}
+            :ok ->
+              clear_authentication_block(org_id, user_id)
+              {:ok, membership}
+
+            {:error, reason} ->
+              {:error, reason}
           end
 
         error ->
@@ -323,9 +330,27 @@ defmodule Glossia.Organizations do
         {"glossia.user.id", to_string(user_id)}
       ])
 
-      OrganizationMembership
-      |> where(organization_id: ^org_id, user_id: ^user_id)
-      |> Repo.delete_all()
+      {:ok, removal} =
+        Repo.transaction(fn ->
+          Repo.one!(from o in Organization, where: o.id == ^org_id, lock: "FOR UPDATE")
+
+          result =
+            OrganizationMembership
+            |> where(organization_id: ^org_id, user_id: ^user_id)
+            |> Repo.delete_all()
+
+          if elem(result, 0) > 0 do
+            Repo.insert_all(
+              "organization_auth_blocks",
+              [%{organization_id: Ecto.UUID.dump!(org_id), user_id: Ecto.UUID.dump!(user_id)}],
+              on_conflict: :nothing
+            )
+          end
+
+          result
+        end)
+
+      removal
       |> case do
         {count, _} = result ->
           actor = Keyword.get(opts, :actor)
@@ -349,6 +374,15 @@ defmodule Glossia.Organizations do
           result
       end
     end
+  end
+
+  defp clear_authentication_block(organization_id, user_id) do
+    Repo.delete_all(
+      from b in "organization_auth_blocks",
+        where:
+          b.organization_id == type(^organization_id, :binary_id) and
+            b.user_id == type(^user_id, :binary_id)
+    )
   end
 
   def get_membership(%Organization{id: org_id}, %User{id: user_id}) do
@@ -537,13 +571,19 @@ defmodule Glossia.Organizations do
             |> Ecto.Multi.insert(:membership, %OrganizationMembership{
               user_id: user.id,
               organization_id: invitation.organization_id,
-              role: invitation.role
+              role: invitation.role,
+              scopes:
+                if(invitation.role == "admin",
+                  do: nil,
+                  else: Glossia.MemberPermissions.basic_scopes()
+                )
             })
             |> Repo.transaction()
             |> case do
               {:ok, %{membership: membership}} = ok ->
                 org = get_organization(invitation.organization_id)
                 :ok = Roles.replace_organization_role(user, org, membership.role)
+                clear_authentication_block(org.id, user.id)
 
                 Events.emit("member.invitation_accepted", org.account, user,
                   resource_type: "invitation",

@@ -73,34 +73,14 @@ defmodule GlossiaWeb.PlatformHooks do
   end
 
   def on_mount(:check_write, _params, _session, socket) do
-    user = socket.assigns[:current_user]
-    account = socket.assigns[:account]
-    can_write = Glossia.Authz.authorize?(:project_write, user, account)
-    is_admin = Glossia.Authz.authorize?(:project_admin, user, account)
-    can_voice_read = Glossia.Authz.authorize?(:voice_read, user, account)
-    can_voice_write = Glossia.Authz.authorize?(:voice_write, user, account)
-    can_glossary_read = Glossia.Authz.authorize?(:glossary_read, user, account)
-    can_glossary_write = Glossia.Authz.authorize?(:glossary_write, user, account)
-    can_discussion_write = Glossia.Authz.authorize?(:discussion_write, user, account)
-
-    can_voice_propose = can_discussion_write
-    can_glossary_propose = can_discussion_write
-
-    show_sidebar = user != nil
-
     {:cont,
      socket
-     |> assign(:can_write, can_write)
-     |> assign(:is_admin, is_admin)
-     |> assign(:can_voice_read, can_voice_read)
-     |> assign(:can_voice_write, can_voice_write)
-     |> assign(:can_voice_propose, can_voice_propose)
-     |> assign(:can_glossary_read, can_glossary_read)
-     |> assign(:can_glossary_write, can_glossary_write)
-     |> assign(:can_glossary_propose, can_glossary_propose)
-     |> assign(:show_sidebar, show_sidebar)
-     |> assign(:sidebar_context, :account)
-     |> assign(:sidebar_project, nil)}
+     |> assign_permissions()
+     |> Phoenix.LiveView.attach_hook(:refresh_member_permissions, :handle_event, fn _event,
+                                                                                    _params,
+                                                                                    socket ->
+       {:cont, assign_permissions(socket)}
+     end)}
   end
 
   def on_mount(:require_auth, _params, _session, socket) do
@@ -109,5 +89,48 @@ defmodule GlossiaWeb.PlatformHooks do
     else
       {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/login")}
     end
+  end
+
+  defp assign_permissions(socket) do
+    user = socket.assigns[:current_user]
+    account = socket.assigns[:account]
+    context = Glossia.MemberPermissions.context(user, account)
+
+    authorize = fn action ->
+      Glossia.Authz.authorize?(action, user, account, membership_context: context)
+    end
+
+    can_write = authorize.(:project_write)
+    is_admin = authorize.(:organization_admin)
+    can_voice_read = authorize.(:voice_read)
+    can_voice_write = authorize.(:voice_write)
+    can_glossary_read = authorize.(:glossary_read)
+    can_glossary_write = authorize.(:glossary_write)
+    can_discussion_write = authorize.(:discussion_write)
+
+    can_manage_members = authorize.(:members_write)
+    can_manage_credentials = authorize.(:api_credentials_read)
+    can_manage_models = authorize.(:llm_model_read)
+
+    can_voice_propose = can_discussion_write
+    can_glossary_propose = can_discussion_write
+
+    show_sidebar = user != nil
+
+    socket
+    |> assign(:can_write, can_write)
+    |> assign(:is_admin, is_admin)
+    |> assign(:can_manage_members, can_manage_members)
+    |> assign(:can_manage_credentials, can_manage_credentials)
+    |> assign(:can_manage_models, can_manage_models)
+    |> assign(:can_voice_read, can_voice_read)
+    |> assign(:can_voice_write, can_voice_write)
+    |> assign(:can_voice_propose, can_voice_propose)
+    |> assign(:can_glossary_read, can_glossary_read)
+    |> assign(:can_glossary_write, can_glossary_write)
+    |> assign(:can_glossary_propose, can_glossary_propose)
+    |> assign(:show_sidebar, show_sidebar)
+    |> assign(:sidebar_context, Map.get(socket.assigns, :sidebar_context, :account))
+    |> assign(:sidebar_project, socket.assigns[:sidebar_project])
   end
 end

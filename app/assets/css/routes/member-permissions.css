@@ -1,0 +1,19 @@
+#member-permissions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-6);
+  & [data-part="permissions"] {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--noora-spacing-6);
+  }
+  & > .noora-button {
+    align-self: flex-start;
+  }
+  & p {
+    color: var(--noora-surface-label-secondary);
+    font: var(--noora-font-body-medium);
+  }
+}

@@ -312,6 +312,21 @@ oauth_providers =
     end
   end)
 
+oauth_providers =
+  case {System.get_env("GLOSSIA_GOOGLE_CLIENT_ID"),
+        System.get_env("GLOSSIA_GOOGLE_CLIENT_SECRET")} do
+    {id, secret} when is_binary(id) and id != "" and is_binary(secret) and secret != "" ->
+      Keyword.put(oauth_providers, :google,
+        client_id: id,
+        client_secret: secret,
+        strategy: Assent.Strategy.Google,
+        nonce: true
+      )
+
+    _ ->
+      oauth_providers
+  end
+
 config :glossia, :oauth_providers, oauth_providers
 
 encryption_key = System.get_env("GLOSSIA_ENCRYPTION_KEY")
