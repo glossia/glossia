@@ -6,12 +6,14 @@ defmodule Glossia.OgImage do
   use GlossiaWeb, :verified_routes
 
   alias Glossia.OgImage.Cache
+  alias Glossia.OgImage.Renderer
   alias Glossia.Storage
 
   @design_files Path.wildcard("assets/css/**/*.css") ++
                   Path.wildcard("lib/glossia_web/controllers/og_image_html/*") ++
                   [
                     "lib/glossia_web/controllers/og_image_html.ex",
+                    "lib/glossia/og_image/renderer.ex",
                     "priv/static/assets/styles.css",
                     "priv/static/fonts/inter.woff2",
                     "priv/static/fonts/source-serif-4.woff2",
@@ -135,7 +137,11 @@ defmodule Glossia.OgImage do
 
       task =
         Task.Supervisor.async_nolink(Glossia.OgImage.Tasks, fn ->
-          Carta.render(Glossia.OgImage.BrowserPool, html, width: 1200, height: 630, quality: 90)
+          Renderer.render(Glossia.OgImage.BrowserPool, html,
+            width: 1200,
+            height: 630,
+            quality: 90
+          )
         end)
 
       case Task.yield(task, 15_000) || Task.shutdown(task, :brutal_kill) do

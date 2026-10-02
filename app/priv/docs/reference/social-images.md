@@ -15,7 +15,7 @@ accounts and personal settings use generic Glossia branding.
 ## Image identity and lifetime
 
 The image digest includes the displayed content, project logo revision, template,
-styles, fonts, brand asset, dependency lockfile, and current day in
+styles, renderer, fonts, brand asset, dependency lockfile, and current day in
 [Coordinated Universal Time](https://www.timeanddate.com/time/aboututc.html).
 Changing any of these creates a new address. Sorting the attributes and signing
 at midnight keeps the complete address stable throughout the day.
@@ -32,7 +32,8 @@ succeed before a newly rendered image is served.
 
 ## Rendering and limits
 
-Rendering uses Carta with BrowseChrome, the same stack as Tuist's image renderer.
+Rendering uses BrowseChrome with viewport sizing and capture in a single browser
+session, so Chrome retains the dimensions while capturing the full canvas.
 The supervised pool contains two browsers. Each render has a 15-second deadline;
 each application instance permits at most twelve new renders per minute.
 Stored-image requests do not consume that allowance.

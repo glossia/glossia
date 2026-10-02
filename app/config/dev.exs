@@ -125,7 +125,7 @@ config :phoenix_live_view,
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
-# Enable the dedicated Carta browser pool with GLOSSIA_OG_IMAGES=true.
+# Enable the dedicated social-image browser pool with GLOSSIA_OG_IMAGES=true.
 config :glossia, Glossia.OgImage, enabled: false
 
 # Cloak encryption vault (deterministic dev key)
