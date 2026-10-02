@@ -101,28 +101,37 @@ defmodule GlossiaWeb.MemberPermissionsLive do
           "Select permissions individually or select a whole area. New members start with basic read access."
         )}
       </p>
-      <.card :for={{group, scopes} <- @groups} title={group_label(group)} icon="lock_password">
-        <.card_section data-part="permissions">
-          <Noora.Checkbox.checkbox
-            id={"permission-group-#{group}-#{Enum.count(scopes, &(&1 in @scopes))}"}
-            label={gettext("Select all in this area")}
-            checked={Enum.all?(scopes, &(&1 in @scopes))}
-            indeterminate={
-              Enum.any?(scopes, &(&1 in @scopes)) and not Enum.all?(scopes, &(&1 in @scopes))
-            }
-            data-default-checked={to_string(Enum.all?(scopes, &(&1 in @scopes)))}
-            phx-click={"set_group:#{group}"}
-            phx-value-checked={to_string(not Enum.all?(scopes, &(&1 in @scopes)))}
-          />
-          <Noora.Checkbox.checkbox
-            :for={scope <- scopes}
-            id={"permission-#{String.replace(scope, ":", "-")}-#{scope in @scopes}"}
-            label={scope |> String.split(":") |> List.last() |> String.capitalize()}
-            checked={scope in @scopes}
-            data-default-checked={to_string(scope in @scopes)}
-            phx-click={"set_scope:#{scope}"}
-            phx-value-checked={to_string(scope not in @scopes)}
-          />
+      <.card title={gettext("Permissions")} icon="lock_password">
+        <.card_section data-part="permission-areas">
+          <section
+            :for={{group, scopes} <- @groups}
+            data-part="permission-group"
+            aria-labelledby={"permission-area-#{group}"}
+          >
+            <h3 id={"permission-area-#{group}"}>{group_label(group)}</h3>
+            <Noora.Checkbox.checkbox
+              id={"permission-group-#{group}-#{Enum.count(scopes, &(&1 in @scopes))}"}
+              label={gettext("Select all")}
+              checked={Enum.all?(scopes, &(&1 in @scopes))}
+              indeterminate={
+                Enum.any?(scopes, &(&1 in @scopes)) and not Enum.all?(scopes, &(&1 in @scopes))
+              }
+              data-default-checked={to_string(Enum.all?(scopes, &(&1 in @scopes)))}
+              phx-click={"set_group:#{group}"}
+              phx-value-checked={to_string(not Enum.all?(scopes, &(&1 in @scopes)))}
+            />
+            <div data-part="permissions">
+              <Noora.Checkbox.checkbox
+                :for={scope <- scopes}
+                id={"permission-#{String.replace(scope, ":", "-")}-#{scope in @scopes}"}
+                label={scope |> String.split(":") |> List.last() |> String.capitalize()}
+                checked={scope in @scopes}
+                data-default-checked={to_string(scope in @scopes)}
+                phx-click={"set_scope:#{scope}"}
+                phx-value-checked={to_string(scope not in @scopes)}
+              />
+            </div>
+          </section>
         </.card_section>
       </.card>
       <Noora.Button.button type="button" phx-click="save" label={gettext("Save permissions")} />
