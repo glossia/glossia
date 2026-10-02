@@ -64,7 +64,7 @@ defmodule GlossiaWeb.OgImageControllerTest do
     expect(Storage, :download, 2, fn ^key -> {:error, {:http_error, 404, %{}}} end)
     expect(GlossiaWeb.OgImageHTML, :document, fn %{title: "New project"}, nil -> "template" end)
 
-    expect(Carta, :render, fn Glossia.OgImage.BrowserPool, "template", opts ->
+    expect(Glossia.OgImage.Renderer, :render, fn Glossia.OgImage.BrowserPool, "template", opts ->
       assert opts == [width: 1200, height: 630, quality: 90]
       {:ok, "new jpeg"}
     end)
@@ -84,7 +84,7 @@ defmodule GlossiaWeb.OgImageControllerTest do
     key = "og/images/upload-failure.jpg"
     expect(Storage, :download, 4, fn ^key -> {:error, {:http_error, 404, %{}}} end)
     stub(GlossiaWeb.OgImageHTML, :document, fn _, _ -> "template" end)
-    expect(Carta, :render, 2, fn _, _, _ -> {:ok, "jpeg"} end)
+    expect(Glossia.OgImage.Renderer, :render, 2, fn _, _, _ -> {:ok, "jpeg"} end)
     expect(Storage, :upload, fn ^key, "jpeg", _ -> {:error, :unavailable} end)
     expect(Storage, :upload, fn ^key, "jpeg", _ -> {:ok, %{}} end)
 
