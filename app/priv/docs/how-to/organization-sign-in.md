@@ -7,6 +7,8 @@
 }
 ---
 
+## Connect your identity provider
+
 Organization administrators can connect a work identity provider in **Settings → Authentication**.
 
 1. Choose **Google Workspace** or **Okta** and enter the team's work email domain.
@@ -19,7 +21,7 @@ For Google, the installation operator must set `GLOSSIA_GOOGLE_CLIENT_ID` and `G
 
 A verified provider identity with an exact matching work email domain automatically joins the organization. For an existing Glossia account connecting Okta for the first time, sign in with the existing method before starting organization sign-in. This safely links the provider without allowing an Okta administrator to take over another Glossia account. Public registration through other providers continues to use the interest form. Disabling the provider stops organization sign-in without deleting existing memberships.
 
-New members receive basic read access to the account, projects, voice, glossary, discussions, and tickets. In **Members → Permissions**, an administrator can select individual permissions or a whole product area. Administrator access is controlled by the administrator role and cannot be edited through this screen. Existing members retain their role permissions until explicit permissions are saved.
+New members receive basic read access to the account, organization, projects, voice, glossary, discussions, and tickets. Follow [Manage member permissions](/docs/how-to/member-permissions) to grant additional access after they join.
 
 ## Access safeguards
 

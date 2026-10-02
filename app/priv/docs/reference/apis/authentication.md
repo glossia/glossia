@@ -13,7 +13,9 @@ Glossia supports two authentication methods depending on the context.
 
 ### Browser sessions
 
-When you sign in through the web interface, Glossia uses session-based authentication. You authenticate via a third-party provider (GitHub or GitLab) using the [Assent](https://github.com/pow-auth/assent) library. After a successful sign-in, a session cookie is set and used for subsequent requests.
+When you sign in through the web interface, Glossia uses session-based authentication. You authenticate via GitHub, GitLab, Google, or a configured organization identity provider using the [Assent](https://github.com/pow-auth/assent) library. After a successful sign-in, a session cookie is set and used for subsequent requests.
+
+Organizations can configure Google Workspace or Okta and verify their work email domain before allowing automatic enrollment. See [Configure organization sign-in](/docs/how-to/organization-sign-in) for setup and account-linking requirements.
 
 ### Bearer tokens (OAuth 2.1)
 
@@ -116,6 +118,12 @@ Scopes represent the *maximum* capability of a token. The policy system enforces
 | `organization_member` | A member of the organization that owns the resource |
 | `organization_admin` | An administrator of the organization that owns the resource |
 | `public_account` | The account is public (read-only) |
+
+### Member permissions
+
+Non-administrator organization memberships can carry explicit permission scopes. New members start with read access to the account, organization, projects, voice, glossary, discussions, and tickets. An organization administrator can replace those scopes through [Members → Permissions](/docs/how-to/member-permissions). A requested action must be included in the member's allowed scopes as well as the token's scopes when using a token.
+
+Organization administrators retain their administrator role. Existing memberships without explicit scopes continue to use the role-based policy below until permissions are saved.
 
 ### Role permissions
 
