@@ -25,8 +25,12 @@
     align-items: center;
     gap: var(--noora-spacing-6);
   }
-  & > .noora-button {
-    align-self: flex-start;
+  & [data-part="action-buttons"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--noora-spacing-4);
   }
   & p {
     color: var(--noora-surface-label-secondary);
