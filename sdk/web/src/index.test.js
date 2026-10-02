@@ -191,33 +191,36 @@ describe("init()", () => {
   });
 
   it("uses the configured endpoint instead of the script origin", async () => {
-    stubCurrentScript(makeFakeScript({ src: "https://cdn.glossia.ai/web.js" }));
+    stubCurrentScript(makeFakeScript({ src: "https://glossia.ai/assets/glossia-web.js" }));
     const sendBeacon = stubSendBeacon();
+    const fetch = stubFetch();
     const { init } = await loadFresh();
     // Importing with a `<script>` tag present auto-inits and sends a pageview;
     // this test is about the explicit `init()` that follows.
-    sendBeacon.mockClear();
+    fetch.mockClear();
 
     init({
       domain: "example.com",
       endpoint: "https://api.example.com/v1/collect",
     });
 
-    expect(sendBeacon).toHaveBeenCalledTimes(1);
-    const [url] = sendBeacon.mock.calls[0];
+    expect(sendBeacon).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const [url] = fetch.mock.calls[0];
     expect(url).toBe("https://api.example.com/v1/collect");
   });
 
   it("derives the endpoint from the current script src when none is provided", async () => {
-    stubCurrentScript(makeFakeScript({ src: "https://cdn.glossia.ai/web.js" }));
+    stubCurrentScript(makeFakeScript({ src: "https://glossia.ai/assets/glossia-web.js" }));
     const sendBeacon = stubSendBeacon();
+    const fetch = stubFetch();
     const { init } = await loadFresh();
-    sendBeacon.mockClear();
+    fetch.mockClear();
 
     init({ domain: "example.com" });
 
-    const [url] = sendBeacon.mock.calls[0];
-    expect(url).toBe("https://cdn.glossia.ai/v1/collect");
+    const [url] = fetch.mock.calls[0];
+    expect(url).toBe("https://glossia.ai/v1/collect");
   });
 });
 
@@ -299,6 +302,35 @@ describe("session id", () => {
 });
 
 describe("network transport", () => {
+  it("uses credential-free keepalive fetch for an external collector", async () => {
+    stubLocation("https://tuist.dev/");
+    const sendBeacon = stubSendBeacon(true);
+    const fetch = stubFetch();
+    const { init } = await loadFresh();
+
+    init({ domain: "tuist.dev", endpoint: "https://glossia.ai/v1/collect" });
+
+    expect(sendBeacon).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch.mock.calls[0][0]).toBe("https://glossia.ai/v1/collect");
+    expect(fetch.mock.calls[0][1]).toMatchObject({
+      method: "POST",
+      credentials: "omit",
+      mode: "cors",
+      keepalive: true,
+    });
+    expect(JSON.parse(fetch.mock.calls[0][1].body).d).toBe("tuist.dev");
+  });
+
+  it("ignores rejected collection requests", async () => {
+    stubSendBeacon(false);
+    stubFetch(() => Promise.reject(new Error("collector unavailable")));
+    const { init } = await loadFresh();
+
+    expect(() => init({ domain: "example.com" })).not.toThrow();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
   it("prefers sendBeacon over fetch when beacon returns true", async () => {
     const sendBeacon = stubSendBeacon(true);
     const fetch = stubFetch();
@@ -426,29 +458,33 @@ describe("auto-init from <script> tag", () => {
   it("uses data-domain and data-endpoint from the current script tag", async () => {
     stubCurrentScript(
       makeFakeScript({
-        src: "https://cdn.glossia.ai/web.js",
+        src: "https://glossia.ai/assets/glossia-web.js",
         domain: "example.com",
         endpoint: "https://api.example.com/v1/collect",
       }),
     );
     const sendBeacon = stubSendBeacon();
+    const fetch = stubFetch();
     await loadFresh();
 
-    expect(sendBeacon).toHaveBeenCalledTimes(1);
-    const [url, blob] = sendBeacon.mock.calls[0];
+    expect(sendBeacon).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const [url, request] = fetch.mock.calls[0];
     expect(url).toBe("https://api.example.com/v1/collect");
-    const body = JSON.parse(await blobText(blob));
+    const body = JSON.parse(request.body);
     expect(body.d).toBe("example.com");
   });
 
   it("falls back to window.location.hostname when no data-domain is set", async () => {
     stubLocation("https://example.com/landing");
-    stubCurrentScript(makeFakeScript({ src: "https://cdn.glossia.ai/web.js" }));
+    stubCurrentScript(makeFakeScript({ src: "https://glossia.ai/assets/glossia-web.js" }));
     const sendBeacon = stubSendBeacon();
+    const fetch = stubFetch();
     await loadFresh();
 
-    expect(sendBeacon).toHaveBeenCalledTimes(1);
-    const body = JSON.parse(await blobText(sendBeacon.mock.calls[0][1]));
+    expect(sendBeacon).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
     expect(body.d).toBe("example.com");
   });
 });

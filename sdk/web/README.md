@@ -13,10 +13,12 @@ Cookieless, privacy-friendly web analytics that surfaces localization opportunit
 Add this to your site:
 
 ```html
-<script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
+<script defer data-domain="example.com" src="https://glossia.ai/assets/glossia-web.js"></script>
 ```
 
-The script auto-initializes and records pageviews, including on client-side navigation (single-page apps). `data-domain` is optional — when omitted, the SDK uses `window.location.hostname` to identify the project. Set `data-endpoint` to use a custom collection endpoint instead of the Glossia CDN.
+The script auto-initializes and records pageviews, including on client-side navigation (single-page apps). `data-domain` is optional — when omitted, the SDK uses `window.location.hostname` to identify the project. Set `data-endpoint` to use a custom collection endpoint instead of the Glossia collector.
+
+If your site uses a content security policy, allow `https://glossia.ai` in both `script-src` (or `script-src-elem` when present) and `connect-src`. The script sends events to `https://glossia.ai/v1/collect`.
 
 ### npm
 
@@ -27,11 +29,13 @@ npm install @glossia/web
 ```ts
 import glossia from "@glossia/web";
 
-glossia.init();
+glossia.init({ endpoint: "https://glossia.ai/v1/collect" });
 
 // Record a custom event:
 glossia.track("signup");
 ```
+
+Set the collection endpoint explicitly when using the package in your own bundle, since there is no hosted script address from which to infer it.
 
 `domain` is inferred from `window.location.hostname`. Pass `{ domain: "example.com" }` to override, for example to send events from a staging origin to the same project as production.
 

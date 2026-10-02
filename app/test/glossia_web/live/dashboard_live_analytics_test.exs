@@ -54,6 +54,8 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
 
     assert has_element?(view, "#analytics-settings-form")
     assert has_element?(view, "#analytics-domain[value='example.com']")
+    assert has_element?(view, "#analytics-snippet", "https://glossia.ai/assets/glossia-web.js")
+    refute html =~ "cdn.glossia.ai"
     assert html =~ ~s(id="project-settings-navigation")
 
     assert html =~
