@@ -27,7 +27,27 @@ defmodule Glossia.Projects.SetupHarness do
   def output_filename, do: @output_filename
   def change_manifest_filename, do: @change_manifest_filename
 
-  def build_prompt(target_languages) do
+  def build_local_prompt(handle, repository, project_handle, server_url) do
+    Enum.join(
+      [
+        "Work in my local checkout of #{repository} and set up Glossia localization.",
+        "Connect to the Glossia Model Context Protocol server at #{server_url} (https://modelcontextprotocol.io).",
+        "Use account #{handle} and project #{project_handle}. Confirm the project exists with list_projects. If it is missing, stop and ask me to create it in the Glossia dashboard before continuing.",
+        "Read the account's voice and glossary with get_voice and get_glossary to inform the configuration. If either is unavailable or access is denied, continue using repository context.",
+        "Ask me which target languages to support before making changes. Use exactly those languages rather than inferring them.",
+        "Do not create another project, start translations, commit, push, or open a pull request. Leave the changes for me to review.",
+        "Configuration frontmatter uses YAML (YAML Ain't Markup Language, https://yaml.org/).",
+        "",
+        build_prompt([],
+          target_instruction: "Use exactly the target languages I tell you.",
+          repository_scope: "local checkout"
+        )
+      ],
+      "\n"
+    )
+  end
+
+  def build_prompt(target_languages, opts \\ []) do
     target_languages = if is_list(target_languages), do: target_languages, else: []
 
     targets =
@@ -36,11 +56,13 @@ defmodule Glossia.Projects.SetupHarness do
         else: Enum.join(target_languages, ", ")
 
     target_instruction =
-      if target_languages == [] do
-        "Infer target languages conservatively and keep the list minimal."
-      else
-        "Use exactly these target languages: #{targets}."
-      end
+      Keyword.get_lazy(opts, :target_instruction, fn ->
+        if target_languages == [] do
+          "Infer target languages conservatively and keep the list minimal."
+        else
+          "Use exactly these target languages: #{targets}."
+        end
+      end)
 
     [
       "Set up Glossia localization for this repository.",
@@ -98,7 +120,7 @@ defmodule Glossia.Projects.SetupHarness do
       "- Do not translate target values during setup. Translation is a separate follow-up workflow that fills target files and creates .glossia state.",
       "- Project configuration or application code loads the selected localized files.",
       "- Run a lightweight verification command if the repository makes one obvious.",
-      "- Do not modify files outside the cloned repository.",
+      "- Do not modify files outside the #{Keyword.get(opts, :repository_scope, "cloned repository")}.",
       "- Keep the result minimal enough for reviewers to merge as a baseline."
     ]
     |> Enum.join("\n")

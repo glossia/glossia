@@ -3,7 +3,7 @@ Ecto.Adapters.SQL.Sandbox.mode(Glossia.Repo, :manual)
 
 Mimic.copy(ExAws)
 Mimic.copy(Glossia.Storage)
-Mimic.copy(Carta)
+Mimic.copy(Glossia.OgImage.Renderer)
 Mimic.copy(GlossiaWeb.OgImageHTML)
 Mimic.copy(Glossia.Mailer)
 Mimic.copy(Glossia.Auth)

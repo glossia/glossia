@@ -23,7 +23,7 @@ Private project information is not included in a public social-image preview. A 
 
 ## Image updates
 
-Image addresses change when the displayed content, project logo, or daily image version changes. A successful image can be cached for one day. Sharing services may retain their own cached preview, so replacing a logo does not guarantee an immediate update everywhere.
+Image addresses change when the displayed content, project logo, daily image version, or Glossia rendering implementation changes. A successful image can be cached for one day. Sharing services may retain their own cached preview, so replacing a logo does not guarantee an immediate update everywhere.
 
 Glossia manages image generation, storage, fonts, and caching.
 

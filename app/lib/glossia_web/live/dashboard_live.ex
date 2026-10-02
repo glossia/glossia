@@ -2942,13 +2942,18 @@ defmodule GlossiaWeb.DashboardLive do
 
     {:noreply,
      socket
-     |> assign(wizard_selected_repo: repo)
+     |> assign(wizard_selected_repo: repo, wizard_project: nil)
      |> push_patch(to: ~p"/#{socket.assigns.handle}/-/projects/new?#{[step: "mode"]}")}
   end
 
   def handle_event("choose_setup_mode", %{"mode" => "automated"}, socket) do
     {:noreply,
      push_patch(socket, to: ~p"/#{socket.assigns.handle}/-/projects/new?#{[step: "languages"]}")}
+  end
+
+  def handle_event("choose_setup_mode", %{"mode" => "local"}, socket) do
+    {:noreply,
+     push_patch(socket, to: ~p"/#{socket.assigns.handle}/-/projects/new?#{[step: "local"]}")}
   end
 
   def handle_event("choose_setup_mode", %{"mode" => "manual"}, socket) do
@@ -2962,6 +2967,40 @@ defmodule GlossiaWeb.DashboardLive do
        )
        |> push_navigate(to: ~p"/#{socket.assigns.handle}/#{project.handle}")}
     else
+      {:error, :repo_required} ->
+        {:noreply, put_flash(socket, :error, gettext("Select a repository first."))}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, put_flash(socket, :error, wizard_project_error(changeset))}
+    end
+  end
+
+  def handle_event(
+        "create_local_project",
+        _params,
+        %{assigns: %{wizard_project: project}} = socket
+      )
+      when not is_nil(project) do
+    {:noreply, socket}
+  end
+
+  def handle_event("create_local_project", _params, socket) do
+    with true <- socket.assigns.can_write,
+         {:ok, repo} <- selected_wizard_repo(socket),
+         {:ok, project} <- create_local_wizard_project(socket, repo) do
+      {:noreply,
+       socket
+       |> assign(wizard_project: project)
+       |> push_patch(
+         to:
+           ~p"/#{socket.assigns.handle}/-/projects/new?#{[step: "local", project: project.handle]}",
+         replace: true
+       )}
+    else
+      false ->
+        {:noreply,
+         put_flash(socket, :error, gettext("You don't have permission to create projects here."))}
+
       {:error, :repo_required} ->
         {:noreply, put_flash(socket, :error, gettext("Select a repository first."))}
 
@@ -3313,6 +3352,26 @@ defmodule GlossiaWeb.DashboardLive do
     with {:error, changeset} <- result do
       Logger.warning("Failed to create project from wizard", errors: inspect(changeset.errors))
       {:error, changeset}
+    end
+  end
+
+  defp create_local_wizard_project(socket, repo) do
+    case create_wizard_project(socket, repo, %{}) do
+      {:error, _changeset} = error ->
+        with {repo_id, ""} <- Integer.parse(to_string(repo["id"])),
+             %{account_id: account_id, setup_status: nil} = project <-
+               Glossia.Projects.get_project_by_github_repo_id(repo_id),
+             true <- account_id == socket.assigns.account.id,
+             true <-
+               repo_full_name_key(project.github_repo_full_name) ==
+                 repo_full_name_key(repo["full_name"]) do
+          {:ok, project}
+        else
+          _ -> error
+        end
+
+      result ->
+        result
     end
   end
 
@@ -7020,9 +7079,11 @@ defmodule GlossiaWeb.DashboardLive do
             :if={@project && @project.setup_pull_request_state in ["open", "closed"]}
             project={@project}
           />
-          <.manual_configuration_notice :if={
-            @project && is_nil(@project.setup_status) && !@translation_overview.has_sessions
-          } />
+          <.manual_configuration_notice
+            :if={@project && is_nil(@project.setup_status) && !@translation_overview.has_sessions}
+            project={@project}
+            handle={@handle}
+          />
           <.project_activity_card
             handle={@handle}
             project={@project}
@@ -7304,13 +7365,21 @@ defmodule GlossiaWeb.DashboardLive do
       title={gettext("Configure localization in the repository")}
       description={
         gettext(
-          "This project uses manual configuration. Glossia starts translating on the next push to the default branch that includes an L10N.md file."
+          "Glossia starts translating on the next push to the default branch that includes an L10N.md file."
         )
       }
     >
+      <:action :if={@project.github_repo_full_name}>
+        <Noora.Button.button
+          href={~p"/#{@handle}/-/projects/new?#{[step: "local", project: @project.handle]}"}
+          label={gettext("Set up locally with an agent")}
+          variant="secondary"
+          size="small"
+        />
+      </:action>
       <:action>
         <Noora.Button.button
-          href={~p"/docs/reference/l10n-md"}
+          href={locale_path(~p"/docs/reference/l10n-md")}
           label={gettext("Read the L10N.md reference")}
           variant="secondary"
           size="small"
@@ -9481,6 +9550,12 @@ defmodule GlossiaWeb.DashboardLive do
           />
         <% "mode" -> %>
           <.wizard_mode_step selected_repo={@selected_repo} />
+        <% "local" -> %>
+          <.wizard_local_step
+            handle={@handle}
+            selected_repo={@selected_repo}
+            wizard_project={@wizard_project}
+          />
         <% "languages" -> %>
           <.wizard_languages_step
             handle={@handle}
@@ -9685,6 +9760,25 @@ defmodule GlossiaWeb.DashboardLive do
 
         <Noora.LineDivider.line_divider text={gettext("OR")} />
 
+        <div data-part="option" data-mode="local">
+          <span data-part="title">{gettext("Set up locally with an agent")}</span>
+          <span data-part="description">
+            {gettext(
+              "Connect your coding agent to Glossia and set up localization in your local checkout. Review the changes before pushing them."
+            )}
+          </span>
+          <Noora.Button.button
+            type="button"
+            label={gettext("Continue locally")}
+            variant="secondary"
+            size="medium"
+            phx-click="choose_setup_mode"
+            phx-value-mode="local"
+          />
+        </div>
+
+        <Noora.LineDivider.line_divider text={gettext("OR")} />
+
         <div data-part="option" data-mode="manual">
           <span data-part="title">{gettext("Manual configuration")}</span>
           <span data-part="description">
@@ -9703,6 +9797,175 @@ defmodule GlossiaWeb.DashboardLive do
         </div>
       </Noora.Card.card_section>
     </Noora.Card.card>
+    """
+  end
+
+  defp wizard_local_step(assigns) do
+    server_url = url(~p"/mcp")
+
+    project_handle =
+      if assigns.wizard_project,
+        do: assigns.wizard_project.handle,
+        else: repository_project_handle(assigns.selected_repo)
+
+    prompt =
+      Glossia.Projects.SetupHarness.build_local_prompt(
+        assigns.handle,
+        assigns.selected_repo["full_name"],
+        project_handle,
+        server_url
+      )
+
+    assigns = assign(assigns, prompt: prompt, server_url: server_url)
+
+    ~H"""
+    <Noora.Card.card
+      id="local-agent-setup"
+      icon="devices_code"
+      title={gettext("Set up locally with an agent")}
+    >
+      <:actions>
+        <Noora.Button.button
+          :if={is_nil(@wizard_project)}
+          type="button"
+          label={gettext("Back")}
+          variant="secondary"
+          size="small"
+          phx-click="wizard_back"
+          phx-value-step="mode"
+        />
+      </:actions>
+      <Noora.Card.card_section data-part="picker">
+        <Noora.Alert.alert
+          type="secondary"
+          status="information"
+          size="large"
+          title={@selected_repo["full_name"]}
+          description={
+            gettext(
+              "Open a local checkout of this repository in your coding agent. Glossia will translate after you push the configuration to the default branch."
+            )
+          }
+        />
+        <div data-part="option">
+          <span data-part="title">{gettext("1. Create the project")}</span>
+          <span data-part="description">
+            {gettext(
+              "Create the project here so your agent can find it in Glossia. This does not start automated setup."
+            )}
+          </span>
+          <Noora.Button.button
+            :if={is_nil(@wizard_project)}
+            type="button"
+            label={gettext("Create project")}
+            size="medium"
+            phx-click="create_local_project"
+          />
+          <Noora.Tag.tag :if={@wizard_project} label={gettext("Project created")} />
+        </div>
+        <div data-part="option">
+          <span data-part="title">{gettext("2. Connect your agent to Glossia")}</span>
+          <span data-part="description">
+            {gettext("Add this server to your agent, then sign in to Glossia and approve access.")}
+            <.link href="https://modelcontextprotocol.io" target="_blank" rel="noopener noreferrer">
+              {gettext("Model Context Protocol")}
+            </.link>
+          </span>
+        </div>
+        <Noora.TextInput.text_input
+          id="local-agent-server"
+          name="server_url"
+          value={@server_url}
+          label={gettext("Server address")}
+          {%{readonly: true}}
+        />
+        <div data-part="option">
+          <Noora.Button.button
+            href={locale_path(~p"/docs/reference/mcp")}
+            label={gettext("Connection instructions")}
+            variant="secondary"
+            size="small"
+            {%{target: "_blank", rel: "noopener noreferrer"}}
+          />
+        </div>
+        <Noora.TextArea.text_area
+          id="local-agent-prompt"
+          name="prompt"
+          value={@prompt}
+          label={gettext("3. Run this prompt in your local checkout")}
+          rows={12}
+          max_length={String.length(@prompt)}
+          show_character_count={false}
+          {%{readonly: true}}
+        />
+        <div data-part="option">
+          <Noora.Button.button
+            id="copy-local-agent-prompt"
+            type="button"
+            label={gettext("Copy prompt")}
+            variant="secondary"
+            size="medium"
+            phx-hook=".CopyLocalSetup"
+            data-copied-label={gettext("Copied!")}
+            data-default-label={gettext("Copy prompt")}
+            data-fallback-label={gettext("Select and copy the prompt")}
+          />
+        </div>
+        <Noora.Alert.alert
+          type="secondary"
+          status="information"
+          size="large"
+          title={gettext("Review and push")}
+          description={
+            gettext(
+              "Review the local changes and push or merge them into the default branch when ready."
+            )
+          }
+        />
+        <div :if={@wizard_project} data-part="option">
+          <Noora.Button.button
+            href={~p"/#{@handle}/#{@wizard_project.handle}"}
+            label={gettext("Open project")}
+            size="medium"
+          />
+        </div>
+      </Noora.Card.card_section>
+    </Noora.Card.card>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".CopyLocalSetup">
+      export default {
+        mounted() {
+          this.copyDisposed = false;
+          this.copyPrompt = async () => {
+            const prompt = document.getElementById("local-agent-prompt");
+            const label = this.el.querySelector("span");
+            clearTimeout(this.copyTimeout);
+            try {
+              await navigator.clipboard.writeText(prompt.value);
+              if (this.copyDisposed) return;
+              label.textContent = this.el.dataset.copiedLabel;
+            } catch {
+              if (this.copyDisposed) return;
+              prompt.focus();
+              prompt.select();
+              label.textContent = this.el.dataset.fallbackLabel;
+            }
+            this.copyTimeout = setTimeout(() => {
+              label.textContent = this.el.dataset.defaultLabel;
+            }, 1500);
+          };
+          this.el.addEventListener("click", this.copyPrompt);
+        },
+        updated() {
+          clearTimeout(this.copyTimeout);
+          this.el.querySelector("span").textContent = this.el.dataset.defaultLabel;
+        },
+        destroyed() {
+          this.copyDisposed = true;
+          clearTimeout(this.copyTimeout);
+          this.el.removeEventListener("click", this.copyPrompt);
+        }
+      }
+    </script>
     """
   end
 
@@ -9802,6 +10065,8 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp wizard_step_progress("repo", _project, _events), do: 25
   defp wizard_step_progress("mode", _project, _events), do: 50
+  defp wizard_step_progress("local", nil, _events), do: 75
+  defp wizard_step_progress("local", _project, _events), do: 100
   defp wizard_step_progress("languages", _project, _events), do: 75
 
   defp wizard_step_progress("setup", project, events) do
@@ -12126,45 +12391,88 @@ defmodule GlossiaWeb.DashboardLive do
   defp apply_url_params_project_new(socket, params) do
     step = Map.get(params, "step", "repo")
 
-    case step do
-      "mode" ->
-        if socket.assigns[:wizard_selected_repo] do
-          assign(socket, wizard_step: "mode")
-        else
+    project = socket.assigns[:wizard_project]
+
+    if project && is_nil(project.setup_status) && step in ["mode", "languages"] do
+      socket
+      |> assign(wizard_step: "local")
+      |> push_patch(
+        to:
+          ~p"/#{socket.assigns.handle}/-/projects/new?#{[step: "local", project: project.handle]}",
+        replace: true
+      )
+    else
+      case step do
+        "local" ->
+          case Map.get(params, "project") do
+            handle when is_binary(handle) ->
+              case Glossia.Projects.get_project(socket.assigns.account, handle) do
+                %{github_repo_full_name: full_name, setup_status: nil} = project
+                when is_binary(full_name) ->
+                  assign(socket,
+                    wizard_step: "local",
+                    wizard_project: project,
+                    wizard_selected_repo: %{
+                      "id" => project.github_repo_id,
+                      "full_name" => full_name,
+                      "name" => project.name,
+                      "default_branch" => project.github_repo_default_branch
+                    }
+                  )
+
+                _ ->
+                  assign(socket,
+                    wizard_step: "repo",
+                    wizard_project: nil,
+                    wizard_selected_repo: nil
+                  )
+              end
+
+            _ ->
+              if socket.assigns[:wizard_selected_repo],
+                do: assign(socket, wizard_step: "local"),
+                else: assign(socket, wizard_step: "repo")
+          end
+
+        "mode" ->
+          if socket.assigns[:wizard_selected_repo] do
+            assign(socket, wizard_step: step)
+          else
+            assign(socket, wizard_step: "repo")
+          end
+
+        "languages" ->
+          if socket.assigns[:wizard_selected_repo] do
+            assign(socket, wizard_step: "languages", wizard_language_search: "")
+          else
+            assign(socket, wizard_step: "repo")
+          end
+
+        "setup" ->
+          project = socket.assigns[:wizard_project]
+
+          if project do
+            # Re-fetch from DB to get current setup_status (may have changed via Oban worker)
+            project = Glossia.Repo.get(Glossia.Accounts.Project, project.id) || project
+            setup_events = []
+
+            socket =
+              if connected?(socket) and project.setup_status in ["pending", "running"] do
+                subscribe_to_setup_events(socket, project)
+              else
+                socket
+              end
+
+            socket
+            |> assign(wizard_project: project)
+            |> assign(wizard_step: "setup", setup_events: setup_events)
+          else
+            assign(socket, wizard_step: "repo")
+          end
+
+        _ ->
           assign(socket, wizard_step: "repo")
-        end
-
-      "languages" ->
-        if socket.assigns[:wizard_selected_repo] do
-          assign(socket, wizard_step: "languages", wizard_language_search: "")
-        else
-          assign(socket, wizard_step: "repo")
-        end
-
-      "setup" ->
-        project = socket.assigns[:wizard_project]
-
-        if project do
-          # Re-fetch from DB to get current setup_status (may have changed via Oban worker)
-          project = Glossia.Repo.get(Glossia.Accounts.Project, project.id) || project
-          setup_events = []
-
-          socket =
-            if connected?(socket) and project.setup_status in ["pending", "running"] do
-              subscribe_to_setup_events(socket, project)
-            else
-              socket
-            end
-
-          socket
-          |> assign(wizard_project: project)
-          |> assign(wizard_step: "setup", setup_events: setup_events)
-        else
-          assign(socket, wizard_step: "repo")
-        end
-
-      _ ->
-        assign(socket, wizard_step: "repo")
+      end
     end
   end
 
