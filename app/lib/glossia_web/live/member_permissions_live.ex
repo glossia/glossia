@@ -102,6 +102,9 @@ defmodule GlossiaWeb.MemberPermissionsLive do
         )}
       </p>
       <.card title={gettext("Permissions")} icon="lock_password">
+        <:actions>
+          <Noora.Button.button type="button" phx-click="save" label={gettext("Save permissions")} />
+        </:actions>
         <.card_section data-part="permission-areas">
           <section
             :for={{group, scopes} <- @groups}
@@ -134,7 +137,6 @@ defmodule GlossiaWeb.MemberPermissionsLive do
           </section>
         </.card_section>
       </.card>
-      <Noora.Button.button type="button" phx-click="save" label={gettext("Save permissions")} />
       <Noora.Button.button
         navigate={~p"/#{@handle}/-/members"}
         variant="secondary"
