@@ -22,7 +22,7 @@ msgstr "%{client_name} 이 Glossia 계정에 접근하고자 한다."
 msgid "Actions"
 msgstr "작업"
 
-#: lib/glossia_web/controllers/auth_controller.ex:181
+#: lib/glossia_web/controllers/auth_controller.ex:195
 #, elixir-autogen, elixir-format
 msgid "Authentication failed. Please try again."
 msgstr "인증에 실패했습니다. 다시 시도해주세요."
@@ -111,6 +111,7 @@ msgstr "문서"
 msgid "Effective:"
 msgstr "적용:"
 
+#: lib/glossia_web/controllers/auth_html/login.html.heex:60
 #: lib/glossia_web/live/admin_live.ex:328
 #: lib/glossia_web/live/dashboard_live.ex:5886
 #: lib/glossia_web/live/profile_live.ex:228
@@ -123,7 +124,7 @@ msgstr "이메일"
 msgid "FAQ"
 msgstr "FAQ"
 
-#: lib/glossia_web/controllers/auth_controller.ex:134
+#: lib/glossia_web/controllers/auth_controller.ex:154
 #, elixir-autogen, elixir-format
 msgid "Failed to start authentication. Please try again."
 msgstr "인증 시작에 실패했습니다. 다시 시도해 주세요."
@@ -185,7 +186,7 @@ msgid "On this page"
 msgstr "이 페이지에서"
 
 #: lib/glossia_web/components/layouts/app.html.heex:153
-#: lib/glossia_web/controllers/auth_html/login.html.heex:168
+#: lib/glossia_web/controllers/auth_html/login.html.heex:138
 #, elixir-autogen, elixir-format
 msgid "Privacy Policy"
 msgstr "개인정보처리방침"
@@ -212,16 +213,11 @@ msgid "Requested permissions:"
 msgstr "요청된 권한:"
 
 #: lib/glossia_web/components/layouts/app.html.heex:152
-#: lib/glossia_web/controllers/auth_html/login.html.heex:166
+#: lib/glossia_web/controllers/auth_html/login.html.heex:136
 #: lib/glossia_web/controllers/organization_html/new.html.heex:52
 #, elixir-autogen, elixir-format
 msgid "Terms of Service"
 msgstr "이용약관"
-
-#: lib/glossia_web/controllers/auth_controller.ex:222
-#, elixir-autogen, elixir-format
-msgid "There was a problem creating your account. Please try again."
-msgstr "계정 생성에 문제가 발생했습니다. 다시 시도해 주세요."
 
 #: lib/glossia_web/live/dashboard_live.ex:7094
 #, elixir-autogen, elixir-format
@@ -253,7 +249,7 @@ msgstr "왜 지금 이것을 구축해야 할까요?"
 msgid "You are viewing a previous version."
 msgstr "이전 버전을 보고 있습니다."
 
-#: lib/glossia_web/controllers/auth_html/login.html.heex:167
+#: lib/glossia_web/controllers/auth_html/login.html.heex:137
 #: lib/glossia_web/controllers/page_html/home.html.heex:254
 #, elixir-autogen, elixir-format
 msgid "and"
@@ -341,8 +337,8 @@ msgstr "언어는 비공식적이거나 공식적인 정도입니다."
 msgid "Language overrides"
 msgstr "언어 우선순위"
 
-#: lib/glossia_web/controllers/auth_controller.ex:42
-#: lib/glossia_web/controllers/auth_controller.ex:59
+#: lib/glossia_web/controllers/auth_controller.ex:48
+#: lib/glossia_web/controllers/auth_controller.ex:73
 #, elixir-autogen, elixir-format
 msgid "Log in"
 msgstr "로그인"
@@ -582,7 +578,7 @@ msgstr "목소리 #%{version}"
 msgid "Accept invitation"
 msgstr "초대 수락"
 
-#: lib/glossia/emails.ex:17
+#: lib/glossia/emails.ex:61
 #, elixir-autogen, elixir-format
 msgid "Accept or decline the invitation:"
 msgstr "초대서를 수락하거나 거절:"
@@ -627,7 +623,8 @@ msgstr "이메일 주소"
 msgid "Expires"
 msgstr "만료"
 
-#: lib/glossia/emails.ex:22
+#: lib/glossia/emails.ex:55
+#: lib/glossia/emails.ex:66
 #, elixir-autogen, elixir-format
 msgid "If you did not expect this invitation, you can safely ignore this email."
 msgstr "예상치 못한 초대라면, 이 이메일을 무시하셔도 됩니다."
@@ -719,7 +716,8 @@ msgstr "초대 보내기"
 msgid "Something went wrong."
 msgstr "문제가 발생했습니다."
 
-#: lib/glossia/emails.ex:20
+#: lib/glossia/emails.ex:50
+#: lib/glossia/emails.ex:64
 #, elixir-autogen, elixir-format
 msgid "This invitation expires in 7 days."
 msgstr "이 초대는 7 일 후 만료됩니다."
@@ -814,12 +812,14 @@ msgstr "초대되었습니다."
 msgid "You have been invited to join %{org} as a %{role}."
 msgstr "%{org} 에 %{role} 로 초대되었습니다."
 
-#: lib/glossia/emails.ex:13
+#: lib/glossia/emails.ex:41
+#: lib/glossia/emails.ex:44
 #, elixir-autogen, elixir-format
 msgid "You have been invited to join %{org} on Glossia"
 msgstr "Glossia 에서 %{org} 에 초대되었습니다."
 
-#: lib/glossia/emails.ex:15
+#: lib/glossia/emails.ex:46
+#: lib/glossia/emails.ex:59
 #, elixir-autogen, elixir-format
 msgid "You have been invited to join %{org} on Glossia as a %{role}."
 msgstr "Glossia 에서 %{org} 에 %{role} 로 초대되었습니다."
@@ -1575,13 +1575,6 @@ msgstr "토큰을 업데이트할 수 없습니다."
 #, elixir-autogen, elixir-format
 msgid "From builders who worked at"
 msgstr "이전에 근무한 개발자들로부터"
-
-#: lib/glossia_web/components/layouts/app.html.heex:62
-#: lib/glossia_web/components/layouts/app.html.heex:124
-#: lib/glossia_web/controllers/page_html/home.html.heex:11
-#, elixir-autogen, elixir-format
-msgid "Get started"
-msgstr "시작하기"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:84
 #, elixir-autogen, elixir-format
@@ -2915,7 +2908,7 @@ msgstr "승인된 번역"
 msgid "Back to terms"
 msgstr "이용 약관으로 돌아가기"
 
-#: lib/glossia_web/controllers/auth_html/login.html.heex:165
+#: lib/glossia_web/controllers/auth_html/login.html.heex:135
 #, elixir-autogen, elixir-format
 msgid "By continuing, you agree to Glossia's"
 msgstr "계속하시면 Glossia 의 약관에 동의합니다."
@@ -2937,14 +2930,12 @@ msgstr "닫기"
 msgid "Close suggestion"
 msgstr "제안 닫기"
 
-#: lib/glossia_web/controllers/auth_html/login.html.heex:65
-#: lib/glossia_web/controllers/auth_html/login.html.heex:110
+#: lib/glossia_web/controllers/auth_html/login.html.heex:76
 #, elixir-autogen, elixir-format
 msgid "Continue with GitHub"
 msgstr "GitHub 로 계속하기"
 
-#: lib/glossia_web/controllers/auth_html/login.html.heex:88
-#: lib/glossia_web/controllers/auth_html/login.html.heex:121
+#: lib/glossia_web/controllers/auth_html/login.html.heex:87
 #, elixir-autogen, elixir-format
 msgid "Continue with GitLab"
 msgstr "GitLab 로 계속하기"
@@ -2984,7 +2975,7 @@ msgstr "Glossia"
 msgid "Glossia logo"
 msgstr "Glossia 로고"
 
-#: lib/glossia_web/controllers/auth_controller.ex:43
+#: lib/glossia_web/controllers/auth_controller.ex:49
 #, elixir-autogen, elixir-format
 msgid "Log in to Glossia"
 msgstr "Glossia 로그인하기"
@@ -3092,7 +3083,7 @@ msgstr "언어 선택하기"
 msgid "Select language"
 msgstr "언어 선택"
 
-#: lib/glossia_web/controllers/auth_html/login.html.heex:143
+#: lib/glossia_web/controllers/auth_html/login.html.heex:113
 #, elixir-autogen, elixir-format
 msgid "Sign in as test user"
 msgstr "테스트 사용자 로그인"
@@ -3102,14 +3093,12 @@ msgstr "테스트 사용자 로그인"
 msgid "Terms will show up here once you add one."
 msgstr "용어를 하나 추가하면 여기에 표시됩니다."
 
-#: lib/glossia_web/controllers/auth_controller.ex:235
+#: lib/glossia_web/controllers/auth_controller.ex:231
 #, elixir-autogen, elixir-format
 msgid "Test user not found. Run: mix run priv/repo/seeds.exs"
 msgstr "테스트 사용자를 찾을 수 없습니다. 실행: mix run priv/repo/seeds.exs"
 
-#: lib/glossia_web/controllers/auth_controller.ex:111
-#: lib/glossia_web/controllers/auth_controller.ex:117
-#: lib/glossia_web/controllers/auth_controller.ex:139
+#: lib/glossia_web/controllers/auth_controller.ex:159
 #, elixir-autogen, elixir-format
 msgid "That sign-in method is not available."
 msgstr "해당 로그인 방법은 사용 불가능합니다."
@@ -3144,7 +3133,7 @@ msgstr "프로그래밍 방식으로 Glossia 에 접근할 수 있도록 생성�
 msgid "Voice suggestion submitted as suggestion #%{number}."
 msgstr "음성 제안이 제안 #%{number} 로 제출되었습니다."
 
-#: lib/glossia_web/controllers/auth_controller.ex:44
+#: lib/glossia_web/controllers/auth_controller.ex:50
 #, elixir-autogen, elixir-format
 msgid "Welcome back. Choose a sign-in method to continue."
 msgstr "다시 오셨습니다. 계속하기 위한 로그인 방법을 선택하세요."
@@ -3196,7 +3185,7 @@ msgstr "사용자가 이 응용 프로그램을 인증할 때 표시되는 명�
 msgid "Allow users to sign in with Glossia or let an external service access the account."
 msgstr "사용자가 Glossia 로 로그인하거나 외부 서비스에서 계정에 액세스하도록 허용합니다."
 
-#: lib/glossia_web/controllers/auth_controller.ex:57
+#: lib/glossia_web/controllers/auth_controller.ex:71
 #, elixir-autogen, elixir-format
 msgid "Already have an account?"
 msgstr "이미 계정이 있으신가요?"
@@ -3211,11 +3200,6 @@ msgstr "애플리케이션 등록됨"
 #, elixir-autogen, elixir-format
 msgid "Change"
 msgstr "변경"
-
-#: lib/glossia_web/controllers/auth_controller.ex:56
-#, elixir-autogen, elixir-format
-msgid "Choose a provider to create your account and start using Glossia."
-msgstr "계정을 생성하고 Glossia 를 사용하기 위해 제공자를 선택하세요."
 
 #: lib/glossia_web/live/dashboard_live.ex:4322
 #, elixir-autogen, elixir-format
@@ -3269,7 +3253,7 @@ msgstr "내부 대시보드"
 msgid "Manage application credentials and authorization callbacks."
 msgstr "애플리케이션 자격인증 및 권한 콜백 관리"
 
-#: lib/glossia_web/controllers/auth_controller.ex:45
+#: lib/glossia_web/controllers/auth_controller.ex:51
 #, elixir-autogen, elixir-format
 msgid "New to Glossia?"
 msgstr "Glossia에 처음 오셨나요?"
@@ -3314,17 +3298,6 @@ msgstr "먼저 저장소를 선택하세요."
 #, elixir-autogen, elixir-format
 msgid "Select at least one target language."
 msgstr "최소 하나의 대상 언어를 선택하세요."
-
-#: lib/glossia_web/controllers/auth_controller.ex:47
-#: lib/glossia_web/controllers/auth_controller.ex:54
-#, elixir-autogen, elixir-format
-msgid "Sign up"
-msgstr "회원가입"
-
-#: lib/glossia_web/controllers/auth_controller.ex:55
-#, elixir-autogen, elixir-format
-msgid "Sign up for Glossia"
-msgstr "Glossia 에 가입하기"
 
 #: lib/glossia_web/live/dashboard_live.ex:6567
 #: lib/glossia_web/live/dashboard_live.ex:6708
@@ -4552,11 +4525,6 @@ msgstr "아직 번역이 없습니다"
 msgid "Outcome"
 msgstr "결과"
 
-#: lib/glossia_web/controllers/auth_controller.ex:174
-#, elixir-autogen, elixir-format
-msgid "Please complete the sign-up challenge before continuing."
-msgstr "가입 챌린지를 완료한 후 계속 진행하세요."
-
 #: lib/glossia_web/live/dashboard_live.ex:7403
 #, elixir-autogen, elixir-format
 msgid "Recent activity"
@@ -4577,11 +4545,6 @@ msgstr "지난 14 일 동안 시작된 실행"
 msgid "Search translations..."
 msgstr "번역 검색..."
 
-#: lib/glossia_web/controllers/auth_controller.ex:298
-#, elixir-autogen, elixir-format
-msgid "Sign-up is temporarily unavailable while we fix a configuration issue. Please try again shortly."
-msgstr "설정 문제를 해결하는 동안 가입은 임시로 이용 불가입니다. 조금 후 다시 시도해 주세요."
-
 #: lib/glossia_web/live/dashboard_live.ex:8034
 #, elixir-autogen, elixir-format
 msgid "Stopped because newer content arrived."
@@ -4597,16 +4560,6 @@ msgstr "대체됨"
 #, elixir-autogen, elixir-format
 msgid "The percentage of checked content reused without another translation."
 msgstr "다른 번역 없이 확인된 콘텐츠가 재사용된 비율입니다."
-
-#: lib/glossia_web/controllers/auth_controller.ex:294
-#, elixir-autogen, elixir-format
-msgid "The sign-up challenge did not pass. Please try again."
-msgstr "가입 인증 도전을 통과하지 못했습니다. 다시 시도해 주세요."
-
-#: lib/glossia_web/controllers/auth_controller.ex:286
-#, elixir-autogen, elixir-format
-msgid "Too many sign-up attempts from this session. Please wait a few minutes and try again."
-msgstr "현재 세션에서 너무 많은 가입 시도가 있었습니다. 잠시 기다려주세요."
 
 #: lib/glossia_web/live/dashboard_live.ex:7846
 #: lib/glossia_web/live/dashboard_live.ex:11599
@@ -4634,7 +4587,7 @@ msgstr "번역 실행"
 msgid "View the translation this run continued"
 msgstr "이 실행으로 계속된 번역을 확인하세요."
 
-#: lib/glossia_web/controllers/auth_controller.ex:291
+#: lib/glossia_web/controllers/auth_controller.ex:269
 #, elixir-autogen, elixir-format
 msgid "Your session expired. Please reload the page and try again."
 msgstr "세션이 만료되었습니다. 페이지를 새로고침 후 다시 시도해 주세요."
@@ -5222,4 +5175,64 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex:8995
 #, elixir-autogen, elixir-format
 msgid "Waiting to start"
+msgstr ""
+
+#: lib/glossia/emails.ex:52
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Accept or decline the invitation"
+msgstr "초대서를 수락하거나 거절:"
+
+#: lib/glossia_web/controllers/auth_controller.ex:65
+#, elixir-autogen, elixir-format
+msgid "Interested in Glossia?"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:62
+#: lib/glossia_web/components/layouts/app.html.heex:124
+#: lib/glossia_web/controllers/auth_controller.ex:53
+#: lib/glossia_web/controllers/auth_controller.ex:64
+#: lib/glossia_web/controllers/auth_html/login.html.heex:66
+#: lib/glossia_web/controllers/page_html/home.html.heex:11
+#, elixir-autogen, elixir-format
+msgid "Show interest"
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:108
+#, elixir-autogen, elixir-format
+msgid "Thanks for your interest! We’ll get back to you by email to help you get started."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:276
+#, elixir-autogen, elixir-format
+msgid "The interest form is temporarily unavailable while we fix a configuration issue. Please try again shortly."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:272
+#, elixir-autogen, elixir-format
+msgid "The verification challenge did not pass. Please try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:218
+#, elixir-autogen, elixir-format, fuzzy
+msgid "There was a problem signing you in. Please try again."
+msgstr "계정 생성에 문제가 발생했습니다. 다시 시도해 주세요."
+
+#: lib/glossia_web/controllers/auth_controller.ex:266
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Too many requests from this session. Please wait a few minutes and try again."
+msgstr "현재 세션에서 너무 많은 가입 시도가 있었습니다. 잠시 기다려주세요."
+
+#: lib/glossia_web/controllers/auth_controller.ex:124
+#, elixir-autogen, elixir-format
+msgid "We couldn’t send your request. Please try again in a moment."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:67
+#, elixir-autogen, elixir-format
+msgid "We’re onboarding teams gradually. Leave your email and we’ll get back to you to help you get started."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:185
+#, elixir-autogen, elixir-format
+msgid "We’re onboarding teams gradually. Leave your email to show your interest."
 msgstr ""

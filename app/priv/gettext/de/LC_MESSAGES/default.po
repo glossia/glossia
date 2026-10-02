@@ -22,7 +22,7 @@ msgstr "%{client_name} möchte Zugriff auf Ihr Glossia-Konto."
 msgid "Actions"
 msgstr "Aktionen"
 
-#: lib/glossia_web/controllers/auth_controller.ex:181
+#: lib/glossia_web/controllers/auth_controller.ex:195
 #, elixir-autogen, elixir-format
 msgid "Authentication failed. Please try again."
 msgstr "Die Authentifizierung ist fehlgeschlagen. Bitte versuchen Sie es erneut."
@@ -111,6 +111,7 @@ msgstr "Dokumentation"
 msgid "Effective:"
 msgstr "Gültig ab:"
 
+#: lib/glossia_web/controllers/auth_html/login.html.heex:60
 #: lib/glossia_web/live/admin_live.ex:328
 #: lib/glossia_web/live/dashboard_live.ex:5886
 #: lib/glossia_web/live/profile_live.ex:228
@@ -123,7 +124,7 @@ msgstr "E-Mail"
 msgid "FAQ"
 msgstr "FAQ"
 
-#: lib/glossia_web/controllers/auth_controller.ex:134
+#: lib/glossia_web/controllers/auth_controller.ex:154
 #, elixir-autogen, elixir-format
 msgid "Failed to start authentication. Please try again."
 msgstr "Der Start der Authentifizierung ist fehlgeschlagen. Bitte versuchen Sie es erneut."
@@ -185,7 +186,7 @@ msgid "On this page"
 msgstr "Auf dieser Seite"
 
 #: lib/glossia_web/components/layouts/app.html.heex:153
-#: lib/glossia_web/controllers/auth_html/login.html.heex:168
+#: lib/glossia_web/controllers/auth_html/login.html.heex:138
 #, elixir-autogen, elixir-format
 msgid "Privacy Policy"
 msgstr "Datenschutzrichtlinie"
@@ -212,16 +213,11 @@ msgid "Requested permissions:"
 msgstr "Angeforderte Berechtigungen:"
 
 #: lib/glossia_web/components/layouts/app.html.heex:152
-#: lib/glossia_web/controllers/auth_html/login.html.heex:166
+#: lib/glossia_web/controllers/auth_html/login.html.heex:136
 #: lib/glossia_web/controllers/organization_html/new.html.heex:52
 #, elixir-autogen, elixir-format
 msgid "Terms of Service"
 msgstr "Nutzungsbedingungen"
-
-#: lib/glossia_web/controllers/auth_controller.ex:222
-#, elixir-autogen, elixir-format
-msgid "There was a problem creating your account. Please try again."
-msgstr "Beim Erstellen Ihres Kontos ist ein Problem aufgetreten. Bitte versuchen Sie es erneut."
 
 #: lib/glossia_web/live/dashboard_live.ex:7094
 #, elixir-autogen, elixir-format
@@ -253,7 +249,7 @@ msgstr "Warum jetzt aufbauen?"
 msgid "You are viewing a previous version."
 msgstr "Sie sehen eine frühere Version."
 
-#: lib/glossia_web/controllers/auth_html/login.html.heex:167
+#: lib/glossia_web/controllers/auth_html/login.html.heex:137
 #: lib/glossia_web/controllers/page_html/home.html.heex:254
 #, elixir-autogen, elixir-format
 msgid "and"
@@ -341,8 +337,8 @@ msgstr "Wie umgangssprachlich oder formell die Sprache sein soll."
 msgid "Language overrides"
 msgstr "Sprachüberschreibungen"
 
-#: lib/glossia_web/controllers/auth_controller.ex:42
-#: lib/glossia_web/controllers/auth_controller.ex:59
+#: lib/glossia_web/controllers/auth_controller.ex:48
+#: lib/glossia_web/controllers/auth_controller.ex:73
 #, elixir-autogen, elixir-format
 msgid "Log in"
 msgstr "Anmelden"
@@ -582,7 +578,7 @@ msgstr "Stimme #%{version}"
 msgid "Accept invitation"
 msgstr "Einladung annehmen"
 
-#: lib/glossia/emails.ex:17
+#: lib/glossia/emails.ex:61
 #, elixir-autogen, elixir-format
 msgid "Accept or decline the invitation:"
 msgstr "Einladung annehmen oder ablehnen:"
@@ -627,7 +623,8 @@ msgstr "E-Mail-Adresse"
 msgid "Expires"
 msgstr "Läuft ab"
 
-#: lib/glossia/emails.ex:22
+#: lib/glossia/emails.ex:55
+#: lib/glossia/emails.ex:66
 #, elixir-autogen, elixir-format
 msgid "If you did not expect this invitation, you can safely ignore this email."
 msgstr "Wenn Sie diese Einladung nicht erwartet haben, können Sie diese E-Mail sicher ignorieren."
@@ -719,7 +716,8 @@ msgstr "Einladung senden"
 msgid "Something went wrong."
 msgstr "Etwas ist schiefgelaufen."
 
-#: lib/glossia/emails.ex:20
+#: lib/glossia/emails.ex:50
+#: lib/glossia/emails.ex:64
 #, elixir-autogen, elixir-format
 msgid "This invitation expires in 7 days."
 msgstr "Diese Einladung läuft in 7 Tagen ab."
@@ -814,12 +812,14 @@ msgstr "Sie wurden eingeladen."
 msgid "You have been invited to join %{org} as a %{role}."
 msgstr "Sie wurden eingeladen, %{org} als %{role} beizutreten."
 
-#: lib/glossia/emails.ex:13
+#: lib/glossia/emails.ex:41
+#: lib/glossia/emails.ex:44
 #, elixir-autogen, elixir-format
 msgid "You have been invited to join %{org} on Glossia"
 msgstr "Sie wurden eingeladen, %{org} auf Glossia zu beitreten."
 
-#: lib/glossia/emails.ex:15
+#: lib/glossia/emails.ex:46
+#: lib/glossia/emails.ex:59
 #, elixir-autogen, elixir-format
 msgid "You have been invited to join %{org} on Glossia as a %{role}."
 msgstr "Sie wurden eingeladen, %{org} auf Glossia als %{role} beizutreten."
@@ -1575,13 +1575,6 @@ msgstr "Token konnte nicht aktualisiert werden."
 #, elixir-autogen, elixir-format
 msgid "From builders who worked at"
 msgstr "Von Entwicklern, die bei"
-
-#: lib/glossia_web/components/layouts/app.html.heex:62
-#: lib/glossia_web/components/layouts/app.html.heex:124
-#: lib/glossia_web/controllers/page_html/home.html.heex:11
-#, elixir-autogen, elixir-format
-msgid "Get started"
-msgstr "Loslegen"
 
 #: lib/glossia_web/controllers/page_html/home.html.heex:84
 #, elixir-autogen, elixir-format
@@ -2916,7 +2909,7 @@ msgstr "Genehmigte Übersetzung"
 msgid "Back to terms"
 msgstr "Zurück zu den Bedingungen"
 
-#: lib/glossia_web/controllers/auth_html/login.html.heex:165
+#: lib/glossia_web/controllers/auth_html/login.html.heex:135
 #, elixir-autogen, elixir-format
 msgid "By continuing, you agree to Glossia's"
 msgstr "Durch weitere Nutzung stimmen Sie den Bedingungen von Glossia zu"
@@ -2938,14 +2931,12 @@ msgstr "Schließen"
 msgid "Close suggestion"
 msgstr "Vorschlag schließen"
 
-#: lib/glossia_web/controllers/auth_html/login.html.heex:65
-#: lib/glossia_web/controllers/auth_html/login.html.heex:110
+#: lib/glossia_web/controllers/auth_html/login.html.heex:76
 #, elixir-autogen, elixir-format
 msgid "Continue with GitHub"
 msgstr "Mit GitHub fortfahren"
 
-#: lib/glossia_web/controllers/auth_html/login.html.heex:88
-#: lib/glossia_web/controllers/auth_html/login.html.heex:121
+#: lib/glossia_web/controllers/auth_html/login.html.heex:87
 #, elixir-autogen, elixir-format
 msgid "Continue with GitLab"
 msgstr "Mit GitLab fortfahren"
@@ -2985,7 +2976,7 @@ msgstr "Glossia"
 msgid "Glossia logo"
 msgstr "Glossia-Logo"
 
-#: lib/glossia_web/controllers/auth_controller.ex:43
+#: lib/glossia_web/controllers/auth_controller.ex:49
 #, elixir-autogen, elixir-format
 msgid "Log in to Glossia"
 msgstr "Einloggen in Glossia"
@@ -3093,7 +3084,7 @@ msgstr "Sprache auswählen"
 msgid "Select language"
 msgstr "Sprache wählen"
 
-#: lib/glossia_web/controllers/auth_html/login.html.heex:143
+#: lib/glossia_web/controllers/auth_html/login.html.heex:113
 #, elixir-autogen, elixir-format
 msgid "Sign in as test user"
 msgstr "Als Testnutzer anmelden"
@@ -3103,14 +3094,12 @@ msgstr "Als Testnutzer anmelden"
 msgid "Terms will show up here once you add one."
 msgstr "Begriffe werden hier angezeigt, sobald Sie einen hinzufügen."
 
-#: lib/glossia_web/controllers/auth_controller.ex:235
+#: lib/glossia_web/controllers/auth_controller.ex:231
 #, elixir-autogen, elixir-format
 msgid "Test user not found. Run: mix run priv/repo/seeds.exs"
 msgstr "Testnutzer nicht gefunden. Ausführen: mix run priv/repo/seeds.exs"
 
-#: lib/glossia_web/controllers/auth_controller.ex:111
-#: lib/glossia_web/controllers/auth_controller.ex:117
-#: lib/glossia_web/controllers/auth_controller.ex:139
+#: lib/glossia_web/controllers/auth_controller.ex:159
 #, elixir-autogen, elixir-format
 msgid "That sign-in method is not available."
 msgstr "Diese Anmeldemethode ist nicht verfügbar."
@@ -3145,7 +3134,7 @@ msgstr "Die Tokens, die Sie generiert haben, können für den programmatischen Z
 msgid "Voice suggestion submitted as suggestion #%{number}."
 msgstr "Der Stimmevorschlag wurde als Vorschlag #%{number} eingereicht."
 
-#: lib/glossia_web/controllers/auth_controller.ex:44
+#: lib/glossia_web/controllers/auth_controller.ex:50
 #, elixir-autogen, elixir-format
 msgid "Welcome back. Choose a sign-in method to continue."
 msgstr "Willkommen zurück. Wählen Sie eine Anmeldemethode, um fortzufahren."
@@ -3198,7 +3187,7 @@ msgstr "Ein erkennbarer Name, der angezeigt wird, wenn Benutzer diese Anwendung 
 msgid "Allow users to sign in with Glossia or let an external service access the account."
 msgstr "Benutzer können sich mit Glossia anmelden oder externen Diensten Zugriff auf das Konto gewähren."
 
-#: lib/glossia_web/controllers/auth_controller.ex:57
+#: lib/glossia_web/controllers/auth_controller.ex:71
 #, elixir-autogen, elixir-format
 msgid "Already have an account?"
 msgstr "Haben Sie bereits ein Konto?"
@@ -3213,11 +3202,6 @@ msgstr "Anwendung registriert"
 #, elixir-autogen, elixir-format
 msgid "Change"
 msgstr "Ändern"
-
-#: lib/glossia_web/controllers/auth_controller.ex:56
-#, elixir-autogen, elixir-format
-msgid "Choose a provider to create your account and start using Glossia."
-msgstr "Wählen Sie einen Anbieter aus, um ein Konto zu erstellen und Glossia zu nutzen."
 
 #: lib/glossia_web/live/dashboard_live.ex:4322
 #, elixir-autogen, elixir-format
@@ -3271,7 +3255,7 @@ msgstr "Internes Dashboard"
 msgid "Manage application credentials and authorization callbacks."
 msgstr "Verwaltung von Anwendungszugangsdaten und Autorisierungs-Callbacks."
 
-#: lib/glossia_web/controllers/auth_controller.ex:45
+#: lib/glossia_web/controllers/auth_controller.ex:51
 #, elixir-autogen, elixir-format
 msgid "New to Glossia?"
 msgstr "Neu bei Glossia?"
@@ -3316,17 +3300,6 @@ msgstr "Wählen Sie zuerst ein Repositorium."
 #, elixir-autogen, elixir-format
 msgid "Select at least one target language."
 msgstr "Wählen Sie mindestens eine Zielsprache."
-
-#: lib/glossia_web/controllers/auth_controller.ex:47
-#: lib/glossia_web/controllers/auth_controller.ex:54
-#, elixir-autogen, elixir-format
-msgid "Sign up"
-msgstr "Registrieren"
-
-#: lib/glossia_web/controllers/auth_controller.ex:55
-#, elixir-autogen, elixir-format
-msgid "Sign up for Glossia"
-msgstr "Für Glossia registrieren"
 
 #: lib/glossia_web/live/dashboard_live.ex:6567
 #: lib/glossia_web/live/dashboard_live.ex:6708
@@ -4559,11 +4532,6 @@ msgstr "Noch keine Übersetzungen."
 msgid "Outcome"
 msgstr "Ergebnis"
 
-#: lib/glossia_web/controllers/auth_controller.ex:174
-#, elixir-autogen, elixir-format
-msgid "Please complete the sign-up challenge before continuing."
-msgstr "Bitte vervollständigen Sie die Registrierung, bevor Sie fortfahren."
-
 #: lib/glossia_web/live/dashboard_live.ex:7403
 #, elixir-autogen, elixir-format
 msgid "Recent activity"
@@ -4584,11 +4552,6 @@ msgstr "Ausführungen, die in den letzten 14 Tagen gestartet wurden."
 msgid "Search translations..."
 msgstr "Übersetzungen durchsuchen..."
 
-#: lib/glossia_web/controllers/auth_controller.ex:298
-#, elixir-autogen, elixir-format
-msgid "Sign-up is temporarily unavailable while we fix a configuration issue. Please try again shortly."
-msgstr "Die Registrierung ist vorübergehend nicht verfügbar, während wir ein Konfigurationsproblem beheben. Bitte versuchen Sie es in Kürze erneut."
-
 #: lib/glossia_web/live/dashboard_live.ex:8034
 #, elixir-autogen, elixir-format
 msgid "Stopped because newer content arrived."
@@ -4604,16 +4567,6 @@ msgstr "Ersetzt"
 #, elixir-autogen, elixir-format
 msgid "The percentage of checked content reused without another translation."
 msgstr "Der prozentuale Anteil des geprüften Inhalts, der ohne eine weitere Übersetzung wiederverwendet wurde."
-
-#: lib/glossia_web/controllers/auth_controller.ex:294
-#, elixir-autogen, elixir-format
-msgid "The sign-up challenge did not pass. Please try again."
-msgstr "Die Registrierungsprüfung wurde nicht bestanden. Bitte versuchen Sie es erneut."
-
-#: lib/glossia_web/controllers/auth_controller.ex:286
-#, elixir-autogen, elixir-format
-msgid "Too many sign-up attempts from this session. Please wait a few minutes and try again."
-msgstr "Zu viele Registrierungsversuche aus dieser Sitzung. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut."
 
 #: lib/glossia_web/live/dashboard_live.ex:7846
 #: lib/glossia_web/live/dashboard_live.ex:11599
@@ -4641,7 +4594,7 @@ msgstr "Übersetzungsläufe"
 msgid "View the translation this run continued"
 msgstr "Übersetzung anzeigen, die von diesem Durchlauf fortgesetzt wurde."
 
-#: lib/glossia_web/controllers/auth_controller.ex:291
+#: lib/glossia_web/controllers/auth_controller.ex:269
 #, elixir-autogen, elixir-format
 msgid "Your session expired. Please reload the page and try again."
 msgstr "Ihre Sitzung ist abgelaufen. Bitte laden Sie die Seite neu und versuchen Sie es erneut."
@@ -5229,4 +5182,64 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex:8995
 #, elixir-autogen, elixir-format
 msgid "Waiting to start"
+msgstr ""
+
+#: lib/glossia/emails.ex:52
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Accept or decline the invitation"
+msgstr "Einladung annehmen oder ablehnen:"
+
+#: lib/glossia_web/controllers/auth_controller.ex:65
+#, elixir-autogen, elixir-format
+msgid "Interested in Glossia?"
+msgstr ""
+
+#: lib/glossia_web/components/layouts/app.html.heex:62
+#: lib/glossia_web/components/layouts/app.html.heex:124
+#: lib/glossia_web/controllers/auth_controller.ex:53
+#: lib/glossia_web/controllers/auth_controller.ex:64
+#: lib/glossia_web/controllers/auth_html/login.html.heex:66
+#: lib/glossia_web/controllers/page_html/home.html.heex:11
+#, elixir-autogen, elixir-format
+msgid "Show interest"
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:108
+#, elixir-autogen, elixir-format
+msgid "Thanks for your interest! We’ll get back to you by email to help you get started."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:276
+#, elixir-autogen, elixir-format
+msgid "The interest form is temporarily unavailable while we fix a configuration issue. Please try again shortly."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:272
+#, elixir-autogen, elixir-format
+msgid "The verification challenge did not pass. Please try again."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:218
+#, elixir-autogen, elixir-format, fuzzy
+msgid "There was a problem signing you in. Please try again."
+msgstr "Beim Erstellen Ihres Kontos ist ein Problem aufgetreten. Bitte versuchen Sie es erneut."
+
+#: lib/glossia_web/controllers/auth_controller.ex:266
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Too many requests from this session. Please wait a few minutes and try again."
+msgstr "Zu viele Registrierungsversuche aus dieser Sitzung. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut."
+
+#: lib/glossia_web/controllers/auth_controller.ex:124
+#, elixir-autogen, elixir-format
+msgid "We couldn’t send your request. Please try again in a moment."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:67
+#, elixir-autogen, elixir-format
+msgid "We’re onboarding teams gradually. Leave your email and we’ll get back to you to help you get started."
+msgstr ""
+
+#: lib/glossia_web/controllers/auth_controller.ex:185
+#, elixir-autogen, elixir-format
+msgid "We’re onboarding teams gradually. Leave your email to show your interest."
 msgstr ""
