@@ -34,10 +34,12 @@ Initialize it once in your application entrypoint:
 ```ts
 import glossia from "@glossia/web";
 
-glossia.init();
+glossia.init({ endpoint: "https://glossia.ai/v1/collect" });
 ```
 
-The `domain` is inferred from `window.location.hostname` so the SDK records against the project registered for your site. Pass `{ domain: "example.com" }` to override, for example to send events from a staging origin to the same project as production.
+Set the collection endpoint explicitly when using the package in your own bundle, since there is no hosted script address from which to infer it.
+
+`domain` is inferred from `window.location.hostname` so the SDK records against the project registered for your site. Pass `{ domain: "example.com" }` to override, for example to send events from a staging origin to the same project as production.
 
 To record a custom event, for example a signup:
 

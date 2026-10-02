@@ -9,7 +9,9 @@
 
 ## Events endpoint
 
-`POST /api/analytics/events`
+`POST https://glossia.ai/v1/collect`
+
+`POST /api/analytics/events` remains available for compatibility. The hosted script derives `/v1/collect` from its own origin; package integrations should set `endpoint` explicitly.
 
 Accepts a JSON event from the `@glossia/web` SDK. Always responds `202 Accepted`, including for unknown domains or malformed payloads, so the SDK never leaks which projects collect analytics.
 

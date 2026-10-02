@@ -29,11 +29,13 @@ npm install @glossia/web
 ```ts
 import glossia from "@glossia/web";
 
-glossia.init();
+glossia.init({ endpoint: "https://glossia.ai/v1/collect" });
 
 // Record a custom event:
 glossia.track("signup");
 ```
+
+Set the collection endpoint explicitly when using the package in your own bundle, since there is no hosted script address from which to infer it.
 
 `domain` is inferred from `window.location.hostname`. Pass `{ domain: "example.com" }` to override, for example to send events from a staging origin to the same project as production.
 
