@@ -8,6 +8,14 @@ defmodule Glossia.MCP.CreateLLMModelTool do
   alias Hermes.Server.Response
 
   schema do
+    field :category, :string,
+      description:
+        "generative (default) writes text; decision evaluates translations using TypeSafe Jev"
+
+    field :decision_min_score, :number,
+      description:
+        "Required score for every translation quality dimension, from 1 to 10; defaults to 7"
+
     field :handle, {:required, :string}, description: "Account handle"
 
     field :model_handle, {:required, :string},
@@ -43,7 +51,9 @@ defmodule Glossia.MCP.CreateLLMModelTool do
         "model" => params["model"],
         "api_key" => api_key,
         "base_url" => params["base_url"],
-        "default" => params["default"]
+        "default" => params["default"],
+        "category" => params["category"] || "generative",
+        "decision_min_score" => params["decision_min_score"] || 7.0
       }
 
       case LLMModels.create_model(account, user, attrs) do
@@ -56,7 +66,9 @@ defmodule Glossia.MCP.CreateLLMModelTool do
                 handle: created.handle,
                 model: created.model,
                 base_url: created.base_url,
-                default: created.default
+                default: created.default,
+                category: created.category,
+                decision_min_score: created.decision_min_score
               })
             )
 

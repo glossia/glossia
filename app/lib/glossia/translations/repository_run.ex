@@ -617,7 +617,11 @@ defmodule Glossia.Translations.RepositoryRun do
           repo_glossary_for(item)
         )
 
-      item = Map.put(item, :server_context, server_context)
+      item =
+        item
+        |> Map.put(:server_context, server_context)
+        |> Map.put(:decision_model, Map.get(context_snapshot, :decision_model))
+
       provider = ModelIdentifier.provider(item.model)
 
       hash_state =
@@ -640,7 +644,8 @@ defmodule Glossia.Translations.RepositoryRun do
           check_cmds: item.check_cmds,
           validation: item.validation,
           validation_relative_path: item.validation_relative_path,
-          server_context: item.server_context
+          server_context: item.server_context,
+          decision_model: item.decision_model
         })
 
       output_content = if File.exists?(item.output_abs), do: File.read!(item.output_abs), else: ""
@@ -1254,6 +1259,9 @@ defmodule Glossia.Translations.RepositoryRun do
   # communicate useful, stable progress.
   defp progress_events({:thinking, _chunk}), do: []
   defp progress_events(event), do: [event]
+
+  defp normalize_event({:quality_assessed, report}),
+    do: Map.put(report, :type, "quality_assessed")
 
   defp normalize_event(:agent_start), do: %{type: "agent_start"}
   defp normalize_event(:agent_end), do: %{type: "agent_end"}

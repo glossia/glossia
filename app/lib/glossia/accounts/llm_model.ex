@@ -6,8 +6,8 @@ defmodule Glossia.Accounts.LLMModel do
 
   @derive {
     Flop.Schema,
-    filterable: [:handle, :model],
-    sortable: [:handle, :model, :inserted_at],
+    filterable: [:handle, :model, :category],
+    sortable: [:handle, :model, :category, :inserted_at],
     default_order: %{order_by: [:handle], order_directions: [:asc]}
   }
 
@@ -17,6 +17,8 @@ defmodule Glossia.Accounts.LLMModel do
     field :api_key, Glossia.Encrypted.Binary
     field :base_url, :string
     field :default, :boolean, default: false
+    field :category, :string, default: "generative"
+    field :decision_min_score, :float, default: 7.0
     # Cap on concurrent translations that route to this model. `nil` means
     # "no per-model cap" and the run falls back to the global default (env or
     # HTTP pool size). Set this when a provider's per-model quota chokes on
@@ -37,14 +39,29 @@ defmodule Glossia.Accounts.LLMModel do
         else: [:handle]
 
     model_struct
-    |> cast(attrs, [:handle, :model, :api_key, :base_url, :default, :translation_concurrency])
+    |> cast(attrs, [
+      :handle,
+      :model,
+      :api_key,
+      :base_url,
+      :default,
+      :category,
+      :decision_min_score,
+      :translation_concurrency
+    ])
     |> update_change(:model, &ModelIdentifier.normalize/1)
     |> update_change(:model, &blank_to_nil/1)
     |> update_change(:base_url, &normalize_base_url/1)
     |> update_change(:translation_concurrency, &normalize_translation_concurrency/1)
     |> validate_change(:base_url, &validate_base_url/2)
     |> validate_number(:translation_concurrency, greater_than: 0)
-    |> validate_required(base_required)
+    |> validate_required(base_required ++ [:category, :decision_min_score])
+    |> validate_inclusion(:category, ["generative", "decision"])
+    |> validate_number(:decision_min_score,
+      greater_than_or_equal_to: 1,
+      less_than_or_equal_to: 10
+    )
+    |> validate_category()
     |> maybe_require_model()
     |> maybe_validate_model_format()
     |> validate_format(:handle, ~r/^[a-z][a-z0-9-]*$/,
@@ -56,9 +73,36 @@ defmodule Glossia.Accounts.LLMModel do
       message: "has already been taken"
     )
     |> unique_constraint(:default,
-      name: :llm_models_one_default_per_account,
-      message: "another model is already the default for this account"
+      name: :llm_models_one_default_per_category,
+      message: "another model is already the default for this category"
     )
+  end
+
+  defp validate_category(changeset) do
+    provider = ModelIdentifier.provider(get_field(changeset, :model))
+
+    case {get_field(changeset, :category), provider} do
+      {"decision", "typesafe"} ->
+        changeset = validate_required(changeset, [:model])
+
+        if is_nil(get_field(changeset, :translation_concurrency)),
+          do: changeset,
+          else:
+            add_error(changeset, :translation_concurrency, "only applies to generative models")
+
+      {"decision", _} ->
+        add_error(
+          changeset,
+          :model,
+          "decision models currently support TypeSafe Jev (typesafe/jev-latest)"
+        )
+
+      {"generative", "typesafe"} ->
+        add_error(changeset, :model, "TypeSafe Jev requires the decision category")
+
+      _ ->
+        changeset
+    end
   end
 
   # A base URL means the request routes through a fixed-profile gateway
@@ -134,10 +178,13 @@ defmodule Glossia.Accounts.LLMModel do
   defp validate_base_url(_field, ""), do: []
 
   defp validate_base_url(field, url) do
-    if String.starts_with?(String.downcase(String.trim(url)), ["http://", "https://"]) do
-      []
-    else
-      [{field, {"must start with http:// or https://", []}}]
+    case URI.parse(url) do
+      %URI{scheme: scheme, host: host}
+      when scheme in ["http", "https"] and is_binary(host) and host != "" ->
+        []
+
+      _ ->
+        [{field, {"must start with http:// or https://", []}}]
     end
   end
 
@@ -146,6 +193,10 @@ defmodule Glossia.Accounts.LLMModel do
   grouped by provider, suitable for use in a select dropdown.
   """
   def available_models do
+    generative_models() ++ [{"TypeSafe", [{"Jev", "typesafe/jev-latest"}]}]
+  end
+
+  defp generative_models do
     LLMDB.providers()
     |> Enum.sort_by(& &1.id)
     |> Enum.map(fn provider ->

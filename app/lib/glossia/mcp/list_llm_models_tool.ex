@@ -28,6 +28,8 @@ defmodule Glossia.MCP.ListLLMModelsTool do
                 model: m.model,
                 base_url: m.base_url,
                 default: m.default,
+                category: m.category,
+                decision_min_score: m.decision_min_score,
                 inserted_at: m.inserted_at,
                 updated_at: m.updated_at
               }

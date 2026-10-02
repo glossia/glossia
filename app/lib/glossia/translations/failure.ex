@@ -16,6 +16,7 @@ defmodule Glossia.Translations.Failure do
     {"catalog-literal-count", "po text-literal response length"},
     {"catalog-rebuild-count", "po text-literal rebuild expected"},
     {"catalog-literal-missing", "po text-literal response was missing translations for msgid"},
+    {"translation-quality", "translation quality failed:"},
     {"catalog-literal-empty", "po text-literal response contained an empty translation"},
     {"catalog-literal-preservation", "po text-literal response changed a placeholder"},
     {"markdown-literal-whitespace", "Markdown text-node recovery changed source whitespace"},
@@ -67,6 +68,9 @@ defmodule Glossia.Translations.Failure do
     provider-credentials
     provider-timeout
     provider-error
+    decision-evaluation-failed
+    decision-input-too-large
+    validation-quality
     validation-syntax
     validation-empty-output
     validation-structure
@@ -110,9 +114,20 @@ defmodule Glossia.Translations.Failure do
   def from({:validation_failed, reason}, _provider) do
     text = searchable_text(reason)
 
-    failure(validation_kind(text), "item")
+    kind =
+      if String.contains?(text, "translation quality failed:"),
+        do: "validation-quality",
+        else: validation_kind(text)
+
+    failure(kind, "item")
     |> Map.merge(validation_diagnostics(text))
   end
+
+  def from({:decision_evaluation_failed, :decision_input_too_large}, _provider),
+    do: failure("decision-input-too-large", "item")
+
+  def from({:decision_evaluation_failed, _reason}, _provider),
+    do: failure("decision-evaluation-failed", "item")
 
   def from(:source_invalid_encoding, _provider),
     do: failure("source-invalid-encoding", "item")

@@ -135,11 +135,14 @@ defmodule Glossia.Translations.Credentials do
       nil ->
         {:error, {:model_not_found, handle}}
 
-      model ->
+      %{category: "generative"} = model ->
         case account_model_credential(model) do
           nil -> {:error, {:model_not_found, handle}}
           credential -> {:ok, credential}
         end
+
+      _ ->
+        {:error, {:model_not_found, handle}}
     end
   end
 

@@ -467,12 +467,29 @@ defmodule Glossia.Translations.Locks do
         server_context_node
       ])
 
-    root =
-      hash_node("translation_input", input.source_path, %{}, [
-        source_node,
-        config_node,
-        context_node
-      ])
+    children = [source_node, config_node, context_node]
+
+    children =
+      case Map.get(input, :decision_model) do
+        nil ->
+          children
+
+        configuration ->
+          children ++
+            [
+              hash_node(
+                "decision_config",
+                "quality",
+                %{
+                  "configuration_hash" => hash_json(configuration),
+                  "rubric_version" => Glossia.Translations.Quality.version()
+                },
+                []
+              )
+            ]
+      end
+
+    root = hash_node("translation_input", input.source_path, %{}, children)
 
     %{hash: root["hash"], tree: %{"root" => root}}
   end

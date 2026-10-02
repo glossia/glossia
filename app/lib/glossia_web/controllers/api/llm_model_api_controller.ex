@@ -69,7 +69,9 @@ defmodule GlossiaWeb.Api.LLMModelApiController do
               "model" => params["model"],
               "api_key" => params["api_key"],
               "base_url" => params["base_url"],
-              "default" => params["default"]
+              "default" => params["default"],
+              "category" => params["category"] || "generative",
+              "decision_min_score" => params["decision_min_score"] || 7.0
             }
 
             case LLMModels.create_model(account, user, attrs) do
@@ -112,6 +114,8 @@ defmodule GlossiaWeb.Api.LLMModelApiController do
                   |> maybe_put("api_key", params["api_key"])
                   |> maybe_put("base_url", params["base_url"])
                   |> maybe_put("default", params["default"])
+                  |> maybe_put("category", params["category"])
+                  |> maybe_put("decision_min_score", params["decision_min_score"])
 
                 case LLMModels.update_model(account, user, model, attrs) do
                   {:ok, updated} ->
@@ -169,6 +173,8 @@ defmodule GlossiaWeb.Api.LLMModelApiController do
       model: model.model,
       base_url: model.base_url,
       default: model.default,
+      category: model.category,
+      decision_min_score: model.decision_min_score,
       inserted_at: model.inserted_at,
       updated_at: model.updated_at
     }
