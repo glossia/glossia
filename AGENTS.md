@@ -60,7 +60,7 @@ The public marketing site is served once per locale: English unprefixed (`/blog`
 
 ## Web analytics installation
 
-- External installation snippets use `https://glossia.ai/assets/glossia-web.js`; the tracker derives `https://glossia.ai/v1/collect` from that origin. Keep the dashboard snippet, English setup guide, and `sdk/web` examples aligned.
+- External installation snippets use `https://glossia.ai/assets/glossia-web.js`; the tracker derives `https://glossia.ai/v1/collect` from that origin. Keep the dashboard snippet, English setup guide, and `sdk/web` examples aligned. Cross-origin collection must use credential-free keepalive fetch; JSON beacons include credentials and cannot use the public collector's wildcard origin response.
 
 ## Documentation
 
