@@ -47,6 +47,16 @@ To record a custom event, for example a signup:
 glossia.track("signup");
 ```
 
+## Verify your domain
+
+In your project's **Analytics settings**, save your site domain. Copy the generated verification meta tag into the `<head>` of your homepage and publish it:
+
+```html
+<meta name="glossia-site-verification" content="YOUR_VERIFICATION_TOKEN">
+```
+
+Use the token shown in your settings, then click **Verify domain**. Once the domain is verified, Glossia records events from your tracking snippet. The snippet alone does not verify ownership. Changing the configured domain requires verification again.
+
 ## Verify it works
 
 1. Open your site in a browser.

@@ -1,0 +1,5 @@
+#project-analytics-settings-page {
+  & .api-token-reveal-value code {
+    overflow-wrap: anywhere;
+  }
+}

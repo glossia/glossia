@@ -1175,6 +1175,7 @@ defmodule GlossiaWeb.DashboardLive do
       page_title: gettext("Analytics settings"),
       project: project,
       analytics_domain: analytics_domain,
+      analytics_settings: analytics_settings,
       breadcrumb_items: [
         {project.handle, ~p"/#{handle}/#{project.handle}"},
         {gettext("Settings"), ~p"/#{handle}/#{project.handle}/-/settings"},
@@ -3210,7 +3211,7 @@ defmodule GlossiaWeb.DashboardLive do
         {:ok, settings} ->
           {:noreply,
            socket
-           |> assign(analytics_domain: settings.domain)
+           |> assign(analytics_domain: settings.domain, analytics_settings: settings)
            |> put_flash(:info, gettext("Web analytics settings updated."))
            |> push_patch(to: ~p"/#{handle}/#{project.handle}/-/settings/analytics")}
 
@@ -3222,6 +3223,36 @@ defmodule GlossiaWeb.DashboardLive do
              gettext("Could not save web analytics. Enter a valid domain like example.com.")
            )}
       end
+    end
+  end
+
+  def handle_event("verify_analytics_domain", _params, socket) do
+    if Glossia.Authz.authorize?(
+         :project_admin,
+         socket.assigns.current_user,
+         socket.assigns.account
+       ) do
+      case Glossia.Analytics.Settings.verify_for_project(socket.assigns.project.id) do
+        {:ok, %{verified_at: verified_at} = settings} when not is_nil(verified_at) ->
+          {:noreply,
+           socket
+           |> assign(analytics_settings: settings)
+           |> put_flash(:info, gettext("Domain verified. Web analytics is ready to collect events."))}
+
+        {:ok, settings} ->
+          {:noreply,
+           socket
+           |> assign(analytics_settings: settings)
+           |> put_flash(
+             :error,
+             gettext("Verification not found. Publish the meta tag on your homepage, then try again.")
+           )}
+
+        {:error, _reason} ->
+          {:noreply, put_flash(socket, :error, gettext("Save an analytics domain before verifying it."))}
+      end
+    else
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission."))}
     end
   end
 
@@ -4066,7 +4097,10 @@ defmodule GlossiaWeb.DashboardLive do
           uploads={assigns[:uploads]}
         />
       <% :project_analytics_settings -> %>
-        <.project_analytics_settings_page analytics_domain={@analytics_domain} />
+        <.project_analytics_settings_page
+          analytics_domain={@analytics_domain}
+          settings={@analytics_settings}
+        />
       <% :project_analytics -> %>
         <.project_analytics_page
           handle={@handle}
@@ -7260,7 +7294,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp project_analytics_settings_page(assigns) do
     ~H"""
-    <div class="dash-page">
+    <div id="project-analytics-settings-page" class="dash-page">
       <.page_header
         title={gettext("Analytics settings")}
         description={gettext("Configure web analytics for this project.")}
@@ -7307,6 +7341,44 @@ defmodule GlossiaWeb.DashboardLive do
                 </div>
               </div>
 
+              <div :if={@settings} id="analytics-domain-verification" class="voice-field">
+                <label>{gettext("Domain verification")}</label>
+                <p :if={@settings.verified_at}>
+                  {gettext("Domain verified. Web analytics is ready to collect events.")}
+                </p>
+                <div :if={!@settings.verified_at}>
+                  <p>
+                    {gettext(
+                      "Add this meta tag to the head of your homepage on %{domain}, publish it, then verify the domain. Events are only recorded after verification.",
+                      domain: @settings.domain
+                    )}
+                  </p>
+                  <div class="api-token-reveal-value">
+                    <code id="analytics-verification-meta-tag">{analytics_verification_meta_tag(
+                      @settings.verification_token
+                    )}</code>
+                    <Noora.Button.button
+                      type="button"
+                      label={gettext("Copy")}
+                      variant="secondary"
+                      size="small"
+                      phx-hook=".CopySnippet"
+                      id="copy-analytics-verification-btn"
+                      data-value={analytics_verification_meta_tag(@settings.verification_token)}
+                    />
+                  </div>
+                  <Noora.Button.button
+                    id="verify-analytics-domain-btn"
+                    type="button"
+                    label={gettext("Verify domain")}
+                    variant="secondary"
+                    size="small"
+                    phx-click="verify_analytics_domain"
+                    phx-disable-with={gettext("Verifying…")}
+                  />
+                </div>
+              </div>
+
               <div>
                 <Noora.Button.button
                   type="submit"
@@ -7335,6 +7407,10 @@ defmodule GlossiaWeb.DashboardLive do
       </.form>
     </div>
     """
+  end
+
+  defp analytics_verification_meta_tag(token) do
+    ~s(<meta name="glossia-site-verification" content="#{token}">)
   end
 
   defp analytics_snippet(domain) do
@@ -14196,7 +14272,7 @@ defmodule GlossiaWeb.DashboardLive do
               if @settings,
                 do:
                   gettext(
-                    "Install the snippet on %{domain}, then return here once the domain has been verified.",
+                    "Verify %{domain} in analytics settings to start recording events from your snippet.",
                     domain: @settings.domain
                   ),
                 else:
