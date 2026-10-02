@@ -30,7 +30,10 @@ defmodule Glossia.Translations do
 
   alias Glossia.Accounts.Account
   alias Glossia.Models.ModelIdentifier
+  alias Glossia.Decisions
+  alias Glossia.Translations.Context
   alias Glossia.Translations.Credentials
+  alias Glossia.Translations.Quality
   alias Glossia.Translations.Failure
   alias Glossia.Translations.LLM
   alias Glossia.Translations.ProviderPacing
@@ -67,15 +70,134 @@ defmodule Glossia.Translations do
   """
   @spec translate(Account.t(), map()) :: {:ok, result()} | {:error, error()}
   def translate(%Account{} = account, payload) do
-    with {:ok, credential, system_prompt, user_prompt} <- prepare(account, payload) do
-      call = fn -> LLM.run(credential, system_prompt, user_prompt) end
+    with {:ok, input} <- normalize(payload),
+         {:ok, credential} <- resolve_credential(account, input.model, input.locale, []),
+         {:ok, item} <- decision_item(account, input),
+         :ok <- Quality.preflight(item, input.source_content) do
+      input = attach_decision_context(input, item)
 
-      case with_retries(call, credential, fn _attempt -> :ok end, @llm_retry_backoff_ms) do
-        {:ok, text} -> {:ok, build_result(credential, text)}
-        {:error, reason} -> {:error, {:llm_failed, reason}}
-      end
+      translate_and_assess(
+        account,
+        credential,
+        input,
+        item,
+        correction_retries(payload),
+        input.last_error
+      )
     end
   end
+
+  # Fragment calls remain generation primitives. The repository engine assesses
+  # their assembled, structurally validated document exactly once per attempt.
+  defp decision_item(_account, %{segment_count: count}) when count > 1, do: {:ok, nil}
+  defp decision_item(_account, %{segment_kind: kind}) when kind != "content", do: {:ok, nil}
+
+  defp decision_item(account, input) do
+    case Decisions.configuration(account) do
+      nil ->
+        {:ok, nil}
+
+      configuration ->
+        with {:ok, bundle} <- content_context(account, input, configuration) do
+          {:ok,
+           %{
+             decision_model: configuration,
+             server_context: bundle,
+             source_language: input.source_language,
+             language: input.language,
+             locale: input.locale,
+             format: input.format,
+             preserve: [],
+             context_body: input.context_body,
+             locale_override_body: input.locale_override_body,
+             prompt: input.custom_prompt,
+             supplemental_context: input.server_context_body
+           }}
+        end
+    end
+  end
+
+  defp content_context(account, %{server_context_body: ""} = input, configuration) do
+    with {:ok, snapshot} <- Context.snapshot(account),
+         {:ok, [bundle]} <-
+           Context.resolve_many(account, %{snapshot | decision_model: configuration}, [
+             %{locale: input.locale, source: input.source_content, preserve: []}
+           ]) do
+      {:ok, bundle}
+    end
+  end
+
+  defp content_context(_account, input, _configuration),
+    do: {:ok, Context.empty_bundle(input.locale)}
+
+  defp attach_decision_context(input, nil), do: input
+
+  defp attach_decision_context(%{server_context_body: ""} = input, item) do
+    brief = Context.prompt(item.server_context, input.source_content, [])
+    %{input | server_context_body: brief.body}
+  end
+
+  defp attach_decision_context(input, _item), do: input
+
+  defp correction_retries(%{"retries" => retries}) when is_integer(retries) and retries in 0..3,
+    do: retries
+
+  defp correction_retries(_payload), do: 3
+
+  defp translate_and_assess(account, credential, input, item, retries_left, original_error) do
+    system_prompt = Prompt.build_system_prompt(input)
+
+    user_prompt =
+      Prompt.build_user_prompt(
+        input.source_language,
+        input.locale,
+        input.language,
+        input.source_content,
+        input.last_error,
+        %{kind: input.segment_kind, index: input.segment_index, count: input.segment_count}
+      )
+
+    call = fn -> LLM.run(credential, system_prompt, user_prompt) end
+
+    case with_retries(call, credential, fn _attempt -> :ok end, @llm_retry_backoff_ms) do
+      {:ok, text} ->
+        case assess_content(item, account, input.source_content, text) do
+          {:ok, report} when is_nil(report) or report.passed ->
+            {:ok, build_result(credential, text)}
+
+          {:ok, report} when retries_left > 0 ->
+            translate_and_assess(
+              account,
+              credential,
+              %{
+                input
+                | last_error:
+                    Enum.join(
+                      Enum.reject([original_error, Quality.feedback(report)], &is_nil/1),
+                      "\n"
+                    )
+              },
+              item,
+              retries_left - 1,
+              original_error
+            )
+
+          {:ok, report} ->
+            {:error, {:validation_failed, Quality.feedback(report)}}
+
+          {:error, reason} ->
+            {:error, {:decision_evaluation_failed, reason}}
+        end
+
+      {:error, reason} ->
+        {:error, {:llm_failed, reason}}
+    end
+  end
+
+  defp assess_content(nil, _account, _source, _text), do: {:ok, nil}
+
+  defp assess_content(item, account, source, text),
+    do: Quality.assess(item, account, source, text)
 
   @doc """
   Streams a translation, invoking `on_event` for every Condukt turn event as it
@@ -188,7 +310,7 @@ defmodule Glossia.Translations do
     base + :rand.uniform(max(div(base, 2), 1))
   end
 
-  defp prepare(account, payload, opts \\ []) do
+  defp prepare(account, payload, opts) do
     with {:ok, input} <- normalize(payload),
          {:ok, credential} <- resolve_credential(account, input.model, input.locale, opts) do
       system_prompt = Prompt.build_system_prompt(input)

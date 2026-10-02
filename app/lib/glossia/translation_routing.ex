@@ -54,10 +54,10 @@ defmodule Glossia.TranslationRouting do
   def resolve_model(account_id, target_locale) do
     account_id
     |> list_rules()
-    |> Enum.find(&matches?(&1, target_locale))
+    |> Enum.find(&(matches?(&1, target_locale) and &1.llm_model.category == "generative"))
     |> case do
       nil -> nil
-      rule -> rule.llm_model
+      rule -> if rule.llm_model.category == "generative", do: rule.llm_model
     end
   end
 
@@ -77,6 +77,7 @@ defmodule Glossia.TranslationRouting do
 
     result =
       Repo.transaction(fn ->
+        lock_account(account.id)
         position = next_position(account.id)
 
         changeset =
@@ -85,6 +86,7 @@ defmodule Glossia.TranslationRouting do
             Map.merge(attrs, %{"position" => position, "llm_model_id" => model.id})
           )
           |> Ecto.Changeset.put_change(:account_id, account.id)
+          |> validate_generative_model(account.id)
 
         case Repo.insert(changeset) do
           {:ok, rule} -> Repo.preload(rule, :llm_model)
@@ -110,14 +112,24 @@ defmodule Glossia.TranslationRouting do
       raise ArgumentError, "cannot update a rule that belongs to a different account"
     end
 
-    changeset =
-      rule
-      |> TranslationRoutingRule.changeset(
-        Map.take(attrs, ["target_locale", "llm_model_id", :target_locale, :llm_model_id])
-      )
+    result =
+      Repo.transaction(fn ->
+        lock_account(account.id)
 
-    with {:ok, updated} <- Repo.update(changeset),
-         updated <- Repo.preload(updated, :llm_model, force: true) do
+        changeset =
+          rule
+          |> TranslationRoutingRule.changeset(
+            Map.take(attrs, ["target_locale", "llm_model_id", :target_locale, :llm_model_id])
+          )
+          |> validate_generative_model(account.id)
+
+        case Repo.update(changeset) do
+          {:ok, updated} -> Repo.preload(updated, :llm_model, force: true)
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+      end)
+
+    with {:ok, updated} <- result do
       Events.emit("translation_routing_rule.updated", account, user,
         resource_type: "translation_routing_rule",
         resource_id: to_string(updated.id),
@@ -194,6 +206,10 @@ defmodule Glossia.TranslationRouting do
     end
   end
 
+  defp lock_account(account_id) do
+    Repo.one!(from a in Account, where: a.id == ^account_id, lock: "FOR UPDATE")
+  end
+
   defp swap_positions(a, b) do
     # Use a sentinel position outside the account's range so the unique
     # (account_id, position) index doesn't trip during the swap.
@@ -241,6 +257,23 @@ defmodule Glossia.TranslationRouting do
         )
       end
     end)
+  end
+
+  defp validate_generative_model(changeset, account_id) do
+    id = Ecto.Changeset.get_field(changeset, :llm_model_id)
+
+    if Repo.exists?(
+         from m in LLMModel,
+           where: m.id == ^id and m.account_id == ^account_id and m.category == "generative"
+       ) do
+      changeset
+    else
+      Ecto.Changeset.add_error(
+        changeset,
+        :llm_model_id,
+        "must be a generative model belonging to this account"
+      )
+    end
   end
 
   defp format_locale(nil), do: "any"

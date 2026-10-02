@@ -807,7 +807,9 @@ defmodule GlossiaWeb.DashboardLive do
             "model" => "",
             "api_key" => "",
             "base_url" => "",
-            "translation_concurrency" => ""
+            "translation_concurrency" => "",
+            "category" => "generative",
+            "decision_min_score" => "7"
           },
           as: :model
         ),
@@ -830,11 +832,12 @@ defmodule GlossiaWeb.DashboardLive do
 
     rules = TranslationRouting.list_rules(account)
     {:ok, {available_models, _meta}} = LLMModels.list_models(account)
+    available_models = Enum.filter(available_models, &(&1.category == "generative"))
 
     assign(socket,
       page_title: gettext("Routing"),
       routing_rules: rules,
-      routing_available_models: available_models,
+      routing_available_models: Enum.filter(available_models, &(&1.category == "generative")),
       routing_locale_options:
         Enum.sort_by(Glossia.I18n.common_translation_targets(), fn {_code, name} -> name end),
       editing_routing_rule_id: nil,
@@ -872,6 +875,8 @@ defmodule GlossiaWeb.DashboardLive do
         to_form(
           %{
             "handle" => model.handle,
+            "category" => model.category,
+            "decision_min_score" => to_string(model.decision_min_score),
             "model" => model.model,
             "base_url" => model.base_url,
             "translation_concurrency" =>
@@ -881,6 +886,8 @@ defmodule GlossiaWeb.DashboardLive do
           as: :model
         ),
       model_edit_original: %{
+        "category" => model.category,
+        "decision_min_score" => to_string(model.decision_min_score),
         "handle" => model.handle,
         "model" => model.model,
         "base_url" => model.base_url || "",
@@ -1452,6 +1459,7 @@ defmodule GlossiaWeb.DashboardLive do
   # ---------------------------------------------------------------------------
 
   def handle_event("validate_model", %{"model" => params}, socket) do
+    params = normalize_model_category(params, socket.assigns.model_form[:category].value)
     changeset = model_form_changeset(params)
 
     {:noreply,
@@ -1473,6 +1481,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   def handle_event("validate_model_edit", %{"model" => params}, socket) do
+    params = normalize_model_category(params, socket.assigns.model_edit_form[:category].value)
     changeset = model_edit_form_changeset(socket.assigns.editing_model, params)
 
     {:noreply,
@@ -3191,6 +3200,21 @@ defmodule GlossiaWeb.DashboardLive do
     end
   end
 
+  defp normalize_model_category(params, previous) do
+    case {params["category"], previous} do
+      {"decision", category} when category != "decision" ->
+        params
+        |> Map.put("model", "typesafe/jev-latest")
+        |> Map.put("translation_concurrency", "")
+
+      {"generative", "decision"} ->
+        Map.put(params, "model", "")
+
+      _ ->
+        params
+    end
+  end
+
   defp put_model_form_value(form, value) do
     form.params
     |> Map.new(fn {key, field_value} -> {to_string(key), field_value} end)
@@ -3220,7 +3244,9 @@ defmodule GlossiaWeb.DashboardLive do
   defp present_value?(_), do: false
 
   defp changed_model_form?(params, original) do
-    String.trim(params["handle"] || "") != String.trim(original["handle"] || "") or
+    String.trim(params["category"] || "generative") != original["category"] or
+      String.trim(params["decision_min_score"] || "7.0") != original["decision_min_score"] or
+      String.trim(params["handle"] || "") != String.trim(original["handle"] || "") or
       String.trim(params["model"] || "") != String.trim(original["model"] || "") or
       String.trim(params["base_url"] || "") != String.trim(original["base_url"] || "") or
       String.trim(params["translation_concurrency"] || "") !=
@@ -8634,6 +8660,44 @@ defmodule GlossiaWeb.DashboardLive do
     |> Map.put(:action_url, translation_failure_action_url(failure))
   end
 
+  defp translation_failure_presentation("decision-input-too-large") do
+    %{
+      title: gettext("Document too large to assess"),
+      description:
+        gettext(
+          "Split the source into smaller documents or reduce the supplied context before retrying. Unchecked output was not accepted."
+        ),
+      item_description:
+        gettext("The complete document exceeds the decision model assessment limit."),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_presentation("decision-evaluation-failed") do
+    %{
+      title: gettext("Translation quality evaluation failed"),
+      description:
+        gettext(
+          "Check the decision model configuration and provider availability, then retry. Unchecked output was not accepted."
+        ),
+      item_description: gettext("The decision model could not evaluate this translation."),
+      action_label: nil
+    }
+  end
+
+  defp translation_failure_presentation("validation-quality") do
+    %{
+      title: gettext("Translation quality requirements were not met"),
+      description:
+        gettext(
+          "The translation still failed quality checks after the configured revisions. Adjust the translation context or minimum score before retrying."
+        ),
+      item_description:
+        gettext("The translation did not meet the decision model's quality requirements."),
+      action_label: nil
+    }
+  end
+
   defp translation_failure_presentation("provider-credit") do
     %{
       title: gettext("Model provider credit limit reached"),
@@ -11833,6 +11897,19 @@ defmodule GlossiaWeb.DashboardLive do
         type: :text,
         operator: :=~,
         value: ""
+      },
+      %Filter.Filter{
+        id: "category",
+        field: :category,
+        display_name: gettext("Category"),
+        type: :option,
+        options: ["generative", "decision"],
+        options_display_names: %{
+          "generative" => gettext("Generative"),
+          "decision" => gettext("Decision")
+        },
+        operator: :==,
+        value: ""
       }
     ]
   end
@@ -13057,6 +13134,7 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp model_picker_options do
     Glossia.Accounts.LLMModel.available_models()
+    |> Enum.reject(fn {provider, _models} -> provider == "TypeSafe" end)
     |> Enum.flat_map(fn {provider_name, models} ->
       Enum.map(models, fn {label, value} ->
         ["#{provider_name} - #{label}", value]
@@ -13185,12 +13263,45 @@ defmodule GlossiaWeb.DashboardLive do
                 <h2>{gettext("Model configuration")}</h2>
                 <p>
                   {gettext(
-                    "Add a named model configuration. Each translation uses one model handle from the nearest applicable L10N.md file, or the account default when no handle is set."
+                    "Generative models write translations. Decision models assess their quality and request corrections. Each category has its own default."
                   )}
                 </p>
               </div>
               <Noora.Card.card_section class="voice-card">
                 <div class="voice-card-fields">
+                  <Noora.Select.select
+                    id="model-category"
+                    name="model[category]"
+                    label={gettext("Category")}
+                    value={to_string(@model_form[:category].value || "generative")}
+                  >
+                    <:item value="generative" label={gettext("Generative")} />
+                    <:item value="decision" label={gettext("Decision")} />
+                  </Noora.Select.select>
+                  <Noora.TextInput.text_input
+                    :if={@model_form[:category].value == "decision"}
+                    id="model-decision-score"
+                    field={@model_form[:decision_min_score]}
+                    error={model_field_error(@model_form[:decision_min_score])}
+                    label={gettext("Minimum quality score")}
+                    hint={
+                      gettext(
+                        "Every assessed dimension must reach this score from 1 to 10. Major and critical errors always request correction."
+                      )
+                    }
+                  />
+                  <Noora.TextInput.text_input
+                    :if={@model_form[:category].value == "decision"}
+                    id="model-decision-model"
+                    field={@model_form[:model]}
+                    error={model_field_error(@model_form[:model])}
+                    label={gettext("Decision model")}
+                    hint={
+                      gettext(
+                        "Use typesafe/jev-latest or a pinned TypeSafe Jev version. The default decision model evaluates translations automatically."
+                      )
+                    }
+                  />
                   <Noora.TextInput.text_input
                     id="model-handle"
                     field={@model_form[:handle]}
@@ -13198,16 +13309,25 @@ defmodule GlossiaWeb.DashboardLive do
                     label={gettext("Handle")}
                     placeholder={gettext("e.g. my-claude-model")}
                     hint={
-                      gettext(
-                        "Use lowercase letters, numbers, and hyphens. Reference this handle from L10N.md to choose the model for a content scope."
-                      )
+                      if @model_form[:category].value == "decision",
+                        do:
+                          gettext(
+                            "Use lowercase letters, numbers, and hyphens. The default decision model evaluates translations independently of generative model handles."
+                          ),
+                        else:
+                          gettext(
+                            "Use lowercase letters, numbers, and hyphens. Reference this handle from L10N.md to choose the model for a content scope."
+                          )
                     }
                     autocapitalize="none"
                     spellcheck="false"
                     required
                     show_required
                   />
-                  <div class="voice-field model-select">
+                  <div
+                    :if={@model_form[:category].value != "decision"}
+                    class="voice-field model-select"
+                  >
                     <Noora.Label.label label={gettext("Model")} />
                     <.model_picker
                       id="model-model"
@@ -13255,6 +13375,7 @@ defmodule GlossiaWeb.DashboardLive do
                     }
                   />
                   <Noora.TextInput.text_input
+                    :if={@model_form[:category].value != "decision"}
                     id="model-translation-concurrency"
                     field={@model_form[:translation_concurrency]}
                     error={model_field_error(@model_form[:translation_concurrency])}
@@ -13292,6 +13413,39 @@ defmodule GlossiaWeb.DashboardLive do
               </div>
               <Noora.Card.card_section class="voice-card">
                 <div class="voice-card-fields">
+                  <Noora.Select.select
+                    id="edit-model-category"
+                    name="model[category]"
+                    label={gettext("Category")}
+                    value={to_string(@model_edit_form[:category].value || "generative")}
+                  >
+                    <:item value="generative" label={gettext("Generative")} />
+                    <:item value="decision" label={gettext("Decision")} />
+                  </Noora.Select.select>
+                  <Noora.TextInput.text_input
+                    :if={@model_edit_form[:category].value == "decision"}
+                    id="edit-model-decision-score"
+                    field={@model_edit_form[:decision_min_score]}
+                    error={model_field_error(@model_edit_form[:decision_min_score])}
+                    label={gettext("Minimum quality score")}
+                    hint={
+                      gettext(
+                        "Every assessed dimension must reach this score from 1 to 10. Major and critical errors always request correction."
+                      )
+                    }
+                  />
+                  <Noora.TextInput.text_input
+                    :if={@model_edit_form[:category].value == "decision"}
+                    id="edit-model-decision-model"
+                    field={@model_edit_form[:model]}
+                    error={model_field_error(@model_edit_form[:model])}
+                    label={gettext("Decision model")}
+                    hint={
+                      gettext(
+                        "Use typesafe/jev-latest or a pinned TypeSafe Jev version. The default decision model evaluates translations automatically."
+                      )
+                    }
+                  />
                   <Noora.TextInput.text_input
                     id="edit-model-handle"
                     field={@model_edit_form[:handle]}
@@ -13303,7 +13457,10 @@ defmodule GlossiaWeb.DashboardLive do
                     required
                     show_required
                   />
-                  <div class="voice-field model-select">
+                  <div
+                    :if={@model_edit_form[:category].value != "decision"}
+                    class="voice-field model-select"
+                  >
                     <Noora.Label.label label={gettext("Model")} />
                     <.model_picker
                       id="edit-model-model"
@@ -13347,6 +13504,7 @@ defmodule GlossiaWeb.DashboardLive do
                     }
                   />
                   <Noora.TextInput.text_input
+                    :if={@model_edit_form[:category].value != "decision"}
                     id="edit-model-translation-concurrency"
                     field={@model_edit_form[:translation_concurrency]}
                     error={model_field_error(@model_edit_form[:translation_concurrency])}
@@ -13366,14 +13524,19 @@ defmodule GlossiaWeb.DashboardLive do
               <div data-part="header">
                 <span data-part="title">{gettext("Account default")}</span>
                 <span data-part="subtitle">
-                  <%= if @editing_model.default do %>
-                    {gettext(
-                      "This model is used for project setup and translations whose L10N.md configuration does not name a model handle."
-                    )}
-                  <% else %>
-                    {gettext(
-                      "Make this the fallback for project setup and translations whose L10N.md configuration does not name a model handle."
-                    )}
+                  <%= cond do %>
+                    <% @editing_model.category == "decision" and @editing_model.default -> %>
+                      {gettext("This decision model evaluates translation quality automatically.")}
+                    <% @editing_model.category == "decision" -> %>
+                      {gettext("Make this the decision model used to evaluate translation quality.")}
+                    <% @editing_model.default -> %>
+                      {gettext(
+                        "This generative model is used for project setup and translations without an explicit model handle."
+                      )}
+                    <% true -> %>
+                      {gettext(
+                        "Make this the default generative model for project setup and translations without an explicit model handle."
+                      )}
                   <% end %>
                 </span>
               </div>
@@ -13429,7 +13592,7 @@ defmodule GlossiaWeb.DashboardLive do
                 <h1 data-part="title">{gettext("Models")}</h1>
                 <span data-part="subtitle">
                   {gettext(
-                    "Each translation uses one configured model. L10N.md can select a handle for a content scope; work without a handle uses the account default."
+                    "Generative models write translations; the default decision model checks their quality when configured. Each category has its own default."
                   )}
                 </span>
               </div>
@@ -13497,6 +13660,30 @@ defmodule GlossiaWeb.DashboardLive do
                   sort_order={if(@models_sort_key == "model", do: @models_sort_dir)}
                 >
                   <Noora.Table.text_cell label={model.model} />
+                </:col>
+                <:col
+                  :let={model}
+                  label={gettext("Category")}
+                  patch={
+                    settings_sort_patch(
+                      @handle,
+                      "/-/settings/models",
+                      "models",
+                      @models_search,
+                      @models_sort_key,
+                      @models_sort_dir,
+                      "category",
+                      @active_filters
+                    )
+                  }
+                  sort_order={if(@models_sort_key == "category", do: @models_sort_dir)}
+                >
+                  <Noora.Table.text_cell label={
+                    if(model.category == "decision",
+                      do: gettext("Decision"),
+                      else: gettext("Generative")
+                    )
+                  } />
                 </:col>
                 <:col :let={model} label={gettext("Default")}>
                   <Noora.Badge.badge

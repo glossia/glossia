@@ -650,6 +650,30 @@ defmodule Glossia.Seeds do
       default: false
     )
 
+    # A separate demo account keeps placeholder evaluation credentials out of
+    # the default developer's translation runs.
+    quality_demo =
+      ensure_user!(
+        handle: "quality-demo",
+        email: "quality-demo@glossia.ai",
+        name: "Translation Quality Demo",
+        identity: %{provider: "dev", provider_uid: "quality-demo-001"}
+      )
+
+    ensure_llm_model!(quality_demo.account, quality_demo,
+      handle: "translator",
+      model: "anthropic/claude-sonnet-5",
+      api_key: "sk-ant-quality-demo-placeholder-key"
+    )
+
+    ensure_llm_model!(quality_demo.account, quality_demo,
+      handle: "translation-quality",
+      category: "decision",
+      model: "typesafe/jev-latest",
+      api_key: "quality-demo-placeholder-key",
+      decision_min_score: 7.0
+    )
+
     # Translation routing rules: pick a model per target locale, first match
     # wins, fallback to the account default when no rule matches.
     reset_routing_rules!(dev.account)
@@ -1828,7 +1852,9 @@ defmodule Glossia.Seeds do
       %{
         "handle" => handle,
         "model" => Keyword.fetch!(opts, :model),
-        "api_key" => Keyword.fetch!(opts, :api_key)
+        "api_key" => Keyword.fetch!(opts, :api_key),
+        "category" => Keyword.get(opts, :category, "generative"),
+        "decision_min_score" => Keyword.get(opts, :decision_min_score, 7.0)
       }
       |> then(fn attrs ->
         if requested_default == :unspecified,
@@ -1848,6 +1874,10 @@ defmodule Glossia.Seeds do
 
       existing ->
         cond do
+          existing.category != attrs["category"] or
+              existing.decision_min_score != attrs["decision_min_score"] ->
+            do_update_llm_model!(account, user, existing, attrs)
+
           existing.model != attrs["model"] ->
             do_update_llm_model!(account, user, existing, attrs)
 

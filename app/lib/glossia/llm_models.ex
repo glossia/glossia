@@ -39,18 +39,20 @@ defmodule Glossia.LLMModels do
   end
 
   @doc """
-  Returns the account's default translation model.
+  Returns the account's default model for a category (generative by default).
 
   Prefers the model explicitly flagged as `default`; otherwise falls back to the
   first model by handle for legacy data that has not been backfilled. Returns
   `nil` when the account has no models.
   """
-  def default_model(%Account{} = account), do: default_model(account.id)
+  def default_model(account, category \\ "generative")
 
-  def default_model(account_id) do
+  def default_model(%Account{} = account, category), do: default_model(account.id, category)
+
+  def default_model(account_id, category) do
     Repo.one(
       from m in LLMModel,
-        where: m.account_id == ^account_id,
+        where: m.account_id == ^account_id and m.category == ^category,
         order_by: [desc: m.default, asc: m.handle],
         limit: 1
     )
@@ -59,9 +61,13 @@ defmodule Glossia.LLMModels do
   def create_model(%Account{} = account, %User{} = user, attrs) do
     result =
       Repo.transaction(fn ->
-        make_default? = requested_default?(attrs) or not account_has_models?(account.id)
+        lock_account(account.id)
+        initial_changeset = LLMModel.changeset(%LLMModel{}, attrs)
+        unless initial_changeset.valid?, do: Repo.rollback(%{initial_changeset | action: :insert})
+        category = Ecto.Changeset.get_field(initial_changeset, :category)
+        make_default? = requested_default?(attrs) or not account_has_models?(account.id, category)
 
-        if make_default?, do: clear_default(account.id)
+        if make_default?, do: clear_default(account.id, category)
 
         changeset =
           %LLMModel{}
@@ -91,13 +97,29 @@ defmodule Glossia.LLMModels do
   def update_model(%Account{} = account, %User{} = user, %LLMModel{} = model, attrs) do
     result =
       Repo.transaction(fn ->
-        if requested_default?(attrs), do: clear_default(account.id)
+        lock_account(account.id)
+        model = current_model!(model, account.id, :update)
+        changeset = LLMModel.changeset(model, attrs, require_api_key: false)
+        unless changeset.valid?, do: Repo.rollback(%{changeset | action: :update})
+        category = Ecto.Changeset.get_field(changeset, :category)
+        changeset = prevent_routed_decision_model(changeset, model, category)
 
-        case model
-             |> LLMModel.changeset(attrs, require_api_key: false)
-             |> Repo.update() do
+        make_default? =
+          requested_default?(attrs) or
+            (category != model.category and Ecto.Changeset.get_field(changeset, :default))
+
+        changeset =
+          if make_default? do
+            clear_default(account.id, category)
+            Ecto.Changeset.force_change(changeset, :default, true)
+          else
+            changeset
+          end
+
+        case Repo.update(changeset) do
           {:ok, updated} ->
-            ensure_default(account.id)
+            ensure_default(account.id, model.category)
+            ensure_default(account.id, category)
             Repo.get!(LLMModel, updated.id)
 
           {:error, changeset} ->
@@ -120,9 +142,12 @@ defmodule Glossia.LLMModels do
   def delete_model(%Account{} = account, %User{} = user, %LLMModel{} = model) do
     result =
       Repo.transaction(fn ->
+        lock_account(account.id)
+        model = current_model!(model, account.id, :delete)
+
         case Repo.delete(model) do
           {:ok, deleted} ->
-            ensure_default(account.id)
+            ensure_default(account.id, model.category)
             deleted
 
           {:error, changeset} ->
@@ -150,41 +175,81 @@ defmodule Glossia.LLMModels do
     LLMModel.changeset(model, attrs, opts)
   end
 
-  defp account_has_models?(account_id) do
-    Repo.exists?(from m in LLMModel, where: m.account_id == ^account_id)
+  defp account_has_models?(account_id, category) do
+    Repo.exists?(
+      from m in LLMModel, where: m.account_id == ^account_id and m.category == ^category
+    )
   end
 
-  defp clear_default(account_id) do
+  defp clear_default(account_id, category) do
     Repo.update_all(
-      from(m in LLMModel, where: m.account_id == ^account_id and m.default == true),
+      from(m in LLMModel,
+        where: m.account_id == ^account_id and m.category == ^category and m.default == true
+      ),
       set: [default: false]
     )
   end
 
-  defp ensure_default(account_id) do
-    if account_has_models?(account_id) and not explicitly_defaulted?(account_id) do
+  defp ensure_default(account_id, category) do
+    if account_has_models?(account_id, category) and
+         not explicitly_defaulted?(account_id, category) do
       account_id
-      |> first_model()
+      |> first_model(category)
       |> Ecto.Changeset.change(default: true)
       |> Repo.update!()
     end
   end
 
-  defp explicitly_defaulted?(account_id) do
+  defp explicitly_defaulted?(account_id, category) do
     Repo.exists?(
       from m in LLMModel,
-        where: m.account_id == ^account_id and m.default == true
+        where: m.account_id == ^account_id and m.category == ^category and m.default == true
     )
   end
 
-  defp first_model(account_id) do
+  defp first_model(account_id, category) do
     Repo.one!(
       from m in LLMModel,
-        where: m.account_id == ^account_id,
+        where: m.account_id == ^account_id and m.category == ^category,
         order_by: [asc: m.handle],
         limit: 1
     )
   end
+
+  defp current_model!(model, account_id, action) do
+    case get_model(model.id, account_id) do
+      nil ->
+        changeset =
+          model
+          |> Ecto.Changeset.change()
+          |> Ecto.Changeset.add_error(:base, "model no longer exists")
+
+        Repo.rollback(%{changeset | action: action})
+
+      current ->
+        current
+    end
+  end
+
+  defp lock_account(account_id) do
+    Repo.one!(from a in Account, where: a.id == ^account_id, lock: "FOR UPDATE")
+  end
+
+  defp prevent_routed_decision_model(changeset, model, "decision") do
+    if Repo.exists?(
+         from r in Glossia.Accounts.TranslationRoutingRule, where: r.llm_model_id == ^model.id
+       ) do
+      Ecto.Changeset.add_error(
+        changeset,
+        :category,
+        "remove translation routing rules before changing this model to a decision model"
+      )
+    else
+      changeset
+    end
+  end
+
+  defp prevent_routed_decision_model(changeset, _model, _category), do: changeset
 
   defp requested_default?(attrs) do
     Map.get(attrs, "default") in [true, "true", 1, "1"] or

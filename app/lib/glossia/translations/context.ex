@@ -74,7 +74,8 @@ defmodule Glossia.Translations.Context do
      %{
        compiler_version: @compiler_version,
        voice_version: Voices.latest_voice_version(account),
-       glossary_version: Glossaries.latest_glossary_version(account)
+       glossary_version: Glossaries.latest_glossary_version(account),
+       decision_model: Glossia.Decisions.configuration(account)
      }}
   end
 
