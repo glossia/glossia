@@ -1,6 +1,7 @@
 defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
   use GlossiaWeb.ConnCase, async: true
 
+  alias Glossia.MemberPermissions
   alias Glossia.Organizations
   alias Glossia.TestHelpers
 
@@ -171,13 +172,52 @@ defmodule GlossiaWeb.Api.OrganizationApiControllerTest do
       assert length(members) == 2
     end
 
-    test "returns members for member", %{conn: conn, member: member, org_account: org_account} do
+    test "returns 403 for a member with basic permissions", %{
+      conn: conn,
+      member: member,
+      org_account: org_account
+    } do
       conn =
         conn
         |> TestHelpers.authenticate(member, @scopes)
-        |> get("/api/organizations/#{org_account.handle}/members")
+        |> get(~p"/api/organizations/#{org_account.handle}/members")
 
-      assert %{"members" => _} = json_response(conn, 200)
+      assert json_response(conn, 403)
+    end
+
+    test "returns members after member read access is granted", %{
+      conn: conn,
+      admin: admin,
+      member: member,
+      org: org,
+      org_account: org_account
+    } do
+      assert {:ok, _} = MemberPermissions.update(org, admin, member, ["members:read"])
+
+      conn =
+        conn
+        |> TestHelpers.authenticate(member, @scopes)
+        |> get(~p"/api/organizations/#{org_account.handle}/members")
+
+      assert %{"members" => members} = json_response(conn, 200)
+      assert length(members) == 2
+    end
+
+    test "member read access still requires the token scope", %{
+      conn: conn,
+      admin: admin,
+      member: member,
+      org: org,
+      org_account: org_account
+    } do
+      assert {:ok, _} = MemberPermissions.update(org, admin, member, ["members:read"])
+
+      conn =
+        conn
+        |> TestHelpers.authenticate(member, ["organization:read"])
+        |> get(~p"/api/organizations/#{org_account.handle}/members")
+
+      assert json_response(conn, 403)
     end
 
     test "returns 403 for outsider", %{conn: conn, outsider: outsider, org_account: org_account} do
