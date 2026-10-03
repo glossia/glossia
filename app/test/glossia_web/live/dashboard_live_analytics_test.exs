@@ -2,11 +2,14 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
   use GlossiaWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
+  import Mimic
 
   alias Glossia.Analytics.Settings
   alias Glossia.Projects
   alias Glossia.Repo
   alias Glossia.TestHelpers
+
+  setup :verify_on_exit!
 
   setup %{conn: conn} do
     user = TestHelpers.create_user("dashboard-analytics@test.com", "dashboard-analytics")
@@ -65,6 +68,127 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
              ~s(href="/#{user.account.handle}/#{project.handle}/-/settings/analytics")
 
     refute html =~ ~s(<span data-part="label">General</span>)
+  end
+
+  test "verifies ownership from settings and unlocks the analytics dashboard", %{
+    conn: conn,
+    project: project,
+    user: user
+  } do
+    domain = "verified-#{project.id}.example.com"
+    {:ok, settings} = Settings.upsert_for_project(project.id, %{domain: domain})
+
+    expect(Glossia.Analytics.Verification, :verify, fn received_domain, token ->
+      assert received_domain == domain
+      assert token == settings.verification_token
+      :ok
+    end)
+
+    {:ok, view, _html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/settings/analytics")
+
+    assert has_element?(view, "#analytics-verification-record-type", "TXT")
+    assert has_element?(view, "#analytics-verification-record-name", "_glossia-verify.#{domain}")
+
+    assert has_element?(
+             view,
+             "#analytics-verification-record-value",
+             "glossia-site-verification=#{settings.verification_token}"
+           )
+
+    assert has_element?(
+             view,
+             "#copy-analytics-verification-record-value[data-value='glossia-site-verification=#{settings.verification_token}']"
+           )
+
+    refute has_element?(view, "#analytics-settings-form #analytics-domain-verification")
+    assert has_element?(view, "#analytics-verification-meta-alternative:not([open])")
+    assert has_element?(view, "#analytics-verification-meta-tag", settings.verification_token)
+    view |> element("#verify-analytics-domain-btn") |> render_click()
+
+    assert Settings.get_for_project(project.id).verified_at
+    assert has_element?(view, "#analytics-domain-verification", "Domain verified")
+    refute has_element?(view, "#verify-analytics-domain-btn")
+    assert Settings.fetch_for_collection(domain).project_id == project.id
+
+    {:ok, dashboard, _html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/analytics")
+
+    refute has_element?(dashboard, "#analytics-setup-empty-state")
+    assert has_element?(dashboard, "#analytics-traffic")
+
+    view
+    |> form("#analytics-settings-form", analytics: %{domain: "changed.example.com"})
+    |> render_submit()
+
+    updated = Settings.get_for_project(project.id)
+    refute updated.verified_at
+    refute updated.verification_token == settings.verification_token
+
+    assert has_element?(
+             view,
+             "#analytics-verification-record-name",
+             "_glossia-verify.changed.example.com"
+           )
+
+    assert has_element?(
+             view,
+             "#analytics-verification-record-value",
+             "glossia-site-verification=#{updated.verification_token}"
+           )
+
+    assert has_element?(view, "#analytics-verification-meta-tag", updated.verification_token)
+    assert has_element?(view, "#verify-analytics-domain-btn")
+  end
+
+  test "failed ownership verification keeps collection and dashboard gated", %{
+    conn: conn,
+    project: project,
+    user: user
+  } do
+    domain = "unverified-#{project.id}.example.com"
+    {:ok, _settings} = Settings.upsert_for_project(project.id, %{domain: domain})
+    expect(Glossia.Analytics.Verification, :verify, fn ^domain, _token -> :error end)
+
+    {:ok, view, _html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/settings/analytics")
+
+    view |> element("#verify-analytics-domain-btn") |> render_click()
+
+    assert render(view) =~ "Verification not found"
+    assert has_element?(view, "#verify-analytics-domain-btn")
+    refute Settings.get_for_project(project.id).verified_at
+    refute Settings.fetch_for_collection(domain)
+  end
+
+  test "members cannot verify a domain through a forged dashboard event", %{
+    conn: conn,
+    project: project,
+    user: user
+  } do
+    {:ok, _settings} =
+      Settings.upsert_for_project(project.id, %{domain: "member-#{project.id}.example.com"})
+
+    reject(Glossia.Analytics.Verification, :verify, 2)
+    member = TestHelpers.create_user("analytics-member@test.com", "analytics-member")
+    organization = Glossia.Organizations.get_organization_for_account(user.account)
+    {:ok, _membership} = Glossia.Organizations.add_member(organization, member, "member")
+    conn = init_test_session(conn, %{user_id: member.id})
+
+    {:ok, view, _html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/analytics")
+
+    render_click(view, "verify_analytics_domain")
+    assert has_element?(view, "#flash-error", "You don't have permission.")
+    refute Settings.get_for_project(project.id).verified_at
+  end
+
+  test "verification requires saved settings", %{conn: conn, project: project, user: user} do
+    {:ok, view, _html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/settings/analytics")
+
+    refute has_element?(view, "#analytics-domain-verification")
+    assert render_click(view, "verify_analytics_domain") =~ "Save an analytics domain"
   end
 
   test "keeps analytics configuration out of general project settings", %{

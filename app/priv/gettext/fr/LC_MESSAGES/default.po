@@ -3599,11 +3599,6 @@ msgstr "Guides"
 msgid "Install snippet"
 msgstr "Installer un extrait"
 
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "Install the snippet on %{domain}, then return here once the domain has been verified."
-msgstr "Installez l'extrait sur %{domain}, puis revenez ici une fois le domaine vérifié."
-
 #: lib/glossia_web/live/profile_live.ex
 #, elixir-autogen, elixir-format
 msgid "Language updated."
@@ -4952,6 +4947,7 @@ msgid "Authentication settings saved."
 msgstr ""
 
 #: lib/glossia_web/live/authentication_settings_live.ex
+#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Awaiting verification"
 msgstr ""
@@ -5053,11 +5049,13 @@ msgid "Permissions"
 msgstr ""
 
 #: lib/glossia_web/live/authentication_settings_live.ex
+#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Record name"
 msgstr ""
 
 #: lib/glossia_web/live/authentication_settings_live.ex
+#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Record value"
 msgstr ""
@@ -5104,16 +5102,19 @@ msgid "Verification record was not found. Check the name and value, then try aga
 msgstr ""
 
 #: lib/glossia_web/live/authentication_settings_live.ex
+#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Verified"
 msgstr ""
 
 #: lib/glossia_web/live/authentication_settings_live.ex
+#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Verify domain"
 msgstr ""
 
 #: lib/glossia_web/live/authentication_settings_live.ex
+#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Verify domain ownership"
 msgstr ""
@@ -5246,4 +5247,49 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Use lowercase letters, numbers, and hyphens. The default decision model evaluates translations independently of generative model handles."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Add this text record with your domain provider to prove you control %{domain}. Events are only recorded after verification. Record changes may take time to become available."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Alternative: verify with a homepage meta tag"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Domain verified. Web analytics is ready to collect events."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "If you cannot edit your domain records, add this meta tag to the head of your homepage on %{domain} and publish it. Glossia checks this domain, so adding the tag to another site does not verify ownership."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Record type"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Save an analytics domain before verifying it."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Verification not found. Check your domain text record or homepage meta tag, allow time for changes to become available, then try again."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Verify %{domain} in analytics settings to start recording events from your snippet."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Verifying…"
 msgstr ""
