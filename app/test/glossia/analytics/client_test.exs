@@ -57,6 +57,12 @@ defmodule Glossia.Analytics.ClientTest do
       assert Client.parse_languages("fr") == ["fr"]
     end
 
+    test "drops POSIX modifiers and normalizes underscore separators" do
+      assert Client.parse_languages("en-US@POSIX") == ["en-US"]
+      assert Client.parse_languages("en_GB") == ["en-GB"]
+      assert Client.parse_languages("es_419") == ["es-419"]
+    end
+
     test "drops empty tokens and wildcards" do
       assert Client.parse_languages("*") == []
       assert Client.parse_languages("en,,*,de") == ["en", "de"]

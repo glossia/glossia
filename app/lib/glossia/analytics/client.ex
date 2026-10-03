@@ -125,7 +125,17 @@ defmodule Glossia.Analytics.Client do
 
   defp parse_language_token(token) do
     [tag | _] = String.split(token, ";")
-    tag = tag |> String.trim() |> String.downcase()
+
+    # Browsers occasionally report POSIX-style tags such as `en-US@POSIX`, and
+    # some clients use `_` as the region separator. Drop the modifier and
+    # normalize the separator so the tag lines up with Glossia locales.
+    tag =
+      tag
+      |> String.trim()
+      |> String.split("@")
+      |> List.first()
+      |> String.replace("_", "-")
+      |> String.downcase()
 
     cond do
       tag == "" -> nil
