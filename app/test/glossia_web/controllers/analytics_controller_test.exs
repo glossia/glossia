@@ -165,6 +165,64 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
            ) == [%{country_code: "DE", visits: 1}]
   end
 
+  test "records actual page language and uses advertised translations without setup targets",
+       ctx do
+    %{conn: conn, project: project, domain: domain} = ctx
+    project |> Ecto.Changeset.change(setup_target_languages: []) |> Glossia.Repo.update!()
+    Glossia.Analytics.SettingsCache.delete(domain)
+
+    conn =
+      conn
+      |> put_req_header("cf-connecting-ip", "8.8.8.8")
+      |> post("/v1/collect", %{
+        "d" => domain,
+        "u" => "https://#{domain}/languages",
+        "l" => "es-MX",
+        "sl" => "en",
+        "al" => "en,es,zh-Hans"
+      })
+
+    assert conn.status == 202
+    [event] = from(e in Event, where: e.hostname == ^domain) |> ClickHouseRepo.all()
+    assert event.browser_language == "es-MX"
+    assert event.served_locale == "en"
+    assert event.has_locale_gap == 0
+  end
+
+  test "the served page language prevents a false gap for the source language", ctx do
+    %{conn: conn, domain: domain} = ctx
+
+    conn =
+      post(conn, "/v1/collect", %{
+        "d" => domain,
+        "u" => "https://#{domain}/source",
+        "l" => "en-US",
+        "sl" => "en"
+      })
+
+    assert conn.status == 202
+    [event] = from(e in Event, where: e.hostname == ^domain) |> ClickHouseRepo.all()
+    assert event.served_locale == "en"
+    assert event.has_locale_gap == 0
+  end
+
+  test "an unsupported visitor language still has a gap even when a page was served", ctx do
+    %{conn: conn, domain: domain} = ctx
+
+    conn =
+      post(conn, "/v1/collect", %{
+        "d" => domain,
+        "u" => "https://#{domain}/gap",
+        "l" => "ja",
+        "sl" => "en"
+      })
+
+    assert conn.status == 202
+    [event] = from(e in Event, where: e.hostname == ^domain) |> ClickHouseRepo.all()
+    assert event.served_locale == "en"
+    assert event.has_locale_gap == 1
+  end
+
   test "returns 202 without recording for an unknown domain", %{conn: conn, domain: domain} do
     unknown = "not-registered-#{System.unique_integer()}.com"
     conn = post(conn, "/api/analytics/events", %{"d" => unknown})

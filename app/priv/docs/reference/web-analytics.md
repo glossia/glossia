@@ -26,6 +26,8 @@ The project is resolved by the site domain the snippet declares. `d` is authorit
 | `u`   | string | Page URL (`location.href`).                                  |
 | `r`   | string | Referrer (`document.referrer`).                              |
 | `l`   | string | Browser languages (`navigator.languages.join(",")`).         |
+| `sl`  | string | Actual page language (`document.documentElement.lang`). Empty if undeclared. |
+| `al`  | string | Comma-separated translation languages from `link[rel="alternate"][hreflang]`, excluding `x-default`. |
 | `tz`  | string | IANA timezone (`Intl.DateTimeFormat().resolvedOptions().timeZone`). |
 | `sw`  | number | Screen width in CSS pixels.                                  |
 | `sid` | string | Per-tab session id (sessionStorage, cleared on close).       |
@@ -39,7 +41,7 @@ These are computed at ingestion and stored server-side. The raw IP and User-Agen
 | Field             | Source        | Description                                                         |
 |-------------------|---------------|---------------------------------------------------------------------|
 | `visitor_id`      | HMAC          | Daily-rotated hash of IP + UA + project. Not linkable across days.  |
-| `country_code`    | GeoIP         | ISO 3166-1 alpha-2 code. Empty when GeoIP is not configured.        |
+| `country_code`    | GeoIP         | ISO 3166-1 alpha-2 code. Empty when the address is private, geolocation is disabled, or lookup fails.        |
 | `device`          | User-Agent    | `desktop`, `mobile`, `tablet`, `bot`, or `unknown`.                 |
 | `browser`         | User-Agent    | `chrome`, `safari`, `firefox`, `edge`, `opera`, or `unknown`.       |
 | `os`              | User-Agent    | `windows`, `macos`, `ios`, `android`, `linux`, or `unknown`.        |
@@ -47,8 +49,8 @@ These are computed at ingestion and stored server-side. The raw IP and User-Agen
 | `pathname`        | Page URL      | Path component.                                                     |
 | `referrer_source` | Referrer      | Referrer host, leading `www.`/`m.` stripped.                        |
 | `browser_language`| Languages     | Most preferred normalized locale (e.g. `pt-BR`).                    |
-| `served_locale`   | Computed      | First supported target matching a preferred language, else empty.   |
-| `has_locale_gap`  | Computed      | `1` when the visitor prefers a language the project does not serve. |
+| `served_locale`   | Page language | Normalized `sl`, or empty (shown as Unknown) if it was not collected. |
+| `has_locale_gap`  | Computed      | `1` when none of the visitor's preferred languages match the project targets, advertised translations (`al`), or page language (`sl`). Missing preferences do not count as a gap. |
 
 ## Privacy model
 

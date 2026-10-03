@@ -131,6 +131,8 @@ afterEach(() => {
   // would otherwise be picked up by the next test and hide the id-generation
   // paths under assertion.
   window.sessionStorage.clear();
+  document.documentElement.removeAttribute("lang");
+  document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((link) => link.remove());
 });
 
 // --- Tests ------------------------------------------------------------------
@@ -249,6 +251,36 @@ describe("track() and pageview()", () => {
     const body = await readBeaconBody(sendBeacon.mock.calls[0]);
     expect(body.u).toBe("https://example.com/landing");
     expect(body.r).toBe("https://google.com/search");
+  });
+});
+
+describe("page languages", () => {
+  it("collects the actual page language and advertised translations on each event", async () => {
+    document.documentElement.lang = "en";
+    for (const language of ["en", "es", "zh-Hans", "x-default"]) {
+      const link = document.createElement("link");
+      link.rel = "alternate";
+      link.hreflang = language;
+      document.head.appendChild(link);
+    }
+    const sendBeacon = stubSendBeacon();
+    const { init, pageview } = await loadFresh();
+    init({ domain: "example.com", autoPageviews: false });
+    pageview();
+    expect(await readBeaconBody(sendBeacon.mock.calls[0])).toMatchObject({
+      sl: "en", al: "en,es,zh-Hans",
+    });
+
+    document.documentElement.lang = "es";
+    pageview();
+    expect(await readBeaconBody(sendBeacon.mock.calls[1])).toMatchObject({ sl: "es" });
+  });
+
+  it("reports missing page-language metadata as unknown, not a browser preference", async () => {
+    const sendBeacon = stubSendBeacon();
+    const { init } = await loadFresh();
+    init({ domain: "example.com" });
+    expect(await readBeaconBody(sendBeacon.mock.calls[0])).toMatchObject({ sl: "", al: "" });
   });
 });
 

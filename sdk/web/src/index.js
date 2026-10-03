@@ -30,6 +30,8 @@
  * @property {string} u
  * @property {string} r
  * @property {string} l
+ * @property {string} sl - Actual page language from `<html lang>`.
+ * @property {string} al - Available translations advertised with `hreflang`.
  * @property {string} tz
  * @property {number} sw
  * @property {string} sid
@@ -61,6 +63,18 @@ function browserLanguages() {
     (nav && nav.language ? [nav.language] : []) ||
     [];
   return langs.join(",");
+}
+
+function pageLanguage() {
+  return typeof document !== "undefined" ? document.documentElement?.lang || "" : "";
+}
+
+function availableLanguages() {
+  if (typeof document === "undefined") return "";
+  return [...document.querySelectorAll('link[rel="alternate"][hreflang]')]
+    .map((link) => link.getAttribute("hreflang"))
+    .filter((language) => language && language.toLowerCase() !== "x-default")
+    .join(",");
 }
 
 function timezone() {
@@ -158,6 +172,8 @@ function build(name) {
     u: typeof location !== "undefined" ? location.href : "",
     r: typeof document !== "undefined" ? document.referrer : "",
     l: browserLanguages(),
+    sl: pageLanguage(),
+    al: availableLanguages(),
     tz: timezone(),
     sw: screenWidth(),
     sid: readOrCreateSessionId(),

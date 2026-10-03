@@ -100,10 +100,13 @@ defmodule GlossiaWeb.AnalyticsController do
     ip = ClientIP.value(conn)
     user_agent = conn |> get_req_header("user-agent") |> List.first() || ""
     languages = client_languages(params, conn)
-    target_locales = settings.target_languages || []
+
+    target_locales =
+      (settings.target_languages || []) ++
+        Client.parse_languages(bounded_string(params["al"], 2_048))
 
     {browser_language, served_locale, has_locale_gap} =
-      Client.localize(languages, target_locales)
+      Client.localize(languages, target_locales, bounded_string(params["sl"]))
 
     %{country: country} =
       if ip, do: Geolocation.lookup(ip), else: %{country: nil}
@@ -159,6 +162,7 @@ defmodule GlossiaWeb.AnalyticsController do
     end
   end
 
-  defp bounded_string(nil), do: ""
-  defp bounded_string(value) when is_binary(value), do: String.slice(value, 0, 64)
+  defp bounded_string(value, limit \\ 64)
+  defp bounded_string(value, limit) when is_binary(value), do: String.slice(value, 0, limit)
+  defp bounded_string(_, _limit), do: ""
 end
