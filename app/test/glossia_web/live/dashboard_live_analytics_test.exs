@@ -87,6 +87,22 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
     {:ok, view, _html} =
       live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/settings/analytics")
 
+    assert has_element?(view, "#analytics-verification-record-type", "TXT")
+    assert has_element?(view, "#analytics-verification-record-name", "_glossia-verify.#{domain}")
+
+    assert has_element?(
+             view,
+             "#analytics-verification-record-value",
+             "glossia-site-verification=#{settings.verification_token}"
+           )
+
+    assert has_element?(
+             view,
+             "#copy-analytics-verification-record-value[data-value='glossia-site-verification=#{settings.verification_token}']"
+           )
+
+    refute has_element?(view, "#analytics-settings-form #analytics-domain-verification")
+    assert has_element?(view, "#analytics-verification-meta-alternative:not([open])")
     assert has_element?(view, "#analytics-verification-meta-tag", settings.verification_token)
     view |> element("#verify-analytics-domain-btn") |> render_click()
 
@@ -108,6 +124,19 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
     updated = Settings.get_for_project(project.id)
     refute updated.verified_at
     refute updated.verification_token == settings.verification_token
+
+    assert has_element?(
+             view,
+             "#analytics-verification-record-name",
+             "_glossia-verify.changed.example.com"
+           )
+
+    assert has_element?(
+             view,
+             "#analytics-verification-record-value",
+             "glossia-site-verification=#{updated.verification_token}"
+           )
+
     assert has_element?(view, "#analytics-verification-meta-tag", updated.verification_token)
     assert has_element?(view, "#verify-analytics-domain-btn")
   end

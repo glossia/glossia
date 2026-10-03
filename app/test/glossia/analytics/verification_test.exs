@@ -38,6 +38,16 @@ defmodule Glossia.Analytics.VerificationTest do
   end
 
   describe "check_meta_tag/2" do
+    test "checks the configured domain rather than any site displaying the token" do
+      token = unique_token()
+
+      expect(Req, :get, fn "https://example.com/", _opts ->
+        {:ok, %{status: 200, body: "<html></html>"}}
+      end)
+
+      assert Verification.check_meta_tag("example.com", token) == :error
+    end
+
     test "returns :ok when the meta tag is present" do
       token = unique_token()
 

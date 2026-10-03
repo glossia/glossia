@@ -41,14 +41,20 @@ defmodule Glossia.Analytics.Verification do
     end
   end
 
+  @doc "Returns the full domain text record name used for ownership verification."
+  def record_name(domain), do: "#{@dns_prefix}.#{domain}"
+
+  @doc "Returns the domain text record value containing the project's verification token."
+  def record_value(token), do: "#{@dns_record_tag}#{token}"
+
   @doc """
   Looks for a TXT record on `_glossia-verify.<domain>` whose value contains
   the token. Returns `:ok` on match, `:error` otherwise.
   """
   def check_dns(domain, token) do
-    case lookup_txt("#{@dns_prefix}.#{domain}") do
+    case lookup_txt(record_name(domain)) do
       {:ok, records} ->
-        if Enum.any?(records, &String.contains?(&1, "#{@dns_record_tag}#{token}")) do
+        if Enum.any?(records, &String.contains?(&1, record_value(token))) do
           :ok
         else
           :error

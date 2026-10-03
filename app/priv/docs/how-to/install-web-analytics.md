@@ -49,13 +49,25 @@ glossia.track("signup");
 
 ## Verify your domain
 
-In your project's **Analytics settings**, save your site domain. Copy the generated verification meta tag into the `<head>` of your homepage and publish it:
+In your project's **Analytics settings**, save your site domain. The **Verify domain ownership** card shows the exact record name and value for your project. Add a text record with your domain provider:
+
+| Field | Value |
+| --- | --- |
+| Type | `TXT` ([text record](https://www.cloudflare.com/learning/dns/dns-records/dns-txt-record/)) |
+| Name | `_glossia-verify.example.com` |
+| Value | `glossia-site-verification=YOUR_VERIFICATION_TOKEN` |
+
+Use the domain and token shown in your settings. Some providers add the domain automatically; in that case enter only `_glossia-verify` as the name. After publishing the record, click **Verify domain**. Changes may take time to become available, so retry if the record is not found immediately.
+
+If you cannot edit your domain records, expand **Alternative: verify with a homepage meta tag**. Copy the generated tag into the `<head>` of your homepage and publish it:
 
 ```html
 <meta name="glossia-site-verification" content="YOUR_VERIFICATION_TOKEN">
 ```
 
-Use the token shown in your settings, then click **Verify domain**. Once the domain is verified, Glossia records events from your tracking snippet. The snippet alone does not verify ownership. Changing the configured domain requires verification again.
+Either method proves control over the configured domain. Glossia checks that domain's record or homepage, so copying the token onto another website does not verify ownership. The token is public proof, not a password.
+
+Once the domain is verified, Glossia records events from your tracking snippet. The snippet alone does not verify ownership. Changing the configured domain requires verification again.
 
 ## Verify it works
 
