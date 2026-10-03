@@ -4,6 +4,7 @@ defmodule Glossia.Analytics.VerificationTest do
   import Mimic
 
   alias Glossia.Analytics.Verification
+  alias Glossia.Analytics.Verification.DNSResolver
 
   setup :verify_on_exit!
 
@@ -11,8 +12,8 @@ defmodule Glossia.Analytics.VerificationTest do
     test "returns :ok when the TXT record carries the expected token" do
       token = unique_token()
 
-      expect(MuonTrap, :cmd, fn "dig", ["+short", "TXT", "_glossia-verify.example.com"], _opts ->
-        {~s("glossia-site-verification=#{token}" <> "\n"), 0}
+      expect(DNSResolver, :lookup_txt, fn "_glossia-verify.example.com" ->
+        {:ok, ["glossia-site-verification=" <> token]}
       end)
 
       assert Verification.check_dns("example.com", token) == :ok
@@ -21,17 +22,15 @@ defmodule Glossia.Analytics.VerificationTest do
     test "ignores unrelated TXT records on the same subdomain" do
       token = unique_token()
 
-      expect(MuonTrap, :cmd, fn "dig", ["+short", "TXT", "_glossia-verify.example.com"], _opts ->
-        {~s("v=spf1 -all"\n"unrelated=value"\n), 0}
+      expect(DNSResolver, :lookup_txt, fn "_glossia-verify.example.com" ->
+        {:ok, ["v=spf1 -all", "unrelated=value"]}
       end)
 
       assert Verification.check_dns("example.com", token) == :error
     end
 
-    test "returns :error when dig exits non-zero" do
-      expect(MuonTrap, :cmd, fn "dig", ["+short", "TXT", "_glossia-verify.example.com"], _opts ->
-        {"", 9}
-      end)
+    test "returns :error when the resolver fails" do
+      expect(DNSResolver, :lookup_txt, fn "_glossia-verify.example.com" -> :error end)
 
       assert Verification.check_dns("example.com", unique_token()) == :error
     end
@@ -89,8 +88,8 @@ defmodule Glossia.Analytics.VerificationTest do
     test "passes when only the DNS check confirms ownership" do
       token = unique_token()
 
-      expect(MuonTrap, :cmd, fn "dig", ["+short", "TXT", "_glossia-verify.example.com"], _opts ->
-        {~s("glossia-site-verification=#{token}" <> "\n"), 0}
+      expect(DNSResolver, :lookup_txt, fn "_glossia-verify.example.com" ->
+        {:ok, ["glossia-site-verification=" <> token]}
       end)
 
       stub(Req, :get, fn _url, _opts -> {:error, %Req.TransportError{reason: :closed}} end)
@@ -102,9 +101,7 @@ defmodule Glossia.Analytics.VerificationTest do
       token = unique_token()
       body = ~s(<meta name="glossia-site-verification" content="#{token}">)
 
-      expect(MuonTrap, :cmd, fn "dig", ["+short", "TXT", "_glossia-verify.example.com"], _opts ->
-        {"", 9}
-      end)
+      expect(DNSResolver, :lookup_txt, fn "_glossia-verify.example.com" -> {:ok, []} end)
 
       stub(Req, :get, fn _url, _opts -> {:ok, %{status: 200, body: body}} end)
 
@@ -112,7 +109,7 @@ defmodule Glossia.Analytics.VerificationTest do
     end
 
     test "fails when neither check confirms ownership" do
-      expect(MuonTrap, :cmd, fn _cmd, _args, _opts -> {"", 9} end)
+      expect(DNSResolver, :lookup_txt, fn _name -> {:ok, []} end)
       stub(Req, :get, fn _url, _opts -> {:ok, %{status: 200, body: "<html></html>"}} end)
 
       assert Verification.verify("example.com", unique_token()) == :error
