@@ -115,6 +115,31 @@ defmodule GlossiaWeb.Api.TranslationControllerTest do
       assert message =~ "not found"
     end
 
+    test "422 when translation quality still fails", %{conn: conn, owner: owner} do
+      Mimic.expect(Translations, :translate, fn _, _ ->
+        {:error, {:validation_failed, "Translation quality failed: Meaning preservation"}}
+      end)
+
+      conn =
+        conn |> TestHelpers.authenticate(owner, @scopes) |> post(translate_path(owner), payload())
+
+      assert %{"error" => %{"message" => message}} = json_response(conn, 422)
+      assert message =~ "Meaning preservation"
+    end
+
+    test "502 sanitizes decision provider failures", %{conn: conn, owner: owner} do
+      Mimic.expect(Translations, :translate, fn _, _ ->
+        {:error, {:decision_evaluation_failed, "secret provider response"}}
+      end)
+
+      conn =
+        conn |> TestHelpers.authenticate(owner, @scopes) |> post(translate_path(owner), payload())
+
+      assert %{
+               "error" => %{"message" => "Translation quality assessment could not be completed."}
+             } = json_response(conn, 502)
+    end
+
     test "502 when the model call fails", %{conn: conn, owner: owner} do
       Mimic.stub(Translations, :translate, fn _account, _params ->
         {:error, {:llm_failed, "boom"}}

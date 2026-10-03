@@ -18,6 +18,47 @@ defmodule Glossia.Translations.LocksTest do
     )
   end
 
+  test "decision configuration invalidates accepted translations without changing unconfigured hashes" do
+    input = %{
+      format: "text",
+      source_path: "guide.txt",
+      source_content: "Hello",
+      provider: "openai",
+      model: "writer",
+      source_language: "en",
+      language: "Spanish",
+      locale: "es",
+      frontmatter_mode: :preserve,
+      custom_prompt: nil,
+      context_body: "",
+      locale_override_body: "",
+      server_context: Glossia.Translations.Context.empty_bundle("es")
+    }
+
+    original = Locks.build_hash_state(input)
+    assert original == Locks.build_hash_state(Map.put(input, :decision_model, nil))
+
+    configuration = %{
+      handle: "quality",
+      model: "typesafe/jev-latest",
+      base_url: nil,
+      decision_min_score: 7.0
+    }
+
+    configured = Locks.build_hash_state(Map.put(input, :decision_model, configuration))
+    refute original.hash == configured.hash
+
+    changed =
+      Locks.build_hash_state(
+        Map.put(input, :decision_model, %{configuration | decision_min_score: 8.0})
+      )
+
+    refute changed.hash == configured.hash
+    lock = %{"hash_tree" => original.tree}
+    assert Locks.context_stale?(lock, configured)
+    assert Locks.context_stale?(%{"hash_tree" => configured.tree}, original)
+  end
+
   describe "add_baseline/2" do
     test "attaches every baseline field on a freshly written lock" do
       lock =

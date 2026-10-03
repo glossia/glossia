@@ -6,6 +6,53 @@ defmodule GlossiaWeb.DashboardLiveModelsTest do
   alias Glossia.Accounts.LLMModel
   alias Glossia.TestHelpers
 
+  test "creates a Jev decision model without changing the generative default", %{conn: conn} do
+    user = TestHelpers.create_user("decision-form@test.com", "decision-form")
+
+    {:ok, writer} =
+      Glossia.LLMModels.create_model(user.account, user, %{
+        handle: "writer",
+        model: "openai/gpt-4o",
+        api_key: "secret"
+      })
+
+    {:ok, view, _} =
+      live(
+        init_test_session(conn, %{user_id: user.id}),
+        "/#{user.account.handle}/-/settings/models/new"
+      )
+
+    view
+    |> form("#model-form", %{
+      "model" => %{
+        "category" => "decision",
+        "handle" => "quality",
+        "model" => "",
+        "api_key" => "secret"
+      }
+    })
+    |> render_change()
+
+    assert has_element?(view, "#model-decision-model[value='typesafe/jev-latest']")
+    refute has_element?(view, "#model-translation-concurrency")
+
+    view
+    |> form("#model-form", %{
+      "model" => %{
+        "category" => "decision",
+        "handle" => "quality",
+        "model" => "typesafe/jev-latest",
+        "api_key" => "secret",
+        "decision_min_score" => "8"
+      }
+    })
+    |> render_submit()
+
+    assert Glossia.LLMModels.default_model(user.account).id == writer.id
+    assert Glossia.LLMModels.default_model(user.account, "decision").decision_min_score == 8.0
+    assert render(view) =~ "Decision"
+  end
+
   test "stale sessions sign in before opening model settings", %{conn: conn} do
     path = "/dev/-/settings/models"
 
@@ -34,6 +81,7 @@ defmodule GlossiaWeb.DashboardLiveModelsTest do
 
     option_count =
       LLMModel.available_models()
+      |> Enum.reject(fn {provider, _} -> provider == "TypeSafe" end)
       |> Enum.map(fn {_provider, models} -> length(models) end)
       |> Enum.sum()
 

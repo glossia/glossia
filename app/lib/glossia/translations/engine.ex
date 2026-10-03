@@ -36,6 +36,7 @@ defmodule Glossia.Translations.Engine do
   alias Glossia.Translations.JsonArray
   alias Glossia.Translations.Markdown
   alias Glossia.Translations.Po
+  alias Glossia.Translations.Quality
   alias Glossia.Translations.PreservedTokens
 
   @doc """
@@ -65,35 +66,37 @@ defmodule Glossia.Translations.Engine do
   defp apply_item_with_context(work_item, account, on_event, validate, opts, server_context) do
     case File.read(work_item.source_abs) do
       {:ok, source_text} ->
-        preserve_kinds = PreservedTokens.resolve(work_item.preserve || [])
-        translation = prepare_translation(work_item, source_text, preserve_kinds)
+        with :ok <- Quality.preflight(work_item, source_text) do
+          preserve_kinds = PreservedTokens.resolve(work_item.preserve || [])
+          translation = prepare_translation(work_item, source_text, preserve_kinds)
 
-        {segments, context_budget} =
-          attach_server_context(
-            translation.segments,
-            server_context,
-            work_item.preserve || []
-          )
+          {segments, context_budget} =
+            attach_server_context(
+              translation.segments,
+              server_context,
+              work_item.preserve || []
+            )
 
-        if context_budget_clipped?(context_budget) do
-          on_event.({:context_budget, context_budget})
+          if context_budget_clipped?(context_budget) do
+            on_event.({:context_budget, context_budget})
+          end
+
+          run_attempt(%{
+            account: account,
+            work_item: work_item,
+            segments: segments,
+            preserve_kinds: segment_preserve_kinds(work_item.format, preserve_kinds),
+            protections: translation.protections,
+            preserved_frontmatter: translation.preserved_frontmatter,
+            source_text: source_text,
+            on_event: on_event,
+            validate: validate,
+            attempt: 0,
+            max_attempt: work_item.retries || 0,
+            last_error: nil,
+            translation_opts: opts
+          })
         end
-
-        run_attempt(%{
-          account: account,
-          work_item: work_item,
-          segments: segments,
-          preserve_kinds: segment_preserve_kinds(work_item.format, preserve_kinds),
-          protections: translation.protections,
-          preserved_frontmatter: translation.preserved_frontmatter,
-          source_text: source_text,
-          on_event: on_event,
-          validate: validate,
-          attempt: 0,
-          max_attempt: work_item.retries || 0,
-          last_error: nil,
-          translation_opts: opts
-        })
 
       {:error, reason} ->
         {:error, {:source_unreadable, reason}}
@@ -118,17 +121,7 @@ defmodule Glossia.Translations.Engine do
 
             case state.validate.(final, state.source_text) do
               :ok ->
-                state.on_event.({:translation_output, final})
-
-                {:ok,
-                 %{
-                   text: final,
-                   output_path: state.work_item.output_path,
-                   output_abs: state.work_item.output_abs,
-                   locale: state.work_item.locale,
-                   model: translated.model,
-                   provider: translated.provider
-                 }}
+                assess_quality(state, final, translated)
 
               {:error, message} ->
                 retry_validation(state, message, "output_validation")
@@ -147,6 +140,39 @@ defmodule Glossia.Translations.Engine do
 
       {:error, reason} ->
         {:error, {:llm_failed, reason}}
+    end
+  end
+
+  defp assess_quality(state, final, translated) do
+    case Quality.assess(
+           state.work_item,
+           state.account,
+           state.source_text,
+           final,
+           state.translation_opts
+         ) do
+      {:ok, report} ->
+        if report, do: state.on_event.({:quality_assessed, report})
+
+        if is_nil(report) or report.passed do
+          state.on_event.({:translation_output, final})
+
+          {:ok,
+           %{
+             text: final,
+             output_path: state.work_item.output_path,
+             output_abs: state.work_item.output_abs,
+             locale: state.work_item.locale,
+             model: translated.model,
+             provider: translated.provider,
+             quality: report
+           }}
+        else
+          retry_validation(state, Quality.feedback(report), "translation_quality")
+        end
+
+      {:error, reason} ->
+        {:error, {:decision_evaluation_failed, reason}}
     end
   end
 

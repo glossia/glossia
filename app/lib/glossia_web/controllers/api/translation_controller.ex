@@ -43,6 +43,23 @@ defmodule GlossiaWeb.Api.TranslationController do
         |> put_status(:unprocessable_entity)
         |> json(error_response("unsupported format: #{format}"))
 
+      {:error, {:validation_failed, message}} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(error_response(message))
+
+      {:error, {:decision_evaluation_failed, :decision_input_too_large}} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(
+          error_response("Document too large to assess. Reduce the document or context size.")
+        )
+
+      {:error, {:decision_evaluation_failed, _reason}} ->
+        conn
+        |> put_status(:bad_gateway)
+        |> json(error_response("Translation quality assessment could not be completed."))
+
       {:error, {:llm_failed, reason}} ->
         conn
         |> put_status(:bad_gateway)

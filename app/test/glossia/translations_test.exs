@@ -57,6 +57,123 @@ defmodule Glossia.TranslationsTest do
     end
   end
 
+  describe "translate/2 decision assessment" do
+    setup %{user: user, account: account} do
+      {:ok, _} =
+        LLMModels.create_model(account, user, %{
+          handle: "translator",
+          model: "openai/gpt-4o",
+          api_key: "writer-secret"
+        })
+
+      {:ok, _} =
+        LLMModels.create_model(account, user, %{
+          handle: "quality",
+          category: "decision",
+          model: "typesafe/jev-latest",
+          api_key: "decision-secret"
+        })
+
+      Mimic.stub(ReqLLM, :generate_text, fn _model, _messages, _opts -> {:ok, :response} end)
+      Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
+      Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola" end)
+      :ok
+    end
+
+    defp decision_response(request, score) do
+      answers =
+        Map.new(request[:json].questions, fn {key, question} ->
+          answer =
+            case question.type do
+              "score" -> %{type: "score", score: score, confidence: 0.9}
+              "choice" -> %{type: "choice", choice: "none", confidence: 0.9}
+            end
+
+          {key, answer}
+        end)
+
+      %Req.Response{status: 200, body: JSON.decode!(JSON.encode!(%{answers: answers}))}
+    end
+
+    test "the content endpoint retries with assessment feedback", %{account: account} do
+      Mimic.expect(Req, :post, fn _url, request ->
+        assert request[:json].state.translation == "Hola"
+        {:ok, decision_response(request, 2)}
+      end)
+
+      Mimic.expect(ReqLLM, :generate_text, 2, fn _model, messages, _opts ->
+        if Enum.any?(messages, &(inspect(&1) =~ "Translation quality")) do
+          send(self(), :correction_received)
+        end
+
+        {:ok, :response}
+      end)
+
+      Mimic.expect(Req, :post, fn _url, request ->
+        {:ok, decision_response(request, 8)}
+      end)
+
+      assert {:ok, %{text: "Hola"}} = Translations.translate(account, payload(%{}))
+      assert_received :correction_received
+    end
+
+    test "quality rejection exhausts a bounded correction budget", %{account: account} do
+      Mimic.expect(Req, :post, 4, fn _url, request ->
+        {:ok, decision_response(request, 2)}
+      end)
+
+      assert {:error, {:validation_failed, feedback}} =
+               Translations.translate(account, payload(%{}))
+
+      assert feedback =~ "Translation quality"
+    end
+
+    test "fragment requests defer assessment to the assembled-document pipeline", %{
+      account: account
+    } do
+      Mimic.reject(Req, :post, 2)
+
+      for fragment <- [%{"segment_count" => 2}, %{"segment_kind" => "po_text_literals"}] do
+        assert {:ok, %{text: "Hola"}} = Translations.translate(account, payload(fragment))
+      end
+    end
+
+    test "supplied context and validation feedback survive quality retries", %{account: account} do
+      Mimic.expect(ReqLLM, :generate_text, 2, fn _model, messages, _opts ->
+        content = inspect(messages)
+        assert content =~ "Use regional wording."
+        assert content =~ "missing preserved token"
+        {:ok, :response}
+      end)
+
+      Mimic.expect(Req, :post, 2, fn _url, request ->
+        assert request[:json].state.supplemental_context == "Use regional wording."
+        {:ok, decision_response(request, 2)}
+      end)
+
+      assert {:error, {:validation_failed, _}} =
+               Translations.translate(
+                 account,
+                 payload(%{
+                   "server_context_body" => "Use regional wording.",
+                   "last_error" => "missing preserved token",
+                   "retries" => 1
+                 })
+               )
+    end
+
+    test "provider failures fail closed without regenerating", %{account: account} do
+      Mimic.expect(ReqLLM, :generate_text, fn _model, _messages, _opts -> {:ok, :response} end)
+
+      Mimic.expect(Req, :post, fn _url, _request ->
+        {:ok, %Req.Response{status: 401, body: %{error: "secret"}}}
+      end)
+
+      assert {:error, {:decision_evaluation_failed, {:decision_request_failed, 401}}} =
+               Translations.translate(account, payload(%{}))
+    end
+  end
+
   describe "translate_stream/4 retries" do
     defp stub_response(text) do
       Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
