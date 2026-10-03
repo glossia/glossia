@@ -197,11 +197,30 @@ defmodule Glossia.Analytics.Client do
     {browser_language, served_locale, has_locale_gap}
   end
 
+  @doc """
+  Enriches a visit with the measured page language, rather than inferring what
+  was served from the project's translation setup. The page language is also
+  evidence of a supported language, even on sites with no setup targets.
+
+  Missing page language stays unknown; it must not be displayed as though the
+  visitor was actually served a matching target locale.
+  """
+  def localize(preferred, target_locales, page_language) do
+    served_locale = page_language |> parse_languages() |> List.first() || ""
+
+    supported =
+      Enum.uniq(target_locales ++ if(served_locale == "", do: [], else: [served_locale]))
+
+    {browser_language, _matched_locale, has_locale_gap} = localize(preferred, supported)
+    {browser_language, served_locale, has_locale_gap}
+  end
+
   defp matches?(target, preferred) do
-    target_base = base_language(target)
+    normalized_target = target |> parse_languages() |> List.first() || ""
+    target_base = base_language(normalized_target)
 
     Enum.any?(preferred, fn locale ->
-      locale == target or base_language(locale) == target_base
+      locale == normalized_target or base_language(locale) == target_base
     end)
   end
 

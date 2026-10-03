@@ -16,12 +16,12 @@ The point of collecting analytics here is narrow and deliberate: to answer "shou
 Three inputs drive the decision:
 
 1. **Demand.** How many visitors want this language? Browser languages and country tell you where the interest is.
-2. **The gap.** Is that demand already served? Comparing preferred languages against your project's target languages reveals the share of traffic hitting a wall.
+2. **The gap.** Is that demand already served? Comparing preferred languages against your project's target languages, the page's language, and its advertised translations reveals the share of traffic hitting a wall.
 3. **Value.** Would localizing pay off? Engagement by locale gap, the pages underserved traffic lands on, and where that traffic comes from indicate whether a new locale converts.
 
 ## Why the gap is computed at ingestion time
 
-`served_locale` and `has_locale_gap` are stored per event, computed against your target languages as they were at the time of the visit. This means historical data reflects the opportunity you faced then, not a recomputation against today's targets. If you add Portuguese next month, last month's gap doesn't retroactively shrink; you keep an honest record of how much demand was going unserved.
+`served_locale` records the actual page language declared in `<html lang>`, not the language we assume a visitor received. `has_locale_gap` compares browser preferences against your project targets, the page language, and translations advertised through `hreflang` links. Both are stored per event as they were at the time of the visit. This means historical data reflects the opportunity you faced then, not a recomputation against today's targets. If you add Portuguese next month, last month's gap doesn't retroactively shrink; you keep an honest record of how much demand was going unserved.
 
 ## Why cookieless, specifically
 

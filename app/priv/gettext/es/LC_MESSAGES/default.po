@@ -3671,18 +3671,8 @@ msgstr "Una vez que el fragmento está activo, las vistas de página aparecerán
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
-msgid "Once the snippet is live, visitor countries will appear here."
-msgstr "Una vez que el fragmento está activo, los países de los visitantes aparecerán aquí."
-
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
 msgid "Once the snippet is live, visitor languages will appear here."
 msgstr "Una vez que el fragmento está activo, los idiomas de los visitantes aparecerán aquí."
-
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "Once visitors land in a language the project does not serve, they will appear here."
-msgstr "Una vez que los visitantes aterricen en un idioma que el proyecto no atiende, aparecerán aquí."
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -5302,4 +5292,14 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "No traffic yet"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Translation opportunities appear once visits include country and language data for an unsupported language."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Visitor countries appear when geolocation succeeds. Visits without a resolved country are not shown."
 msgstr ""

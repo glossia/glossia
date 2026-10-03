@@ -7,12 +7,12 @@ defmodule Glossia.Analytics.Event do
   here. `visitor_id` is a daily-rotated HMAC and cannot be linked across days
   (see `Glossia.Analytics.Identity`).
 
-  The localization columns are computed at ingestion time against the project's
-  current target languages, so historical rows reflect the opportunity *as of
-  the visit*:
+  The localization columns are computed at ingestion time from the page's
+  declared language, advertised translations, and the project's target
+  languages, so historical rows reflect the opportunity *as of the visit*:
 
     * `browser_language` - the visitor's most preferred normalized locale,
-    * `served_locale` - the first supported target that matched, or `""`,
+    * `served_locale` - the actual page language, or `""` when undeclared,
     * `has_locale_gap` - `1` when the visitor wanted a language the project does
       not serve.
 

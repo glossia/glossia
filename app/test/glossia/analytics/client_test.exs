@@ -95,6 +95,27 @@ defmodule Glossia.Analytics.ClientTest do
     end
   end
 
+  describe "localize/3 with a measured page language" do
+    test "records the actual page language rather than an available translation" do
+      assert Client.localize(["de-DE"], ["de", "fr"], "en") == {"de-DE", "en", 0}
+    end
+
+    test "recognizes the source language without any project setup targets" do
+      assert Client.localize(["en-US"], [], "en") == {"en-US", "en", 0}
+      assert Client.localize(["ja"], [], "en") == {"ja", "en", 1}
+    end
+
+    test "uses advertised translations to avoid false gaps" do
+      assert Client.localize(["zh-Hans"], ["en", "zh-hans"], "en") == {"zh-Hans", "en", 0}
+      assert Client.localize(["es-MX"], ["en", "es"], "en") == {"es-MX", "en", 0}
+    end
+
+    test "keeps the actual page language unknown when it was not collected" do
+      assert Client.localize(["de"], ["de"], nil) == {"de", "", 0}
+      assert Client.localize([], [], "en") == {"", "en", 0}
+    end
+  end
+
   describe "parse_user_agent/1" do
     test "classifies a desktop Chrome user agent" do
       ua =

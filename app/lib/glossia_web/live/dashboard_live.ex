@@ -14425,7 +14425,7 @@ defmodule GlossiaWeb.DashboardLive do
                   title={gettext("No locale-gap visits")}
                   subtitle={
                     gettext(
-                      "Once visitors land in a language the project does not serve, they will appear here."
+                      "Translation opportunities appear once visits include country and language data for an unsupported language."
                     )
                   }
                 />
@@ -14511,7 +14511,9 @@ defmodule GlossiaWeb.DashboardLive do
                     icon="world"
                     title={gettext("No country data yet")}
                     subtitle={
-                      gettext("Once the snippet is live, visitor countries will appear here.")
+                      gettext(
+                        "Visitor countries appear when geolocation succeeds. Visits without a resolved country are not shown."
+                      )
                     }
                   />
                 </:empty_state>
@@ -14536,7 +14538,7 @@ defmodule GlossiaWeb.DashboardLive do
               </:col>
               <:col :let={row} label={gettext("Served as")}>
                 <Noora.Table.text_cell label={
-                  if row.served_locale == "", do: gettext("None"), else: row.served_locale
+                  if row.served_locale == "", do: gettext("Unknown"), else: row.served_locale
                 } />
               </:col>
               <:col :let={row} label={gettext("Gap?")}>

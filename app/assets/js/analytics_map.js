@@ -66,6 +66,7 @@ const LocalizationPriorityMap = {
     svg.addEventListener("pointerleave", () => this.hideActiveTooltip())
 
     points.forEach((point) => {
+      if (!point.centroid) return
       const projected = projection(point.centroid)
       if (!projected) return
 
@@ -125,7 +126,7 @@ const LocalizationPriorityMap = {
 
   measureCanvas(canvas) {
     const rect = canvas.getBoundingClientRect()
-    const width = Math.max(320, Math.round(rect.width))
+    const width = Math.max(1, Math.round(rect.width))
     const height = Math.round(width / 2)
     return {width, height}
   },

@@ -95,13 +95,15 @@
     gap: var(--noora-spacing-4);
   }
 
-  /* Cap the map so it reads as a supporting visual instead of pushing the
-   * priority table below the fold on a wide screen. */
+  /* Preserve the projection's proportions while using the full card width.
+   * A height cap makes SVG letterbox horizontally on wide dashboards. */
   & #localization-priority-map-canvas {
     width: 100%;
     aspect-ratio: 2 / 1;
-    min-height: 200px;
-    max-height: 320px;
+
+    & svg {
+      display: block;
+    }
   }
 
   & [data-part="legend"] {
