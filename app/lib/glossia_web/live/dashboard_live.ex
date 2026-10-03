@@ -27,6 +27,7 @@ defmodule GlossiaWeb.DashboardLive do
   @tone_options ~w(casual formal playful authoritative neutral)
   @formality_options ~w(informal neutral formal very_formal)
   @translation_refresh_interval_ms :timer.seconds(3)
+  @analytics_refresh_interval_ms :timer.seconds(10)
 
   # ---------------------------------------------------------------------------
   # Mount
@@ -74,6 +75,7 @@ defmodule GlossiaWeb.DashboardLive do
           socket
       end
 
+    socket = maybe_cancel_analytics_refresh(socket)
     socket = maybe_redirect_to_suggestion_finalize(socket, params)
     socket = schedule_translation_refresh(socket)
 
@@ -1272,67 +1274,16 @@ defmodule GlossiaWeb.DashboardLive do
     end
 
     settings = Glossia.Analytics.Settings.get_for_project(project.id)
-    target_languages = project.setup_target_languages || []
 
-    %{preset: date_preset, period: {since, until} = date_period} =
-      analytics_date_picker_params(params)
+    %{preset: date_preset, period: date_period} = analytics_date_picker_params(params)
 
-    query_opts = [since: since, until: until]
-
-    summary =
-      if settings && settings.verified_at do
-        Glossia.Analytics.Queries.summary(project.id, since, until)
-      else
-        nil
-      end
-
-    top_pages =
-      if settings && settings.verified_at do
-        Glossia.Analytics.Queries.top_pages(project.id, query_opts)
-      else
-        []
-      end
-
-    top_countries =
-      if settings && settings.verified_at do
-        Glossia.Analytics.Queries.top_countries(project.id, query_opts)
-      else
-        []
-      end
-
-    languages =
-      if settings && settings.verified_at do
-        Glossia.Analytics.Queries.browser_languages(project.id, target_languages, query_opts)
-      else
-        []
-      end
-
-    traffic =
-      if settings && settings.verified_at do
-        Glossia.Analytics.Queries.traffic(project.id, query_opts)
-      else
-        %{granularity: "day", points: []}
-      end
-
-    priority =
-      if settings && settings.verified_at do
-        Glossia.Analytics.Queries.localization_priority(project.id, target_languages, query_opts)
-      else
-        []
-      end
-
-    assign(socket,
+    socket
+    |> assign(
       page_title: gettext("Analytics"),
       project: project,
       analytics_settings: settings,
       analytics_date_preset: date_preset,
       analytics_date_period: date_period,
-      analytics_summary: summary,
-      analytics_top_pages: top_pages,
-      analytics_top_countries: top_countries,
-      analytics_languages: languages,
-      analytics_traffic: traffic,
-      analytics_priority: priority,
       breadcrumb_items: [
         {project.handle, "/" <> handle <> "/" <> project.handle},
         {gettext("Analytics"), nil}
@@ -1340,6 +1291,75 @@ defmodule GlossiaWeb.DashboardLive do
       sidebar_context: :project,
       sidebar_project: project
     )
+    |> assign(load_analytics(project, settings, date_period))
+    |> schedule_analytics_refresh()
+  end
+
+  defp load_analytics(project, settings, {since, until}) do
+    if settings && settings.verified_at do
+      target_languages = project.setup_target_languages || []
+      query_opts = [since: since, until: until]
+
+      [
+        analytics_summary: Glossia.Analytics.Queries.summary(project.id, since, until),
+        analytics_top_pages: Glossia.Analytics.Queries.top_pages(project.id, query_opts),
+        analytics_top_countries: Glossia.Analytics.Queries.top_countries(project.id, query_opts),
+        analytics_languages:
+          Glossia.Analytics.Queries.browser_languages(project.id, target_languages, query_opts),
+        analytics_traffic: Glossia.Analytics.Queries.traffic(project.id, query_opts),
+        analytics_priority:
+          Glossia.Analytics.Queries.localization_priority(
+            project.id,
+            target_languages,
+            query_opts
+          )
+      ]
+    else
+      [
+        analytics_summary: nil,
+        analytics_top_pages: [],
+        analytics_top_countries: [],
+        analytics_languages: [],
+        analytics_traffic: %{granularity: "day", points: []},
+        analytics_priority: []
+      ]
+    end
+  end
+
+  # The analytics dashboard refreshes on a timer while it is open, so the "Live"
+  # badge reflects data that keeps arriving without a manual reload. Each timer
+  # carries a generation so a message that is already in the mailbox when the
+  # timer is replaced cannot start a second polling loop.
+  defp schedule_analytics_refresh(socket) do
+    if ref = socket.assigns[:analytics_refresh_ref] do
+      Process.cancel_timer(ref)
+    end
+
+    if connected?(socket) and socket.assigns[:live_action] == :project_analytics do
+      project = socket.assigns[:project]
+      generation = (socket.assigns[:analytics_refresh_generation] || 0) + 1
+
+      ref =
+        Process.send_after(
+          self(),
+          {:refresh_analytics, project.id, generation},
+          @analytics_refresh_interval_ms
+        )
+
+      assign(socket, analytics_refresh_ref: ref, analytics_refresh_generation: generation)
+    else
+      assign(socket, analytics_refresh_ref: nil)
+    end
+  end
+
+  # Cancel the timer when navigation leaves the analytics page so only an open
+  # dashboard polls ClickHouse.
+  defp maybe_cancel_analytics_refresh(%{assigns: %{live_action: :project_analytics}} = socket),
+    do: socket
+
+  defp maybe_cancel_analytics_refresh(socket) do
+    if ref = socket.assigns[:analytics_refresh_ref], do: Process.cancel_timer(ref)
+    assign(socket, analytics_refresh_ref: nil)
   end
 
   defp assign_glossary_entry_state(socket, opts) do
@@ -3817,6 +3837,36 @@ defmodule GlossiaWeb.DashboardLive do
         {:noreply, socket}
     end
   end
+
+  # A refresh timer fires for the project and generation it was scheduled for.
+  # A message from a replaced timer (project switch or date-range change) is
+  # stale and must be ignored so it cannot spawn a second polling loop.
+  def handle_info(
+        {:refresh_analytics, project_id, generation},
+        %{
+          assigns: %{
+            live_action: :project_analytics,
+            project: %{id: project_id} = project,
+            analytics_settings: settings,
+            analytics_date_period: date_period,
+            analytics_date_preset: preset,
+            analytics_refresh_generation: generation
+          }
+        } = socket
+      ) do
+    period = refresh_analytics_period(preset, date_period)
+
+    socket =
+      socket
+      |> assign(analytics_refresh_ref: nil, analytics_date_period: period)
+      |> refresh_analytics(project, settings, period)
+      |> schedule_analytics_refresh()
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:refresh_analytics, _project_id, _generation}, socket),
+    do: {:noreply, socket}
 
   defp assign_translation_progress(socket, progress) do
     project = socket.assigns[:project]
@@ -14207,7 +14257,16 @@ defmodule GlossiaWeb.DashboardLive do
   defp project_analytics_page(assigns) do
     ~H"""
     <div id="project-analytics-page" class="dash-page">
-      <.page_header title={gettext("Analytics")} />
+      <.page_header title={gettext("Analytics")}>
+        <:actions>
+          <Noora.Badge.badge
+            :if={@settings && @settings.verified_at}
+            label={gettext("Live")}
+            color="success"
+            dot
+          />
+        </:actions>
+      </.page_header>
 
       <div :if={@settings && @settings.verified_at} data-part="content">
         <.card
@@ -14381,7 +14440,14 @@ defmodule GlossiaWeb.DashboardLive do
           data-part="traffic"
         >
           <.card_section>
-            <div id="analytics-traffic" phx-hook="AnalyticsTraffic">
+            <div :if={@traffic.points == []} id="analytics-traffic-empty-state">
+              <.noora_empty_state
+                icon="chart_bar_popular"
+                title={gettext("No traffic yet")}
+                subtitle={gettext("Once the snippet is live, pageviews will appear here.")}
+              />
+            </div>
+            <div :if={@traffic.points != []} id="analytics-traffic" phx-hook="AnalyticsTraffic">
               <div
                 id="analytics-traffic-canvas"
                 data-series={Jason.encode!(@traffic.points)}
@@ -14461,7 +14527,6 @@ defmodule GlossiaWeb.DashboardLive do
         >
           <.card_section>
             <Noora.Table.table
-              :if={@languages != []}
               id="browser-languages-table"
               rows={@languages}
               row_key={fn row -> row.browser_language end}
@@ -14489,12 +14554,14 @@ defmodule GlossiaWeb.DashboardLive do
               <:col :let={row} label={gettext("Visits")}>
                 <Noora.Table.text_cell label={to_string(row.visits)} />
               </:col>
+              <:empty_state>
+                <Noora.Table.table_empty_state
+                  icon="language"
+                  title={gettext("No language data yet")}
+                  subtitle={gettext("Once the snippet is live, visitor languages will appear here.")}
+                />
+              </:empty_state>
             </Noora.Table.table>
-            <Noora.Table.table_empty_state
-              :if={@languages == []}
-              title={gettext("No language data yet")}
-              subtitle={gettext("Once the snippet is live, visitor languages will appear here.")}
-            />
           </.card_section>
         </.card>
       </div>
@@ -14594,6 +14661,30 @@ defmodule GlossiaWeb.DashboardLive do
       %{id: "last-12-months", label: gettext("Last 12 months"), period: {12, :month}},
       %{id: "custom", label: gettext("Custom")}
     ]
+  end
+
+  # Relative presets advance as time passes; a custom range is a fixed window
+  # and must stay exactly where the visitor put it.
+  defp refresh_analytics_period("custom", date_period), do: date_period
+
+  defp refresh_analytics_period(preset, _date_period) do
+    %{period: period} = analytics_date_picker_params(%{"analytics-date-range" => preset})
+    period
+  end
+
+  # A refresh query bundle failing must not tear down an otherwise loaded
+  # dashboard; keep the last good data and try again on the next tick.
+  defp refresh_analytics(socket, project, settings, period) do
+    assign(socket, load_analytics(project, settings, period))
+  rescue
+    exception ->
+      Logger.error(
+        "Analytics refresh failed",
+        error_type: inspect(exception.__struct__),
+        stacktrace: Exception.format_stacktrace(__STACKTRACE__)
+      )
+
+      socket
   end
 
   defp analytics_date_picker_params(params) do

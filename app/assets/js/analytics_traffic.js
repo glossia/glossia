@@ -44,10 +44,9 @@ const AnalyticsTraffic = {
     const granularity = canvas.dataset.granularity || "day"
     canvas.innerHTML = ""
 
-    if (series.length === 0) {
-      this.renderEmptyState(canvas)
-      return
-    }
+    // The empty state is rendered server-side when there are no points, so the
+    // hook only ever mounts with data. Guard anyway in case a payload is empty.
+    if (series.length === 0) return
 
     const {width, height} = this.measureCanvas(canvas)
     const padding = {top: 16, right: 12, bottom: 24, left: 36}
@@ -142,13 +141,6 @@ const AnalyticsTraffic = {
     const width = Math.max(320, Math.round(rect.width))
     const height = Math.max(160, Math.round(rect.height || 180))
     return {width, height}
-  },
-
-  renderEmptyState(canvas) {
-    const note = document.createElement("p")
-    note.className = "voice-empty"
-    note.textContent = "No traffic in the selected period."
-    canvas.appendChild(note)
   },
 
   formatBucketLabel(bucket, granularity, detailed) {

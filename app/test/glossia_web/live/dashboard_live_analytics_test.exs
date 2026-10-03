@@ -115,7 +115,8 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
       live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/analytics")
 
     refute has_element?(dashboard, "#analytics-setup-empty-state")
-    assert has_element?(dashboard, "#analytics-traffic")
+    assert has_element?(dashboard, "#project-analytics-page [data-part='at-a-glance']")
+    assert has_element?(dashboard, "#project-analytics-page .dash-page-header", "Live")
 
     view
     |> form("#analytics-settings-form", analytics: %{domain: "changed.example.com"})
@@ -237,10 +238,50 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
              "No country data yet"
            )
 
+    assert has_element?(
+             view,
+             "#browser-languages-table .noora-table-empty-state",
+             "No language data yet"
+           )
+
+    assert has_element?(
+             view,
+             "#analytics-traffic-empty-state .dashboard-empty-state",
+             "No traffic yet"
+           )
+
     assert has_element?(view, "#localization-priority-map[phx-hook='LocalizationPriorityMap']")
-    assert has_element?(view, "#analytics-traffic[phx-hook='AnalyticsTraffic']")
-    assert has_element?(view, "#analytics-traffic-canvas[data-granularity='day']")
+    refute has_element?(view, "#analytics-traffic[phx-hook='AnalyticsTraffic']")
     refute render(view) =~ "Traffic by hour"
     refute has_element?(view, "[data-part='localization-priority'] [data-part='legend-bar']")
+  end
+
+  test "live refresh ignores timers from another project and reloads its own", %{
+    conn: conn,
+    project: project,
+    user: user
+  } do
+    {:ok, settings} = Settings.upsert_for_project(project.id, %{domain: "example.com"})
+
+    settings
+    |> Ecto.Changeset.change(%{
+      verified_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    })
+    |> Repo.update!()
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/analytics")
+
+    # Another project's timer, and a superseded generation of this project's
+    # timer, must both be ignored.
+    send(view.pid, {:refresh_analytics, Ecto.UUID.generate(), 1})
+    assert render(view) =~ "No traffic yet"
+
+    send(view.pid, {:refresh_analytics, project.id, 0})
+    assert render(view) =~ "No traffic yet"
+
+    # The generation currently assigned reloads the dashboard.
+    send(view.pid, {:refresh_analytics, project.id, 1})
+    assert render(view) =~ "No traffic yet"
   end
 end

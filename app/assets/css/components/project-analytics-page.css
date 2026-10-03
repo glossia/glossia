@@ -95,10 +95,13 @@
     gap: var(--noora-spacing-4);
   }
 
+  /* Cap the map so it reads as a supporting visual instead of pushing the
+   * priority table below the fold on a wide screen. */
   & #localization-priority-map-canvas {
     width: 100%;
     aspect-ratio: 2 / 1;
-    min-height: 280px;
+    min-height: 200px;
+    max-height: 320px;
   }
 
   & [data-part="legend"] {
