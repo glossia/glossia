@@ -19,13 +19,10 @@ defmodule Glossia.Analytics.Verification do
   hot path.
   """
 
-  require Logger
-
   @dns_prefix "_glossia-verify"
   @dns_record_tag "glossia-site-verification="
   @meta_tag_name "glossia-site-verification"
   @request_timeout_ms 5_000
-  @cmd_timeout_ms 5_000
 
   @doc """
   Runs both checks and returns `:ok` if either confirms the token. Any
@@ -94,38 +91,5 @@ defmodule Glossia.Analytics.Verification do
       html =~ ~r{<meta[^>]+#{content}[^>]+#{name}}i
   end
 
-  # `dig +short TXT <name>` prints one quoted record per line, e.g.:
-  #   "glossia-site-verification=abc123"
-  #   "v=spf1 -all"
-  # We split on lines, drop empties, strip surrounding quotes, and return
-  # the list. The check treats a missing `dig` binary or a non-zero exit
-  # status as "no TXT records" so a transient resolver hiccup never locks
-  # an operator out.
-  defp lookup_txt(name) do
-    case MuonTrap.cmd("dig", ["+short", "TXT", name], into: "", timeout: @cmd_timeout_ms) do
-      {output, 0} ->
-        records =
-          output
-          |> String.split("\n")
-          |> Enum.map(&String.trim/1)
-          |> Enum.reject(&(&1 == ""))
-          |> Enum.map(&strip_quotes/1)
-
-        {:ok, records}
-
-      _ ->
-        :error
-    end
-  rescue
-    error ->
-      Logger.debug("DNS lookup failed for #{inspect(name)}: #{inspect(error)}")
-      :error
-  catch
-    kind, reason ->
-      Logger.debug("DNS lookup crashed for #{inspect(name)}: #{inspect({kind, reason})}")
-      :error
-  end
-
-  defp strip_quotes(~s(") <> rest), do: strip_quotes(rest)
-  defp strip_quotes(other), do: other
+  defp lookup_txt(name), do: Glossia.Analytics.Verification.DNSResolver.lookup_txt(name)
 end
