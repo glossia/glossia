@@ -90,9 +90,9 @@ defmodule Glossia.Analytics.Geolocation do
     @moduledoc """
     Network-backed country resolution via the public `ipapi.is` service.
 
-    The endpoint is unauthenticated, has no published rate limit that would
-    affect a single application's analytics traffic, and returns the ISO
-    3166-1 alpha-2 country code we persist. To avoid the round-trip on the
+    The unauthenticated endpoint returns an English country name; authenticated
+    responses may include an ISO 3166-1 alpha-2 code instead. Both are normalized
+    to the code we persist. To avoid the round-trip on the
     hot path, lookups are memoized for 24 hours in the Cachex cache owned by
     `Glossia.Analytics.Geolocation.Ipapi.Cache` — long enough that repeat
     visitors are served instantly, short enough that stale results (e.g. a
@@ -113,7 +113,7 @@ defmodule Glossia.Analytics.Geolocation do
     @endpoint "https://api.ipapi.is"
 
     @impl true
-    def lookup(ip) do
+    def lookup(ip, cache \\ Glossia.Analytics.Geolocation.Ipapi.Cache) do
       cond do
         not is_binary(ip) or ip == "" ->
           %{country: nil}
@@ -122,7 +122,7 @@ defmodule Glossia.Analytics.Geolocation do
           %{country: nil}
 
         true ->
-          %{country: Glossia.Analytics.Geolocation.Ipapi.Cache.fetch(ip, &resolve/1)}
+          %{country: Glossia.Analytics.Geolocation.Ipapi.Cache.fetch(ip, &resolve/1, cache)}
       end
     end
 
@@ -143,10 +143,17 @@ defmodule Glossia.Analytics.Geolocation do
              retry: false
            ) do
         {:ok, %Req.Response{status: 200, body: body}} when is_map(body) ->
-          code = body["cc"] || get_in(body, ["location", "country_code"]) || body["country_code"]
+          code =
+            [
+              body["cc"],
+              get_in(body, ["location", "country_code"]),
+              body["country_code"],
+              body["country"]
+            ]
+            |> Enum.find_value(&Glossia.Analytics.Country.code/1)
 
-          if is_binary(code) and byte_size(code) == 2,
-            do: {:ok, String.upcase(code)},
+          if code,
+            do: {:ok, code},
             else: report_failure("country_missing")
 
         {:ok, %Req.Response{status: status}} ->
