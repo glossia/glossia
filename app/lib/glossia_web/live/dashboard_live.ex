@@ -7380,16 +7380,18 @@ defmodule GlossiaWeb.DashboardLive do
         title={gettext("Verify domain ownership")}
         icon="world"
       >
+        <:actions>
+          <Noora.Badge.badge
+            label={
+              if @settings.verified_at,
+                do: gettext("Verified"),
+                else: gettext("Awaiting verification")
+            }
+            color={if @settings.verified_at, do: "success", else: "warning"}
+          />
+        </:actions>
         <.card_section>
           <div data-part="verification-content">
-            <Noora.Badge.badge
-              label={
-                if @settings.verified_at,
-                  do: gettext("Verified"),
-                  else: gettext("Awaiting verification")
-              }
-              color={if @settings.verified_at, do: "success", else: "warning"}
-            />
             <p :if={@settings.verified_at}>
               {gettext("Domain verified. Web analytics is ready to collect events.")}
             </p>
