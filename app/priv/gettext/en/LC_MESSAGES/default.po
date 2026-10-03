@@ -5292,3 +5292,13 @@ msgstr ""
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Verifying…"
 msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Live"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "No traffic yet"
+msgstr ""
