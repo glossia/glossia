@@ -7332,23 +7332,24 @@ defmodule GlossiaWeb.DashboardLive do
         description={gettext("Configure web analytics for this project.")}
       />
 
-      <.form
-        for={%{}}
-        id="analytics-settings-form"
-        class="voice-form"
-        phx-submit="update_analytics_settings"
+      <.card
+        id="analytics-web-analytics"
+        title={gettext("Web analytics")}
+        icon="chart_bar_popular"
       >
-        <div class="voice-section">
-          <div class="voice-section-info">
-            <h2>{gettext("Web analytics")}</h2>
-            <p>
-              {gettext(
-                "Set the domain of the site you want to measure, then add the snippet below to every page. Glossia identifies traffic by this domain, so there is no key or secret to manage."
-              )}
-            </p>
-          </div>
-          <Noora.Card.card_section class="voice-card">
-            <div class="voice-card-fields">
+        <.card_section>
+          <.form
+            for={%{}}
+            id="analytics-settings-form"
+            phx-submit="update_analytics_settings"
+          >
+            <div data-part="form-content">
+              <p>
+                {gettext(
+                  "Set the domain of the site you want to measure, then add the snippet below to every page. Glossia identifies traffic by this domain, so there is no key or secret to manage."
+                )}
+              </p>
+
               <Noora.TextInput.text_input
                 id="analytics-domain"
                 name="analytics[domain]"
@@ -7357,7 +7358,7 @@ defmodule GlossiaWeb.DashboardLive do
                 placeholder="example.com"
               />
 
-              <div class="voice-field">
+              <div data-part="record">
                 <label>{gettext("Install snippet")}</label>
                 <div class="api-token-reveal-value">
                   <code id="analytics-snippet">{analytics_snippet(@analytics_domain)}</code>
@@ -7373,32 +7374,30 @@ defmodule GlossiaWeb.DashboardLive do
                 </div>
               </div>
 
-              <div>
-                <Noora.Button.button
-                  type="submit"
-                  label={gettext("Save analytics settings")}
-                  variant="primary"
-                  size="medium"
-                />
-              </div>
+              <Noora.Button.button
+                type="submit"
+                label={gettext("Save analytics settings")}
+                variant="primary"
+                size="medium"
+              />
             </div>
-          </Noora.Card.card_section>
-        </div>
-        <script :type={Phoenix.LiveView.ColocatedHook} name=".CopySnippet">
-          export default {
-            mounted() {
-              this.el.addEventListener("click", () => {
-                var value = this.el.getAttribute("data-value");
-                var original = this.el.innerHTML;
-                navigator.clipboard.writeText(value).then(() => {
-                  this.el.textContent = "Copied!";
-                  setTimeout(() => { this.el.innerHTML = original; }, 1500);
-                });
-              });
-            }
-          }
-        </script>
-      </.form>
+            <script :type={Phoenix.LiveView.ColocatedHook} name=".CopySnippet">
+              export default {
+                mounted() {
+                  this.el.addEventListener("click", () => {
+                    var value = this.el.getAttribute("data-value");
+                    var original = this.el.innerHTML;
+                    navigator.clipboard.writeText(value).then(() => {
+                      this.el.textContent = "Copied!";
+                      setTimeout(() => { this.el.innerHTML = original; }, 1500);
+                    });
+                  });
+                }
+              }
+            </script>
+          </.form>
+        </.card_section>
+      </.card>
 
       <.card
         :if={@settings}
