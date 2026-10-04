@@ -7,6 +7,7 @@ defmodule Glossia.TranslationsTest do
   alias Glossia.TestHelpers
 
   setup do
+    Mimic.stub(ReqLLM.Response, :usage, fn _response -> nil end)
     user = TestHelpers.create_user("translations-ctx@test.com", "translations-ctx")
     %{user: user, account: user.account}
   end
@@ -23,6 +24,44 @@ defmodule Glossia.TranslationsTest do
       },
       overrides
     )
+  end
+
+  test "records provider usage with project, language, and source-file attribution", %{
+    account: account
+  } do
+    project =
+      Glossia.Repo.insert!(%Glossia.Accounts.Project{
+        account_id: account.id,
+        handle: "docs",
+        name: "Docs"
+      })
+
+    Mimic.stub(ReqLLM, :generate_text, fn _, _, _ -> {:ok, :response} end)
+    Mimic.stub(ReqLLM.Response, :finish_reason, fn _ -> :stop end)
+    Mimic.stub(ReqLLM.Response, :text, fn _ -> "Hola" end)
+    Mimic.stub(ReqLLM.Response, :usage, fn _ -> %{input_tokens: 100, output_tokens: 20} end)
+
+    credential = %{
+      auth: {:api_key, "secret", nil},
+      model: "openai/gpt-4o",
+      handle: "translator",
+      source: :account_model
+    }
+
+    assert {:ok, %{text: "Hola"}} =
+             Translations.translate_stream(
+               account,
+               payload(%{"project_id" => project.id, "source_path" => "README.md"}),
+               fn _ -> :ok end,
+               credential: credential,
+               provider_pacing: false
+             )
+
+    overview = Glossia.Translations.TokenUsage.overview(account, %{"dimension" => "files"})
+    assert [%{label: "README.md", project: "docs", total_tokens: 120}] = overview.rows
+
+    assert [%{label: "es", total_tokens: 120}] =
+             Glossia.Translations.TokenUsage.overview(account, %{"dimension" => "languages"}).rows
   end
 
   describe "translate/2 validation" do

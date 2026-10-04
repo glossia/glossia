@@ -13887,6 +13887,14 @@ defmodule GlossiaWeb.DashboardLive do
               </div>
               <div data-part="actions">
                 <Noora.Button.button
+                  navigate={~p"/#{@handle}/-/settings/models/usage"}
+                  label={gettext("Token usage")}
+                  variant="secondary"
+                  size="medium"
+                >
+                  <:icon_left><Noora.Icon.chart_bar_popular /></:icon_left>
+                </Noora.Button.button>
+                <Noora.Button.button
                   navigate={~p"/#{@handle}/-/settings/models/new"}
                   label={gettext("New model")}
                   variant="secondary"

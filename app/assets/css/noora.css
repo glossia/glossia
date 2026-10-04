@@ -24,6 +24,7 @@
 @import "./routes/project-translations.css";
 @import "./routes/llm-routing-page.css";
 @import "./routes/llm-model-edit.css";
+@import "./routes/llm-usage.css";
 
 @font-face {
   font-family: "Inter Variable";

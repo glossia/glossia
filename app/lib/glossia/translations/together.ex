@@ -39,6 +39,11 @@ defmodule Glossia.Translations.Together do
 
     case Req.post(completions_url(base_url), request_options) do
       {:ok, %Req.Response{status: status, body: response}} when status in 200..299 ->
+        case {Keyword.get(opts, :on_usage), response} do
+          {callback, %{} = body} when is_function(callback, 1) -> callback.(body["usage"])
+          _ -> :ok
+        end
+
         response_text(response)
 
       {:ok, %Req.Response{status: status, body: response} = resp} ->

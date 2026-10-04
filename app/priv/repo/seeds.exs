@@ -36,6 +36,7 @@ defmodule Glossia.Seeds do
   alias Glossia.Discussions.{Discussion, DiscussionComment}
   alias Glossia.TranslationSessions
   alias Glossia.TranslationSessions.TranslationSession
+  alias Glossia.Translations.TokenUsage
   alias Glossia.Voices
 
   import Ecto.Query
@@ -692,6 +693,9 @@ defmodule Glossia.Seeds do
       decision_min_score: 7.0
     )
 
+    ensure_token_usage!(dev.account, blog_project)
+    ensure_token_usage!(dev.account, Projects.get_project(dev.account, "landing-page"))
+
     # Translation routing rules: pick a model per target locale, first match
     # wins, fallback to the account default when no rule matches.
     reset_routing_rules!(dev.account)
@@ -706,6 +710,48 @@ defmodule Glossia.Seeds do
     ensure_routing_rule!(acme.account, dev, "es", "acme-fast-drafts")
 
     :ok
+  end
+
+  defp ensure_token_usage!(_account, nil), do: :ok
+
+  defp ensure_token_usage!(account, project) do
+    for day <- 0..13,
+        {locale, factor} <- [{"es", 1}, {"ja", 2}, {"de", 1}],
+        {path, size} <- [
+          {"content/getting-started.md", 1800},
+          {"content/translation-workflows.md", 4200}
+        ] do
+      date = Date.add(Date.utc_today(), -day)
+
+      id =
+        :crypto.hash(
+          :sha256,
+          "token-usage-seed:#{account.id}:#{project.id}:#{date}:#{locale}:#{path}"
+        )
+        |> binary_part(0, 16)
+        |> Ecto.UUID.load!()
+
+      Repo.insert_all(
+        TokenUsage,
+        [
+          %{
+            id: id,
+            account_id: account.id,
+            project_id: project.id,
+            model: "openai/gpt-4o",
+            model_handle: "gpt-4o",
+            locale: locale,
+            source_path: path,
+            input_tokens: size + day * 30,
+            output_tokens: div(size * factor, 2),
+            cached_tokens: div(size, 4),
+            inserted_at: DateTime.new!(date, ~T[12:00:00.000000], "Etc/UTC")
+          }
+        ],
+        on_conflict: :nothing,
+        conflict_target: [:id]
+      )
+    end
   end
 
   # ----------------------------------------------------------------------------

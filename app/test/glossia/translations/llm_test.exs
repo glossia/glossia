@@ -28,6 +28,76 @@ defmodule Glossia.Translations.LLMTest do
     end)
   end
 
+  test "reports usage before rejecting a truncated response, with no credentials in provider options" do
+    stub_model(catalogued("openai:gpt-4o"))
+
+    Mimic.expect(ReqLLM, :generate_text, fn _model, _messages, opts ->
+      refute Keyword.has_key?(opts, :on_usage)
+      {:ok, :response}
+    end)
+
+    Mimic.stub(ReqLLM.Response, :usage, fn :response ->
+      %{input_tokens: 100, output_tokens: 20}
+    end)
+
+    Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :length end)
+    Mimic.stub(ReqLLM.Response, :text, fn :response -> "partial" end)
+    caller = self()
+
+    credential = %{
+      auth: {:api_key, "secret", nil},
+      model: "openai/gpt-4o",
+      on_usage: fn usage -> send(caller, {:usage, usage}) end
+    }
+
+    assert {:error, {:output_limit_reached, 7}} =
+             LLM.stream(credential, @system, @user, fn _ -> :ok end)
+
+    assert_receive {:usage, %{input_tokens: 100, output_tokens: 20}}
+  end
+
+  test "one-shot generation retains usage and its text contract" do
+    stub_model(catalogued("openai:gpt-4o"))
+    Mimic.stub(ReqLLM, :generate_text, fn _, _, _ -> {:ok, :response} end)
+
+    Mimic.stub(ReqLLM.Response, :usage, fn :response ->
+      %{input_tokens: 100, output_tokens: 20}
+    end)
+
+    Mimic.stub(ReqLLM.Response, :finish_reason, fn :response -> :stop end)
+    Mimic.stub(ReqLLM.Response, :text, fn :response -> "Hola" end)
+    caller = self()
+
+    credential = %{
+      auth: {:api_key, "secret", nil},
+      model: "openai/gpt-4o",
+      on_usage: fn usage -> send(caller, {:usage, usage}) end
+    }
+
+    assert {:ok, "Hola"} = LLM.run(credential, @system, @user)
+    assert_receive {:usage, %{input_tokens: 100, output_tokens: 20}}
+  end
+
+  test "Codex reports usage from completed turns" do
+    Mimic.stub(MuonTrap, :cmd, fn "sh", _, _ ->
+      {~s({"type":"item.completed","item":{"type":"agent_message","text":"Hola"}}\n) <>
+         ~s({"type":"turn.completed","usage":{"input_tokens":100,"cached_input_tokens":30,"output_tokens":20}}\n),
+       0}
+    end)
+
+    caller = self()
+
+    credential = %{
+      source: :codex_session,
+      on_usage: fn usage -> send(caller, {:usage, usage}) end
+    }
+
+    assert {:ok, "Hola"} = LLM.run(credential, @system, @user)
+
+    assert_receive {:usage,
+                    %{"input_tokens" => 100, "cached_input_tokens" => 30, "output_tokens" => 20}}
+  end
+
   describe "run/3 with an api-key credential" do
     test "passes the resolved model, api key, base url, and messages" do
       expect_model(
