@@ -797,6 +797,7 @@ defmodule Glossia.Translations.RepositoryRun do
     item =
       item
       |> Map.put(:translation_session_id, session.id)
+      |> Map.put(:project_id, Map.get(session, :project_id))
       |> Map.put(:translation_provider, provider)
 
     broadcast(

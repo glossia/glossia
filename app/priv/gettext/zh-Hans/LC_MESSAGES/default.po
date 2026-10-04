@@ -129,6 +129,7 @@ msgstr "联系我们"
 
 #: lib/glossia_web/components/layouts/app.html.heex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #: lib/glossia_web/live/profile_live.ex
 #, elixir-autogen, elixir-format
 msgid "Language"
@@ -173,6 +174,7 @@ msgid "Privacy Policy"
 msgstr "隐私政策"
 
 #: lib/glossia_web/components/layouts/platform.html.heex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Projects"
 msgstr "项目"
@@ -613,6 +615,7 @@ msgstr "成员"
 
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #: lib/glossia_web/live/profile_live.ex
 #, elixir-autogen, elixir-format
 msgid "Name"
@@ -1810,6 +1813,7 @@ msgstr "搜索仓库..."
 #: lib/glossia_web/components/layouts/platform.html.heex
 #: lib/glossia_web/components/layouts/user_profile.html.heex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Settings"
 msgstr "设置"
@@ -1943,6 +1947,7 @@ msgstr "拖放图片上传"
 
 #: lib/glossia_web/components/dashboard_components.ex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Filter"
 msgstr "筛选"
@@ -2250,6 +2255,7 @@ msgid "Failed to reopen discussion."
 msgstr "重新打开讨论失败。"
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Languages"
 msgstr "语言"
@@ -2542,6 +2548,7 @@ msgid "Leave blank to keep current key"
 msgstr "留空以保留当前密钥"
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Model"
 msgstr "模型"
@@ -3061,6 +3068,7 @@ msgstr "本地化设置"
 
 #: lib/glossia_web/components/layouts/platform.html.heex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Models"
 msgstr "模型"
@@ -5297,6 +5305,107 @@ msgstr ""
 msgid "The tracker did not report a page language. Older tracker versions and pages without an HTML lang attribute can cause this."
 msgstr ""
 
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Cached input"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Cached input tokens"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Files"
+msgstr "筛选"
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Input"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Input tokens"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Last %{days} days"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Model, project, and language filters apply to totals, chart, and breakdown. Search narrows the breakdown only. Unassigned includes requests without project or file metadata."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "No reported usage"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Only provider-reported counts are shown. Historical translations, local Pi sessions, and decision evaluations are not included."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Output"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Output tokens"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Project"
+msgstr "项目"
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Provider-reported usage for generative translations, including retries and rejected outputs. Cached input is included in input tokens, not added to the total again. Dates are UTC."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Responses"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Search breakdown"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Token usage"
+msgstr "令牌"
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Total"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Total tokens"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Usage appears after a provider reports token counts. Historical translations, local Pi sessions, and decision evaluations are not included."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Usage breakdown"
+msgstr ""
+
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Add a DNS TXT record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
@@ -5340,4 +5449,34 @@ msgstr ""
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Team members must belong to this Google Workspace domain. Personal Google accounts do not qualify."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "A subset of input tokens served from the provider's cache."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Daily token usage (UTC)"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Provider-reported usage for generative translations."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Tokens generated by the model, including retries and rejected outputs."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Tokens sent to the model, including cached input."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Usage"
 msgstr ""

@@ -38,6 +38,7 @@ defmodule Glossia.Translations do
   alias Glossia.Translations.LLM
   alias Glossia.Translations.ProviderPacing
   alias Glossia.Translations.Prompt
+  alias Glossia.Translations.TokenUsage
 
   @type result :: %{
           text: String.t(),
@@ -67,6 +68,7 @@ defmodule Glossia.Translations do
     * `"frontmatter_preserved"` - boolean, whether the client re-attaches frontmatter
     * `"last_error"` - optional prior validation error, for self-correcting retries
     * `"segment_kind"`, `"segment_index"`, `"segment_count"` - optional segment metadata
+    * `"project_id"`, `"source_path"` - optional token-usage attribution; invalid metadata is unassigned
   """
   @spec translate(Account.t(), map()) :: {:ok, result()} | {:error, error()}
   def translate(%Account{} = account, payload) do
@@ -75,6 +77,7 @@ defmodule Glossia.Translations do
          {:ok, item} <- decision_item(account, input),
          :ok <- Quality.preflight(item, input.source_content) do
       input = attach_decision_context(input, item)
+      credential = TokenUsage.attach(credential, account, payload)
 
       translate_and_assess(
         account,
@@ -228,6 +231,7 @@ defmodule Glossia.Translations do
   def translate_stream(%Account{} = account, payload, on_event, opts)
       when is_function(on_event, 1) and is_list(opts) do
     with {:ok, credential, system_prompt, user_prompt} <- prepare(account, payload, opts) do
+      credential = TokenUsage.attach(credential, account, payload, opts)
       # A streamed error is documented as failing the call, so forwarding one
       # from an attempt that is about to be retried would show subscribers a
       # terminal failure on an item that then completes. Hold it back; the
