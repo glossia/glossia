@@ -373,7 +373,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='item-failure-description']",
+             "#translation-progress-item-0 + #translation-progress-item-0-expanded .noora-alert[data-part='item-failure'] [data-part='description']",
              "can spend its whole output budget thinking and return nothing"
            )
   end
@@ -572,7 +572,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 span[data-part='path']",
+             "#translation-progress-item-0 div[data-part='path'] [data-part='cell'][data-type='text'] [data-part='label']",
              "app/priv/i18n/de/example.md"
            )
 
@@ -626,14 +626,8 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 [data-part='progress-meta']",
-             "Content, segment 2 of 2"
-           )
-
-    assert has_element?(
-             view,
-             "#translation-progress-item-0 [data-part='progress-meta']",
-             "2 model calls"
+             "#translation-progress-item-0 [data-part='progress-meta'] [data-part='cell'][data-type='text']",
+             "Content, segment 2 of 2 · 2 model calls"
            )
 
     assert has_element?(
@@ -679,7 +673,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress-item-0 a[data-part='path'][href='https://github.com/example/progress/blob/glossia/translate-0123456789ab/app/priv/i18n/de/example.md'][target='_blank']",
+             "#translation-progress-item-0 a[data-part='path'][href='https://github.com/example/progress/blob/glossia/translate-0123456789ab/app/priv/i18n/de/example.md'][target='_blank'] [data-part='cell'][data-type='text'] [data-part='label']",
              "app/priv/i18n/de/example.md"
            )
 
@@ -896,7 +890,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-progress [data-part='failure-action'][href='https://api.together.ai/settings/billing']",
+             "#translation-progress .noora-button[data-part='failure-action'][href='https://api.together.ai/settings/billing']",
              "Review provider billing"
            )
 
@@ -905,10 +899,15 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "#translation-progress [data-part='failure-summary'] [data-part='item-diagnostics']"
            )
 
+    assert has_element?(
+             view,
+             "#translation-progress .noora-alert[data-part='failure-summary'][data-type='secondary'][data-status='error'][data-size='large']"
+           )
+
     Enum.each(0..1, fn index ->
       assert has_element?(
                view,
-               "#translation-progress-item-#{index} + #translation-progress-item-#{index}-expanded [data-part='item-failure'][data-kind='provider-credit']",
+               "#translation-progress-item-#{index} + #translation-progress-item-#{index}-expanded .noora-alert[data-part='item-failure'][data-kind='provider-credit'][data-type='primary'][data-status='error']",
                "This file could not be translated because the model provider account has no remaining credit."
              )
 
@@ -920,7 +919,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
       assert has_element?(
                view,
-               "#translation-progress-item-#{index} + #translation-progress-item-#{index}-expanded [data-part='item-diagnostics'][id][phx-mounted]"
+               "#translation-progress-item-#{index} + #translation-progress-item-#{index}-expanded [data-part='item-diagnostics'][id][phx-mounted] summary [data-part='disclosure-icon'][aria-hidden='true']"
              )
 
       assert has_element?(
