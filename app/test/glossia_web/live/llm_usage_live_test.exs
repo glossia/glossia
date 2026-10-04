@@ -35,6 +35,24 @@ defmodule GlossiaWeb.LLMUsageLiveTest do
     {:ok, view, html} = live(conn, path)
     assert html =~ "1,250"
     assert has_element?(view, "#token-usage-chart")
+
+    chart =
+      html
+      |> LazyHTML.from_document()
+      |> LazyHTML.query("#token-usage-chart [data-part='data']")
+      |> LazyHTML.text()
+      |> JSON.decode!()
+
+    assert chart["grid"] == %{
+             "left" => "2%",
+             "right" => 0,
+             "top" => "15%",
+             "bottom" => 0,
+             "containLabel" => true
+           }
+
+    assert chart["yAxis"]["splitNumber"] == 4
+    assert Enum.all?(chart["xAxis"]["data"], &Regex.match?(~r/^[A-Z][a-z]{2} \d{1,2}$/, &1))
     assert has_element?(view, "#token-usage-table", "docs")
 
     view |> element("a", "Languages") |> render_click()

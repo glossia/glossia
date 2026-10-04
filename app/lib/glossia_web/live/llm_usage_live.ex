@@ -202,11 +202,18 @@ defmodule GlossiaWeb.LLMUsageLive do
             id="token-usage-chart"
             type="bar"
             stacked={true}
-            labels={Enum.map(@usage.daily, &Date.to_iso8601(&1.date))}
+            labels={Enum.map(@usage.daily, &Calendar.strftime(&1.date, "%b %-d"))}
             series={[
               %{name: gettext("Input"), values: Enum.map(@usage.daily, & &1.input_tokens)},
               %{name: gettext("Output"), values: Enum.map(@usage.daily, & &1.output_tokens)}
             ]}
+            extra_options={
+              %{
+                grid: %{left: "2%", right: 0, top: "15%", bottom: 0, containLabel: true},
+                legend: %{itemGap: 24},
+                yAxis: %{minInterval: 1, splitNumber: 4}
+              }
+            }
           />
         </Noora.Card.card_section>
         <Noora.Card.card_section>

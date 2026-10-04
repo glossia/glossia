@@ -16,6 +16,11 @@
     gap: var(--noora-spacing-4);
   }
 
+  & #token-usage-chart {
+    width: 100%;
+    height: calc(var(--noora-spacing-16) * 2);
+  }
+
   & [data-part="metric-title"] {
     color: var(--noora-surface-label-secondary);
     font: var(--noora-font-body-small);
