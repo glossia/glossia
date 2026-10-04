@@ -14,7 +14,7 @@ msgstr "Language: de\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "At a glance"
-msgstr "Im Überblick"
+msgstr "Übersicht"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -34,7 +34,7 @@ msgstr "Top-Seiten"
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
-msgstr "Wo als Nächstes übersetzen"
+msgstr "Als nächstes übersetzen"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
