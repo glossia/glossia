@@ -43,6 +43,6 @@ Set the collection endpoint explicitly when using the package in your own bundle
 
 Sent from the browser: page URL, referrer, `navigator.languages`, actual page language (`<html lang>`), available translations (`<link rel="alternate" hreflang="…">`, excluding `x-default`), timezone, screen width, and a per-tab session id (in `sessionStorage`, cleared on close).
 
-Set `<html lang>` on every page so the dashboard can report the language actually served. Advertise translations with `hreflang` links so existing translations are recognized even without Glossia project setup targets. Missing page language is reported as Unknown, not inferred from the visitor's browser.
+Set `<html lang>` on every page so the dashboard can report the language actually served. Advertise translations with `hreflang` links so existing translations are recognized even without Glossia project setup targets. Missing page language is displayed as Not reported, not inferred from the visitor's browser. Events from older tracker versions retain their original metadata.
 
 Derived on the server (never stored raw): a daily-rotated visitor id, country from GeoIP, device/browser/OS from the User-Agent, and the localization gap against your project's target languages, advertised translations, and the page language.

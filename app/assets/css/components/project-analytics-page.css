@@ -177,6 +177,25 @@
     }
   }
 
+  /* Let long empty-state descriptions wrap inside narrow cards rather than
+   * contributing a max-content width to Noora's horizontally scrollable table. */
+  & .noora-table table:has(.noora-table-empty-state) {
+    min-width: 100%;
+    table-layout: fixed;
+  }
+
+  /* Noora table empty states have vertical padding but no horizontal inset. */
+  & .noora-table-empty-state {
+    padding-inline: var(--noora-spacing-7);
+    text-align: center;
+
+    & > [data-part="subtitle"] {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      max-width: var(--max-width-empty);
+    }
+  }
+
   & [data-part="setup-card"] > #analytics-setup-empty-state {
     justify-content: center;
     padding-top: var(--noora-spacing-11);

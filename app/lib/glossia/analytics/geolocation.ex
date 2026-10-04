@@ -88,7 +88,10 @@ defmodule Glossia.Analytics.Geolocation do
 
   defmodule Ipapi do
     @moduledoc """
-    Network-backed country resolution via the public `ipapi.is` service.
+    Network-backed country resolution via the public `ipapi.is` service, with
+    `api.country.is` as a fallback when the primary service cannot resolve an IP.
+    Some hosting networks cannot reach the primary service, so both providers
+    share the same bounded cache and successful fallback results are cached too.
 
     The unauthenticated endpoint returns an English country name; authenticated
     responses may include an ISO 3166-1 alpha-2 code instead. Both are normalized
@@ -111,6 +114,7 @@ defmodule Glossia.Analytics.Geolocation do
     require Logger
 
     @endpoint "https://api.ipapi.is"
+    @fallback_endpoint "https://api.country.is/"
 
     @impl true
     def lookup(ip, cache \\ Glossia.Analytics.Geolocation.Ipapi.Cache) do
@@ -129,19 +133,38 @@ defmodule Glossia.Analytics.Geolocation do
     # Failures are returned but deliberately not committed, so a blip upstream
     # does not pin `nil` to an IP for the next 24 hours.
     defp resolve(ip) do
-      case request(ip) do
-        {:ok, country} -> {:commit, country}
-        :error -> {:ignore, nil}
+      case request(@endpoint, params: [q: ip]) do
+        {:ok, country} ->
+          {:commit, country}
+
+        {:error, failure, metadata} ->
+          fallback_url =
+            @fallback_endpoint
+            |> URI.parse()
+            |> URI.merge(%URI{path: URI.encode(ip)})
+            |> URI.to_string()
+
+          case request(fallback_url, []) do
+            {:ok, country} ->
+              {:commit, country}
+
+            {:error, fallback_failure, fallback_metadata} ->
+              report_failure(failure, [provider: "ipapi"] ++ metadata)
+              report_failure(fallback_failure, [provider: "country.is"] ++ fallback_metadata)
+              {:ignore, nil}
+          end
       end
     end
 
-    defp request(ip) do
-      case Req.get(@endpoint,
-             params: [q: ip],
-             receive_timeout: 1_000,
-             connect_options: [timeout: 1_000],
-             retry: false
-           ) do
+    defp request(url, opts) do
+      opts =
+        Keyword.merge(opts,
+          receive_timeout: 1_000,
+          connect_options: [timeout: 1_000],
+          retry: false
+        )
+
+      case Req.get(url, opts) do
         {:ok, %Req.Response{status: 200, body: body}} when is_map(body) ->
           code =
             [
@@ -154,26 +177,28 @@ defmodule Glossia.Analytics.Geolocation do
 
           if code,
             do: {:ok, code},
-            else: report_failure("country_missing")
+            else: {:error, "country_missing", []}
 
         {:ok, %Req.Response{status: status}} ->
-          report_failure("unexpected_status", status: status)
+          {:error, "unexpected_status", [status: status]}
 
         {:error, reason} ->
-          report_failure("request_failed", error_type: error_type(reason))
+          {:error, "request_failed",
+           [error_type: error_type(reason), error_reason: transport_reason(reason)]}
       end
     rescue
       exception ->
-        report_failure("request_exception",
-          error_type: error_type(exception),
-          stacktrace: Exception.format_stacktrace(__STACKTRACE__)
-        )
+        {:error, "request_exception",
+         [
+           error_type: error_type(exception),
+           stacktrace: Exception.format_stacktrace(__STACKTRACE__)
+         ]}
     catch
       kind, reason ->
-        report_failure("request_throw", kind: kind, error_type: error_type(reason))
+        {:error, "request_throw", [kind: kind, error_type: error_type(reason)]}
     end
 
-    defp report_failure(failure, metadata \\ []) do
+    defp report_failure(failure, metadata) do
       Logger.error(
         "Analytics country lookup failed: #{failure}",
         [adapter: "ipapi", failure: failure] ++ metadata
@@ -185,6 +210,9 @@ defmodule Glossia.Analytics.Geolocation do
     defp error_type(%{__struct__: module}), do: inspect(module)
     defp error_type(reason) when is_atom(reason), do: Atom.to_string(reason)
     defp error_type(_reason), do: "unknown"
+
+    defp transport_reason(%{reason: reason}) when is_atom(reason), do: Atom.to_string(reason)
+    defp transport_reason(_reason), do: "unknown"
 
     # Reserved ranges have no useful country and `ipapi.is` would refuse to
     # answer them anyway, so short-circuit them rather than spend a request we

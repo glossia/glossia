@@ -74,7 +74,7 @@ defmodule Glossia.Analytics.GeolocationTest do
     end
 
     test "reports a non-200 response and returns nil", %{cache: cache} do
-      expect(Req, :get, fn _url, _opts ->
+      expect(Req, :get, 2, fn _url, _opts ->
         {:ok, %Req.Response{status: 429, body: %{"error" => "rate limit"}}}
       end)
 
@@ -128,14 +128,14 @@ defmodule Glossia.Analytics.GeolocationTest do
 
     test "reports request exceptions without exposing the visitor address", %{cache: cache} do
       ip = "203.0.113.25"
-      expect(Req, :get, fn _url, _opts -> raise ArgumentError, "invalid request option" end)
+      expect(Req, :get, 2, fn _url, _opts -> raise ArgumentError, "invalid request option" end)
       log = capture_log(fn -> assert Ipapi.lookup(ip, cache) == %{country: nil} end)
       assert log =~ "Analytics country lookup failed: request_exception"
       refute log =~ ip
     end
 
     test "ignores unknown countries", %{cache: cache} do
-      expect(Req, :get, fn _url, _opts ->
+      expect(Req, :get, 2, fn _url, _opts ->
         {:ok, %Req.Response{status: 200, body: %{"country" => "Atlantis"}}}
       end)
 
@@ -144,7 +144,7 @@ defmodule Glossia.Analytics.GeolocationTest do
 
     test "does not cache failures, so a later request can still resolve", %{cache: cache} do
       ip = "203.0.113.40"
-      expect(Req, :get, fn _url, _opts -> {:ok, %Req.Response{status: 500, body: %{}}} end)
+      expect(Req, :get, 2, fn _url, _opts -> {:ok, %Req.Response{status: 500, body: %{}}} end)
       assert Ipapi.lookup(ip, cache) == %{country: nil}
 
       expect(Req, :get, fn _url, _opts ->
@@ -152,6 +152,62 @@ defmodule Glossia.Analytics.GeolocationTest do
       end)
 
       assert Ipapi.lookup(ip, cache) == %{country: "DE"}
+    end
+
+    test "falls back when the primary connection is refused and caches the result", %{
+      cache: cache
+    } do
+      expect(Req, :get, fn "https://api.ipapi.is", opts ->
+        assert opts[:params] == [q: "8.8.8.8"]
+        {:error, %Req.TransportError{reason: :econnrefused}}
+      end)
+
+      expect(Req, :get, fn "https://api.country.is/8.8.8.8", opts ->
+        assert opts[:retry] == false
+        assert opts[:receive_timeout] == 1_000
+        assert opts[:connect_options] == [timeout: 1_000]
+        {:ok, %Req.Response{status: 200, body: %{"ip" => "8.8.8.8", "country" => "US"}}}
+      end)
+
+      assert capture_log(fn ->
+               assert Ipapi.lookup("8.8.8.8", cache) == %{country: "US"}
+               assert Ipapi.lookup("8.8.8.8", cache) == %{country: "US"}
+             end) == ""
+    end
+
+    test "falls back for missing country data and handles IPv6 paths", %{cache: cache} do
+      expect(Req, :get, fn "https://api.ipapi.is", _opts ->
+        {:ok, %Req.Response{status: 200, body: %{}}}
+      end)
+
+      expect(Req, :get, fn url, _opts ->
+        assert %URI{scheme: "https", host: "api.country.is", port: 443, path: path} =
+                 URI.parse(url)
+
+        assert URI.decode(path) == "/2606:4700::1111"
+
+        {:ok, %Req.Response{status: 200, body: %{"country" => "AU"}}}
+      end)
+
+      assert Ipapi.lookup("2606:4700::1111", cache) == %{country: "AU"}
+    end
+
+    test "reports both provider failures without logging the visitor address", %{cache: cache} do
+      ip = "203.0.113.60"
+
+      expect(Req, :get, 2, fn _url, _opts ->
+        {:error, %Req.TransportError{reason: :econnrefused}}
+      end)
+
+      log =
+        capture_log([format: "$message $metadata", metadata: [:provider, :error_reason]], fn ->
+          assert Ipapi.lookup(ip, cache) == %{country: nil}
+        end)
+
+      assert log =~ "provider=ipapi"
+      assert log =~ "provider=country.is"
+      assert log =~ "error_reason=econnrefused"
+      refute log =~ ip
     end
 
     test "collapses concurrent misses for the same IP into one request", %{cache: cache} do

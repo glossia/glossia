@@ -49,8 +49,16 @@ These are computed at ingestion and stored server-side. The raw IP and User-Agen
 | `pathname`        | Page URL      | Path component.                                                     |
 | `referrer_source` | Referrer      | Referrer host, leading `www.`/`m.` stripped.                        |
 | `browser_language`| Languages     | Most preferred normalized locale (e.g. `pt-BR`).                    |
-| `served_locale`   | Page language | Normalized `sl`, or empty (shown as Unknown) if it was not collected. |
+| `served_locale`   | Page language | Normalized `sl`, or empty (shown as Not reported) if it was not collected. |
 | `has_locale_gap`  | Computed      | `1` when none of the visitor's preferred languages match the project targets, advertised translations (`al`), or page language (`sl`). Missing preferences do not count as a gap. |
+
+### Country resolution
+
+Without a configured MaxMind database, country lookups use `api.ipapi.is`, falling back to `api.country.is` when the primary request fails or returns no recognized country. Each request has a one-second connection and response timeout with retries disabled. Successful results from either provider are cached for 24 hours in a size-bounded cache; failures are not cached. Private and reserved addresses are not sent to either provider.
+
+### Missing page language
+
+The dashboard displays **Not reported** when an event has no `sl`. This includes events collected by older tracker versions and pages without an HTML `lang` attribute. The page language is not inferred from browser preferences or the URL. Historical events retain the metadata collected at the time; new tracker versions do not backfill them.
 
 ## Privacy model
 

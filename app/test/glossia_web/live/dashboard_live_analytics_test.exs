@@ -4,7 +4,9 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
   import Phoenix.LiveViewTest
   import Mimic
 
+  alias Glossia.Analytics.Event
   alias Glossia.Analytics.Settings
+  alias Glossia.IngestRepo
   alias Glossia.Projects
   alias Glossia.Repo
   alias Glossia.TestHelpers
@@ -254,6 +256,65 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
     refute has_element?(view, "#analytics-traffic[phx-hook='AnalyticsTraffic']")
     refute render(view) =~ "Traffic by hour"
     refute has_element?(view, "[data-part='localization-priority'] [data-part='legend-bar']")
+  end
+
+  test "distinguishes unreported page languages and gives each language group a unique row", %{
+    conn: conn,
+    project: project,
+    user: user
+  } do
+    {:ok, settings} = Settings.upsert_for_project(project.id, %{domain: "example.com"})
+
+    settings
+    |> Ecto.Changeset.change(%{verified_at: DateTime.utc_now()})
+    |> Repo.update!()
+
+    %{fields: fields, types: types} = Event.buffer_opts()
+    types = Enum.zip(fields, types) ++ [inserted_at: :datetime]
+
+    for {served_locale, gap} <- [{"", 1}, {"en", 0}] do
+      row = %{
+        id: Uniq.UUID.uuid7(),
+        inserted_at: DateTime.add(DateTime.utc_now(), -60, :second),
+        project_id: to_string(project.id),
+        visitor_id: 1,
+        session_id: "language-test",
+        name: "pageview",
+        hostname: "example.com",
+        pathname: "/",
+        referrer: "",
+        referrer_source: "",
+        country_code: "",
+        browser_language: "en-US",
+        served_locale: served_locale,
+        has_locale_gap: gap,
+        device: "desktop",
+        browser: "Chrome",
+        os: "macOS",
+        screen_width: 1_440,
+        timezone: ""
+      }
+
+      IngestRepo.insert_all("analytics_events", [row], types: types)
+    end
+
+    {:ok, view, _html} = live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/analytics")
+
+    assert has_element?(view, "#browser-languages-table #en-US--1", "Not reported")
+    assert has_element?(view, "#browser-languages-table #en-US-en-0", "en")
+    assert has_element?(view, "#page-language-help-en-US-1", "Older tracker versions")
+
+    assert has_element?(
+             view,
+             "#page-language-help-en-US-1 [data-part='trigger'][tabindex='0'] [data-part='cell']",
+             "Not reported"
+           )
+
+    refute has_element?(view, "#browser-languages-table", "Unknown")
+
+    send(view.pid, {:refresh_analytics, project.id, 1})
+    assert has_element?(view, "#browser-languages-table #en-US--1", "Not reported")
+    assert has_element?(view, "#browser-languages-table #en-US-en-0", "en")
   end
 
   test "live refresh ignores timers from another project and reloads its own", %{

@@ -14531,15 +14531,32 @@ defmodule GlossiaWeb.DashboardLive do
             <Noora.Table.table
               id="browser-languages-table"
               rows={@languages}
-              row_key={fn row -> row.browser_language end}
+              row_key={
+                fn row ->
+                  "#{row.browser_language}-#{row.served_locale}-#{row.has_locale_gap}"
+                end
+              }
             >
               <:col :let={row} label={gettext("Language")}>
                 <Noora.Table.text_cell label={row.browser_language} />
               </:col>
               <:col :let={row} label={gettext("Served as")}>
-                <Noora.Table.text_cell label={
-                  if row.served_locale == "", do: gettext("Unknown"), else: row.served_locale
-                } />
+                <.tooltip
+                  :if={row.served_locale == ""}
+                  id={"page-language-help-#{row.browser_language}-#{row.has_locale_gap}"}
+                  title={
+                    gettext(
+                      "The tracker did not report a page language. Older tracker versions and pages without an HTML lang attribute can cause this."
+                    )
+                  }
+                >
+                  <:trigger :let={attrs}>
+                    <div {attrs} tabindex="0">
+                      <Noora.Table.text_cell label={gettext("Not reported")} />
+                    </div>
+                  </:trigger>
+                </.tooltip>
+                <Noora.Table.text_cell :if={row.served_locale != ""} label={row.served_locale} />
               </:col>
               <:col :let={row} label={gettext("Gap?")}>
                 <Noora.Table.status_badge_cell
