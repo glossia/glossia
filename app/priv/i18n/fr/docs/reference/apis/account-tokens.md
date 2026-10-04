@@ -1,9 +1,9 @@
 %{
   title: "Jetons de compte",
-  summary: "Créer et gérer les jetons de compte pour l'authentification avec l'API Glossia.",
+  summary: "Créer et gérer les jetons de compte pour vous authentifier avec l'API Glossia.",
   category: "Référence",
   subcategory: "APIs",
-  order: 2
+  order: 3
 }
 ---
 Les jetons de compte offrent un moyen simple d'authentifier les requêtes API sans passer par le flux OAuth complet. Ils sont idéaux pour les scripts, les pipelines CI/CD et l'automatisation personnelle.
@@ -11,14 +11,14 @@ Les jetons de compte offrent un moyen simple d'authentifier les requêtes API sa
 ## Création d'un jeton
 
 1. Connectez-vous à Glossia et accédez à votre tableau de bord de compte.
-2. Ouvrez le **API** section de la barre latérale.
-3. Cliquez **Jetons de compte**, puis **Nouveau jeton**.
-4. Donnez à votre jeton un **nom** (par exemple, "Déploiement CI" ou "Accès CLI").
-5. Choisissez les **portées** que le jeton nécessite. N'accordez que les autorisations minimales requises.
-6. Définissez une **date d'expiration** ou laissez-le vide pour un jeton qui n'expire jamais.
+2. Ouvrir le **API** section dans la barre latérale.
+3. Cliquer **Jetons de compte**, ensuite **Nouveau jeton**.
+4. Donnez au jeton un descriptif **nom** (par exemple, \\"CI deploy\\" ou \\"CLI access\\").
+5. Choisissez les **portées** ce dont le jeton a besoin. Accordez uniquement les permissions minimales requises.
+6. Définissez une **date d'expiration** ou laissez-le vide pour un jeton qui n'expirera jamais.
 7. Cliquez **Créer un jeton**.
 
-Après la création, la valeur complète du jeton est affichée. **une fois**. Copiez-la immédiatement et stockez-la en toute sécurité. Vous ne pourrez plus voir la valeur complète à nouveau.
+Après la création, la valeur complète du jeton est affichée. **Une fois**. Copiez-le immédiatement et stockez-le en toute sécurité. Vous ne serez plus en mesure de voir la valeur complète à nouveau.
 
 ## Utilisation d'un jeton
 
@@ -33,21 +33,21 @@ curl -H "Authorization: Bearer glsa_abc123def456..." \
   https://glossia.ai/api/projects
 ```
 
-Les jetons de compte suivent le même [modèle d'autorisation](/docs/reference/apis/authentication) en tant que jetons OAuth. Les étendues du jeton définissent l'ensemble maximal d'actions qu'il peut effectuer, et les politiques de niveau ressource s'appliquent toujours en fonction des relations de votre compte.
+Les jetons de compte suivent le même [modèle d'autorisation](/docs/reference/apis/authorization) sous la forme de jetons OAuth. Les portées du jeton définissent l'ensemble maximal d'actions qu'il peut exécuter, et les politiques au niveau des ressources s'appliquent toujours selon les relations de votre compte.
 
-## Format de jeton
+## Format du jeton
 
-Tous les jetons de compte commencent par le `glsa_` préfixe suivi d'une chaîne hexadécimale aléatoire. Ce préfixe facilite l'identification des jetons Glossia dans les journaux et les scanners de secrets.
+Tous les jetons de compte commencent par le `glsa_` préfixe suivi d'une chaîne hexadécimale aléatoire. Ce préfixe permet d'identifier facilement les jetons Glossia dans les logs et les scanneurs de secrets.
 
-## Étendues
+## Portées
 
-Les jetons de compte supportent les mêmes étendues que les jetons OAuth. Consultez le [référence des étendues](/docs/reference/apis/authentication) pour la liste complète.
+Les jetons de compte prennent en charge les mêmes portées que les jetons OAuth. Consultez la [référence des portées](/docs/reference/apis/authorization) pour la liste complète.
 
-Lors de la création d'un jeton, sélectionnez uniquement les portées nécessaires à votre cas d'utilisation. Par exemple :
+Lors de la création d'un jeton, sélectionnez uniquement les scopes requis par votre cas d'usage. Par exemple:
 
 - Une intégration en lecture seule nécessite `project:read` et `voice:read`.
-- Un pipeline CI créant des projets nécessite `project:read` et `project:write`.
-- Un script qui gère les membres de l'organisation a besoin de `members:read` et `members:write`.
+- Un pipeline CI qui crée des projets nécessite `project:read` et `project:write`.
+- Un script qui gère les membres d'organisation a besoin `members:read` et `members:write`,
 
 ## Gestion des jetons
 
@@ -57,30 +57,30 @@ La **Jetons du compte** page liste tous les jetons actifs avec leur nom, leurs p
 
 ### Édition des jetons
 
-Cliquez sur le nom d'un jeton pour modifier son **nom** et **description**. Les portées et l'expiration ne peuvent être modifiées après la création. Si vous avez besoin de portées différentes, créez un nouveau jeton et révoquez l'ancien.
+Cliquez sur le nom d'un jeton pour modifier son **nom** et **description**. La portée et l'expiration ne peuvent pas être modifiées après la création. Si vous avez besoin de portées différentes, créez un nouveau jeton et révoquez l'ancien.
 
 ### Révocation des jetons
 
-Pour révoquer un jeton, cliquez sur **Révoquer** sur la liste des jetons ou ouvrez la page de modification du jeton et utilisez le **Révoquer le jeton** bouton de la zone de danger. Les jetons révoqués cessent de fonctionner immédiatement et ne peuvent pas être restaurés.
+Pour révoquer un jeton, cliquez **Révoquer** sur la liste des jetons ou ouvrez la page de modification du jeton et utilisez le **Révoquer le jeton** bouton dans la zone de danger. Les jetons révoqués cessent de fonctionner immédiatement et ne peuvent pas être restaurés.
 
 ## Meilleures pratiques de sécurité
 
-- **Stockez les jetons en toute sécurité.** Utilisez des variables d'environnement ou un gestionnaire de secrets. Ne commitez jamais de jetons dans le contrôle de version.
-- **Utilisez des jetons à courte durée de vie.** Définissez une date d'expiration dans la mesure du possible.
-- **Minimisez les portées.** Accordez uniquement les autorisations dont le jeton a réellement besoin.
-- **Renouvelez les jetons régulièrement.** Créez de nouveaux jetons et révoquez les anciens selon un calendrier.
-- **Surveillez l'utilisation.** Vérifiez périodiquement la date « dernière utilisation ». Révoquez les jetons qui ne sont plus utilisés.
-- **Utilisez un jeton par intégration.** Ainsi, la révocation d'un seul jeton ne rompt pas d'autres flux de travail.
+- **Stockez les jetons en toute sécurité.** Utilisez des variables d'environnement ou un gestionnaire de secrets. Ne commitez jamais les jetons dans le contrôle de version.
+- **Utilisez des jetons à durée de vie courte.** Définissez une date d'expiration dès que possible.
+- **Minimisez les portées.** N'accordez que les autorisations dont le jeton a réellement besoin.
+- **Rotez-les régulièrement.** Créez de nouveaux jetons et révoquez les anciens selon un calendrier.
+- **Surveillez l'utilisation.** Vérifiez périodiquement la date de « dernière utilisation ». Révoquez les jetons qui ne sont plus utilisés.
+- **Utilisez un jeton par intégration.** De cette façon, révoquer un jeton n'affecte pas les autres flux de travail.
 
 ## Gestion de l'API
 
 Vous pouvez également gérer les jetons de compte via l'API REST et le serveur MCP.
 
-### API REST
+### REST API
 
 | Méthode | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/tokens` | Lister les jetons actifs |
+| `GET` | `/api/tokens` | Liste des jetons actifs |
 | `POST` | `/api/tokens` | Créer un nouveau jeton |
 | `DELETE` | `/api/tokens/:id` | Révoquer un jeton |
 
