@@ -9172,6 +9172,16 @@ defmodule GlossiaWeb.DashboardLive do
 
     ~H"""
     <%= case @event_type do %>
+      <% "error" -> %>
+        <Noora.Alert.alert
+          data-part="session-error"
+          type="secondary"
+          status="error"
+          size="large"
+          title={gettext("Translation failed")}
+        >
+          <p>{Glossia.TranslationSessions.Error.display(@content)}</p>
+        </Noora.Alert.alert>
       <% "message" -> %>
         <div class="setup-event setup-event-message">
           <div class="setup-event-icon">

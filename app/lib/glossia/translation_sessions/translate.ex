@@ -940,7 +940,7 @@ defmodule Glossia.TranslationSessions.Translate do
   defp humanize_error(:codex_session_token_missing),
     do: "Could not read a local Codex session token for development translation."
 
-  defp humanize_error(reason), do: "Translation failed: #{inspect(reason)}"
+  defp humanize_error(reason), do: Glossia.TranslationSessions.Error.describe(reason)
 
   defp run_stopping_failure?(%{reason: reason}),
     do: reason |> Failure.normalize() |> Failure.run_stopping?()

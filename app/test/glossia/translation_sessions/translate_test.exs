@@ -87,7 +87,9 @@ defmodule Glossia.TranslationSessions.TranslateTest do
       end)
 
       continuation =
-        Repo.one!(from s in TranslationSession, where: s.continued_from_session_id == ^session.id)
+        Repo.one!(
+          from(s in TranslationSession, where: s.continued_from_session_id == ^session.id)
+        )
 
       assert continuation.status == "pending"
       assert continuation.provider_retry_count == 1
@@ -508,6 +510,29 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     updated = Repo.get!(TranslationSession, session.id)
     assert updated.status == "failed"
     assert updated.outcome == "failed"
+    assert updated.error == Glossia.TranslationSessions.Error.describe({:clone_failed, "boom"})
+    refute updated.error =~ "boom"
+  end
+
+  test "stores an actionable planning failure instead of an inspected tuple" do
+    {user, project} = project_with_installation("translate-plan@test.com", "translate-plan")
+    session = session_for(user, project)
+
+    reason =
+      {:planning_failed, "sources must be a mapping of source patterns to target path templates"}
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _, _, _, _, _ ->
+      {:error, reason}
+    end)
+
+    assert {:error, ^reason} = Translate.run(session.id)
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.status == "failed"
+    assert updated.error == Glossia.TranslationSessions.Error.describe(reason)
+    refute updated.error =~ "planning_failed"
   end
 
   test "passes an existing publication branch to a resumed repository run" do
