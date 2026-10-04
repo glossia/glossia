@@ -1,22 +1,27 @@
 %{
-  title: "Autenticación y autorización",
-  summary: "Cómo Glossia autentica usuarios y autoriza el acceso a la API.",
+  title: "Autenticación",
+  summary:
+    "Inicio de sesión desde el navegador, tokens de acceso y puntos finales de autenticación.",
   category: "Referencia",
   subcategory: "APIs",
   order: 1
 }
 ---
+Esta página describe [Autorización Abierta](https://oauth.net/2.1/) (OAuth), [Intercambio de Claves de Prueba para Código](https://datatracker.ietf.org/doc/html/rfc7636) (PKCE), y la [interfaz de programación de aplicaciones](https://developer.mozilla.org/en-US/docs/Glossary/API) (API). Las especificaciones de protocolo enlazadas a continuación se publican como Peticiones de Comentarios (RFCs).
+
 ## Métodos de autenticación
 
-Glossia soporta dos métodos de autenticación según el contexto.
+Glossia soporta sesiones de navegador y tokens Bearer. Los tokens Bearer pueden emitirse a través del flujo de autorización siguiente o crearse como [tokens de cuenta](/docs/reference/apis/account-tokens).
 
 ### Sesiones del navegador
 
-Cuando inicia sesión a través de la interfaz web, Glossia utiliza autenticación basada en sesión. Se autentica a través de un proveedor de terceros (GitHub o GitLab) utilizando la [Assent](https://github.com/pow-auth/assent) biblioteca. Después de un inicio de sesión exitoso, se establece una cookie de sesión y se utiliza para las solicitudes subsiguientes.
+Cuando inicia sesión a través de la interfaz web, Glossia utiliza autenticación basada en sesión. Se autentica mediante GitHub, GitLab, Google o un proveedor de identidad de organización configurado usando el [Assent](https://github.com/pow-auth/assent) biblioteca. Después de un inicio de sesión exitoso, se establece una cookie de sesión y se utiliza para solicitudes posteriores.
+
+Las organizaciones pueden configurar Google Workspace o Okta y verificar su dominio de correo laboral antes de permitir la inscripción automática. Ver [Configurar inicio de sesión de la organización](/docs/how-to/organization-sign-in) para los requisitos de configuración y vinculación de cuentas.
 
 ### Tokens Bearer (OAuth 2.1)
 
-Para el acceso a la API (como desde la CLI u otras herramientas), Glossia implementa OAuth 2.1 con el flujo de código de autorización y PKCE. Los clientes obtienen un token Bearer y lo incluyen en la `Authorization` header:
+Para el acceso a la API (por ejemplo, desde la CLI u otras herramientas), Glossia implementa OAuth 2.1 con el flujo de código de autorización y PKCE. Los clientes obtienen un token Bearer y lo incluyen en el `Authorization` encabezado:
 
     Authorization: Bearer <access_token>
 
@@ -24,7 +29,7 @@ Para el acceso a la API (como desde la CLI u otras herramientas), Glossia implem
 
 ### 1\. Registro dinámico de clientes
 
-Los clientes se registran llamando `POST /oauth/register` con sus metadatos. Esto sigue [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
+Los clientes se registran al llamar `POST /oauth/register` con sus metadatos. Esto sigue [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
 
 ```json
 {
@@ -34,129 +39,63 @@ Los clientes se registran llamando `POST /oauth/register` con sus metadatos. Est
 }
 ```
 
-El servidor devuelve `client_id` y `client_secret`.
+Glossia devuelve `client_id` y `client_secret`. El `localhost` la redirección en este ejemplo pertenece a su aplicación durante el desarrollo. Las aplicaciones de producción deben registrar su propia dirección de devolución de llamada segura.
 
 ### 2\. Solicitud de autorización
 
-El cliente redirige al usuario a `/oauth/authorize` con parámetros PKCE:
+El cliente redirige al usuario a `/oauth/authorize` con los parámetros PKCE:
 
     GET /oauth/authorize?response_type=code&client_id=<id>&redirect_uri=<uri>&code_challenge=<challenge>&code_challenge_method=S256&state=<state>
 
 **PKCE es obligatorio para todos los clientes.** Solo el `S256` método de desafío está soportado.
 
-### 3\. Intercambio de token
+### 3\. Intercambio de tokens
 
 Después de que el usuario aprueba, el cliente intercambia el código de autorización por tokens en `POST /oauth/token`:
 
     POST /oauth/token
     Content-Type: application/x-www-form-urlencoded
     
-    grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<id>&code_verifier=<verifier>
+    grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<id>&client_secret=<secret>&code_verifier=<verifier>
 
-La respuesta incluye un token de acceso y opcionalmente un token de refresco.
+La respuesta incluye un token de acceso y opcionalmente un token de actualización.
 
-### 4\. Refresco de token
+### 4\. Renovación de token
 
-Cuando un token de acceso expira, utilice el token de refresco:
+Cuando un token de acceso expira, utilice el token de actualización:
 
     POST /oauth/token
     Content-Type: application/x-www-form-urlencoded
     
     grant_type=refresh_token&refresh_token=<token>&client_id=<id>&client_secret=<secret>
 
-## Alcances
-
-Los alcances controlan qué acciones puede realizar un token. Siguen el `object:action` Patrón.
-
-| Alcance | Descripción |
-|-------|-------------|
-| `user:read` | Leer información del perfil de usuario |
-| `user:write` | Actualizar perfil de usuario |
-| `account:read` | Listar las cuentas de organización a las que tienes acceso |
-| `organization:read` | Leer detalles de la organización (y listar tus organizaciones) |
-| `organization:write` | Crear o actualizar organizaciones |
-| `organization:delete` | Eliminar organizaciones |
-| `organization:admin` | Acciones administrativas de la organización |
-| `members:read` | Leer miembros e invitaciones de la organización |
-| `members:write` | Gestionar miembros e invitaciones de la organización |
-| `project:read` | Leer proyectos |
-| `project:write` | Crear o actualizar proyectos |
-| `project:admin` | Acciones administrativas de proyectos |
-| `project:delete` | Eliminar proyectos |
-| `voice:read` | Leer configuración de voz |
-| `voice:write` | Crear o actualizar configuración de voz |
-| `voice:admin` | Acciones administrativas de voz |
-| `glossary:read` | Leer entradas de terminología |
-| `glossary:write` | Crear o actualizar entradas de terminología |
-| `glossary:admin` | Administrar la configuración de terminología |
-
-## Modelo de autorización
-
-Glossia exige **dos capas** para la API REST y el servidor MCP:
-
-1. **Comprobación del alcance**: el token de acceso debe incluir el requerido `object:action` alcance.
-2. **Política a nivel de recurso**: el usuario actual debe estar autorizado para el recurso específico a través de `Glossia.Policy`.
-
-Los alcances representan el *máximo* capacidad de un token. El sistema de políticas hace cumplir el *real* permiso para un recurso específico.
-
-### Roles
-
-| Rol | Descripción |
-|------|-------------|
-| `self` | El usuario que accede a sus propios recursos |
-| `organization_member` | Un miembro de la organización que posee el recurso |
-| `organization_admin` | Un administrador de la organización que posee el recurso |
-| `public_account` | La cuenta es pública (solo lectura) |
-
-### Permisos de rol
-
-| Alcance | self | organization\_member | organization\_admin | public\_account |
-|-------|------|----------------------|--------------------|----------------|
-| `user:read` | Sí | Sí | | |
-| `user:write` | Sí | | | |
-| `account:read` | | Sí | Sí | Sí |
-| `organization:read` | | Sí | Sí | |
-| `organization:write` | | | Sí | |
-| `organization:delete` | | | Sí | |
-| `organization:admin` | | | Sí | |
-| `members:read` | | Sí | Sí | |
-| `members:write` | | | Sí | |
-| `project:read` | | Sí | Sí | Sí |
-| `project:write` | | | Sí | |
-| `project:admin` | | | Sí | |
-| `project:delete` | | | Sí | |
-| `voice:read` | | Sí | Sí | Sí |
-| `voice:write` | | | Sí | |
-| `voice:admin` | | | Sí | |
-| `glossary:read` | | Sí | Sí | |
-| `glossary:write` | | | Sí | |
-| `glossary:admin` | | | Sí | |
+Ver [Autorización](/docs/reference/apis/authorization) para alcances de permisos, acceso de miembros y comprobaciones a nivel de recurso.
 
 ## Puntos finales de descubrimiento
 
-Glossia publica metadatos en URLs estándar reconocidas para que los clientes puedan descubrir los puntos finales automáticamente.
+Glossia publica metadatos en URLs estándar bien conocidas para que los clientes puedan descubrir los puntos finales automáticamente.
 
-### Metadatos del Servidor de Autorización OAuth (RFC 8414)
+### Metadatos del Servidor de Autorización de OAuth (RFC 8414)
 
     GET /.well-known/oauth-authorization-server
 
-Devuelve el emisor, los puntos finales, los alcances soportados, los tipos de concesión y los métodos de desafío de código.
+Devuelve el emisor, los puntos finales, los ámbitos admitidos, los tipos de concesión y los métodos de desafío de código.
 
-### Metadatos de Recursos Protegidos (RFC 9728)
+### Metadatos del Recurso Protegido (RFC 9728)
 
     GET /.well-known/oauth-protected-resource
 
-Devuelve el identificador del recurso, los servidores de autorización, los alcances soportados y los métodos de portador.
+Devuelve el identificador del recurso, los servidores de autorización, los ámbitos admitidos y los métodos portador.
 
 ## Limitación de tasa
 
-Los puntos finales OAuth tienen límites por dirección IP:
+El registro está limitado por la dirección del cliente. Las solicitudes de token, revocación e introspección están limitadas tanto por la dirección del cliente como por el identificador del cliente:
 
-| Punto final | Límite |
+| Endpoint | Límite |
 |----------|-------|
 | `POST /oauth/register` | 5 solicitudes por minuto |
 | `POST /oauth/token` | 30 solicitudes por minuto |
-| `POST /oauth/revoke` | 30 peticiones por minuto |
-| `POST /oauth/introspect` | 30 peticiones por minuto |
+| `POST /oauth/revoke` | 30 solicitudes por minuto |
+| `POST /oauth/introspect` | 30 solicitudes por minuto |
 
-Cuando se aplica la limitación de tasa, el servidor devuelve HTTP 429 (Demasiadas peticiones).
+Cuando hay limitación por tasa, el servidor devuelve HTTP 429 (Demasiadas solicitudes).
