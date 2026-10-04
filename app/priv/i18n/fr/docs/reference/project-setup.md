@@ -2,45 +2,63 @@
   title: "Configuration du projet",
   summary: "États, informations de progression et résultats de la configuration du dépôt.",
   category: "Référence",
+  section: "translation",
   order: 2
 }
 ---
-La configuration du projet prépare un dépôt connecté pour Glossia. Elle commence après que l'utilisateur sélectionne un dépôt et au moins une langue cible dans le **Nouveau projet** flux.
+La configuration du projet prépare un dépôt connecté pour Glossia. Après qu'un utilisateur sélectionne un dépôt dans le **Nouveau projet** flux, ils choisissent l'un des deux modes de configuration.
+
+## Modes de configuration
+
+| Mode | Ce que Glossia fait | Quand le choisir |
+|---|---|---|
+| **Configuration automatisée** | Inspecte le dépôt et ouvre une Pull Request avec la `L10N.md` configuration générée pour les langues cibles sélectionnées. | Le dépôt n'a pas encore de configuration de localisation. |
+| **Configuration manuelle** | Crée le projet immédiatement. Il ne l'inspecte pas, ne le modifie pas, ni n'ouvre de Pull Request. | Le dépôt possède déjà un `L10N.md` fichier, ou un mainteneur l'écrira. |
+
+Les états, les informations de progression et la Pull Request décrites ci-dessous s'appliquent uniquement à la configuration automatique.
+
+## Configuration manuelle
+
+Un projet configuré manuellement n'a pas d'état de configuration. Il est utilisable dès sa création et n'est jamais supprimé suite à un échec de configuration.
+
+Glossia lance une exécution de traduction au prochain push vers la branche par défaut du dépôt. L'exécution traduit vers chaque cible déclarée dans le dépôt [`L10N.md`](/docs/reference/l10n-md) fichiers, car aucune langue cible n'est sélectionnée dans le **Nouveau projet** flux.
+
+Jusqu'à la première exécution de traduction, l'aperçu du projet affiche un avis expliquant que Glossia est en attente d'un push incluant un `L10N.md` fichier.
 
 ## Prérequis
 
-- Le compte dispose d'au moins un modèle configuré.
+- Le compte dispose au moins d'un modèle configuré.
 - L'application GitHub de Glossia peut accéder au dépôt sélectionné.
 - L'utilisateur peut créer des projets dans le compte.
-- Au moins une langue cible est sélectionnée.
+- Pour la configuration automatisée, au moins une langue cible est sélectionnée.
 
 ## États
 
-| État | Description | Action disponible |
+| État | Signification | Action disponible |
 |---|---|---|
-| **En attente** | Le projet a été accepté et est en attente de démarrage. | Suivez la progression ou quittez la page et revenez plus tard. |
-| **En cours** | Glossia est en inspection et met à jour le dépôt. | Suivez l'activité en direct. |
-| **Terminé** | La base de référence de localisation a été préparée et publiée pour examen. | Ouvrir, réviser et fusionner la demande de pull. |
+| **En attente** | Le projet a été accepté et est en attente de démarrage. | Suivez les progrès ou quittez la page pour revenir plus tard.
+| **En cours** | Glossia examine et met à jour le dépôt. | Suivez l'activité en direct.
+| **Complété** | La référence de localisation a été préparée et publiée pour révision. | Ouvrez, révisez et fusionnez la demande d'intégration.
 
-Les projets sont provisoires pendant que la configuration est **En attente** ou **En cours**. Si l'initialisation ne peut pas être achevée ou publier un changement utilisable, Glossia nettoie l'environnement d'initialisation et supprime le projet provisoire. Le dépôt devient ensuite disponible dans le **Nouveau projet** flux pour que l'initialisation puisse être tentée à nouveau.
+Les projets sont provisoires tant que la mise en place est **en attente** ou **en cours**. Si la mise en place ne peut pas se terminer ou publier un changement utilisable, Glossia nettoie l'environnement de mise en place et supprime le projet provisoire. Le dépôt devient alors disponible dans le **Nouveau projet** flux pour pouvoir réessayer la mise en place.
 
 ## Progression visible
 
-La carte d'initialisation reste disponible dans le flux de nouveau projet et sur la vue d'aperçu du projet. Elle comprend :
+La carte de mise en place reste disponible dans le flux de nouveau projet et sur la vue d'ensemble du projet. Elle comprend :
 
 - Un badge d'état et une barre de progression.
-- Une brève explication de l'état actuel.
-- Une activité récente de préparation, d'inspection, de modification de fichier, de vérification et de finalisation du dépôt.
-- Un message d'échec clair lorsque la configuration ne peut pas s'achever.
+- Une courte explication de l'état actuel.
+- Activité récente de préparation du dépôt, d'inspection, de modification de fichiers, de vérification et de complétion.
+- Un message d'échec clair lorsque la mise en place ne peut pas se terminer.
 
-La progression est stockée tant que le projet provisoire existe. Un échec fatal supprime le projet et sa progression visible de configuration.
+La progression est stockée tant que le projet provisoire existe. Un échec terminal supprime à la fois le projet et sa progression de mise en place visible.
 
-## Résultat final.
+## Résultat complété
 
-Une configuration connectée réussie crée une branche dédiée et une demande de fusion vers la branche par défaut du dépôt. La demande de fusion contient la base de localisation générée, incluant `L10N.md` le contexte et les modifications minimales nécessaires pour charger le contenu localisé.
+Une mise en place connectée réussie crée une branche dédiée et une pull request sur la branche par défaut du dépôt. La pull request contient la base de localisation générée, incluant `L10N.md` contexte et les plus petits changements pratiques nécessaires pour charger du contenu localisé.
 
-La configuration ne publie pas de catalogues cibles ne contenant que des en-têtes. Lorsqu'un cadre de localisation requiert des catalogues cibles avant la traduction, ces derniers contiennent les entrées de messages source extraites avec des valeurs de traduction vides. Lorsque des catalogues cibles ne sont pas encore requis, la configuration les laisse disponibles pour la première exécution de traduction.
+La configuration ne publie pas de catalogues cibles à en-têtes uniquement. Lorsqu'un framework de localisation nécessite des catalogues cibles avant la traduction, les catalogues contiennent les entrées de messages source extraites avec des valeurs de traduction vides. Lorsque les catalogues cibles ne sont pas encore requis, la configuration les conserve pour la première exécution de traduction.
 
-Glossia ne fusionne pas la demande de fusion. Les mainteneurs du dépôt la révisent et la fusionnent selon leur processus normal sur GitHub.
+Glossia ne fusionne pas la demande de fusion. Les mainteneurs du dépôt la révisent et la fusionnent via leur processus normal GitHub.
 
-La vue d'ensemble du projet affiche une notification de configuration tant que cette demande de fusion est ouverte. La notification est retirée après la fusion de la demande. Si la demande de fusion est fermée sans être fusionnée, la vue d'ensemble explique qu'elle doit être réouverte avant que la configuration ne soit considérée comme terminée.
+L'aperçu du projet affiche un avis de configuration pendant que cette demande de fusion est ouverte. L'avis est supprimé après la fusion de la demande. Si la demande de fusion est fermée sans être fusionnée, l'aperçu indique qu'elle doit être reouverte avant que la configuration ne soit considérée achevée.
