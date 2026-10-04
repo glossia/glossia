@@ -1,15 +1,16 @@
 {
-  "hash": "1e4edc63c2e29a84781ca95913deeabc449e75115cb90775b78e3d14d6c874c5",
+  "baseline_schema_version": 1,
+  "hash": "a9152f7cb50a941dd0becae0141a510891589af09ebdde214bfc02a2cea59fc8",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "6f87f68b48606e23b0938f2707c5959b5e4379233411491cd20658310668a7d1",
+          "hash": "4440527c5b1f545681794c590bddcdcb87b8b7fcca8d91e443cafa6699b35f72",
           "kind": "source",
           "label": "app/priv/docs/reference/project-setup.md",
           "metadata": {
-            "content_hash": "7c1a8527293b1c32c7432e0726eb753bfda7769d09a0c2880367dbc9dd39207e"
+            "content_hash": "8676dd1ab670b49c64af1411333df9dbc88469cc07bae635f8d3adb5c1212da7"
           }
         },
         {
@@ -37,20 +38,20 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
               "children": [],
-              "hash": "1424b207fea998c4fef898d526dcb29e10da43d23480340193ea637c2fd3d43d",
+              "hash": "a54709e3cea48e4871dba3f92b628c2156e257d7f78528c44bf202db4cab7630",
               "kind": "context",
               "label": "locale",
               "metadata": {
-                "content_hash": "cc29cd8eebf5d547c8f217c0af8fa84e2300279090f0f6312ed2903aedeb1b61"
+                "content_hash": "94bb6a27769a21802f1ca275e7afd7e42beae6d50ce0ecdf22c63e45228fe7d2"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
+          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "1e4edc63c2e29a84781ca95913deeabc449e75115cb90775b78e3d14d6c874c5",
+      "hash": "a9152f7cb50a941dd0becae0141a510891589af09ebdde214bfc02a2cea59fc8",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/project-setup.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "99ce4a5bad7c1619da78c373152ae10a57ccb3078f7da6e8bee8a7408cc88db2",
+  "output_hash": "889d76b58cf54eecd1c0ec4f90e0de6216adba555310c6b6f9e7924e3aa6be66",
   "output_path": "app/priv/i18n/es/docs/reference/project-setup.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "dd5e8380aa230b9b0ad845b5b0dd842e12e511f9",
   "source_path": "app/priv/docs/reference/project-setup.md",
-  "translated_at": "2026-09-12T09:47:38.224782Z"
+  "translated_at": "2026-10-04T18:28:51.821193Z",
+  "translation_session_id": "01a1075b-6b29-732b-b0f6-e5048cc469e9"
 }
