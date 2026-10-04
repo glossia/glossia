@@ -34,7 +34,13 @@ defmodule GlossiaWeb.LLMUsageLiveTest do
 
     {:ok, view, html} = live(conn, path)
     assert html =~ "1,250"
-    assert has_element?(view, "#token-usage-chart")
+    assert has_element?(view, "#usage-overview-card #token-usage-chart")
+    assert has_element?(view, "#usage-breakdown-card #token-usage-table")
+    assert has_element?(view, "[data-part='page-header'] h1", "Token usage")
+    assert has_element?(view, "#usage-widget-input [data-part='legend'][data-color='primary']")
+    assert has_element?(view, "#usage-widget-output [data-part='legend'][data-color='secondary']")
+    assert has_element?(view, "#usage-total-tooltip [data-part='trigger'][tabindex='0']")
+    assert has_element?(view, ".noora-tab-menu-horizontal-item[data-selected]", "Projects")
 
     chart =
       html
@@ -46,11 +52,14 @@ defmodule GlossiaWeb.LLMUsageLiveTest do
     assert chart["grid"] == %{
              "left" => "2%",
              "right" => 0,
-             "top" => "15%",
+             "top" => "5%",
              "bottom" => 0,
              "containLabel" => true
            }
 
+    refute chart["legend"]["show"]
+    assert chart["colors"] == ["var:noora-chart-primary", "var:noora-chart-secondary"]
+    assert Enum.all?(chart["series"], &(&1["barWidth"] == 8))
     assert chart["yAxis"]["splitNumber"] == 4
     assert Enum.all?(chart["xAxis"]["data"], &Regex.match?(~r/^[A-Z][a-z]{2} \d{1,2}$/, &1))
     assert has_element?(view, "#token-usage-table", "docs")
@@ -68,12 +77,17 @@ defmodule GlossiaWeb.LLMUsageLiveTest do
   test "search, period, and sorting survive URL navigation", %{conn: conn, user: user} do
     path = "/#{user.account.handle}/-/settings/models/usage"
     {:ok, view, _} = live(conn, path <> "?dimension=files&days=7&sort=label&dir=asc")
-    assert has_element?(view, "#usage-days option[value='7'][selected]")
+    assert render(view) =~ "Last 7 days"
     view |> form("#usage-search", %{q: "missing"}) |> render_change()
     assert has_element?(view, "#token-usage-table", "No reported usage")
     assert render(view) =~ "1,250"
-    view |> form("#usage-period", %{days: "90"}) |> render_change()
-    assert has_element?(view, "#usage-days option[value='90'][selected]")
+    render_patch(view, path <> "?days=90&dimension=files&dir=asc&page=1&q=missing&sort=label")
+    assert render(view) =~ "Last 90 days"
+    assert has_element?(view, ".noora-tab-menu-horizontal-item[data-selected]", "Files")
+    assert has_element?(view, "#usage-query[value='missing']")
+
+    view |> form("#usage-search", %{q: "guide"}) |> render_submit()
+    assert has_element?(view, "#token-usage-table", "guide.md")
   end
 
   test "Noora model filters apply to the entire usage scope", %{conn: conn, user: user} do
