@@ -1,64 +1,68 @@
 %{
-  title: "Introduction",
+  title: "Premiers pas",
   summary: "Connecter un dépôt et préparer sa première configuration de localisation.",
-  category: "tutoriels",
+  category: "Tutoriels",
   order: 1
 }
 ---
-Ce tutoriel connecte un dépôt GitHub à Glossia, choisit ses premières langues cibles et prépare une base de localisation pour votre équipe à valider.
+Ce tutoriel connecte un dépôt GitHub à Glossia, choisit ses premières langues cibles, et prépare une base de localisation pour la revue de votre équipe.
 
 ## Avant de commencer
 
-Vous avez besoin de :
+Il vous faut :
 
 - Un compte Glossia où vous pouvez gérer les paramètres et les projets.
-- Un dépôt GitHub auquel vous pouvez accorder à l'application GitHub App de Glossia la permission de lire et mettre à jour.
+- Un dépôt GitHub sur lequel vous pouvez accorder au Glossia GitHub App la permission de lire et de modifier.
 - Une clé de fournisseur pour un supporté [modèle de langage à grande échelle](https://en.wikipedia.org/wiki/Large_language_model).
 
 ## 1\. Configurez un modèle de compte
 
-Ouvrez **Paramètres**, puis **Modèles**, et sélectionnez **Nouveau modèle**.
+Ouvrir **Paramètres**, puis **Modèles**, et sélectionnez **Nouveau modèle**.
 
-1. Donnez au modèle un nom court, par exemple `translation-default`.
+1. Donnez au modèle un identifiant court, tel que `translation-default`.
 2. Ouvrez le sélecteur de modèles et tapez une partie du nom d'un fournisseur ou d'un modèle pour filtrer la liste.
 3. Sélectionnez le modèle que vous souhaitez que Glossia utilise.
-4. Entrez la clé du fournisseur et enregistrez le modèle.
+4. Saisissez la clé du fournisseur et enregistrez le modèle.
 
-Le nom court permet aux dépôts de se référer à ce modèle de compte sans placer les identifiants du fournisseur dans le contrôle de source. Voir [Configurer un fournisseur de modèle](/docs/how-to/configure-a-model-provider) pour plus de détails.
+L'identifiant permet aux dépôts de se référer à ce modèle de compte sans placer les identifiants du fournisseur dans le contrôle de source. Voir [Configurer un fournisseur de modèle](/docs/how-to/configure-a-model-provider) pour plus de détails.
 
-## 2\. Démarrer un projet
+## 2\. Commencer un projet
 
-Retour à **Projets** et sélectionnez **Nouveau projet**.
+Retournez à **Projets** et sélectionnez **Nouveau projet**.
 
-Si Glossia demande un accès au dépôt, suivez le lien vers GitHub et accordez l'accès au dépôt à l'application GitHub de Glossia. Après retour à Glossia, rouvrez **Nouveau projet** si nécessaire.
+Si Glossia demande l'accès au dépôt, suivez le lien vers GitHub et accordez à l'application GitHub Glossia l'accès au dépôt. Après votre retour à Glossia, rouvrez **Nouveau projet** si nécessaire.
 
 ## 3\. Choisir un dépôt
 
-Sélectionnez le dépôt que vous souhaitez localiser. Glossia ne liste que les dépôts disponibles via l'installation de l'application GitHub du compte actuel.
+Sélectionnez le dépôt que vous souhaitez localiser. Glossia n'affiche que les dépôts disponibles via l'installation de l'application GitHub du compte actuel.
 
-Continuer à l'étape des langues.
+## 4\. Choisir comment configurer le projet
 
-## 4\. Choisir les langues cibles
+Sélectionner **Configuration automatisée** pour laisser Glossia examiner le dépôt et proposer la configuration de localisation dans une demande de fusion. Ce tutoriel suit cette option.
 
-Sélectionnez une ou plusieurs langues à générer à partir du contenu source du dépôt, puis lancez la configuration.
+Si le dépôt possède déjà un `L10N.md` fichier, ou si vous préférez le rédiger vous-même, sélectionnez **Configuration manuelle** au lieu de cela. Glossia crée le projet immédiatement et vous pouvez sauter les étapes restantes. Voir [Mise en place du projet](/docs/reference/project-setup) pour ce que fait chaque mode.
 
-## 5\. Suivre la progression de la configuration
+## 5\. Choisissez les langues cibles
 
-Gardez la page de configuration ouverte tant que Glossia prépare le projet. La carte de progression affiche l'état actuel et les activités récentes, y compris la préparation des dépôts, l'inspection des fichiers, les modifications, les vérifications et l'achèvement.
+Sélectionnez une ou plusieurs langues à générer à partir du contenu source du référentiel, puis commencez la mise en place.
 
-Vous pouvez quitter la page et revenir à la vue du projet sans perdre l'état de configuration. En cas d'échec de la configuration, la même carte explique ce qui nécessite attention et propose **Réessayer la configuration**.
+## 6\. Suivez l'avancement de la mise en place
 
-## 6\. Examiner le résultat
+Gardez la page de configuration ouverte pendant que Glossia prépare le projet. La carte de progression affiche l'état actuel et l'activité récente, y compris la préparation du dépôt, l'inspection des fichiers, les modifications, les contrôles et la finalisation.
 
-Lorsque la configuration est terminée, ouvrez la vue du projet et examinez la demande de fusion créée pour le dépôt. La base de référence proposée comprend normalement :
+Vous pouvez quitter la page et revenir à la vue d'ensemble du projet sans perdre l'état de configuration. Si la configuration échoue, lisez le message d'échec. Glossia rejette le projet provisoire ; corrigez le prérequis et recommencez via **Nouveau projet**. Voir [Réessayer la configuration du projet](/docs/how-to/retry-project-setup).
 
-- Une racine `L10N.md` un fichier avec langue source, chemins source, et langues cibles.
-- Les plus petites modifications d'application ou de contenu nécessaires pour charger les fichiers localisés.
-- Toute validation légère déjà disponible dans le dépôt.
+## 7\. Examinez le résultat
 
-Examinez et fusionnez la pull request via votre flux de travail GitHub habituel. Les futures exécutions de traduction utilisent le fusionné `L10N.md` contexte.
+Lorsque la configuration est terminée, ouvrez la vue d'ensemble du projet et examinez la demande de fusion créée pour le dépôt. La base de référence proposée comprend normalement :
 
-L'aperçu du projet conserve la pull request de configuration visible jusqu'à sa fusion. Si elle est fermée sans être fusionnée, rouvrez-la via le lien dans le notice de configuration.
+- Une racine `L10N.md` fichier contenant la langue source, les chemins sources et les langues cibles.
+- Les modifications d'application ou de contenu minimales nécessaires pour charger les fichiers localisés.
+- Toute validation légère déjà disponible dans le référentiel.
+
+Examinez et fusionnez la demande d'intégration via votre flux de travail GitHub habituel. Les exécutions futures de traduction utilisent le fusionné `L10N.md` contexte.
+
+L'aperçu du projet conserve la demande d'intégration de configuration visible jusqu'à ce qu'elle soit fusionnée. Si elle est fermée sans être fusionnée, réouvrez-la depuis le lien dans l'avis de configuration.
 
 ## Prochaines étapes
 
