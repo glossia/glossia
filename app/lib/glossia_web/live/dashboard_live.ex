@@ -8547,37 +8547,37 @@ defmodule GlossiaWeb.DashboardLive do
           data-part="failures"
           role="status"
         >
-          <section
+          <Noora.Alert.alert
             :for={failure <- @failures}
             id={failure.dom_id}
             data-part="failure-summary"
             data-kind={failure.kind}
+            type="secondary"
+            status="error"
+            size="large"
+            title={failure.title}
           >
-            <span data-part="failure-icon" aria-hidden="true">
-              <Icon.alert_circle />
-            </span>
-            <div data-part="failure-content">
-              <p data-part="failure-title">{failure.title}</p>
-              <p data-part="failure-description">{failure.description}</p>
-              <p data-part="failure-count">
-                {ngettext(
-                  "%{count} file was affected.",
-                  "%{count} files were affected.",
-                  failure.count,
-                  count: failure.count
-                )}
-              </p>
-              <a
-                :if={failure.action_url}
+            <p data-part="failure-description">{failure.description}</p>
+            <p data-part="failure-count">
+              {ngettext(
+                "%{count} file was affected.",
+                "%{count} files were affected.",
+                failure.count,
+                count: failure.count
+              )}
+            </p>
+            <:action :if={failure.action_url}>
+              <Noora.Button.button
                 data-part="failure-action"
                 href={failure.action_url}
                 target="_blank"
                 rel="noopener noreferrer"
-              >
-                {failure.action_label}
-              </a>
-            </div>
-          </section>
+                label={failure.action_label}
+                variant="secondary"
+                size="small"
+              />
+            </:action>
+          </Noora.Alert.alert>
         </div>
         <Noora.Table.table
           id="translation-progress-items"
@@ -8595,9 +8595,11 @@ defmodule GlossiaWeb.DashboardLive do
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {item.output_path}
+                <Noora.Table.text_cell label={item.output_path} />
               </a>
-              <span :if={is_nil(item.file_url)} data-part="path">{item.output_path}</span>
+              <div :if={is_nil(item.file_url)} data-part="path">
+                <Noora.Table.text_cell label={item.output_path} />
+              </div>
             </div>
           </:col>
           <:col :let={item} label={gettext("Language")}>
@@ -8624,24 +8626,31 @@ defmodule GlossiaWeb.DashboardLive do
   attr(:item, :map, required: true)
 
   defp translation_progress_metadata(assigns) do
+    item = assigns.item
+
+    label =
+      [
+        if(item.segment_kind,
+          do:
+            translation_segment_label(%{
+              kind: item.segment_kind,
+              index: item.segment_index,
+              count: item.segment_count
+            })
+        ),
+        if(item.turns > 0,
+          do: ngettext("%{n} model call", "%{n} model calls", item.turns, n: item.turns)
+        )
+      ]
+      |> Enum.reject(&is_nil/1)
+      |> Enum.join(" · ")
+
+    assigns = assign(assigns, :label, label)
+
     ~H"""
-    <span :if={@item.turns > 0 or @item.segment_kind} data-part="progress-meta">
-      <span :if={@item.segment_kind}>
-        {translation_segment_label(%{
-          kind: @item.segment_kind,
-          index: @item.segment_index,
-          count: @item.segment_count
-        })}
-      </span>
-      <span :if={@item.turns > 0}>
-        {ngettext(
-          "%{n} model call",
-          "%{n} model calls",
-          @item.turns,
-          n: @item.turns
-        )}
-      </span>
-    </span>
+    <div :if={@label != ""} data-part="progress-meta">
+      <Noora.Table.text_cell label={@label} />
+    </div>
     """
   end
 
@@ -8650,26 +8659,33 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_progress_item_details(assigns) do
     ~H"""
     <div data-part="item-details">
-      <div :if={@item.failure} data-part="item-failure" data-kind={@item.failure.kind}>
-        <div data-part="item-failure-content">
-          <p data-part="item-failure-title">{@item.failure.title}</p>
-          <p data-part="item-failure-description">{@item.failure.item_description}</p>
-          <details
-            :if={@item.failure.diagnostics != []}
-            id={"translation-progress-item-#{@item.index}-diagnostics"}
-            data-part="item-diagnostics"
-            phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
-          >
-            <summary>{gettext("Diagnostic details")}</summary>
-            <dl>
-              <div :for={{label, value} <- @item.failure.diagnostics}>
-                <dt>{label}</dt>
-                <dd>{value}</dd>
-              </div>
-            </dl>
-          </details>
-        </div>
-      </div>
+      <Noora.Alert.alert
+        :if={@item.failure}
+        data-part="item-failure"
+        data-kind={@item.failure.kind}
+        type="primary"
+        status="error"
+        size="large"
+        title={@item.failure.title}
+        description={@item.failure.item_description}
+      />
+      <details
+        :if={@item.failure && @item.failure.diagnostics != []}
+        id={"translation-progress-item-#{@item.index}-diagnostics"}
+        data-part="item-diagnostics"
+        phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
+      >
+        <summary>
+          <span data-part="disclosure-icon" aria-hidden="true"><Icon.chevron_right /></span>
+          {gettext("Diagnostic details")}
+        </summary>
+        <dl>
+          <div :for={{label, value} <- @item.failure.diagnostics}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        </dl>
+      </details>
       <div
         :if={@item.status == :running and @item.completed_segments != []}
         data-part="completed-segments"
@@ -8681,6 +8697,7 @@ defmodule GlossiaWeb.DashboardLive do
           phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
         >
           <summary>
+            <span data-part="disclosure-icon" aria-hidden="true"><Icon.chevron_right /></span>
             <span data-part="completed-segment-icon" aria-hidden="true">
               <Icon.circle_check />
             </span>

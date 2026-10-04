@@ -4929,11 +4929,6 @@ msgstr ""
 msgid "Access credentials"
 msgstr ""
 
-#: lib/glossia_web/live/authentication_settings_live.ex
-#, elixir-autogen, elixir-format
-msgid "Add a text record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
-msgstr ""
-
 #: lib/glossia_web/components/layouts/platform.html.heex
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format
@@ -5088,11 +5083,6 @@ msgstr ""
 #: lib/glossia_web/controllers/organization_auth_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Sign in with your existing method first, then return to this page to connect your work identity."
-msgstr ""
-
-#: lib/glossia_web/live/authentication_settings_live.ex
-#, elixir-autogen, elixir-format
-msgid "Team members must belong to this Google Workspace domain. Google sign-in must be configured for this Glossia installation."
 msgstr ""
 
 #: lib/glossia_web/live/authentication_settings_live.ex
@@ -5427,4 +5417,49 @@ msgstr ""
 #: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Usage breakdown"
+msgstr ""
+
+#: lib/glossia_web/live/authentication_settings_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Add a DNS TXT record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
+msgstr ""
+
+#: lib/glossia_web/live/authentication_settings_live.ex
+#, elixir-autogen, elixir-format
+msgid "At your DNS provider, add the TXT record shown under Verify domain ownership, then select Verify domain."
+msgstr ""
+
+#: lib/glossia_web/live/authentication_settings_live.ex
+#, elixir-autogen, elixir-format
+msgid "Enter your work email domain and save the authentication settings."
+msgstr ""
+
+#: lib/glossia_web/live/authentication_settings_live.ex
+#, elixir-autogen, elixir-format
+msgid "Glossia manages the Google connection. You do not need to create an application in Google Cloud or register a redirect address."
+msgstr ""
+
+#: lib/glossia_web/live/authentication_settings_live.ex
+#, elixir-autogen, elixir-format
+msgid "If Google blocks sign-in because your organization restricts third-party apps, ask a Google Workspace administrator to open Google Admin console → Security → Access and data control → API controls → Manage third-party app access, find Glossia, and allow the requested sign-in permissions according to your organization's policy."
+msgstr ""
+
+#: lib/glossia_web/live/authentication_settings_live.ex
+#, elixir-autogen, elixir-format
+msgid "Read the organization sign-in guide"
+msgstr ""
+
+#: lib/glossia_web/live/authentication_settings_live.ex
+#, elixir-autogen, elixir-format
+msgid "Set up Google Workspace sign-in"
+msgstr ""
+
+#: lib/glossia_web/live/authentication_settings_live.ex
+#, elixir-autogen, elixir-format
+msgid "Team members can then enter their work email on the login page and select Continue with your organization, or use Log in with Google."
+msgstr ""
+
+#: lib/glossia_web/live/authentication_settings_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Team members must belong to this Google Workspace domain. Personal Google accounts do not qualify."
 msgstr ""

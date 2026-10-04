@@ -43,6 +43,46 @@ defmodule GlossiaWeb.OrganizationAccessTest do
     saved = Organizations.get_organization(organization.id)
     assert render(view) =~ OrganizationAuthentication.record_value(saved)
     assert render(view) =~ "Awaiting verification"
+    assert render(view) =~ "DNS TXT record"
+    assert has_element?(view, "#google-workspace-setup")
+    refute has_element?(view, ~s(input[name="callback"]))
+
+    {:ok, reloaded, _} = live(conn, ~p"/#{account.handle}/-/settings/authentication")
+    assert has_element?(reloaded, "#google-workspace-setup")
+  end
+
+  test "Google setup guidance follows the selected provider and only Okta shows a redirect address",
+       %{
+         conn: conn,
+         account: account
+       } do
+    {:ok, view, _} = live(conn, ~p"/#{account.handle}/-/settings/authentication")
+    refute has_element?(view, "#google-workspace-setup")
+    refute has_element?(view, ~s(input[name="callback"]))
+
+    render_hook(view, "provider", %{"value" => "google"})
+    assert has_element?(view, "#google-workspace-setup", "Glossia manages the Google connection")
+    assert has_element?(view, "#google-workspace-setup ol li", "TXT record")
+    assert has_element?(view, "#google-workspace-setup", "Manage third-party app access")
+
+    assert has_element?(
+             view,
+             ~s(#google-workspace-setup a[href="#{~p"/docs/how-to/organization-sign-in"}"])
+           )
+
+    refute has_element?(view, ~s(input[name="callback"]))
+
+    render_hook(view, "provider", %{"value" => "okta"})
+    refute has_element?(view, "#google-workspace-setup")
+
+    assert has_element?(
+             view,
+             ~s(input[name="callback"][value="#{OrganizationAuthentication.callback_url()}"])
+           )
+
+    render_hook(view, "provider", %{"value" => "disabled"})
+    refute has_element?(view, "#google-workspace-setup")
+    refute has_element?(view, ~s(input[name="callback"]))
   end
 
   test "whole permission areas can be selected, persisted, and cleared", %{
