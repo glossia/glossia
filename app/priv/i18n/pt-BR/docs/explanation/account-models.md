@@ -1,48 +1,72 @@
 %{
   title: "Modelos de conta",
   summary:
-    "Por que provedores de modelos são configurados uma vez por conta e referenciados pelo handle.",
-  category: "explicação",
+    "Por que os provedores de modelos são configurados uma vez por conta e referenciados pelo handle.",
+  category: "Explicação",
+  section: "platform",
   order: 2
 }
 ---
-Glossia separa instruções de repositório das credenciais do provedor de modelo. Repositórios descrevem o que deve ser traduzido, enquanto contas decidem qual [modelo de linguagem grande](https://en.wikipedia.org/wiki/Large_language_model) executa o trabalho.
+O Glossia separa as instruções do repositório das credenciais do provedor de modelos. Os repositórios descrevem o que deve ser traduzido, enquanto as contas decidem qual [modelo de linguagem grande](https://en.wikipedia.org/wiki/Large_language_model) realiza o trabalho.
 
 ## Por que os modelos pertencem às contas
 
-Uma equipe frequentemente traduz vários repositórios com a mesma relação com o provedor. Modelos vinculados à conta permitem que administradores rotacionem uma chave do provedor ou alterem o modelo subjacente uma única vez sem editar todos os repositórios.
+Equipes frequentemente traduzem vários repositórios com a mesma relação de provedor. Modelos com escopo de conta permitem que administradores rotacionem uma chave de provedor ou alterem o modelo subjacente uma vez sem editar todos os repositórios.
 
-Esta fronteira também mantém as credenciais fora do controle de versão. Um repositório contém uma alça legível, como `translation-default`, não a chave do provedor.
+Essa fronteira também mantém as credenciais fora do controle de versão. Um repositório contém um identificador legível, tal como `translation-default`, e não a chave do provedor.
 
-## As alças fornecem intenção estável.
+## Identificadores fornecem intenção estável
 
-O `model` campo em `L10N.md` se refere ao handle do modelo de conta:
+O `model` campo em `L10N.md` refere-se a um handle do modelo de conta:
 
 ```yaml
 model: translation-default
 ```
 
-O handle expressa a intenção do repositório. Um administrador pode posteriormente atualizar qual modelo do provedor que o handle seleciona enquanto a configuração do repositório permanece estável.
+O handle expressa a intenção do repositório. Um administrador pode posteriormente atualizar qual modelo de provedor o handle seleciona enquanto a configuração do repositório permanece estável.
 
-## Como vários modelos são utilizados
+## Como vários modelos são utilizados.
 
-O Glossia usa um modelo configurado para cada tradução de documento. Adicionar vários modelos não cria um ensemble, uma cadeia de fallback, ou um nível de qualidade automático. O autor do repositório escolhe seu propósito por meio de handles estáveis tais como `translation-default`, `long-form`, ou `japanese-specialist`.
+O Glossia usa um configurado **gerativo** modelo para cada tradução de documento. Adicionar vários modelos não cria um conjunto, uma cadeia de fallback nem um nível de qualidade automático. O autor do repositório escolhe seus objetivos através de handles estáveis como `translation-default`, `long-form`, ou `japanese-specialist`.
 
-A seleção segue a hierarquia de contexto para o documento e a localização de destino:
+Seleção segue a hierarquia de contexto do documento e do idioma de destino:
 
-1. O mais próximo `L10N/<locale>.md` arquivo que declara `model` prevalece para essa localização.
+1. O mais próximo `L10N/<locale>.md` arquivo que declara `model` vence para essa localidade.
 2. Caso contrário, o mais próximo `L10N.md` arquivo que declara `model` prevalece para o seu diretório.
-3. Pai `L10N.md` As configurações são herdadas quando um arquivo mais próximo não declara um modelo.
-4. Quando nenhum arquivo de contexto aplicável declara um handle, o Glossia usa o padrão da conta.
+3. Pai `L10N.md` as configurações são herdadas quando um arquivo mais próximo não declara um modelo.
+4. Quando nenhum arquivo de contexto aplicável declara um handle, Glossia usa o modelo gerativo padrão da conta.
 
-Um handle configurado explicitamente deve existir. O Glossia relata um erro para um handle desconhecido em vez de alternar silenciosamente para o padrão da conta.
+Um handle configurado explicitamente deve existir. Glossia exibe um erro para um handle desconhecido em vez de alternar silenciosamente para o padrão da conta.
 
 ## Seleção padrão
 
-A configuração do projeto precisa de um modelo antes que um repositório tenha o seu próprio `L10N.md`. O Glossia seleciona o padrão da conta. O primeiro modelo adicionado a uma conta torna-se o padrão, e um administrador pode tornar outro modelo o padrão na página de suas configurações.
+A configuração do projeto precisa de um modelo antes que um repositório tenha o seu próprio. `L10N.md`. Portanto, o Glossia seleciona o padrão da conta. O primeiro modelo adicionado a cada categoria torna-se o padrão dessa categoria e um administrador pode definir outro modelo como padrão na página de configurações.
 
-Uma vez que um repositório possui `L10N.md`, ao usar um identificador explícito torna a escolha clara para os revisores. Omitir `model` mantém o repositório no padrão da conta.
+Assim que um repositório possui `L10N.md`, ao utilizar um identificador explícito, torna sua escolha clara para os revisores. Omitindo `model` mantém o repositório no padrão da conta.
 
-## O limite da revisão humana
+## Modelos generativos e de decisão
 
-A saída do modelo é trabalho proposto, não uma mesclagem automática. A atividade de configuração e tradução permanece visível no Glossia, enquanto as alterações do repositório são publicadas por meio de um pull request para revisão da equipe. Isso preserva o mesmo limite de qualidade e propriedade que as equipes já usam para código.
+As configurações de modelo possuem duas categorias:
+
+- **Generativos** Os modelos escrevem traduções e habilitam a configuração do projeto. Os identificadores de modelo de repositório e as regras de roteamento de localização selecionam apenas esta categoria.
+- **Decisão** os modelos avaliam as traduções contra uma rubrica de qualidade fixa. Quando uma conta possui um modelo de decisão, seu modelo de decisão padrão verifica automaticamente cada documento do repositório traduzido após a validação estrutural e traduções completas de documento único provenientes do endpoint de conteúdo. Solicitações fragmentadas são primitivas de geração; execuções do repositório avaliam sua saída montada.
+
+As categorias possuem padrões independentes. Adicionar Jev nunca altera o modelo que escreve suas traduções. O primeiro modelo de decisão habilita a avaliação para execuções subsequentes de tradução; excluir o último desabilita a avaliação. As contas sem modelos de decisão mantêm seu comportamento existente.
+
+O Glossia atualmente suporta [TypeSafe Jev](https://docs.typesafe.ai/introduction) como provedor de decisões. O Jev retorna escolhas e pontuações predefinidas em vez de prosa. O Glossia converte escolhas de fraqueza em dicas de correção, sem apresentá-las como erros localizados ou independentemente verificados.
+
+## Verificações de qualidade e revisões
+
+O avaliador recebe a fonte, a tradução, o idioma-alvo, o formato de conteúdo, as instruções do projeto e o contexto organizacional resolvido. Ele avalia a preservação de significado, completude, terminologia, fluência, coerência do documento, adequação ao propósito e ao público, e adequação ao idioma. A voz e o registro são avaliados quando há orientação de voz, de projeto ou de documento disponíveis.
+
+Cada dimensão deve atingir a pontuação mínima configurada, que por padrão é 7 em 10. Um erro maior ou crítico sempre solicita correção, independentemente da pontuação. A confiança é incluída nos eventos de avaliação em tempo real e não altera a aceitação. Estes eventos atualmente não são retidos ou exibidos no painel. O limite de 10 exige uma pontuação ponderada perfeita e é geralmente muito restritivo.
+
+Dimensões falhas fornecem seus alertas de correção predefinidos para a próxima tentativa de tradução.`retries`A configuração de  existente no repositório limita até estas revisões; o endpoint de conteúdo permite três tentativas de correção, configurável de zero a três com o campo`retries`. O documento revisado completo passa novamente nas verificações estruturais e na avaliação de qualidade antes de ser aceito.
+
+Falhas transitórias do provedor tentam novamente com backoff exponencial até três vezes; credenciais inválidas e respostas malformadas falham imediatamente. Falhas esgotadas do provedor param a tradução do arquivo; saída sem verificação nunca é aceita. Avaliações utilizam documentos completos, e entradas de avaliação que ultrapassam o tamanho são rejeitadas em vez de ser truncadas. A entrada serializada é conservativamente limitada a 30.000 bytes para estado mais a pergunta mais longa, e 60.000 bytes em toda o requisição, para permanecer dentro da[limites de contexto do Jev](https://docs.typesafe.ai/models). Pontuações automáticas são julgamentos do modelo e ainda requerem calibragem contra revisão humana bilíngue.
+
+A configuração do avaliador e a versão da rubrica participam dos arquivos de bloqueio de tradução. Ativar avaliação, alterar modelos ou limites, ou remover avaliação torna as traduções anteriores inválidas para a próxima execução. Chaves do provedor são excluídas dos arquivos de bloqueio.
+
+## A fronteira da revisão humana
+
+A saída do modelo é trabalho proposto, não uma mesclagem automática. A atividade de instalação e tradução permanece visível no Glossia, enquanto as alterações do repositório são publicadas por meio de um pull request para a equipe revisar. Isso preserva o mesmo limite de qualidade e propriedade que as equipes já usam para código.
