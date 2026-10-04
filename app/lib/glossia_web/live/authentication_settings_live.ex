@@ -147,7 +147,7 @@ defmodule GlossiaWeb.AuthenticationSettingsLive do
             />
             <p :if={@provider == "google"}>
               {gettext(
-                "Team members must belong to this Google Workspace domain. Google sign-in must be configured for this Glossia installation."
+                "Team members must belong to this Google Workspace domain. Personal Google accounts do not qualify."
               )}
             </p>
             <Noora.TextInput.text_input
@@ -178,7 +178,7 @@ defmodule GlossiaWeb.AuthenticationSettingsLive do
               }
             />
             <Noora.TextInput.text_input
-              :if={@provider != "disabled"}
+              :if={@provider == "okta"}
               name="callback"
               value={Authentication.callback_url()}
               aria-label={gettext("Redirect address")}
@@ -192,6 +192,49 @@ defmodule GlossiaWeb.AuthenticationSettingsLive do
             </p>
             <Noora.Button.button label={gettext("Save authentication settings")} />
           </.form>
+        </.card_section>
+        <.card_section :if={@provider == "google"}>
+          <Noora.Alert.alert
+            id="google-workspace-setup"
+            type="secondary"
+            status="information"
+            size="large"
+            title={gettext("Set up Google Workspace sign-in")}
+          >
+            <p>
+              {gettext(
+                "Glossia manages the Google connection. You do not need to create an application in Google Cloud or register a redirect address."
+              )}
+            </p>
+            <ol>
+              <li>
+                {gettext("Enter your work email domain and save the authentication settings.")}
+              </li>
+              <li>
+                {gettext(
+                  "At your DNS provider, add the TXT record shown under Verify domain ownership, then select Verify domain."
+                )}
+              </li>
+              <li>
+                {gettext(
+                  "Team members can then enter their work email on the login page and select Continue with your organization, or use Log in with Google."
+                )}
+              </li>
+            </ol>
+            <p>
+              {gettext(
+                "If Google blocks sign-in because your organization restricts third-party apps, ask a Google Workspace administrator to open Google Admin console → Security → Access and data control → API controls → Manage third-party app access, find Glossia, and allow the requested sign-in permissions according to your organization's policy."
+              )}
+            </p>
+            <:action>
+              <Noora.Button.button
+                href={locale_path(~p"/docs/how-to/organization-sign-in")}
+                label={gettext("Read the organization sign-in guide")}
+                variant="secondary"
+                size="small"
+              />
+            </:action>
+          </Noora.Alert.alert>
         </.card_section>
       </.card>
       <.card
@@ -210,7 +253,7 @@ defmodule GlossiaWeb.AuthenticationSettingsLive do
           />
           <p>
             {gettext(
-              "Add a text record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
+              "Add a DNS TXT record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
             )}
           </p>
           <Noora.TextInput.text_input
