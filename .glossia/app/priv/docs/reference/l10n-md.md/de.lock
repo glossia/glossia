@@ -1,15 +1,16 @@
 {
-  "hash": "7bb971ddd314513633a21fb2617ca912c0e30e6f20c72b09632af4b7c52c7036",
+  "baseline_schema_version": 1,
+  "hash": "b26f56cb1e5f81e744f4cb9bd9ae549cf793829c5d86ee1bac28700035677e60",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "43c682b297f19a849bc13bc0c4f00aa4cf7a562eab75c8ce23dec8bf7f7eba54",
+          "hash": "6761d2e826764e1db6c5c7b8ab6b3cdd210a11a71bdd55d0a0d390e80d5089b9",
           "kind": "source",
           "label": "app/priv/docs/reference/l10n-md.md",
           "metadata": {
-            "content_hash": "0f2da1769901ce34e8eae413ba835215f88b78b54f212b55172b16349b056c1d"
+            "content_hash": "af798ef3fbc5e52e77aff73ac9074d24d5afa504d7958a5586423496e6da6d10"
           }
         },
         {
@@ -37,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "7bb971ddd314513633a21fb2617ca912c0e30e6f20c72b09632af4b7c52c7036",
+      "hash": "b26f56cb1e5f81e744f4cb9bd9ae549cf793829c5d86ee1bac28700035677e60",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/l10n-md.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "22cdd4ddada134f81c3ec692e1b0b67a4a13de43c690dc0fcc778b0040a01d9f",
+  "output_hash": "e6fb073f44aecaeaf1f350887f6aca2bc3b09c13b2098794a04a9a252526f328",
   "output_path": "app/priv/i18n/de/docs/reference/l10n-md.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "dd5e8380aa230b9b0ad845b5b0dd842e12e511f9",
   "source_path": "app/priv/docs/reference/l10n-md.md",
-  "translated_at": "2026-09-12T09:38:14.546973Z"
+  "translated_at": "2026-10-04T17:34:07.126452Z",
+  "translation_session_id": "01a1075b-6b29-732b-b0f6-e5048cc469e9"
 }
