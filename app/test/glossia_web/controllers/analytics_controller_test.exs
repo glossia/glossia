@@ -33,7 +33,7 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
         setup_target_languages: ["de", "fr"]
       })
 
-    domain = "collect-#{System.unique_integer([:positive])}.com"
+    domain = "collect-#{project.id}.com"
     {:ok, settings} = Settings.upsert_for_project(project.id, %{domain: domain})
 
     # Collection only accepts verified domains, so stamp `verified_at` the way
