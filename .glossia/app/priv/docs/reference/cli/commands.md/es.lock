@@ -1,15 +1,16 @@
 {
-  "hash": "e3334cfbf25c3e4036c9a8a04965db88715714af87b7dd03bd4cf255046203f3",
+  "baseline_schema_version": 1,
+  "hash": "04409eb0374431fb9a7536c8d304959f0ff24fcf2e5529d140dfce042fd9b90b",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "b2ac95156f19e8980fe4d0272b7f24b41730a3e8c0293ba3176e7c2bab71728c",
+          "hash": "7807b6af4d805986fda0f167fe29a9c7669352ebb53def249feb15d2c1c65140",
           "kind": "source",
           "label": "app/priv/docs/reference/cli/commands.md",
           "metadata": {
-            "content_hash": "ef324f3c467157ba86300f8a19dcabc4c87b51eb92e89a4622bf534fb1445a2f"
+            "content_hash": "a05f6cbe4291fbdfaf645ee2b72977ca42e0325b409a6810905910bfc641d2b8"
           }
         },
         {
@@ -37,20 +38,20 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
               "children": [],
-              "hash": "1424b207fea998c4fef898d526dcb29e10da43d23480340193ea637c2fd3d43d",
+              "hash": "a54709e3cea48e4871dba3f92b628c2156e257d7f78528c44bf202db4cab7630",
               "kind": "context",
               "label": "locale",
               "metadata": {
-                "content_hash": "cc29cd8eebf5d547c8f217c0af8fa84e2300279090f0f6312ed2903aedeb1b61"
+                "content_hash": "94bb6a27769a21802f1ca275e7afd7e42beae6d50ce0ecdf22c63e45228fe7d2"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
+          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "e3334cfbf25c3e4036c9a8a04965db88715714af87b7dd03bd4cf255046203f3",
+      "hash": "04409eb0374431fb9a7536c8d304959f0ff24fcf2e5529d140dfce042fd9b90b",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/cli/commands.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "1d4d7e9bf554461d6d196b3e925ae3f31ffad0d5b88c8e2dc8f585782561ace0",
+  "output_hash": "7ab65528c6338238d170d568e938b8f6b077575543c6404d7365f390dad4be81",
   "output_path": "app/priv/i18n/es/docs/reference/cli/commands.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "dd5e8380aa230b9b0ad845b5b0dd842e12e511f9",
   "source_path": "app/priv/docs/reference/cli/commands.md",
-  "translated_at": "2026-09-17T11:54:00.437140Z"
+  "translated_at": "2026-10-04T16:45:51.680164Z",
+  "translation_session_id": "01a1075b-6b29-732b-b0f6-e5048cc469e9"
 }
