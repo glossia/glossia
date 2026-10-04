@@ -204,6 +204,44 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     refute render(view) =~ legacy_pull_request_url
   end
 
+  test "session errors use an error alert and humanize legacy planning failures", %{conn: conn} do
+    user = TestHelpers.create_user("translation-error@test.com", "translation-error")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "error-alert",
+        name: "Error alert",
+        github_repo_full_name: "example/error-alert"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      event_type: "error",
+      content:
+        "Translation failed: {:planning_failed, \"sources must be a mapping of source patterns to target path templates\"}"
+    })
+
+    assert has_element?(
+             view,
+             "[data-part='session-error'][data-status='error']",
+             "Translation failed"
+           )
+
+    assert has_element?(view, "[data-part='session-error']", "define sources as a mapping")
+    refute render(view) =~ "planning_failed"
+  end
+
   test "a running session shows structured progress without model reasoning", %{conn: conn} do
     user = TestHelpers.create_user("translation-reasoning@test.com", "translation-reasoning")
 
