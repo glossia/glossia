@@ -129,6 +129,7 @@ msgstr "Ponte en contacto"
 
 #: lib/glossia_web/components/layouts/app.html.heex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #: lib/glossia_web/live/profile_live.ex
 #, elixir-autogen, elixir-format
 msgid "Language"
@@ -173,6 +174,7 @@ msgid "Privacy Policy"
 msgstr "Política de privacidad"
 
 #: lib/glossia_web/components/layouts/platform.html.heex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Projects"
 msgstr "Proyectos"
@@ -613,6 +615,7 @@ msgstr "Miembros"
 
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #: lib/glossia_web/live/profile_live.ex
 #, elixir-autogen, elixir-format
 msgid "Name"
@@ -1810,6 +1813,7 @@ msgstr "Buscar repositorios..."
 #: lib/glossia_web/components/layouts/platform.html.heex
 #: lib/glossia_web/components/layouts/user_profile.html.heex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Settings"
 msgstr "Configuración"
@@ -1943,6 +1947,7 @@ msgstr "Suelta la imagen para subirla"
 
 #: lib/glossia_web/components/dashboard_components.ex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Filter"
 msgstr "Filtrar"
@@ -2250,6 +2255,7 @@ msgid "Failed to reopen discussion."
 msgstr "No se pudo reabrir la discusión."
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Languages"
 msgstr "Idiomas"
@@ -2543,6 +2549,7 @@ msgid "Leave blank to keep current key"
 msgstr "Dejar en blanco para conservar la clave actual"
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Model"
 msgstr "Modelo"
@@ -3064,6 +3071,7 @@ msgstr "Configuración de localización"
 
 #: lib/glossia_web/components/layouts/platform.html.heex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Models"
 msgstr "Modelos"
@@ -3615,11 +3623,13 @@ msgid "Last 24 hours"
 msgstr "Últimas 24 horas"
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Last 30 days"
 msgstr "Últimos 30 días"
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Last 7 days"
 msgstr "Últimos 7 días"
@@ -5312,4 +5322,110 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "The tracker did not report a page language. Older tracker versions and pages without an HTML lang attribute can cause this."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Cached input"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Cached input tokens"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Files"
+msgstr "Filtrar"
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Input"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Input tokens"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Last %{days} days"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Last 90 days"
+msgstr "Últimos 30 días"
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Model, project, and language filters apply to totals, chart, and breakdown. Search narrows the breakdown only. Unassigned includes requests without project or file metadata."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "No reported usage"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Only provider-reported counts are shown. Historical translations, local Pi sessions, and decision evaluations are not included."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Output"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Output tokens"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Project"
+msgstr "Proyectos"
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Provider-reported usage for generative translations, including retries and rejected outputs. Cached input is included in input tokens, not added to the total again. Dates are UTC."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Responses"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Search breakdown"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Token usage"
+msgstr "Tokens"
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Total"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Total tokens"
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Usage appears after a provider reports token counts. Historical translations, local Pi sessions, and decision evaluations are not included."
+msgstr ""
+
+#: lib/glossia_web/live/llm_usage_live.ex
+#, elixir-autogen, elixir-format
+msgid "Usage breakdown"
 msgstr ""

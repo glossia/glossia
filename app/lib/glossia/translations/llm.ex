@@ -37,10 +37,10 @@ defmodule Glossia.Translations.LLM do
   @model_receive_timeout_ms :timer.minutes(5)
 
   @doc "One-shot generation."
-  def run(%{auth: {:api_key, key, base_url}, model: model}, system, user) do
+  def run(%{auth: {:api_key, key, base_url}, model: model} = credential, system, user) do
     with {:ok, spec, opts} <- request(model, api_key_options(key, model), base_url) do
       case ReqLLM.generate_text(spec, messages(system, user), opts) do
-        {:ok, response} -> response_text(response)
+        {:ok, response} -> response_text(response, Map.get(credential, :on_usage))
         {:error, reason} -> {:error, reason}
       end
     end
@@ -48,18 +48,18 @@ defmodule Glossia.Translations.LLM do
     error -> {:error, Exception.message(error)}
   end
 
-  def run(%{source: :codex_session}, system, user) do
-    run_via_codex_cli(system, user)
+  def run(%{source: :codex_session} = credential, system, user) do
+    run_via_codex_cli(system, user, Map.get(credential, :on_usage))
   end
 
   def run(%{source: :pi_session, model: model}, system, user) do
     run_via_pi_cli(model, system, user)
   end
 
-  def run(%{auth: {:oauth, token}, model: model}, system, user) do
+  def run(%{auth: {:oauth, token}, model: model} = credential, system, user) do
     with {:ok, spec, opts} <- request(model, oauth_options(token), nil) do
       case ReqLLM.generate_text(spec, messages(system, user), opts) do
-        {:ok, response} -> response_text(response)
+        {:ok, response} -> response_text(response, Map.get(credential, :on_usage))
         {:error, reason} -> {:error, reason}
       end
     end
@@ -67,7 +67,7 @@ defmodule Glossia.Translations.LLM do
     error -> {:error, Exception.message(error)}
   end
 
-  defp run_via_codex_cli(system, user) do
+  defp run_via_codex_cli(system, user, on_usage) do
     prompt = system <> "\n\n" <> user
 
     case MuonTrap.cmd(
@@ -88,6 +88,12 @@ defmodule Glossia.Translations.LLM do
          ) do
       {output, code} ->
         events = codex_events(output)
+
+        Enum.each(events, fn
+          %{"type" => "turn.completed", "usage" => usage} -> report_usage(on_usage, usage)
+          _ -> :ok
+        end)
+
         text = events |> codex_agent_messages() |> Enum.join("\n")
 
         # The CLI exits 0 even when the turn fails (usage limits, provider
@@ -200,14 +206,27 @@ defmodule Glossia.Translations.LLM do
   end
 
   @doc "Generation, forwarding lifecycle events to `on_event`."
-  def stream(%{auth: {:api_key, key, base_url}, model: model}, system, user, on_event) do
-    complete_via_req_llm(model, api_key_options(key, model), base_url, system, user, on_event)
+  def stream(
+        %{auth: {:api_key, key, base_url}, model: model} = credential,
+        system,
+        user,
+        on_event
+      ) do
+    complete_via_req_llm(
+      model,
+      api_key_options(key, model),
+      base_url,
+      system,
+      user,
+      on_event,
+      Map.get(credential, :on_usage)
+    )
   end
 
-  def stream(%{source: :codex_session}, system, user, on_event) do
+  def stream(%{source: :codex_session} = credential, system, user, on_event) do
     on_event.(:turn_start)
 
-    case run_via_codex_cli(system, user) do
+    case run_via_codex_cli(system, user, Map.get(credential, :on_usage)) do
       {:ok, text} = ok ->
         on_event.({:text, text})
         on_event.(:turn_end)
@@ -236,15 +255,24 @@ defmodule Glossia.Translations.LLM do
     end
   end
 
-  def stream(%{auth: {:oauth, token}, model: model}, system, user, on_event) do
-    complete_via_req_llm(model, oauth_options(token), nil, system, user, on_event)
+  def stream(%{auth: {:oauth, token}, model: model} = credential, system, user, on_event) do
+    complete_via_req_llm(
+      model,
+      oauth_options(token),
+      nil,
+      system,
+      user,
+      on_event,
+      Map.get(credential, :on_usage)
+    )
   end
 
-  defp complete_via_req_llm(model, auth_options, base_url, system, user, on_event) do
+  defp complete_via_req_llm(model, auth_options, base_url, system, user, on_event, on_usage) do
     on_event.(:turn_start)
 
     with {:ok, spec, opts} <- request(model, auth_options, base_url),
-         {:ok, text} <- complete(model, spec, messages(system, user), opts) do
+         {:ok, text} <-
+           complete(model, spec, messages(system, user), Keyword.put(opts, :on_usage, on_usage)) do
       on_event.({:text, text})
       on_event.(:turn_end)
       on_event.(:done)
@@ -332,7 +360,9 @@ defmodule Glossia.Translations.LLM do
   # that runs out of budget mid-thought returns no content whatsoever. Naming
   # the limit here is what keeps that from surfacing as an unexplained empty
   # translation further down the pipeline.
-  defp response_text(response) do
+  defp response_text(response, on_usage) do
+    if is_function(on_usage, 1), do: report_usage(on_usage, ReqLLM.Response.usage(response))
+
     case ReqLLM.Response.finish_reason(response) do
       :length ->
         {:error, {:output_limit_reached, byte_size(ReqLLM.Response.text(response) || "")}}
@@ -365,10 +395,15 @@ defmodule Glossia.Translations.LLM do
   end
 
   defp complete_via_req_llm(spec, messages, opts) do
+    {on_usage, opts} = Keyword.pop(opts, :on_usage)
+
     with {:ok, response} <- ReqLLM.generate_text(spec, messages, opts) do
-      response_text(response)
+      response_text(response, on_usage)
     end
   end
+
+  defp report_usage(callback, usage) when is_function(callback, 1), do: callback.(usage)
+  defp report_usage(_callback, _usage), do: :ok
 
   defp request_model(model, base_url) do
     case ModelIdentifier.split(model) do

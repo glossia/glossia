@@ -1591,6 +1591,8 @@ defmodule Glossia.Translations.Engine do
        ) do
     %{
       "model" => work_item.model,
+      "project_id" => Map.get(work_item, :project_id),
+      "source_path" => Map.get(work_item, :source_path),
       "format" => work_item.format,
       "source_language" => work_item.source_language,
       "language" => work_item.language,

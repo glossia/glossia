@@ -1,0 +1,63 @@
+#llm-usage-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-5);
+
+  & [data-part="metrics"] {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(var(--noora-spacing-0), 1fr));
+    gap: var(--noora-spacing-4);
+    padding: var(--noora-spacing-5);
+  }
+
+  & [data-part="metric"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-4);
+  }
+
+  & [data-part="metric-title"] {
+    color: var(--noora-surface-label-secondary);
+    font: var(--noora-font-body-small);
+  }
+
+  & [data-part="metric-value"] {
+    font: var(--noora-font-heading-large);
+    color: var(--noora-surface-label-primary);
+  }
+
+  & [data-part="toolbar"],
+  & [data-part="dimensions"],
+  & [data-part="active-filters"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--noora-spacing-4);
+  }
+
+  & [data-part="toolbar"] {
+    justify-content: space-between;
+  }
+
+  & [data-part="active-filters"] {
+    margin-top: var(--noora-spacing-4);
+  }
+
+  & [data-part="description"] {
+    color: var(--noora-surface-label-secondary);
+    font: var(--noora-font-body-small);
+    margin-block: var(--noora-spacing-4);
+  }
+
+  @media (max-width: 960px) {
+    & [data-part="metrics"] {
+      grid-template-columns: repeat(2, minmax(var(--noora-spacing-0), 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    & [data-part="metrics"] {
+      grid-template-columns: 1fr;
+    }
+  }
+}

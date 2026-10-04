@@ -35,10 +35,13 @@ defmodule Glossia.Translations.TogetherTest do
              )
   end
 
-  test "preserves an output-limit failure" do
+  test "preserves usage even for an output-limit failure" do
+    caller = self()
+
     Req.Test.expect(__MODULE__, fn conn ->
       Req.Test.json(conn, %{
-        "choices" => [%{"finish_reason" => "length", "message" => %{"content" => "Hola"}}]
+        "choices" => [%{"finish_reason" => "length", "message" => %{"content" => "Hola"}}],
+        "usage" => %{"prompt_tokens" => 100, "completion_tokens" => 20}
       })
     end)
 
@@ -48,6 +51,19 @@ defmodule Glossia.Translations.TogetherTest do
                "test-key",
                "http://bifrost.test/v1",
                [%{role: "user", content: "Translate hello."}],
+               on_usage: fn usage -> send(caller, {:usage, usage}) end,
+               plug: {Req.Test, __MODULE__}
+             )
+
+    assert_receive {:usage, %{"prompt_tokens" => 100, "completion_tokens" => 20}}
+  end
+
+  test "invalid response bodies remain errors when usage capture is enabled" do
+    Req.Test.expect(__MODULE__, fn conn -> Plug.Conn.resp(conn, 200, "unexpected body") end)
+
+    assert {:error, :invalid_together_response} =
+             Together.complete("Qwen/Qwen3.5-9B", "test-key", "http://together.test/v1", [],
+               on_usage: fn _ -> flunk("no usage to record") end,
                plug: {Req.Test, __MODULE__}
              )
   end

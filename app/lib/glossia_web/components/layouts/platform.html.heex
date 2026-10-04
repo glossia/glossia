@@ -269,7 +269,8 @@
                 :api_app_edit,
                 :llm_models,
                 :llm_model_new,
-                :llm_model_edit
+                :llm_model_edit,
+                :llm_usage
               ]
             }
             selected={
@@ -284,6 +285,7 @@
                 :llm_models,
                 :llm_model_new,
                 :llm_model_edit,
+                :llm_usage,
                 :llm_routing
               ]
             }
@@ -314,7 +316,9 @@
               label={gettext("Models")}
               icon="api"
               navigate={~p"/#{@handle}/-/settings/models"}
-              selected={@live_action in [:llm_models, :llm_model_new, :llm_model_edit]}
+              selected={
+                @live_action in [:llm_models, :llm_model_new, :llm_model_edit, :llm_usage]
+              }
             />
             <.sidebar_item
               :if={assigns[:can_manage_models]}
