@@ -1,15 +1,16 @@
 {
-  "hash": "95f3a4558e37e5b4d7407a35e6eaeadda6f6999747ddc0b1f66844f1af405191",
+  "baseline_schema_version": 1,
+  "hash": "47508a05a5c05f45f3e15a6ca8ee4d28d9bbc2d7bad3e610d8521556e1d1e571",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "8e17e53c0a95513084b8dba0d4c9d34ad0eabbbaf48789a9d150e61a399d8907",
+          "hash": "9a3ffb8a750f823c02f0750f35bccedf2f0eee3057c25f178cb9256ca527c5b1",
           "kind": "source",
           "label": "app/priv/docs/reference/social-images.md",
           "metadata": {
-            "content_hash": "44cfc26662a4ef4fd45e23102b51a1a3e9a7f6cc450e540e1c25756130d50d8a"
+            "content_hash": "6d42ec111d86c1daae68f1207127742e1688e439f4095a65d5316475ee14032d"
           }
         },
         {
@@ -37,20 +38,20 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
               "children": [],
-              "hash": "1424b207fea998c4fef898d526dcb29e10da43d23480340193ea637c2fd3d43d",
+              "hash": "a54709e3cea48e4871dba3f92b628c2156e257d7f78528c44bf202db4cab7630",
               "kind": "context",
               "label": "locale",
               "metadata": {
-                "content_hash": "cc29cd8eebf5d547c8f217c0af8fa84e2300279090f0f6312ed2903aedeb1b61"
+                "content_hash": "94bb6a27769a21802f1ca275e7afd7e42beae6d50ce0ecdf22c63e45228fe7d2"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
+          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "95f3a4558e37e5b4d7407a35e6eaeadda6f6999747ddc0b1f66844f1af405191",
+      "hash": "47508a05a5c05f45f3e15a6ca8ee4d28d9bbc2d7bad3e610d8521556e1d1e571",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/social-images.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "369fd9f62010afae284a2bef9354b8b18a670c0cd02728332cf6e46d9e1bd62b",
+  "output_hash": "d3006442713e97d40de896fc16fce5e7c22624a179343dfec1100d4851dc145c",
   "output_path": "app/priv/i18n/es/docs/reference/social-images.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "dd5e8380aa230b9b0ad845b5b0dd842e12e511f9",
   "source_path": "app/priv/docs/reference/social-images.md",
-  "translated_at": "2026-09-12T10:02:54.633440Z"
+  "translated_at": "2026-10-04T18:36:22.539122Z",
+  "translation_session_id": "01a1075b-6b29-732b-b0f6-e5048cc469e9"
 }
