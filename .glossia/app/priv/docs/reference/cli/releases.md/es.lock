@@ -1,15 +1,16 @@
 {
-  "hash": "0fb2b5f2115fc77332eae33d11cd56f163ae60b954d16518a3fe5e720e9328bd",
+  "baseline_schema_version": 1,
+  "hash": "9ab0d5e0962ed89ec370980564eb0bac5be423864177a884e0b80e42c624d016",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "39d21ef181f05d2cb4927c24ba0b35b1d96f6c1ca61b8ff70c5d4aa1fcb3d3a8",
+          "hash": "47fc0fa592988c68824cb5b57440e754e03c7b66fb54beb1b5f1aeb338be330a",
           "kind": "source",
           "label": "app/priv/docs/reference/cli/releases.md",
           "metadata": {
-            "content_hash": "bb7cb4512d8db29d6b349dffdb2b9fd1665dbe0c260fb0760b469d4eadadc668"
+            "content_hash": "4398f61fe91b3a865505125fe9f9f7bbd49eea8d970ab2cf44e2c7193e5c5b4e"
           }
         },
         {
@@ -37,20 +38,20 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
               "children": [],
-              "hash": "1424b207fea998c4fef898d526dcb29e10da43d23480340193ea637c2fd3d43d",
+              "hash": "a54709e3cea48e4871dba3f92b628c2156e257d7f78528c44bf202db4cab7630",
               "kind": "context",
               "label": "locale",
               "metadata": {
-                "content_hash": "cc29cd8eebf5d547c8f217c0af8fa84e2300279090f0f6312ed2903aedeb1b61"
+                "content_hash": "94bb6a27769a21802f1ca275e7afd7e42beae6d50ce0ecdf22c63e45228fe7d2"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
+          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "0fb2b5f2115fc77332eae33d11cd56f163ae60b954d16518a3fe5e720e9328bd",
+      "hash": "9ab0d5e0962ed89ec370980564eb0bac5be423864177a884e0b80e42c624d016",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/cli/releases.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "b06aa74489063ef70f481e1f6f784c74cd4fa548c16c85244c8383bfde2459fe",
+  "output_hash": "1c222f3976a644883c0aae46c2f51a885e948f72e98a377882ef4fde9b7a15d9",
   "output_path": "app/priv/i18n/es/docs/reference/cli/releases.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "dd5e8380aa230b9b0ad845b5b0dd842e12e511f9",
   "source_path": "app/priv/docs/reference/cli/releases.md",
-  "translated_at": "2026-09-12T09:37:30.899709Z"
+  "translated_at": "2026-10-04T17:01:01.153672Z",
+  "translation_session_id": "01a1075b-6b29-732b-b0f6-e5048cc469e9"
 }
