@@ -1,33 +1,32 @@
 %{
   title: "Reintentar la configuración del proyecto",
-  summary: "Recuperar un proyecto después de que la configuración reporte un fallo.",
-  category: "cómo hacerlo",
+  summary: "Recuperar un proyecto tras un error en la configuración.",
+  category: "Guías",
+  section: "translation",
   order: 4
 }
 ---
-Usar **Reintentar configuración** después de corregir la condición que provocó el fallo en la configuración del proyecto.
+Cuando la configuración automática falla, Glossia descarta el proyecto provisional para que el repositorio pueda seleccionarse de nuevo. Podría aparecer un aviso de error en el flujo de configuración, pero el proyecto fallido y su historial de progreso no se conservan.
 
-## 1\. Leer el fallo
+## 1\. Leer el error
 
-Abra la vista general del proyecto. La tarjeta de progreso de configuración muestra el fallo y la actividad de configuración más reciente.
-
-Las causas comunes incluyen:
+Lee la notificación de error antes de abandonar el flujo de configuración. Las causas comunes incluyen:
 
 - La cuenta no tiene ningún modelo configurado.
-- La clave del proveedor falta o ya no es válida.
-- La aplicación de GitHub de Glossia no puede acceder al repositorio.
-- No fue posible preparar ni verificar el repositorio.
+- La clave del proveedor está ausente o ya no es válida.
+- La aplicación GitHub de Glossia no puede acceder al repositorio.
+- El repositorio no se pudo preparar ni verificar.
 
 ## 2\. Corregir el prerrequisito.
 
-Para problemas del modelo, abra **Configuración** y **Modelos**. Para problemas de acceso al repositorio, actualiza la instalación de la aplicación de GitHub de Glossia en GitHub y concede acceso al repositorio.
+Para problemas del modelo, abra **Ajustes → Modelos**. Para problemas de acceso al repositorio, actualice la instalación de la aplicación de GitHub de Glossia en GitHub y conceda acceso al repositorio.
 
-## 3\. Reintentar
+## 3\. Inicie la configuración nuevamente
 
-Volver a la vista general del proyecto y seleccionar **Reintentar configuración**.
+Abrir **Proyectos → Nuevo proyecto**, seleccione el repositorio, elija **Configuración automática**, y selecciona los idiomas objetivo de nuevo. Sigue el nuevo intento de configuración hasta que se complete.
 
-La tarjeta vuelve a **Pendiente**, luego **Ejecutando**, y muestra nueva actividad a medida que avanza el trabajo. El reintento solo está disponible mientras el proyecto esté en **Fallido** estado, lo que impide que dos intentos de configuración se ejecuten al mismo tiempo.
+Si un proyecto fallido sigue visible y ofrece **Reintentar configuración**, esa acción inicia otro intento. No confíes en que siga disponible: los proyectos provisionales fallidos se eliminan durante la limpieza.
 
-## 4\. Revisión de finalización
+## 4\. Revisar finalización
 
-Cuando el estado cambia a **Finalizado**, revisa la solicitud de extracción resultante en GitHub. Si falla de nuevo, usa la nueva actividad en la tarjeta en lugar del intento anterior para identificar la siguiente acción.
+Cuando la configuración se completa, revisa la solicitud de extracción resultante en GitHub. Consulta [Configuración del proyecto](/docs/reference/project-setup) para el comportamiento del ciclo de vida y la limpieza.
