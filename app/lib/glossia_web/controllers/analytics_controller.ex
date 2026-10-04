@@ -18,6 +18,8 @@ defmodule GlossiaWeb.AnalyticsController do
   use GlossiaWeb, :controller
 
   alias Glossia.Analytics.Client
+  alias Glossia.Analytics.Config
+  alias Glossia.Analytics.Country
   alias Glossia.Analytics.Geolocation
   alias Glossia.Analytics.Identity
   alias Glossia.Analytics.Ingestion
@@ -108,8 +110,7 @@ defmodule GlossiaWeb.AnalyticsController do
     {browser_language, served_locale, has_locale_gap} =
       Client.localize(languages, target_locales, bounded_string(params["sl"]))
 
-    %{country: country} =
-      if ip, do: Geolocation.lookup(ip), else: %{country: nil}
+    country = cloudflare_country(conn) || lookup_country(ip)
 
     url_parts = Client.parse_url(params["u"])
     ref_parts = Client.parse_referrer(params["r"])
@@ -136,6 +137,28 @@ defmodule GlossiaWeb.AnalyticsController do
        timezone: bounded_string(params["tz"])
      }}
   end
+
+  # This is enabled only for deployments whose edge authenticates Cloudflare
+  # or strips untrusted copies of CF-IPCountry. Header presence (including
+  # CF-Connecting-IP / CF-Ray) by itself is not proof of provenance.
+  defp cloudflare_country(conn) do
+    with true <- Config.trust_cloudflare_country_header?(),
+         [value] <- get_req_header(conn, "cf-ipcountry"),
+         value <- String.trim(value),
+         2 <- byte_size(value) do
+      # ISO validation excludes Cloudflare's XX (unknown) and T1 (Tor) values.
+      Country.code(value)
+    else
+      _ -> nil
+    end
+  end
+
+  defp lookup_country(ip) when is_binary(ip) do
+    %{country: country} = Geolocation.lookup(ip)
+    country
+  end
+
+  defp lookup_country(_ip), do: nil
 
   defp client_languages(params, conn) do
     case Client.parse_languages(params["l"]) do

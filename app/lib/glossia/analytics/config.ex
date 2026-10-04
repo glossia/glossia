@@ -14,6 +14,9 @@ defmodule Glossia.Analytics.Config do
 
   def enabled?, do: get(:enabled, true)
 
+  # Opt-in only: CF-IPCountry is forgeable when a client can bypass Cloudflare.
+  def trust_cloudflare_country_header?, do: get(:trust_cloudflare_country_header, false) == true
+
   # Falls back to Noop rather than a network adapter: an install that has not
   # configured geolocation should not start shipping visitor IPs to a third
   # party as a side effect of the default. Production opts in explicitly in

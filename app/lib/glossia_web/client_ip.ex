@@ -4,15 +4,14 @@ defmodule GlossiaWeb.ClientIP do
 
   Precedence:
 
-    1. `CF-Connecting-IP` — set by Cloudflare when the request came
-       through an orange-clouded hostname. Trusted because
-       ingress-nginx strips any inbound copy of this header (see the
-       `use-forwarded-headers` + `enable-real-ip: true` block in
-       `ops/infra/helm/platform/values.yaml`), so a client that
-       bypasses Cloudflare cannot forge it.
-    2. First hop of `X-Forwarded-For` — set by ingress-nginx from the
-       socket peer.
+    1. `CF-Connecting-IP` — supplied by Cloudflare for proxied requests.
+    2. First hop of `X-Forwarded-For` — supplied by upstream proxies.
     3. `conn.remote_ip` — the socket peer as a last resort.
+
+  Header provenance must be enforced by the deployment's edge. This module
+  validates address syntax, not the identity of the sender. Enabling nginx's
+  `use-forwarded-headers` does not strip forged Cloudflare headers or prevent
+  direct-origin requests.
 
   Every candidate is parsed through `:inet.parse_address/1` before it
   leaves this module so downstream Hammer keys and log lines are never

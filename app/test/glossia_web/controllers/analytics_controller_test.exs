@@ -23,6 +23,13 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
     def lookup(_ip), do: %{country: nil}
   end
 
+  defmodule UnexpectedGeolocationAdapter do
+    @behaviour Glossia.Analytics.Geolocation
+
+    @impl true
+    def lookup(_ip), do: raise("The header fast path must not call a geolocation adapter")
+  end
+
   setup do
     user = TestHelpers.create_user("collect@test.com", "collect")
 
@@ -165,6 +172,88 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
            ) == [%{country_code: "DE", visits: 1}]
   end
 
+  test "trusted country headers bypass the geolocation adapter", %{conn: conn, domain: domain} do
+    configure_analytics(
+      trust_cloudflare_country_header: true,
+      geolocation: [adapter: UnexpectedGeolocationAdapter]
+    )
+
+    for {header, country} <- [{"US", "US"}, {" de ", "DE"}, {"PR", "PR"}, {"AQ", "AQ"}] do
+      expect(Ingestion, :record_event, fn event ->
+        assert event.country_code == country
+        :ok
+      end)
+
+      response =
+        conn
+        |> put_req_header("cf-ipcountry", header)
+        |> post(~p"/v1/collect", %{"d" => domain, "u" => "https://#{domain}/country-header"})
+
+      assert response.status == 202
+    end
+  end
+
+  test "untrusted Cloudflare headers cannot set the country", %{conn: conn, domain: domain} do
+    configure_analytics(geolocation: [adapter: GeolocationAdapter])
+    refute Glossia.Analytics.Config.trust_cloudflare_country_header?()
+
+    expect(Ingestion, :record_event, fn event ->
+      assert event.country_code == "DE"
+      :ok
+    end)
+
+    response =
+      conn
+      |> Map.put(:remote_ip, {8, 8, 8, 8})
+      |> put_req_header("cf-ipcountry", "US")
+      |> put_req_header("cf-ray", "forged-ray")
+      |> put_req_header("cf-connecting-ip", "8.8.8.8")
+      |> post(~p"/v1/collect", %{"d" => domain})
+
+    assert response.status == 202
+  end
+
+  test "missing, malformed, unknown, and Tor headers use the fallback", %{
+    conn: conn,
+    domain: domain
+  } do
+    configure_analytics(
+      trust_cloudflare_country_header: true,
+      geolocation: [adapter: GeolocationAdapter]
+    )
+
+    for header <- [nil, "", "XX", "T1", "ZZ", "US,DE", "United States", "U1"] do
+      expect(Ingestion, :record_event, fn event ->
+        assert event.country_code == "DE"
+        :ok
+      end)
+
+      request = Map.put(conn, :remote_ip, {8, 8, 8, 8})
+      request = if header, do: put_req_header(request, "cf-ipcountry", header), else: request
+      assert post(request, ~p"/v1/collect", %{"d" => domain}).status == 202
+    end
+  end
+
+  test "duplicate country headers use the fallback", %{conn: conn, domain: domain} do
+    configure_analytics(
+      trust_cloudflare_country_header: true,
+      geolocation: [adapter: GeolocationAdapter]
+    )
+
+    expect(Ingestion, :record_event, fn event ->
+      assert event.country_code == "DE"
+      :ok
+    end)
+
+    conn = %{
+      conn
+      | remote_ip: {8, 8, 8, 8},
+        req_headers: [{"cf-ipcountry", "US"}, {"cf-ipcountry", "FR"} | conn.req_headers]
+    }
+
+    assert post(conn, ~p"/v1/collect", %{"d" => domain}).status == 202
+  end
+
   test "records actual page language and uses advertised translations without setup targets",
        ctx do
     %{conn: conn, project: project, domain: domain} = ctx
@@ -245,5 +334,11 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
 
     assert from(e in Event, where: e.hostname == ^domain)
            |> ClickHouseRepo.all() == []
+  end
+
+  defp configure_analytics(opts) do
+    original = Application.get_env(:glossia, Glossia.Analytics, [])
+    Application.put_env(:glossia, Glossia.Analytics, Keyword.merge(original, opts))
+    on_exit(fn -> Application.put_env(:glossia, Glossia.Analytics, original) end)
   end
 end

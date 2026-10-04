@@ -41,7 +41,7 @@ These are computed at ingestion and stored server-side. The raw IP and User-Agen
 | Field             | Source        | Description                                                         |
 |-------------------|---------------|---------------------------------------------------------------------|
 | `visitor_id`      | HMAC          | Daily-rotated hash of IP + UA + project. Not linkable across days.  |
-| `country_code`    | GeoIP         | ISO 3166-1 alpha-2 code. Empty when the address is private, geolocation is disabled, or lookup fails.        |
+| `country_code`    | Cloudflare / GeoIP | ISO 3166-1 alpha-2 code from a trusted `CF-IPCountry` header, or the configured IP geolocation adapter. Empty when neither resolves a country. |
 | `device`          | User-Agent    | `desktop`, `mobile`, `tablet`, `bot`, or `unknown`.                 |
 | `browser`         | User-Agent    | `chrome`, `safari`, `firefox`, `edge`, `opera`, or `unknown`.       |
 | `os`              | User-Agent    | `windows`, `macos`, `ios`, `android`, `linux`, or `unknown`.        |
@@ -54,7 +54,11 @@ These are computed at ingestion and stored server-side. The raw IP and User-Agen
 
 ### Country resolution
 
-Without a configured MaxMind database, country lookups use `api.ipapi.is`, falling back to `api.country.is` when the primary request fails or returns no recognized country. Each request has a one-second connection and response timeout with retries disabled. Successful results from either provider are cached for 24 hours in a size-bounded cache; failures are not cached. Private and reserved addresses are not sent to either provider.
+`GLOSSIA_TRUST_CLOUDFLARE_COUNTRY_HEADER=true` enables the `CF-IPCountry` fast path. It is **disabled by default**. Enable it only after the origin authenticates Cloudflare, rejects requests that bypass Cloudflare, or the ingress strips untrusted copies of the header. Cloudflare's IP Geolocation setting must also be enabled for the zone. `CF-Connecting-IP`, `CF-Ray`, and nginx's `use-forwarded-headers` do not authenticate a request on their own.
+
+When header trust is enabled, a single valid ISO country code is used immediately, without an IP lookup or cache access. The current edge value always takes precedence over any cached lookup. Missing, duplicate, malformed, or unknown codes, including Cloudflare's `XX` (unknown) and `T1` (Tor) values, fall back to the configured geolocation adapter.
+
+Without a configured MaxMind database, fallback lookups use `api.ipapi.is`, then `api.country.is` when the primary request fails or returns no recognized country. Each request has a one-second connection and response timeout with retries disabled. Successful results from either provider are cached by Cachex for 24 hours, with a 100,000-entry scheduled size limit and automatic expiry reclamation. `Cachex.fetch/3` collapses concurrent misses for the same IP into one resolver. Failures are not cached. Private and reserved addresses are not sent to either provider.
 
 ### Missing page language
 

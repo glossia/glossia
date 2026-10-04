@@ -658,6 +658,10 @@ if config_env() == :prod and not runner_child? do
   config :glossia, Glossia.Analytics,
     enabled: System.get_env("GLOSSIA_ANALYTICS_ENABLED") not in ~w(false 0),
     identity_secret: analytics_secret,
+    # Enable only after authenticating Cloudflare at the origin or sanitizing
+    # inbound headers. The public origin must not accept forged CF-IPCountry.
+    trust_cloudflare_country_header:
+      System.get_env("GLOSSIA_TRUST_CLOUDFLARE_COUNTRY_HEADER") in ~w(true 1),
     geolocation: [adapter: geo_adapter, database_path: geoip_database_path]
 
   config :glossia, :web_analytics, domain: System.get_env("GLOSSIA_WEB_ANALYTICS_DOMAIN")
