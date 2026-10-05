@@ -1,33 +1,32 @@
 %{
   title: "Retentar a configuração do projeto",
-  summary: "Recuperar um projeto após a configuração relatar uma falha.",
-  category: "Como fazer",
+  summary: "Recuperar o projeto após a configuração relatar uma falha.",
+  category: "como fazer",
+  section: "translation",
   order: 4
 }
 ---
-Utilize **Tentar novamente a configuração** após corrigir a condição que causou a falha na configuração do projeto.
+Quando a configuração automática falha, o Glossia descarta o projeto provisório para que o repositório possa ser selecionado novamente. Um aviso de falha pode aparecer no fluxo de configuração, mas o projeto falho e seu histórico de progresso não são retidos.
 
 ## 1\. Ler a falha
 
-Abra a visão geral do projeto. O cartão de progresso da configuração mostra a falha e a última atividade da configuração.
+Leia o aviso de falha antes de sair do fluxo de configuração. Causas comuns incluem:
 
-As causas comuns incluem:
-
-- A conta não tem um modelo configurado.
+- A conta não possui modelo configurado.
 - A chave do provedor está ausente ou não é mais válida.
-- O aplicativo GitHub do Glossia não consegue acessar o repositório.
-- Não foi possível preparar ou verificar o repositório.
+- O Glossia GitHub App não consegue acessar o repositório.
+- O repositório não pôde ser preparado ou verificado.
 
-## 2\. Corrija o pré-requisito
+## 2\. Corrigir o pré-requisito
 
-Para problemas de modelo, abra **Configurações** e **Modelos**. Para problemas de acesso ao repositório, atualize a instalação do aplicativo GitHub do Glossia no GitHub e conceda acesso ao repositório.
+Para problemas de modelo, abra **Configurações → Modelos**. Para problemas de acesso ao repositório, atualize a instalação do Glossia GitHub App no GitHub e conceda acesso ao repositório.
 
-## 3\. Retentar
+## 3\. Inicie a configuração novamente
 
-Voltar para a visão geral do projeto e selecionar **Retentar configuração**.
+Abrir **Projetos → Novo projeto**, selecione o repositório, escolha **Configuração automatizada**, e selecione os idiomas de destino novamente. Siga a nova tentativa de configuração até que seja concluída.
 
-O cartão retorna para **Pendente**, depois **Em andamento**e mostra novas atividades conforme o trabalho prossegue. Retentar está disponível apenas enquanto o projeto está em **Falho** , estado, o que impede duas tentativas de configuração de ocorrerem simultaneamente.
+Se um projeto falho ainda estiver visível e oferecer **Reiniciar configuração**, essa ação inicia outra tentativa. Não conte com ela permanecendo disponível: projetos falhos provisórios são removidos durante a limpeza.
 
 ## 4\. Revisar conclusão
 
-Quando o estado muda para **Concluído**, revise o pull request resultante no GitHub. Se falhar novamente, use a nova atividade no cartão em vez da tentativa anterior para identificar a próxima ação.
+Quando a configuração for concluída, revise o Pull Request resultante no GitHub. Veja [Configuração do projeto](/docs/reference/project-setup) para o comportamento de ciclo de vida e limpeza.
