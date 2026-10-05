@@ -1,33 +1,32 @@
 %{
   title: "Réessayer la configuration du projet",
-  summary: "Récupérer un projet suite à un échec de la configuration.",
-  category: "Guide",
+  summary: "Récupérer un projet après un échec de la configuration.",
+  category: "guide pratique",
+  section: "translation",
   order: 4
 }
 ---
-Utiliser **Réessayer la configuration** Après avoir corrigé la condition ayant causé l'échec de la configuration du projet.
+Lorsque le paramétrage automatisé échoue, Glossia rejette le projet provisoire afin que le dépôt puisse être sélectionné à nouveau. Une notification d'échec peut apparaître dans le flux de paramétrage, mais le projet échoué et son historique de progression ne sont pas conservés.
 
 ## 1\. Lire l'échec
 
-Ouvrir la vue d'ensemble du projet. La carte de progression de la configuration affiche l'échec et la dernière activité de configuration.
-
-Les causes courantes sont :
+Lire le message d'échec avant de quitter le flux de paramétrage. Les causes courantes incluent :
 
 - Le compte ne dispose d'aucun modèle configuré.
-- La clé du fournisseur manque ou n'est plus valide.
-- L'application GitHub Glossia n'a pas accès au dépôt.
+- La clé du fournisseur est manquante ou n'est plus valide.
+- La Glossia GitHub App ne peut pas accéder au dépôt.
 - Le dépôt n'a pas pu être préparé ou vérifié.
 
-## 2\. Réglez le prérequis
+## 2\. Corriger le prérequis
 
-Pour les problèmes de modèle, ouvrez **Paramètres** et **Modèles**. Pour les problèmes d'accès au dépôt, mettez à jour l'installation de l'application GitHub Glossia sur GitHub et accordez-lui l'accès au dépôt.
+Pour les problèmes de modèles, ouvrez **Paramètres → Modèles**. Pour les problèmes d'accès au dépôt, mettez à jour l'installation de l'application GitHub de Glossia sur GitHub et accordez-lui l'accès au dépôt.
 
-## 3\. Réessayer
+## 3\. Redémarrez la configuration
 
-Retourner à la vue d'ensemble du projet et sélectionner **Réessayer la configuration**.
+Ouvrir **Projets → Nouveau projet**, sélectionnez le dépôt, choisissez **Configuration automatisée**, et sélectionnez les langues cibles à nouveau. Suivez la nouvelle tentative de configuration jusqu'à sa complétion.
 
-La carte revient à **En attente**, puis **En cours**, et montre les nouvelles activités alors que les travaux avancent. Réessayer est disponible uniquement tant que le projet est dans **Échoué** état, ce qui empêche deux tentatives de configuration de s'exécuter à la même heure.
+Si un projet en échec est toujours visible et propose **Réessayer la configuration**, cette action démarre une nouvelle tentative. Ne comptez pas sur sa disponibilité : les projets prévisionnels échoués sont supprimés lors du nettoyage.
 
-## 4\. Vérification de la complétion
+## 4\. Revue de finalisation
 
-Lorsque l'état change en **Terminé**, réviser la pull request résultante sur GitHub. Si elle échoue à nouveau, utilisez les nouvelles activités dans la carte plutôt que la tentative précédente pour identifier la prochaine action.
+Lorsque la configuration est terminée, révisez la demande de fusion résultante sur GitHub. Voir [Configuration du projet](/docs/reference/project-setup) pour le cycle de vie et le comportement de nettoyage.
