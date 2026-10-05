@@ -1,15 +1,16 @@
 {
-  "hash": "9cc08113d706c1ae83535babaf9a63e764b5f4b4d62480ed42286943302fdaf5",
+  "baseline_schema_version": 1,
+  "hash": "717922f816562236d1433d03ca808dcdac9aa95c42e65f7c32ac8d6771fc1fc6",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "90061390c698f3b6946397ed2c96fa83e6debee94dd1c8e0242fb20addf977f7",
+          "hash": "cb055677cba08b7f9d8cc46544f9107452fe2d7ac2201d0c619f4ed31139641d",
           "kind": "source",
           "label": "app/priv/features/localization.md",
           "metadata": {
-            "content_hash": "4bfa18b3c052c4dfe1d10e76ddacc97e4fe97b9f166b12d8baa4978f2426ed22"
+            "content_hash": "d8c6af882ac46b0060468a4fa13e95eec46cb48cc4f07177257b3ec1208df31d"
           }
         },
         {
@@ -37,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "9cc08113d706c1ae83535babaf9a63e764b5f4b4d62480ed42286943302fdaf5",
+      "hash": "717922f816562236d1433d03ca808dcdac9aa95c42e65f7c32ac8d6771fc1fc6",
       "kind": "translation_input",
       "label": "app/priv/features/localization.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "087279a811cfd83308a41338f2aa789724a3ee48d830e04366fc5b4e07241460",
+  "output_hash": "1ea009bb9b49232df056128c8dd094207b44a506667c95a48020945d38d73c26",
   "output_path": "app/priv/i18n/ko/features/localization.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "9755df5ad1e6ced0da8847f0b4cc2c56c6003dd7",
   "source_path": "app/priv/features/localization.md",
-  "translated_at": "2026-09-12T09:59:09.188159Z"
+  "translated_at": "2026-10-05T14:36:55.421892Z",
+  "translation_session_id": "01a10c78-4654-7e7c-b3a4-e9f597783f26"
 }
