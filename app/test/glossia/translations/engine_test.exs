@@ -1274,7 +1274,7 @@ defmodule Glossia.Translations.EngineTest do
         assert payload["source_content"] =~ "https://glossia.ai"
         refute payload["source_content"] =~ "{locale}"
         assert payload["source_content"] =~ "`mix test`"
-        assert payload["source_content"] =~ ~r/\{glossia_protected_[a-f0-9]{12}_\d+\}/
+        assert payload["source_content"] =~ ~r/\{glossiaprotected[a-f0-9]{12}n\d+\}/
 
         translated(String.replace(payload["source_content"], "Visit", "Visita"))
       end)
@@ -1321,7 +1321,7 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "rejects a protected marker copied into another segment", %{tmp_dir: dir} do
+    test "rebuilds a segment that copied another segment's protected marker", %{tmp_dir: dir} do
       source = Path.join(dir, "guide.md")
 
       File.write!(
@@ -1338,7 +1338,7 @@ defmodule Glossia.Translations.EngineTest do
           1 ->
             [marker] =
               Regex.run(
-                ~r/\{glossia_protected_[a-f0-9]{12}_\d+\}/,
+                ~r/\{glossiaprotected[a-f0-9]{12}n\d+\}/,
                 payload["source_content"]
               )
 
@@ -1353,11 +1353,13 @@ defmodule Glossia.Translations.EngineTest do
 
       item = work_item(%{source_abs: source, retries: 0})
 
-      assert {:error, {:validation_failed, message}} =
-               Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+      # The second segment never carried a marker, so after its retries the
+      # Markdown recovery rebuilds it from the source tree and drops the copy.
+      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
 
-      assert message =~ "copied byte-for-byte exactly once"
-      assert message =~ "glossia_protected"
+      refute result.text =~ "glossiaprotected"
+      assert length(String.split(result.text, "{name}")) == 2
+      assert result.text =~ "Second paragraph remains together."
     end
 
     @tag :tmp_dir
@@ -1448,7 +1450,7 @@ defmodule Glossia.Translations.EngineTest do
         content = payload["source_content"]
 
         marker =
-          case Regex.run(~r/\{glossia_protected_[a-f0-9]{12}_\d+\}/, content) do
+          case Regex.run(~r/\{glossiaprotected[a-f0-9]{12}n\d+\}/, content) do
             [marker] -> marker
             nil -> nil
           end
@@ -1520,7 +1522,7 @@ defmodule Glossia.Translations.EngineTest do
       stub_stream(fn _account, payload, _on_event ->
         Elixir.Agent.update(payloads, &[payload | &1])
 
-        if payload["source_content"] =~ "{glossia_protected_" do
+        if payload["source_content"] =~ "{glossiaprotected" do
           translated(
             Regex.replace(~r/\[the report\]\([^)]*\)/, payload["source_content"], "the report")
           )

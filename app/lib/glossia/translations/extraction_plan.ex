@@ -119,6 +119,16 @@ defmodule Glossia.Translations.ExtractionPlan do
     end)
   end
 
+  # Token markers sit in Markdown text, which is re-rendered through MDEx when a
+  # response is reconciled. MDEx escapes Markdown punctuation such as `_` and
+  # `#` in text nodes, so a marker made of anything but ASCII letters and digits
+  # comes back changed and can never be restored. The prefix and the hexadecimal
+  # digest that follows it are therefore alphanumeric only.
+  @token_marker_prefix "glossiaprotected"
+
+  @doc "The prefix every token marker starts with, without its opening brace."
+  def token_marker_prefix, do: @token_marker_prefix
+
   @doc "Restores every protected region, requiring each marker exactly once."
   @spec restore(String.t(), t()) :: {:ok, String.t()} | {:error, String.t()}
   def restore(output, %__MODULE__{regions: regions}) when is_binary(output) do
@@ -343,7 +353,7 @@ defmodule Glossia.Translations.ExtractionPlan do
 
     %{
       default: collision_free_root(source, "__GLOSSIA_TOKEN_#{marker_digest}_"),
-      token: collision_free_root(source, "glossia_protected_#{marker_digest}_"),
+      token: collision_free_root(source, "#{@token_marker_prefix}#{marker_digest}n"),
       url:
         collision_free_root(
           source,
