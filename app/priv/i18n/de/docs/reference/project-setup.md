@@ -2,45 +2,63 @@
   title: "Projekt-Einrichtung",
   summary: "Zustände, Fortschrittsinformationen und Ergebnisse der Repository-Einrichtung.",
   category: "Referenz",
+  section: "translation",
   order: 2
 }
 ---
-Die Projekteinrichtung bereitet ein verbundenes Repository für Glossia vor. Sie beginnt, nachdem ein Nutzer ein Repository ausgewählt und mindestens eine Zielsprache in der **Neues Projekt** Ablauf.
+Projekt-Setup bereitet ein verknüpftes Repository für Glossia vor. Nachdem ein Benutzer ein Repository in dem **Neues Projekt** Ablauf, wählen Sie einen der beiden Setup-Modi aus.
+
+## Setup-Modi
+
+| Modus | Was Glossia tut | Wann Sie es wählen |
+|---|---|---|
+| **Automatisiertes Setup** | Untersucht das Repository und erstellt einen Pull-Request mit der generierten `L10N.md` Konfiguration für die ausgewählten Ziel-Sprachen. | Das Repository hat noch keine Lokalisierungskonfiguration. |
+| **Manuelle Konfiguration** | Erstellt das Projekt sofort. Es untersucht das Repository nicht, ändert es nicht oder öffnet keinen Pull-Request. | Das Repository hat bereits eine `L10N.md` Konfigurationsdatei, oder ein Maintainer schreibt sie. |
+
+Die unten beschriebenen Zustände, Fortschrittsinformationen und Pull-Request gelten nur für die automatisierte Einrichtung.
+
+## Manuelle Konfiguration
+
+Ein manuell konfiguriertes Projekt hat keinen Einrichtungsstatus. Es ist sofort nach der Erstellung nutzbar und wird nie durch eine fehlgeschlagene Einrichtung verworfen.
+
+Glossia startet einen Übersetzungslauf beim nächsten Push in den Standardzweig des Repositorys. Der Lauf übersetzt in jedes darin deklarierte Ziel des [`L10N.md`](/docs/reference/l10n-md) Dateien, da keine Zielsprachen im **Neues Projekt** Workflow.
+
+Bis zum ersten Übersetzungslauf zeigt die Projektübersicht eine Benachrichtigung, dass Glossia auf einen Push wartet, der eine `L10N.md` Datei.
 
 ## Voraussetzungen
 
-- Das Konto verfügt über mindestens ein konfiguriertes Modell.
-- Die Glossia GitHub App kann auf das ausgewählte Repository zugreifen.
-- Der Nutzer kann Projekte im Konto erstellen.
-- Mindestens eine Zielsprache ist ausgewählt.
+- Das Konto hat mindestens ein konfiguriertes Modell.
+- Die Glossia GitHub-App kann auf das ausgewählte Repository zugreifen.
+- Der Benutzer kann Projekte im Konto erstellen.
+- Für die automatische Einrichtung ist mindestens eine Zielsprache ausgewählt.
 
 ## Zustände
 
-| Zustand | Bedeutung | Verfügbare Aktion |
+| Status | Bedeutung | Verfügbare Aktion |
 |---|---|---|
-| **Ausstehend** | Das Projekt wurde akzeptiert und wartet auf den Start. | Fortschritt verfolgen oder die Seite verlassen und später zurückkehren. |
-| **In Bearbeitung** | Glossia überprüft und aktualisiert das Repositorium. | Verfolgen Sie die Live-Aktivität. |
-| **Abgeschlossen** | Die Lokalisierungs-Baseline wurde vorbereitet und zur Prüfung veröffentlicht. | Öffnen, überprüfen und zusammenführen Sie den Pull-Request. |
+| **Ausstehend** | Das Projekt wurde akzeptiert und wartet auf den Start. | Folgen Sie dem Fortschritt oder verlassen Sie die Seite und kehren Sie später zurück. |
+| **Laufend** | Glossia prüft das Repository und aktualisiert es. | Verfolgen Sie die Live-Aktivität. |
+| **Abgeschlossen** | Die Lokalisierungsbasis wurde vorbereitet und zur Überprüfung veröffentlicht. | Öffnen, überprüfen und den Pull Request zusammenführen. |
 
-Projekte sind vorläufig, während das Setup ist **ausstehend** oder **Laufend**. Wenn der Setup nicht erfolgreich abgeschlossen werden oder keine nutzbare Änderung veröffentlichen kann, bereinigt Glossia die Setup-Umgebung und löscht das vorläufige Projekt. Das Repository steht dann in dem **Neues Projekt** Ablauf, so dass der Setup erneut versucht werden kann.
+Projekte sind vorläufig, solange die Einrichtung **Ausstehend** oder **Laufend**. Wenn die Einrichtung nicht abgeschlossen oder eine nutzbare Änderung nicht veröffentlicht werden kann, bereinigt Glossia die Einrichtungsumgebung und löscht das vorläufige Projekt. Das Repository wird dann im **Neues Projekt** Workflow, sodass die Einrichtung erneut versucht werden kann.
 
 ## Sichtbarer Fortschritt
 
-Die Setup-Karte bleibt im neuen Projekt-Ablauf und auf der Projektübersicht verfügbar. Sie enthält:
+Die Setup-Karte bleibt im Neu-Projekt-Workflow und auf der Projektübersicht verfügbar. Sie enthält:
 
-- Ein Statusabzeichen und ein Fortschrittsbalken.
+- Ein Statusabzeichen und eine Fortschrittsleiste.
 - Eine kurze Erklärung des aktuellen Zustands.
-- Kürzliche Repository-Vorbereitung, Inspektion, Dateiänderung, Prüfung und Abschlussaktivität.
-- Eine klare Fehlermeldung, wenn die Einrichtung nicht abgeschlossen werden kann.
+- Kürzliche Repository-Vorbereitung, Inspektion, Dateiänderungen, Prüfungen und Abschlussaktivitäten.
+- Eine klare Fehlermeldung, wenn der Setup nicht abgeschlossen werden kann.
 
-Der Fortschritt wird gespeichert, solange das vorläufige Projekt besteht. Ein endgültiger Fehler verwirft sowohl das Projekt als auch den sichtbaren Fortschritt in der Einrichtung.
+Der Fortschritt wird gespeichert, solange das vorläufige Projekt besteht. Ein endgültiger Fehler verwirft sowohl das Projekt als auch seinen sichtbaren Setup-Fortschritt.
 
-## Abgeschlossenes Ergebnis
+## Vollendetes Ergebnis
 
-Ein erfolgreicher, verbundener Einrichtungsvorgang erstellt einen dedizierten Branch und einen Pull-Request für den Standard-Branch des Repositoriums. Der Pull-Request enthält die generierte Lokalisierungsbasis, einschließlich `L10N.md` Kontext und die kleinsten praktischen Änderungen, die benötigt werden, um lokalisierten Inhalt einzuladen.
+Ein erfolgreicher verbundener Setup erstellt einen dedizierten Branch und einen Pull-Request gegen den Standard-Branch des Repositories. Der Pull-Request enthält die generierte Lokalisierungs-Baseline, einschließlich `L10N.md` Kontext und die kleinsten praktischen Änderungen, die zum Laden von lokalisiertem Inhalt erforderlich sind.
 
-Die Einrichtung veröffentlicht keine header-nur-Zielkataloge. Wenn ein Lokalisierungsframework Zielkataloge vor der Übersetzung benötigt, enthalten diese die extrahierten Einträge der Quellnachrichten mit leeren Übersetzungswerten. Wenn Zielkataloge noch nicht erforderlich sind, belässt die Einrichtung sie für den ersten Übersetzungslauf.
+Setup veröffentlicht keine nur-Header-Zieltabellen. Wenn ein Lokalisierungsframework Zieltabellen vor der Übersetzung benötigt, enthalten diese die extrahierten Quellnachrichteneinträge mit leeren Übersetzungswerten. Wenn Zieltabellen noch nicht erforderlich sind, belässt Setup diese für den ersten Übersetzungsablauf.
 
-Glossia bindet den Pull-Request nicht ein. Die Maintainer des Repositoriums prüfen und binden ihn über ihren normalen GitHub-Prozess ein.
+Glossia führt den Pull Request nicht zusammen. Repository-Betreuer prüfen und führen diesen über ihren normalen GitHub-Prozess zusammen.
 
-Die Projektübersicht zeigt eine Einrichtungsmeldung an, solange dieser Pull-Request offen ist. Die Meldung wird entfernt, nachdem der Pull-Request eingearbeitet wurde. Wenn der Pull-Request geschlossen wird, ohne einzuarbeiten, erklärt die Übersicht, dass er erneut geöffnet werden muss, bevor die Einrichtung als abgeschlossen betrachtet werden kann.
+Die Projektübersicht zeigt einen Setup-Hinweis an, während dieser Pull Request noch offen ist. Der Hinweis wird entfernt, nachdem der Pull Request zusammengeführt wurde. Wenn der Pull Request geschlossen wird, ohne zusammengeführt zu werden, erläutert die Übersicht, dass er vor Abschluss der Setup-Prozedur neu geöffnet werden muss.
