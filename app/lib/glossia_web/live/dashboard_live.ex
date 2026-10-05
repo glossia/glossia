@@ -8744,6 +8744,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_item_noora_status(:done), do: "success"
   defp translation_item_noora_status(:failed), do: "error"
   defp translation_item_noora_status(:cancelled), do: "disabled"
+  defp translation_item_noora_status(:queued), do: "disabled"
 
   defp translation_progress_display_running(%{running: running}) when running > 0, do: running
 
@@ -8844,6 +8845,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_item_status_label(:done), do: gettext("Done")
   defp translation_item_status_label(:failed), do: gettext("Failed")
   defp translation_item_status_label(:cancelled), do: gettext("Cancelled")
+  defp translation_item_status_label(:queued), do: gettext("Queued")
 
   # Sort priority for translation items. Done first, then attention-worthy
   # states (failed/cancelled), then the ones still running. `index` breaks

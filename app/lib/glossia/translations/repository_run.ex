@@ -120,7 +120,8 @@ defmodule Glossia.Translations.RepositoryRun do
           type: "plan_assessed",
           total: total,
           needs_translation: needs_translation,
-          up_to_date: total - needs_translation
+          up_to_date: total - needs_translation,
+          queued: queued_items(prepared_items)
         },
         progress_node
       )
@@ -709,6 +710,16 @@ defmodule Glossia.Translations.RepositoryRun do
 
   defp attach_po_diff(item, {:partial, diff}), do: Map.put(item, :po_diff, diff)
   defp attach_po_diff(item, _po_status), do: item
+
+  # Files are translated a few at a time, so most of a large plan has not
+  # started yet. Listing them up front lets the panel show the whole plan
+  # instead of only the files whose batch has begun.
+  defp queued_items(prepared_items) do
+    for %{index: index, item: item, status: status} <- prepared_items,
+        status != :up_to_date do
+      %{index: index, output_path: item.output_path, locale: item.locale}
+    end
+  end
 
   defp failed_item(item, index, reason),
     do: %{index: index, item: item, reason: reason, status: :failed}

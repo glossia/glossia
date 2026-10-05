@@ -312,7 +312,7 @@ defmodule Glossia.TranslationSessions do
     broadcast_session_status(session, "cancelled")
   end
 
-  # Every running item is turned into a persistent `item_cancelled` event so the
+  # Every running or queued item is turned into a persistent `item_cancelled` event so the
   # fold reaches a terminal state whether the viewer arrives live or later. The
   # session's stored counts (`translated`, `content_hit`) are unchanged: an
   # in-flight file that never completed does not count as translated.
@@ -344,7 +344,7 @@ defmodule Glossia.TranslationSessions do
     id
     |> session_progress()
     |> Progress.items()
-    |> Enum.filter(&(&1.status == :running))
+    |> Enum.filter(&(&1.status in [:running, :queued]))
   end
 
   defp cancel_superseded_jobs(session_id) do
