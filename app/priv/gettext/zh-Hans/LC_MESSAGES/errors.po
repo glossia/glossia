@@ -36,18 +36,18 @@ msgstr "条目无效"
 
 ## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
-msgstr "已被保留"
+msgstr "已保留"
 
 ## From Ecto.Changeset.validate_confirmation/3
 msgid "does not match confirmation"
-msgstr "与确认信息不匹配"
+msgstr "与确认不符"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
 msgstr "仍与此条目关联"
 
 msgid "are still associated with this entry"
-msgstr "仍与此条目关联"
+msgstr "均与此条目关联"
 
 ## From Ecto.Changeset.validate_length/3
 msgid "should have %{count} item(s)"
@@ -60,31 +60,31 @@ msgstr[0] "应为 %{count} 个字符"
 
 msgid "should be %{count} byte(s)"
 msgid_plural "should be %{count} byte(s)"
-msgstr[0] "应为 %{count} 字节"
+msgstr[0] "应为 %{count} 个字节"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
-msgstr[0] "应至少包含 %{count} 项"
+msgstr[0] "至少需要 %{count} 项"
 
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "应至少为 %{count} 个字符"
+msgstr[0] "至少需要 %{count} 个字符"
 
 msgid "should be at least %{count} byte(s)"
 msgid_plural "should be at least %{count} byte(s)"
-msgstr[0] "应至少为 %{count} 个字节"
+msgstr[0] "至少需要 %{count} 字节"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "应至多包含 %{count} 项"
+msgstr[0] "至多 %{count} 项"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "最多 %{count} 个字符"
+msgstr[0] "不应超过 %{count} 个字符"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "最多 %{count} 字节"
+msgstr[0] "不应超过 %{count} 个字节"
 
 ## From Ecto.Changeset.validate_number/3
 msgid "must be less than %{number}"
