@@ -29,6 +29,7 @@ defmodule Glossia.Translations.Engine do
   alias Glossia.Translations.Checkpoints
   alias Glossia.Translations.ContentSegments
   alias Glossia.Translations.Context
+  alias Glossia.Translations.ExtractionPlan
   alias Glossia.Translations
   alias Glossia.Translations.Format
   alias Glossia.Translations.Failure
@@ -410,7 +411,8 @@ defmodule Glossia.Translations.Engine do
   # request is still cheaper than building a JSON array.
   defp translate_large_markdown_segment_as_literals(state, segment, index, count) do
     with %{format: "markdown"} <- state.work_item,
-         true <- not String.contains?(segment.content, "{glossia_protected_"),
+         true <-
+           not String.contains?(segment.content, "{" <> ExtractionPlan.token_marker_prefix()),
          true <- not String.contains?(segment.content, "@@GLOSSIA-TEXT-"),
          {:ok, source_literals} <- Markdown.text_literals(segment.content),
          true <- length(source_literals) >= @markdown_text_literal_fast_path_min_literals,
@@ -1176,7 +1178,7 @@ defmodule Glossia.Translations.Engine do
   # failure, where recovery must fail closed rather than move the marker.
   defp markdown_recovery_error?(%{work_item: %{format: "markdown"}} = state, segment, message) do
     markdown_structure_error?(state, message) or
-      not String.contains?(segment.content, "{glossia_protected_")
+      not String.contains?(segment.content, "{" <> ExtractionPlan.token_marker_prefix())
   end
 
   defp markdown_recovery_error?(_state, _segment, _message), do: false

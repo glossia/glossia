@@ -1,6 +1,7 @@
 defmodule Glossia.Translations.PreservedTokensTest do
   use ExUnit.Case, async: true
 
+  alias Glossia.Translations.Markdown
   alias Glossia.Translations.PreservedTokens
 
   test "masks and restores atomic values without parsing the Markdown document" do
@@ -173,7 +174,7 @@ defmodule Glossia.Translations.PreservedTokensTest do
     protection = PreservedTokens.protect("Hello {{user.name}}", ["placeholders"])
 
     assert [{marker, "{{user.name}}"}] = protection.replacements
-    assert marker =~ ~r/\A\{\{glossia_protected_[a-f0-9]{12}_0\}\}\z/
+    assert marker =~ ~r/\A\{\{glossiaprotected[a-f0-9]{12}n0\}\}\z/
     assert protection.text == "Hello " <> marker
     assert {:ok, "Hello {{user.name}}"} = PreservedTokens.restore(protection.text, protection)
   end
@@ -182,13 +183,26 @@ defmodule Glossia.Translations.PreservedTokensTest do
     source = "Run `mix test` with {locale}.\n\n```elixir\nIO.puts(:ok)\n```"
     protection = PreservedTokens.protect(source, ~w(inline_code placeholders code_blocks))
 
-    assert protection.text =~ ~r/`glossia_protected_[a-f0-9]{12}_0`/
-    assert protection.text =~ ~r/\{glossia_protected_[a-f0-9]{12}_1\}/
+    assert protection.text =~ ~r/`glossiaprotected[a-f0-9]{12}n0`/
+    assert protection.text =~ ~r/\{glossiaprotected[a-f0-9]{12}n1\}/
 
     assert protection.text =~
-             ~r/```glossia-protected\nglossia_protected_[a-f0-9]{12}_2\n```/
+             ~r/```glossia-protected\nglossiaprotected[a-f0-9]{12}n2\n```/
 
     assert {:ok, ^source} = PreservedTokens.restore(protection.text, protection)
+  end
+
+  test "keeps placeholder markers intact through Markdown reconciliation" do
+    source =
+      "# Cache {#cache}\n\nCache your builds.\n\n## Restrict uploads to CI {#restrict-uploads-to-ci}\n"
+
+    protection = PreservedTokens.protect(source, ["placeholders"])
+
+    assert {:ok, reconciled} = Markdown.reconcile(protection.text, protection.text)
+    assert PreservedTokens.unpreserved_markers(protection, protection.text, reconciled) == []
+    assert {:ok, restored} = PreservedTokens.restore(reconciled, protection)
+    assert restored =~ "# Cache {#cache}"
+    assert restored =~ "## Restrict uploads to CI {#restrict-uploads-to-ci}"
   end
 
   test "accepts a link destination whose parentheses the renderer escaped" do
