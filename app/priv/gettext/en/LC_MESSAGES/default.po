@@ -5486,3 +5486,8 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Usage"
 msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Queued"
+msgstr ""

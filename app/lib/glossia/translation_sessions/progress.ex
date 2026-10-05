@@ -49,6 +49,7 @@ defmodule Glossia.TranslationSessions.Progress do
         checked
         needs_translation
         up_to_date
+        queued
         output_path
         locale
         file_ref
@@ -114,12 +115,14 @@ defmodule Glossia.TranslationSessions.Progress do
          %{type: "plan_assessed", needs_translation: needs_translation, up_to_date: up_to_date} =
            event
        ) do
-    %{
+    state = %{
       state
       | total: max(state.total, event[:total] || 0),
         needs_translation: needs_translation,
         skipped: up_to_date
     }
+
+    Enum.reduce(event[:queued] || [], state, &put_queued_item/2)
   end
 
   # A runner from an earlier release reports up-to-date files one at a time
@@ -205,6 +208,7 @@ defmodule Glossia.TranslationSessions.Progress do
       failed: Enum.count(items, &(&1.status == :failed)),
       cancelled: Enum.count(items, &(&1.status == :cancelled)),
       running: Enum.count(items, &(&1.status == :running)),
+      queued: Enum.count(items, &(&1.status == :queued)),
       glossary: glossary_summary(items)
     }
   end
@@ -404,6 +408,28 @@ defmodule Glossia.TranslationSessions.Progress do
   # A file can fail before it ever starts, such as when its source cannot be
   # read while the plan is assessed. Materialize the row so the failure is
   # visible instead of being dropped for an item that never announced itself.
+  # A persisted plan arrives with string keys, a live one with atom keys. A file
+  # that already has a row keeps it, so a replayed plan never moves a started
+  # file back to the queue.
+  defp put_queued_item(entry, state) do
+    index = queued_field(entry, :index)
+
+    if is_integer(index) and not Map.has_key?(state.items, index) do
+      event = %{
+        output_path: queued_field(entry, :output_path),
+        locale: queued_field(entry, :locale)
+      }
+
+      state
+      |> put_item(index, event)
+      |> update_item(index, &%{&1 | status: :queued})
+    else
+      state
+    end
+  end
+
+  defp queued_field(entry, key), do: Map.get(entry, key) || Map.get(entry, Atom.to_string(key))
+
   defp put_new_item(state, index, event) do
     if Map.has_key?(state.items, index), do: state, else: put_item(state, index, event)
   end

@@ -8,6 +8,77 @@ defmodule Glossia.TranslationSessions.ProgressTest do
     refute Progress.progress_event?(%{event_type: "pr_created", content: "url"})
   end
 
+  test "lists every planned file as queued until its batch starts" do
+    state =
+      Progress.fold([
+        %{type: "plan", total: 3},
+        %{
+          type: "plan_assessed",
+          total: 3,
+          needs_translation: 2,
+          up_to_date: 1,
+          queued: [
+            %{index: 0, output_path: "es/guide.md", locale: "es"},
+            %{index: 2, output_path: "ja/guide.md", locale: "ja"}
+          ]
+        },
+        %{type: "item_started", index: 0, total: 3, output_path: "es/guide.md", locale: "es"}
+      ])
+
+    assert [%{index: 0, status: :running}, %{index: 2, status: :queued, locale: "ja"}] =
+             Progress.items(state)
+
+    assert %{running: 1, queued: 1} = Progress.summary(state)
+  end
+
+  test "restores queued files from a persisted plan without moving started files back" do
+    persisted =
+      Progress.decode(%{
+        "type" => "plan_assessed",
+        "seq" => 4,
+        "total" => 2,
+        "needs_translation" => 2,
+        "up_to_date" => 0,
+        "queued" => [
+          %{"index" => 0, "output_path" => "es/guide.md", "locale" => "es"},
+          %{"index" => 1, "output_path" => "ja/guide.md", "locale" => "ja"}
+        ]
+      })
+
+    state =
+      Progress.new()
+      |> Progress.apply_event(%{
+        type: "item_started",
+        seq: 3,
+        index: 0,
+        output_path: "es/guide.md",
+        locale: "es"
+      })
+      |> Progress.apply_event(persisted)
+
+    assert [
+             %{index: 0, status: :running},
+             %{index: 1, status: :queued, output_path: "ja/guide.md"}
+           ] =
+             Progress.items(state)
+  end
+
+  test "closes a queued file out when the session cancels it" do
+    state =
+      Progress.fold([
+        %{
+          type: "plan_assessed",
+          total: 1,
+          needs_translation: 1,
+          up_to_date: 0,
+          queued: [%{index: 0, output_path: "es/guide.md", locale: "es"}]
+        },
+        %{type: "item_cancelled", index: 0, reason: "session_failed"}
+      ])
+
+    assert [%{status: :cancelled}] = Progress.items(state)
+  end
+
   test "folds a run into per-file progress with turns and streamed text" do
     events = [
       %{type: "plan", total: 2},
@@ -55,6 +126,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              failed: 1,
              cancelled: 0,
              running: 0,
+             queued: 0,
              glossary: %{
                applied_ids: [],
                shadowed_ids: [],
@@ -170,6 +242,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              failed: 0,
              cancelled: 0,
              running: 2,
+             queued: 0,
              glossary: %{
                applied_ids: [],
                shadowed_ids: [],
@@ -299,6 +372,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              failed: 0,
              cancelled: 0,
              running: 1,
+             queued: 0,
              glossary: %{
                applied_ids: [],
                shadowed_ids: [],
@@ -325,6 +399,7 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              failed: 0,
              cancelled: 0,
              running: 0,
+             queued: 0,
              glossary: %{
                applied_ids: [],
                shadowed_ids: [],
