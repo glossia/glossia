@@ -1,63 +1,59 @@
 %{
   title: "REST API",
-  summary: "一款以开发者为核心的 REST API，支持 OpenAPI 文档、OAuth 2.1 认证及细粒度授权。仪表板上可进行的操作，也均可通过 API 实现。",
+  summary: "一款面向开发者的 REST API，具备 OpenAPI 文档、OAuth 2.1 认证和细粒度授权。您可以在 API 中完成仪表盘上的所有操作。",
   order: 4,
-  icon: "终端",
+  icon: "terminal",
   hero_cta_text: "开始使用",
   hero_cta_url: "/signup",
   highlights: [
     %{
       title: "支持 OpenAPI 文档",
-      description: "完整的 OpenAPI 3.1 规范通过 Scalar 提供交互式文档。您可以探索端点、测试请求，并从单个规范文件生成客户端代码。",
-      icon: "文档"
+      description: "完整的 OpenAPI 3.1 规范通过 Scalar 提供交互式文档。探索端点、尝试请求，并从单一规范文件生成客户端代码。",
+      icon: "book-open"
     },
     %{
       title: "支持 OAuth 2.1 及 PKCE",
-      description: "支持动态客户端注册、带 PKCE 的授权码流程、令牌稽查和吊销。第三方客户端无需共享凭证即可安全认证。",
-      icon: "密钥"
+      description: "支持动态客户端注册、PKCE 授权码流程、令牌内省和吊销。第三方客户端可安全认证，无需共享密钥。",
+      icon: "key-round"
     },
-    %{
-      title: "分页与过滤",
-      description: "所有列表端点均支持基于页面的分页、字段过滤和排序，开箱即用。可预测的响应元数据使构建客户端变得简单。",
-      icon: "代码"
-    }
+    %{title: "分页与过滤", description: "所有列表端点均原生支持分页、字段过滤和排序。可预测的响应元数据简化了客户端构建。", icon: "code"}
   ]
 }
 ---
 ## 开发者优先
 
-REST API 是 Glossia 的核心。仪表盘、CLI 以及 [MCP 服务器](/features/mcp-server) 均使用相同的端点。当我们添加功能时，它首先在 API 中落地，并由此在其他所有地方体现。
+REST API 是 Glossia 的核心。仪表板、CLI 和 [MCP 服务器](/features/mcp-server) 它们都使用相同的端点。当我们添加功能时，它首先在 API 上线，然后从那里在其他地方展现。
 
-这意味着您永远不会受用户界面的限制。任何您可以想象的流程，从 CI/CD 集成到自定义仪表板，都可以基于同一套稳定、文档完善的接口构建。
+这意味着您永远不受界面限制。您可以想象的任何工作流，从 CI/CD 集成到自定义仪表板，都可以构建在相同的稳定、文档化接口之上。
 
-## 认证
+## 身份验证
 
-Glossia 使用 OAuth 2.1 结合 PKCE 进行所有 API 认证。该流程支持第一方和第三方客户端。请参阅 [认证和授权文档](/docs/reference/apis/authentication) 完整操作指南。
+Glossia 对所有 API 身份验证使用带 PKCE 的 OAuth 2.1。该流程支持第一方和第三方客户端。查看 [身份验证和授权文档](/docs/reference/apis/authentication) 完整操作指南。
 
-**动态客户端注册** -- 客户端在此处进行程序化注册 `/oauth/register` 及其重定向 URI 和授权类型。无需手动审批，无需点击任何门户。
+**动态客户端注册** -- 客户端通过程序化方式注册于 `/oauth/register` 携带其重定向 URI 和授权类型。无需手动审批步骤，无需点击门户。
 
-**带 PKCE 的授权码** -- 用户通过浏览器授权界面授权客户端。PKCE 扩展确保令牌保持安全，即使对于无法存储密钥的公开客户端也是如此。
+**带有 PKCE 的授权码** -- 用户通过基于浏览器的同意屏幕授权客户端。PKCE 扩展确保令牌保持安全，即使对于无法存储密钥的公开客户端。
 
-**令牌生命周期** -- 访问令牌可通过标准 OAuth 端点进行交换、内省和撤销。令牌端点的限流可防止暴力破解。
+**令牌生命周期** -- 访问令牌可通过标准 OAuth 端点进行交换、内省和撤销。令牌端点的速率限制可防止暴力破解。
 
 ## 授权
 
-访问控制使用两层。所述 [身份验证文档](/docs/reference/apis/authentication) 详细介绍了范围、角色以及完整的权限矩阵。
+访问控制包含两层。 [身份认证文档](/docs/reference/apis/authentication) 涵盖作用域、角色及完整的权限矩阵详情。
 
-**范围** 定义了令牌可访问的资源类别。拥有 `voice:read` 可读取语音配置但无法修改它们。范围遵循 `resource:action` 模式： `account:read`, `organization:write`, `glossary:admin` 用于词汇表管理，等等。
+**作用域** 定义了令牌可访问的资源类别。一个带有 `voice:read` 特定作用域的令牌可以读取语音配置，但无法修改它们。作用域遵循 `resource:action` 模式： `account:read`、 `organization:write`, `glossary:admin` 用于术语表管理，等等。
 
-**Policies** verify the relationship between the user and the specific resource. A valid token with the right scope still cannot access an organization the user does not belong to. Every request is checked against both layers.
+**策略** 验证用户与特定资源之间的关系。即使拥有具有正确范围的有效令牌，用户也无法访问其不属于的组织。每个请求都会针对这两层进行检查。
 
-## Pagination, filtering, and sorting
+## 分页、过滤和排序
 
-All list endpoints return paginated results with consistent metadata:
+所有列表端点都会返回带有统一元数据的分页结果：
 
-Every response includes `total_count`, `total_pages`, `current_page`, `page_size`, `has_next_page?`, 和 `has_previous_page?` 这样客户端即可构建分页控件，无需猜测。
+每个响应都包含 `total_count`, `total_pages`, `current_page`, `page_size`, `has_next_page?`, 且 `has_previous_page?` , 这样用户即可构建分页控件，无需猜测。
 
-使用任何索引字段进行筛选 `filters[field]=value` 查询参数。按升序或降序排序 `order_by[]` 参数。界面在每个资源中保持一致。
+按任意索引字段过滤，使用 `filters[field]=value` , 查询参数。按升序或降序排序，使用 `order_by[]` 参数。在所有资源中界面保持一致。
 
-## OpenAPI 和交互式文档
+## OpenAPI 与交互式文档
 
-完整的 OpenAPI 3.1 规范可在 `/api/openapi.json`。该 [交互式 API 参考](/docs/reference/apis/rest) 由 Scalar 驱动，支持您探索端点、检查模式，并直接从浏览器发送测试请求。
+完整 OpenAPI 3.1 规范可在以下位置查阅 `/api/openapi.json`. 该 [交互式 API 参考](/docs/reference/apis/rest) 由 Scalar 驱动，支持您在浏览器中直接探索端点、检查模式并发送测试请求。
 
-任何语言的客户端库均可从规范中生成。契约经过版本控制且稳定，因此即使我们发布新功能，您的集成也不会中断。
+任何语言的客户端库均可基于规范生成。契约经过版本控制且保持稳定，因此在我们发布新功能时，您的集成不会中断。
