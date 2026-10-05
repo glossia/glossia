@@ -1,18 +1,19 @@
 %{
   title: "L10N.md",
-  summary: "Referencia para la configuración de traducción del repositorio y el contexto.",
+  summary: "Referencia para configuraciones de traducción del repositorio y contexto.",
   category: "referencia",
+  section: "translation",
   order: 1
 }
 ---
-`L10N.md` informa a Glossia a qué archivos traducir, a dónde pertenecen los archivos traducidos, qué idiomas adaptar y qué contexto debe guiar el resultado. Un repositorio puede tener un archivo raíz y archivos adicionales acotados en subdirectorios.
+`L10N.md` indica a Glossia qué archivos traducir, dónde residen los archivos traducidos, qué idiomas objetivo y qué contexto debe guiar el resultado. Un repositorio puede tener un archivo raíz y archivos adicionales con ámbito en subcarpetas.
 
 ## Estructura
 
 Cada archivo tiene dos partes:
 
-1. [YAML Ain't Markup Language](https://yaml.org/) frontmatter entre `---` marcadores.
-2. Markdown debajo del frontmatter con contexto de producto, público, voz o dominio.
+1. [YAML no es un lenguaje de marcado](https://yaml.org/) frontmatter entre `---` marcadores.
+2. Markdown por debajo de la frontmatter con contexto de producto, audiencia, voz o dominio.
 
 <!-- end list -->
 
@@ -37,38 +38,39 @@ preserve:
 Write for software developers. Keep product names and code samples unchanged.
 ```
 
-Las credenciales del proveedor deben ir en la configuración de la cuenta, nunca en `L10N.md`. El valor opcional `model` es un manual de modelo de cuenta.
+Las credenciales del proveedor pertenecen a la configuración de la cuenta, nunca en `L10N.md`. El opcional. `model` el valor es un identificador de modelo de cuenta.
 
-## Campos del frontmatter
+## Campos de Frontmatter
 
-| Campos | Tipo | Requerido | Descripción |
+| Campo | Tipo | Requerido | Descripción |
 |---|---|---|---|
-| `source_language` | string | no | Local de origen para este ámbito. Por defecto es `en`. |
-| `model` | string | no | Manual de modelo de cuenta. Glossia utiliza el por defecto cuando no se especifica y informa un error cuando un manual explícito no existe. |
-| `sources` | mapa o lista | para una regla de nivel superior | Patrones de archivos de origen. Los valores de mapa pueden definir plantillas de salida. |
-| `targets` | mapa o lista | cuando se configuran fuentes | Códigos de local de destino. Un mapa puede asociar un código de local con un nombre de lenguaje. |
-| `output` | string | cuando no hay mapeo de origen o `target_path` proporciona un destino | Plantilla de archivo de salida. |
-| `target_path` | string | cuando no hay mapeo de origen o `output` proporciona un destino | Plantilla de directorio base para archivos traducidos. |
-| `translate` | lista | no | Múltiples reglas de traducción, cada una con sus propias fuentes y Overrides opcionales. |
-| `exclude` | lista | no | Patrones de archivo a excluir. |
-| `preserve` | lista | no | Tipos de contenido que deben permanecer sin cambios, como marcadores de posición o indicadores de ubicación de recurso uniforme. |
+| `source_language` | string | no | Idioma de origen para este alcance. Por defecto `en`". |
+| `model` | string | no | Identificador del modelo de cuenta. Glossia usa el predeterminado de la cuenta cuando se omite y reporta un error cuando no existe un identificador explícito. |
+| `sources` | mapa o lista | para una regla de nivel superior | Patrones de archivos fuente. Los valores del mapa pueden definir plantillas de salida. |
+| `targets` | mapa o lista | cuando se configuran las fuentes | Códigos de idioma de destino. Un mapa puede asociar un código de idioma con un nombre de idioma. |
+| `output` | string | cuando no existe mapeo de fuentes o `target_path` proporciona un destino | Plantilla de archivo de salida. |
+| `target_path` | cadena | cuando no hay mapeo de origen o `output` proporciona un destino | Plantilla de directorio base para archivos traducidos. |
+| `translate` | lista | no | Múltiples reglas de traducción, cada una con sus propias fuentes y sobrescrituras opcionales. |
+| `exclude` | lista | no | Patrones de archivos a omitir. |
+| `preserve` | list | no | Tipos de contenido que deben permanecer sin cambios, como marcadores de posición o localizadores de recursos uniformes. |
 | `frontmatter` | string | no | `preserve` por defecto, o `translate`. |
-| `prompt` | string | no | Guía adicional para este ámbito o regla. |
-| `validation` | lista | para extensiones de archivo sin un adaptador integrado | Un comando de validación seguido de sus argumentos. El comando recibe al candidato en su ruta de destino real y debe devolver un estado no cero cuando el archivo está inválido. |
-| `check_cmd` | string | no | Un comando de comprobación disponible para el flujo de trabajo de traducción. |
-| `check_cmds` | mapa | no | Comandos de comprobación con nombre disponibles para el flujo de trabajo de traducción. |
-| `retries` | entero | no | Número de intentos de repetición después de una comprobación fallida. Por defecto es `2`. |
-| `locale` | string | no | Local adjunto a un archivo de contexto específico de local. |
+| `prompt` | string | no | Instrucciones adicionales para este ámbito o regla. |
+| `validation` | list | para extensiones de archivo sin adaptador integrado | Un comando de validación seguido de sus argumentos. El comando recibe el candidato en su ruta de destino real y debe devolver un estado distinto de cero cuando el archivo es inválido. |
+| `check_cmd` | string | no | Un comando de verificación disponible para el flujo de trabajo de traducción. |
+| `check_cmds` | map | no | Comandos de verificación con nombre disponibles para el flujo de trabajo de traducción. |
+| `retries` | integer | no | Número de intentos de reintento tras una verificación fallida. Por defecto a `2`. |
+| `locale` | cadena | no | Localización adjunta a un archivo de contexto específico de localización. |
+| `glossary` | lista o mapa | no | En `L10N.md`, una lista de términos del glosario. En `L10N/<locale>.md`, un mapa desde cada término a su traducción en ese idioma. Los archivos anidados añaden y sobrescriben las entradas heredadas. Consulte la [referencia del glosario](/docs/reference/glossary). |
 
-Los campos desconocidos del frontmatter se ignoran.
+Los campos de frontmatter desconocidos se ignoran.
 
-## Formatos de archivos
+## Formatos de archivo
 
-Glossia tiene un manejo integrado para Markdown, Notación de Objeto JavaScript, YAML Ain't Markup Language, objeto portátil y archivos de texto plano. Otras extensiones de archivo fallarán en la planificación a menos que el `L10N.md` declare un `validation` comando. Esto evita tratar silenciosamente un formato estructurado propietario como texto no restringido.
+Glossia cuenta con manejo integrado para Markdown, Notación de Objetos de JavaScript, YAML no es un lenguaje de marcado, objetos portátiles y archivos de texto plano. Otras extensiones fallan en la planificación a menos que la aplicable `L10N.md` declares a `validation` comando. Esto evita tratar silenciosamente un formato estructurado propietario como texto sin restricciones.
 
-El comando de validación se ejecuta después de que el candidato se haya escrito temporalmente a su ruta de destino real. Puede invocar el interpretador nativo del repositorio, compilador o comando de compilación. Glossia recupera el destino anterior después de cada intento de validación y solo escribe el candidato aceptado después.
+El comando de validación se ejecuta después de que el candidato se haya escrito temporalmente a su ruta de destino real. Puede invocar el parseador, el compilador o el comando de construcción nativo del repositorio. Glossia restaura el destino anterior después de cada intento de validación y solo escribe el candidato aceptado después.
 
-## Mapeo de fuentes
+## Mapas de origen
 
 La forma más clara mapea cada patrón de origen a una plantilla de salida:
 
@@ -88,7 +90,7 @@ target_path: "docs/i18n/{locale}"
 
 ## Idiomas objetivo
 
-Una lista utiliza cada código de localización como identificador de idioma:
+Una lista utiliza cada código de idioma regional como identificador:
 
 ```yaml
 targets:
@@ -96,7 +98,7 @@ targets:
   - ja
 ```
 
-Un mapa puede añadir un nombre legible de idioma:
+Un mapa puede añadir un nombre de idioma legible:
 
 ```yaml
 targets:
@@ -108,14 +110,14 @@ targets:
 
 | Variable | Valor |
 |---|---|
-| `{locale}` o `{lang}` | Código del idioma objetivo. |
-| `{relpath}` | Ruta de origen relativa al patrón coincidente. |
+| `{locale}` o `{lang}` | Código regional de destino. |
+| `{relpath}` | Ruta de origen relativa al patrón coincidido. |
 | `{basename}` | Nombre del archivo de origen sin su extensión. |
 | `{ext}` | Extensión del archivo de origen sin el punto inicial. |
 
-## Múltiples reglas
+## Reglas múltiples
 
-Usar `translate` cuando los grupos de contenido diferentes necesitan destinos o verificaciones diferentes:
+Utilice `translate` cuando diferentes grupos de contenido necesiten diferentes destinos o verificaciones:
 
 ```yaml
 ---
@@ -131,15 +133,15 @@ translate:
 ---
 ```
 
-Los valores de la regla sobrescriben los valores heredados del archivo circundante.
+Los valores de regla sobrescriben los valores heredados del archivo circundante.
 
-## Contexto de ámbito
+## Contexto con ámbito
 
-Glossia lee `L10N.md` archivos desde la raíz del repositorio hacia el archivo fuente:
+Glossia lee archivos `L10N.md` desde la raíz del repositorio hacia el archivo fuente:
 
-- La configuración del padre proporciona valores por defecto.
+- La configuración de los elementos padres proporciona valores predeterminados.
 - Un archivo más profundo sobrescribe los campos para su directorio.
 - El contexto de Markdown se acumula de padre a hijo.
-- La orientación específica del idioma y un manejador de modelos específico del idioma pueden residir en `L10N/<locale>.md`.
+- La orientación específica del idioma y un manejador de modelo específico del idioma pueden residir en `L10N/<locale>.md`.
 
-Esto permite que un repositorio mantenga una amplia orientación de voz en la raíz, mientras coloca la orientación específica del área del producto o del idioma cerca del contenido que afecta.
+Esto permite que un repositorio mantenga una guía de voz amplia en la raíz, mientras coloca una guía específica del área de producto o idioma cerca del contenido al que afecta.
