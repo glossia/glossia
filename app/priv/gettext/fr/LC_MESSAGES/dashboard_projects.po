@@ -19,17 +19,17 @@ msgstr "Vue d'ensemble"
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Browser languages"
-msgstr "Langues des navigateurs"
+msgstr "Langues du navigateur"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Top countries"
-msgstr "Meilleurs pays"
+msgstr "Pays principaux"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Top pages"
-msgstr "Meilleures pages"
+msgstr "Pages principales"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
