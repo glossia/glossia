@@ -1,15 +1,16 @@
 {
-  "hash": "7e0917abaea92fc53ed403d4e0780ac8f4c89c66ad120b0571b9ab83c3a6adcb",
+  "baseline_schema_version": 1,
+  "hash": "dde2df790c67d145602f79fc28b275d41a4104cb662b53d64b12921820fa21b1",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "e567ef505557e4c003aed7e15129426b72e212540430d1387fc6aeffcde8e792",
+          "hash": "b32f1a6b85a3f98c255cf84b9ecae67b05f1fbd45d39f3fecd73dca2085aabef",
           "kind": "source",
           "label": "app/priv/features/language-memory.md",
           "metadata": {
-            "content_hash": "754826e69041d52a3d2c6b605ff7d74888c0eba54c5a22e92bbfc71be4bb6bc0"
+            "content_hash": "f7443f3e11ddd0c3f77fa559d8cee8022f390d6837057ba9bdf546b31595c21a"
           }
         },
         {
@@ -37,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "7e0917abaea92fc53ed403d4e0780ac8f4c89c66ad120b0571b9ab83c3a6adcb",
+      "hash": "dde2df790c67d145602f79fc28b275d41a4104cb662b53d64b12921820fa21b1",
       "kind": "translation_input",
       "label": "app/priv/features/language-memory.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "797d246df9b55033b017bf74fa0d1dc0802ac90b61e8d7ce814577b5715aefba",
+  "output_hash": "48bc911a53739ebe9886826b0bff9451b78170a411eddb597ecf6ed20e319d19",
   "output_path": "app/priv/i18n/de/features/language-memory.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "9755df5ad1e6ced0da8847f0b4cc2c56c6003dd7",
   "source_path": "app/priv/features/language-memory.md",
-  "translated_at": "2026-09-17T11:54:45.502876Z"
+  "translated_at": "2026-10-05T14:35:08.163597Z",
+  "translation_session_id": "01a10c78-4654-7e7c-b3a4-e9f597783f26"
 }
