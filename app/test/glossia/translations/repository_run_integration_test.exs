@@ -16,6 +16,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   alias Glossia.Translations.RepositoryRun
   alias Glossia.TranslationSessions
   alias Glossia.TranslationSessions.TranslationSession
+  alias Glossia.TranslationStubs
 
   defp git!(root, args) do
     {_out, 0} = MuonTrap.cmd("git", ["-C", root | args], stderr_to_stdout: true, into: "")
@@ -56,7 +57,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     parent_node = :parent@translation
 
     Mimic.stub(Translations, :translate_stream, fn _account, payload, on_event, opts ->
-      assert payload["source_content"] == "# Guide\n\nHello, world."
+      assert TranslationStubs.unit_texts(payload) == ["Guide", "Hello, world."]
       assert payload["locale"] == "es"
       assert opts[:credential_node] == parent_node
       on_event.(:turn_start)
@@ -65,7 +66,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
 
       {:ok,
        %{
-         text: "# Guía\n\nHola, mundo.",
+         text: spanish(payload),
          model: "anthropic/x",
          provider: "anthropic",
          model_handle: "m"
@@ -128,14 +129,14 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     test_pid = self()
 
     Mimic.stub(Translations, :translate_stream, fn _account, payload, _on_event, _opts ->
-      case payload["source_content"] do
-        "# Broken\n\nThis one fails." ->
+      case TranslationStubs.unit_texts(payload) do
+        ["Broken", "This one fails."] ->
           {:error, %{reason: "provider unavailable", status: 503, response_body: %{}}}
 
         _ ->
           {:ok,
            %{
-             text: "# Guía\n\nHola, mundo.",
+             text: spanish(payload),
              model: "openai/gpt-5",
              provider: "openai",
              model_handle: "translator"
@@ -174,7 +175,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     session = %TranslationSession{id: Ecto.UUID.generate()}
     :ok = TranslationSessions.subscribe_session_events(session)
 
-    Mimic.stub(Translations, :translate_stream, fn _account, _payload, on_event, _opts ->
+    Mimic.stub(Translations, :translate_stream, fn _account, payload, on_event, _opts ->
       on_event.(:turn_start)
       Enum.each(1..500, fn n -> on_event.({:thinking, "chunk #{n} "}) end)
       on_event.({:text, "# Guía"})
@@ -182,7 +183,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
 
       {:ok,
        %{
-         text: "# Guía\n\nHola, mundo.",
+         text: spanish(payload),
          model: "anthropic/x",
          provider: "anthropic",
          model_handle: "m"
@@ -206,6 +207,16 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     assert Enum.any?(events, &(&1.type == "segment_output"))
   end
 
+  defp spanish(payload) do
+    TranslationStubs.respond(payload, fn
+      "Guide" -> "Guía"
+      "Hello, world." -> "Hola, mundo."
+      "Reference" -> "Referencia"
+      "Use the guide." -> "Usa la guía."
+      text -> "ES " <> text
+    end)
+  end
+
   defp collect_session_events(acc) do
     receive do
       {:translation_session_event, event} -> collect_session_events([event | acc])
@@ -226,16 +237,9 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     session = %TranslationSession{id: Ecto.UUID.generate()}
 
     Mimic.stub(Translations, :translate_stream, fn _account, payload, _on_event ->
-      translated =
-        payload["source_content"]
-        |> String.replace("Guide", "Guía")
-        |> String.replace("Reference", "Referencia")
-        |> String.replace("Hello, world.", "Hola, mundo.")
-        |> String.replace("Use the guide.", "Usa la guía.")
-
       {:ok,
        %{
-         text: translated,
+         text: spanish(payload),
          model: "openai/gpt-5",
          provider: "openai",
          model_handle: "translator"
@@ -290,10 +294,10 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     session = %TranslationSession{id: Ecto.UUID.generate()}
 
     stub = fn ->
-      Mimic.stub(Translations, :translate_stream, fn _account, _payload, _on_event ->
+      Mimic.stub(Translations, :translate_stream, fn _account, payload, _on_event ->
         {:ok,
          %{
-           text: "# Guía\n\nHola.",
+           text: spanish(payload),
            model: "anthropic/x",
            provider: "anthropic",
            model_handle: "m"
@@ -343,9 +347,9 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     session = %TranslationSession{id: Ecto.UUID.generate()}
     TranslationSessions.subscribe_session_events(session)
 
-    Mimic.stub(Translations, :translate_stream, fn _account, _payload, _on_event ->
+    Mimic.stub(Translations, :translate_stream, fn _account, payload, _on_event ->
       {:ok,
-       %{text: "# Guía\n\nHola.", model: "openai/gpt-5", provider: "openai", model_handle: "m"}}
+       %{text: spanish(payload), model: "openai/gpt-5", provider: "openai", model_handle: "m"}}
     end)
 
     assert {:error, {:translation_items_failed, failures}} =
@@ -376,10 +380,10 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     session = %TranslationSession{id: Ecto.UUID.generate()}
     :ok = TranslationSessions.subscribe_session_events(session)
 
-    Mimic.stub(Translations, :translate_stream, fn _account, _payload, _on_event ->
+    Mimic.stub(Translations, :translate_stream, fn _account, payload, _on_event ->
       {:ok,
        %{
-         text: "# Guía\n\nHola, mundo.",
+         text: spanish(payload),
          model: "openai/gpt-5",
          provider: "openai",
          model_handle: "translator"

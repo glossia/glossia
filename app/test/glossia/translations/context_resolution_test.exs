@@ -9,6 +9,7 @@ defmodule Glossia.Translations.ContextResolutionTest do
   alias Glossia.Translations.RepositoryRun
   alias Glossia.TranslationSessions.TranslationSession
   alias Glossia.Voices
+  alias Glossia.TranslationStubs
 
   test "captures immutable versions and resolves locale-specific source context" do
     user = TestHelpers.create_user("context-resolution@example.com", "context-resolution")
@@ -228,7 +229,8 @@ defmodule Glossia.Translations.ContextResolutionTest do
 
       {:ok,
        %{
-         text: "Crea una Cuenta.",
+         text:
+           TranslationStubs.respond(payload, fn "Create an Account." -> "Crea una Cuenta." end),
          model: "openai/gpt-5",
          provider: "openai",
          model_handle: "translator"

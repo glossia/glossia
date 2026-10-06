@@ -98,23 +98,14 @@ defmodule Glossia.Translations.Prompt do
       end
 
     lines =
-      if Map.get(input, :segment_kind) == "markdown_text_markers" do
+      if Map.get(input, :segment_kind) == "markdown_units" do
         lines ++
           [
-            "Markers of the form @@GLOSSIA-TEXT-<number>-START@@ and @@GLOSSIA-TEXT-<number>-END@@ delimit individual Markdown text nodes.",
-            "Copy every marker byte-for-byte exactly once and translate only the text between matching marker pairs. Markdown syntax outside markers is not authoritative."
-          ]
-      else
-        lines
-      end
-
-    lines =
-      if Map.get(input, :segment_kind) == "markdown_text_literals" do
-        lines ++
-          [
-            "The supplied content is a JSON array of plain-text literals from a Markdown document.",
-            "Return a valid JSON array of translated strings in exactly the same order and with exactly the same number of elements.",
-            "Translate each string's prose only. Do not add Markdown syntax, fences, headings, list markers, links, keys, or commentary."
+            "The supplied content is a JSON array of objects with an \"id\" and a \"text\". Each text is one block of a Markdown document: a paragraph, heading, list item, table cell, or a reader-facing attribute of a component.",
+            "Inline formatting is replaced by numbered tags. <gN>...</gN> wraps formatted or linked words: translate the words inside and keep the tags around their translation. <gN/> stands for content that must not change, such as inline code, a component, or a heading anchor.",
+            "Translate each text as a whole sentence and move tags wherever natural word order in the target language puts them, but keep every tag exactly once, keep paired tags properly nested, and never add, rename, or drop a tag.",
+            "Return only a JSON object that maps every id to its translated text. Do not add Markdown syntax, fences, or commentary.",
+            "The source document, and any passages already translated from it, are provided for reference only. Use them to understand meaning, terminology, and tone, and to stay consistent with earlier translations. Do not translate or return them."
           ]
       else
         lines
@@ -185,11 +176,8 @@ defmodule Glossia.Translations.Prompt do
         segment_kind == "frontmatter" ->
           "Translate only the human-readable string values in this frontmatter from #{source_language} to #{language} (#{locale}). Return the complete frontmatter block. Preserve its syntax, keys, identifiers, dates, and delimiters exactly. Do not return an empty response."
 
-        segment_kind == "markdown_text_markers" ->
-          "Translate only the prose between matching @@GLOSSIA-TEXT-<number>-START@@ and @@GLOSSIA-TEXT-<number>-END@@ markers from #{source_language} to #{language} (#{locale}). Return every marker exactly once."
-
-        segment_kind == "markdown_text_literals" ->
-          "Translate every string in this JSON array from #{source_language} to #{language} (#{locale}). Return only a valid JSON array of translated strings, with the same number of elements and the same order. Do not add Markdown syntax or commentary."
+        segment_kind == "markdown_units" ->
+          "Translate the text of every object in this JSON array from #{source_language} to #{language} (#{locale}). Return only a JSON object mapping each id to its translated text, keeping every <gN>, </gN>, and <gN/> tag exactly once."
 
         segment_kind == "frontmatter_text_literals" ->
           "Translate every reader-facing string in this JSON array from #{source_language} to #{language} (#{locale}). Return only a valid JSON array of translated strings, with the same number of elements and the same order. Do not add frontmatter syntax, keys, identifiers, dates, Markdown, or commentary."
@@ -201,11 +189,24 @@ defmodule Glossia.Translations.Prompt do
           "Translate the following content from #{source_language} to #{language} (#{locale})."
       end
 
-    parts = [
-      instruction,
-      "",
-      source_content
-    ]
+    parts =
+      case trimmed(Map.get(segment, :context)) do
+        "" ->
+          [instruction, "", source_content]
+
+        context ->
+          [
+            instruction,
+            "",
+            "Reference (do not translate or return):",
+            "<<<",
+            context,
+            ">>>",
+            "",
+            "Translate:",
+            source_content
+          ]
+      end
 
     parts =
       if present?(last_error) do
@@ -213,16 +214,6 @@ defmodule Glossia.Translations.Prompt do
           [
             "",
             "The reassembled document previously failed validation: #{last_error}\nReturn a corrected translation of only this supplied segment. Preserve every required token present in this segment."
-          ]
-      else
-        parts
-      end
-
-    parts =
-      if markdown_structure_error?(last_error) do
-        parts ++
-          [
-            "Do not alter the Markdown structure. Keep every heading, block quote, list item, paragraph, and its order exactly as in the supplied segment."
           ]
       else
         parts
@@ -324,12 +315,6 @@ defmodule Glossia.Translations.Prompt do
   end
 
   defp structured?(format), do: format in @structured_formats
-
-  defp markdown_structure_error?(value) when is_binary(value) do
-    String.contains?(String.downcase(value), "markdown changed the document structure")
-  end
-
-  defp markdown_structure_error?(_value), do: false
 
   defp present?(value), do: trimmed(value) != ""
 

@@ -67,6 +67,8 @@ Unknown frontmatter fields are ignored.
 
 Glossia has built-in handling for Markdown, JavaScript Object Notation, YAML Ain't Markup Language, portable object, and plain text files. Other file extensions fail planning unless the applicable `L10N.md` declares a `validation` command. This avoids silently treating a proprietary structured format as unconstrained text.
 
+In Markdown, only prose is translated: paragraphs, headings, list items, table cells, the `title`, `details`, `alt`, `label`, `description`, `summary`, `placeholder`, `aria-label`, and `caption` attributes of components and HTML, and the text of an HTML `<summary>`. Every other byte, including code, link destinations, components, alerts, and explicit heading anchors, is kept exactly as in the source. See [translation recovery](/docs/explanation/translation-recovery) for how this works.
+
 The validation command runs after the candidate has been written temporarily to its real target path. It can invoke the repository's native parser, compiler, or build command. Glossia restores the previous target after each validation attempt and only writes the accepted candidate afterward.
 
 ## Source mappings

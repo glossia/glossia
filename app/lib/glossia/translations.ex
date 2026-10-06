@@ -157,7 +157,12 @@ defmodule Glossia.Translations do
         input.language,
         input.source_content,
         input.last_error,
-        %{kind: input.segment_kind, index: input.segment_index, count: input.segment_count}
+        %{
+          kind: input.segment_kind,
+          index: input.segment_index,
+          count: input.segment_count,
+          context: input.source_context
+        }
       )
 
     call = fn -> LLM.run(credential, system_prompt, user_prompt) end
@@ -329,7 +334,8 @@ defmodule Glossia.Translations do
           %{
             kind: input.segment_kind,
             index: input.segment_index,
-            count: input.segment_count
+            count: input.segment_count,
+            context: input.source_context
           }
         )
 
@@ -393,6 +399,7 @@ defmodule Glossia.Translations do
       custom_prompt: payload["custom_prompt"],
       last_error: payload["last_error"],
       segment_kind: to_string(payload["segment_kind"] || "content"),
+      source_context: to_string(payload["source_context"] || ""),
       segment_index: positive_integer(payload["segment_index"], 1),
       segment_count: positive_integer(payload["segment_count"], 1),
       model: to_string(payload["model"])

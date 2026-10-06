@@ -8,6 +8,7 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
   alias Glossia.Translations.RepositoryRun
   alias Glossia.TranslationSessions
   alias Glossia.TranslationSessions.TranslationSession
+  alias Glossia.TranslationStubs
 
   setup :set_mimic_global
 
@@ -57,7 +58,7 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
     end)
 
     stub(Translations, :translate_stream, fn _account, payload, _on_event, _opts ->
-      source = payload["source_content"]
+      source = payload |> TranslationStubs.unit_texts() |> hd()
       send(test_pid, {:model_request, source})
 
       if String.contains?(source, "a-credit") do
@@ -85,8 +86,8 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
 
     assert failure.output_path == "docs/i18n/es/a-credit.md"
     assert failure.reason.kind == "provider-credit"
-    assert_receive {:model_request, "# a-credit"}
-    refute_receive {:model_request, "# z-queued"}, 100
+    assert_receive {:model_request, "a-credit"}
+    refute_receive {:model_request, "z-queued"}, 100
   end
 
   @tag :tmp_dir
@@ -105,7 +106,7 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
     end)
 
     stub(Translations, :translate_stream, fn _account, payload, _on_event, _opts ->
-      source = payload["source_content"]
+      source = payload |> TranslationStubs.unit_texts() |> hd()
       send(test_pid, {:model_request, source})
 
       if String.contains?(source, "a-credit") do
@@ -133,8 +134,8 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
 
     assert failure.output_path == "docs/i18n/es/a-credit.md"
     assert failure.reason.kind == "provider-rate-limit"
-    assert_receive {:model_request, "# a-credit"}
-    refute_receive {:model_request, "# z-queued"}, 100
+    assert_receive {:model_request, "a-credit"}
+    refute_receive {:model_request, "z-queued"}, 100
   end
 
   @tag :tmp_dir
@@ -155,7 +156,7 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
     {:ok, attempts} = Elixir.Agent.start_link(fn -> 0 end)
 
     stub(Translations, :translate_stream, fn _account, payload, _on_event, _opts ->
-      source = payload["source_content"]
+      source = payload |> TranslationStubs.unit_texts() |> hd()
       send(test_pid, {:model_request, source})
 
       first_transient_attempt =
@@ -167,7 +168,7 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
       else
         {:ok,
          %{
-           text: source,
+           text: TranslationStubs.respond(payload, & &1),
            model: "openai/gpt-5",
            provider: "openai",
            model_handle: "translator"
@@ -187,9 +188,9 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
              )
 
     assert Enum.any?(changes, &(&1.path == "docs/i18n/es/a-credit.md"))
-    assert_receive {:model_request, "# z-queued"}
-    assert_receive {:model_request, "# a-credit"}
-    assert_receive {:model_request, "# a-credit"}
+    assert_receive {:model_request, "z-queued"}
+    assert_receive {:model_request, "a-credit"}
+    assert_receive {:model_request, "a-credit"}
   end
 
   # A barrier is the only honest way to assert fan-out: every file blocks until
@@ -197,7 +198,7 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
   # in flight together. A capped run deadlocks here instead of passing slowly.
   defp barrier_stub(test_pid) do
     stub(Translations, :translate_stream, fn _account, payload, _on_event, _opts ->
-      source = payload["source_content"]
+      source = payload |> TranslationStubs.unit_texts() |> hd()
       send(test_pid, {:started, source, self()})
 
       receive do
@@ -207,7 +208,12 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
       end
 
       {:ok,
-       %{text: source, model: "openai/gpt-5", provider: "openai", model_handle: "translator"}}
+       %{
+         text: TranslationStubs.respond(payload, & &1),
+         model: "openai/gpt-5",
+         provider: "openai",
+         model_handle: "translator"
+       }}
     end)
   end
 
