@@ -110,6 +110,56 @@ defmodule Glossia.TranslationSessions.ContinuousTest do
            ] = items
   end
 
+  test "a newer commit continues the pull request of a finished session" do
+    user = TestHelpers.create_user("continuous-rolling@test.com", "continuous-rolling")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "continuous-rolling-project",
+        name: "Continuous rolling project",
+        github_repo_id: 9_005,
+        github_repo_full_name: "example/continuous-rolling",
+        github_repo_default_branch: "main"
+      })
+
+    {:ok, finished} =
+      TranslationSessions.create_session(user.account, project, %{
+        commit_sha: "published-source-commit",
+        status: "completed",
+        source_language: "en",
+        target_languages: ["es"],
+        publication_branch: "glossia/translate-published",
+        publication_commit_sha: "published-translation",
+        pull_request_url: "https://github.com/example/continuous-rolling/pull/7",
+        pull_request_number: 7
+      })
+
+    {:ok, _unpublished_failure} =
+      TranslationSessions.create_session(user.account, project, %{
+        commit_sha: "failed-source-commit",
+        status: "failed",
+        source_language: "en",
+        target_languages: ["es"]
+      })
+
+    assert {:ok, next} =
+             TranslationSessions.start_continuous_session(
+               project,
+               %{
+                 commit_sha: "next-source-commit",
+                 source_language: "en",
+                 target_languages: ["es"]
+               },
+               enqueue: false
+             )
+
+    assert next.continued_from_session_id == finished.id
+    assert next.publication_branch == "glossia/translate-published"
+    assert next.publication_commit_sha == "published-translation"
+    assert next.pull_request_number == 7
+    assert Repo.get!(TranslationSession, finished.id).status == "completed"
+  end
+
   test "redelivery of the same commit does not create another session" do
     user = TestHelpers.create_user("continuous-redelivery@test.com", "continuous-redelivery")
 

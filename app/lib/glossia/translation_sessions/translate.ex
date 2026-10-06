@@ -12,6 +12,7 @@ defmodule Glossia.TranslationSessions.Translate do
 
   alias Glossia.{Events, Ingestion, TranslationSessions}
   alias Glossia.Translations.Failure
+  alias Glossia.TranslationSessions.PublicationBatch
   alias Glossia.TranslationSessions.TranslationSession
 
   @translation_branch_prefix "glossia/translate"
@@ -64,20 +65,34 @@ defmodule Glossia.TranslationSessions.Translate do
       }
 
       locales = session.target_languages || []
+      batch = start_publication_batch(session, project, token)
 
       run_opts =
-        case publication_callback(session, project, token) do
+        case batch do
           nil -> []
-          callback -> [after_item_completed: callback]
+          batch -> [after_item_completed: &PublicationBatch.add(batch, &1)]
         end
 
-      case Glossia.Translations.RepositoryRun.run(session, account, repository, locales, run_opts) do
-        {:ok, changes} ->
-          result = publication_result(session, project, token, changes)
-          handle_translation_result(session, project, account, result)
+      try do
+        run_result =
+          Glossia.Translations.RepositoryRun.run(session, account, repository, locales, run_opts)
 
-        {:error, reason} ->
-          fail_translation(session, project, account, reason)
+        case {run_result, flush_publication_batch(batch)} do
+          {_run_result, {:error, :translation_cancelled}} ->
+            :ok
+
+          {{:ok, changes}, :ok} ->
+            result = publication_result(session, project, token, changes)
+            handle_translation_result(session, project, account, result)
+
+          {{:ok, _changes}, {:error, reason}} ->
+            fail_translation(session, project, account, reason)
+
+          {{:error, reason}, _flush_result} ->
+            fail_translation(session, project, account, reason)
+        end
+      after
+        if batch, do: PublicationBatch.stop(batch)
       end
     else
       {:error, :translation_cancelled} ->
@@ -185,14 +200,14 @@ defmodule Glossia.TranslationSessions.Translate do
       {:ok, %{"state" => "open"}} ->
         {:ok, session}
 
-      {:ok, %{"state" => "closed", "merged" => true}} ->
+      # A merged pull request landed its translations, and a closed one was
+      # rejected by someone on the project. Either way the next run starts a
+      # fresh branch from the default branch rather than building on it.
+      {:ok, %{"state" => "closed"}} ->
         with {:ok, session} <- reset_publication(session), do: {:reset, session}
 
-      {:ok, %{"state" => "closed"}} ->
-        clear_pull_request(session)
-
       {:error, {:api_error, 404, _body}} ->
-        clear_pull_request(session)
+        with {:ok, session} <- reset_publication(session), do: {:reset, session}
 
       {:ok, _response} ->
         {:error, :invalid_github_response}
@@ -203,13 +218,6 @@ defmodule Glossia.TranslationSessions.Translate do
   end
 
   defp refresh_inherited_pull_request(session, _project, _token), do: {:ok, session}
-
-  defp clear_pull_request(session) do
-    TranslationSessions.update_session_publication(session, %{
-      pull_request_url: nil,
-      pull_request_number: nil
-    })
-  end
 
   defp compare_source_history(
          %TranslationSession{commit_sha: previous_commit_sha},
@@ -373,18 +381,26 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
-  # Item workers run concurrently. GitHub commits must form a single linear
-  # history, so serialize checkpoints for one session before reading its latest
-  # published commit and advancing the translation branch.
-  defp publication_callback(session, project, clone_token)
+  # Item workers run concurrently and hand their validated files to a batch,
+  # which publishes them as one commit at a time. GitHub commits must form a
+  # single linear history, so `publish_changes/2` still serializes each push
+  # for the project before reading its latest published commit and advancing
+  # the translation branch.
+  defp start_publication_batch(session, project, clone_token)
        when not is_nil(project.github_installation) and is_binary(clone_token) and
               clone_token != "" do
-    fn changes ->
-      publish_changes(%{session_id: session.id}, %{changes: changes})
-    end
+    {:ok, batch} =
+      PublicationBatch.start_link(fn changes ->
+        publish_changes(%{session_id: session.id}, %{changes: changes})
+      end)
+
+    batch
   end
 
-  defp publication_callback(_session, _project, _clone_token), do: nil
+  defp start_publication_batch(_session, _project, _clone_token), do: nil
+
+  defp flush_publication_batch(nil), do: :ok
+  defp flush_publication_batch(batch), do: PublicationBatch.flush(batch)
 
   @doc false
   def serialize_project_publication(project_id, callback) do

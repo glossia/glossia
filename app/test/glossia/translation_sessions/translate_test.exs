@@ -187,7 +187,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert updated.pull_request_url == "https://github.com/glossia/demo/pull/2"
   end
 
-  test "checkpoints completed files on one pull request while the run is active" do
+  test "publishes completed files together in one commit on one pull request" do
     {user, project} = project_with_installation("checkpoint-translate@test.com", "checkpoint")
     session = session_for(user, project)
     test_pid = self()
@@ -209,8 +209,8 @@ defmodule Glossia.TranslationSessions.TranslateTest do
                                                             opts ->
       callback = Keyword.fetch!(opts, :after_item_completed)
 
-      assert {:ok, _publication} = callback.(first_changes)
-      assert {:ok, _publication} = callback.(second_changes)
+      assert :ok = callback.(first_changes)
+      assert :ok = callback.(second_changes)
 
       {:ok, first_changes ++ second_changes}
     end)
@@ -221,12 +221,6 @@ defmodule Glossia.TranslationSessions.TranslateTest do
                                                         "abc1234567890",
                                                         "github-token" ->
       {:ok, %{"tree" => %{"sha" => "source-tree-sha"}}}
-    end)
-
-    Mimic.expect(Glossia.Github.Client, :get_commit, fn "glossia/demo",
-                                                        "checkpoint-one",
-                                                        "github-token" ->
-      {:ok, %{"tree" => %{"sha" => "checkpoint-one-tree-sha"}}}
     end)
 
     Mimic.expect(Glossia.Github.Client, :create_blob, 4, fn "glossia/demo",
@@ -245,43 +239,20 @@ defmodule Glossia.TranslationSessions.TranslateTest do
                                                            tree: entries
                                                          },
                                                          "github-token" ->
-      send(test_pid, {:checkpoint_tree, :first, entries})
-      {:ok, %{"sha" => "checkpoint-one-tree-sha"}}
-    end)
-
-    Mimic.expect(Glossia.Github.Client, :create_tree, fn "glossia/demo",
-                                                         %{
-                                                           base_tree: "checkpoint-one-tree-sha",
-                                                           tree: entries
-                                                         },
-                                                         "github-token" ->
-      send(test_pid, {:checkpoint_tree, :second, entries})
-      {:ok, %{"sha" => "checkpoint-two-tree-sha"}}
+      send(test_pid, {:batch_tree, entries})
+      {:ok, %{"sha" => "batch-tree-sha"}}
     end)
 
     Mimic.expect(Glossia.Github.Client, :create_commit, fn "glossia/demo",
                                                            %{parents: ["abc1234567890"]},
                                                            "github-token" ->
-      {:ok, %{"sha" => "checkpoint-one"}}
-    end)
-
-    Mimic.expect(Glossia.Github.Client, :create_commit, fn "glossia/demo",
-                                                           %{parents: ["checkpoint-one"]},
-                                                           "github-token" ->
-      {:ok, %{"sha" => "checkpoint-two"}}
+      {:ok, %{"sha" => "batch-commit"}}
     end)
 
     Mimic.expect(Glossia.Github.Client, :create_branch, fn "glossia/demo",
                                                            "glossia/translate-abc123456789",
-                                                           "checkpoint-one",
+                                                           "batch-commit",
                                                            "github-token" ->
-      {:ok, %{}}
-    end)
-
-    Mimic.expect(Glossia.Github.Client, :update_ref, fn "glossia/demo",
-                                                        "heads/glossia/translate-abc123456789",
-                                                        "checkpoint-two",
-                                                        "github-token" ->
       {:ok, %{}}
     end)
 
@@ -294,16 +265,15 @@ defmodule Glossia.TranslationSessions.TranslateTest do
 
     assert :ok = Translate.run(session.id)
 
-    assert_received {:checkpoint_tree, :first, first_entries}
-    assert Enum.map(first_entries, & &1.path) == Enum.map(first_changes, & &1.path)
+    assert_received {:batch_tree, entries}
 
-    assert_received {:checkpoint_tree, :second, second_entries}
-    assert Enum.map(second_entries, & &1.path) == Enum.map(second_changes, & &1.path)
+    assert Enum.map(entries, & &1.path) ==
+             Enum.sort(Enum.map(first_changes ++ second_changes, & &1.path))
 
     updated = Repo.get!(TranslationSession, session.id)
     assert updated.status == "completed"
     assert updated.publication_branch == "glossia/translate-abc123456789"
-    assert updated.publication_commit_sha == "checkpoint-two"
+    assert updated.publication_commit_sha == "batch-commit"
     assert updated.pull_request_number == 3
     assert updated.pull_request_url == "https://github.com/glossia/demo/pull/3"
   end
@@ -670,50 +640,59 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert updated.status == "completed"
   end
 
-  test "starts fresh after the inherited pull request was merged" do
-    {user, project} =
-      project_with_installation("translate-closed-pr@test.com", "translate-closed-pr")
+  for {outcome, response} <- [
+        {"merged", %{"state" => "closed", "merged" => true}},
+        {"closed without merging", %{"state" => "closed", "merged" => false}}
+      ] do
+    @pull_request_response response
 
-    previous_session = session_for(user, project)
+    test "starts fresh after the inherited pull request was #{outcome}" do
+      {user, project} =
+        project_with_installation("translate-closed-pr@test.com", "translate-closed-pr")
 
-    {:ok, session} =
-      TranslationSessions.create_session(user.account, project, %{
-        commit_sha: "def9876543210",
-        source_language: "en",
-        target_languages: ["es"],
-        continued_from_session_id: previous_session.id,
-        publication_branch: "glossia/translate-abc123456789",
-        publication_commit_sha: "checkpoint-commit",
-        pull_request_url: "https://github.com/glossia/demo/pull/2",
-        pull_request_number: 2
-      })
+      previous_session = session_for(user, project)
 
-    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+      {:ok, session} =
+        TranslationSessions.create_session(user.account, project, %{
+          commit_sha: "def9876543210",
+          source_language: "en",
+          target_languages: ["es"],
+          continued_from_session_id: previous_session.id,
+          publication_branch: "glossia/translate-abc123456789",
+          publication_commit_sha: "checkpoint-commit",
+          pull_request_url: "https://github.com/glossia/demo/pull/2",
+          pull_request_number: 2
+        })
 
-    Mimic.expect(Glossia.Github.Client, :get_pull_request, fn "glossia/demo", 2, "github-token" ->
-      {:ok, %{"state" => "closed", "merged" => true}}
-    end)
+      Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
 
-    Mimic.reject(&Glossia.Github.Client.compare_commits/4)
-    Mimic.reject(&Glossia.Github.Client.merge_branch/3)
+      Mimic.expect(Glossia.Github.Client, :get_pull_request, fn "glossia/demo",
+                                                                2,
+                                                                "github-token" ->
+        {:ok, @pull_request_response}
+      end)
 
-    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
-                                                            _account,
-                                                            repository,
-                                                            _locales,
-                                                            _opts ->
-      send(self(), {:merged_pull_request_repository, repository})
-      {:ok, []}
-    end)
+      Mimic.reject(&Glossia.Github.Client.compare_commits/4)
+      Mimic.reject(&Glossia.Github.Client.merge_branch/3)
 
-    assert :ok = Translate.run(session.id)
-    assert_received {:merged_pull_request_repository, %{publication_branch: nil}}
+      Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                              _account,
+                                                              repository,
+                                                              _locales,
+                                                              _opts ->
+        send(self(), {:merged_pull_request_repository, repository})
+        {:ok, []}
+      end)
 
-    updated = Repo.get!(TranslationSession, session.id)
-    assert is_nil(updated.pull_request_url)
-    assert is_nil(updated.pull_request_number)
-    assert is_nil(updated.publication_branch)
-    assert is_nil(updated.publication_commit_sha)
+      assert :ok = Translate.run(session.id)
+      assert_received {:merged_pull_request_repository, %{publication_branch: nil}}
+
+      updated = Repo.get!(TranslationSession, session.id)
+      assert is_nil(updated.pull_request_url)
+      assert is_nil(updated.pull_request_number)
+      assert is_nil(updated.publication_branch)
+      assert is_nil(updated.publication_commit_sha)
+    end
   end
 
   test "a cancelled runner cannot overwrite cancellation with a failure" do
@@ -734,7 +713,9 @@ defmodule Glossia.TranslationSessions.TranslateTest do
 
       callback = Keyword.fetch!(opts, :after_item_completed)
 
-      assert {:error, :translation_cancelled} =
+      # The file is only batched here; publishing it at the end of the run
+      # finds the session cancelled and drops it.
+      assert :ok =
                callback.([
                  %{path: "docs/i18n/es/guide.md", status: "added", content: "# Hola\n"}
                ])
