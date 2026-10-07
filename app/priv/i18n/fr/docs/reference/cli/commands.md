@@ -1,8 +1,8 @@
 %{
   title: "Commandes",
   summary:
-    "Référence pour toutes les commandes en ligne de commande de Glossia et leurs options.",
-  category: "référence",
+    "Référence pour toutes les commandes en ligne de commande de Glossia et leurs drapeaux.",
+  category: "Référence",
   subcategory: "cli",
   order: 1
 }
@@ -15,26 +15,25 @@ Créer un modèle `L10N.md` fichier de configuration dans le dépôt actuel.
 glossia init
 ```
 
-Échoue si `L10N.md` le fichier existe déjà.
+Échoue si `L10N.md` il existe déjà.
 
 ## La traduction est côté serveur.
 
-La traduction s'exécute sur le serveur Glossia, pas dans l'interface en ligne de commande. Lorsqu'un commit est intégré,
+La traduction s'exécute dans le service Glossia hébergé, et non dans l'interface en ligne de commande. Lorsqu'un commit atterrit,
 Glossia planifie le travail à partir de vos `L10N.md` fichiers, traduit chaque fichier avec
-le modèle configuré de votre compte, et ouvre une demande de fusion avec les résultats. Vous
-pouvez surveiller chaque fichier et les tours du modèle en direct sur la page de session de traduction.
+le modèle configuré de votre compte, et ouvre une demande de tirage avec les résultats. Vous
+pouvez surveiller chaque fichier et les passes du modèle en direct sur la page de session de traduction.
 
-Le modèle est choisi par document : un `L10N.md` `model:` nomination d'un de vos
-gestionnaires de modèles de votre compte sélectionnent celui-ci ; sinon le modèle par défaut de votre compte est utilisé.
+Le modèle est choisi par document : a `L10N.md` `model:` en sélectionnant l'un de vos
+le gestionnaire de modèle du compte sélectionne ; sinon le modèle par défaut de votre compte est utilisé.
 
 L'interface de ligne de commande ne planifie pas intentionnellement, ne traduit pas, ne valide pas,
-inspecter, ou supprimer les traductions générées. Elle ne lit pas non plus le serveur
-fichiers de verrouillage de traduction.
+inspecter, ou supprimer les traductions générées. Elle ne lit pas non plus les fichiers de verrouillage de traduction publiés par Glossia.
 
 ## `glossia revisit`
 
-Réservé pour un futur cycle de révision de la langue source. La commande de
-l'interface Rust renvoie actuellement une erreur de fonction non implémentée pour cette commande.
+Réservé pour une future passe de révision de la langue source. La ligne de commande Rust
+L'interface renvoie actuellement une erreur non implémentée pour cette commande.
 
 ```bash
 glossia revisit
@@ -42,7 +41,7 @@ glossia revisit
 
 ## Options globales
 
-| Paramètre | Description |
+| Option | Description |
 |---|---|
 | `--path <PATH>` | Définir le répertoire racine du projet |
-| `--no-color` | Désactiver la sortie en couleurs |
+| `--no-color` | Désactiver la sortie en couleur |
