@@ -1,61 +1,90 @@
 %{
-  title: "Übersetzungswiederherstellung",
+  title: "Wiederherstellung von Übersetzungen",
   summary:
-    "Wie Glossia sich von der Anbieter-Drosselung und unterbrochenen Übersetzungen erholt.",
+    "Wie Glossia Markdown intakt hält und sich von anbieterseitigem Throttling sowie unterbrochenen Übersetzungen erholt.",
   category: "Erklärung",
+  section: "translation",
   order: 8
 }
 ---
-Glossia validiert übersetzten Inhalt vor der Veröffentlichung. Wiederherstellung bewahrt
-diese Anforderung: auch eine Wiederholung muss die Quellstruktur und erforderlichen
-Platzhalter, und jede zusammengesetzte Datei erfüllt ihre konfigurierten Validierungsbefehle.
+Glossia validiert den übersetzten Inhalt, bevor ihn veröffentlicht. Die Wiederherstellung bewahrt
+diese Anforderung: ein Wiederholversuch muss die Quellstruktur und erforderliche
+Platzhalter erhalten, und jede zusammengetratte Datei bestreitet ihre konfigurierbaren Validierungsbefehle.
 
-## Katalogübersetzung
+## Markdown Übersetzung
 
-Gettext-Kataloge werden vor der Übersetzung in Strings zerlegt. Anfragen enthalten
-höchstens acht Strings, mit einem 8.000-Byte-Batching-Ziel. Ein einzelner größerer String
-bleibt unversehrt. Das Modell gibt ein Array zurück mit der gleichen Anzahl von Strings in der
-gleichen Reihenfolge. Glossia prüft Interpolationsvariablen und lehnt leere Übersetzungen ab.
+Glossia rendert einen übersetzten Markdown-Dokument nie neu. Es analysiert die Quelle
+nur zu seinen Prosa finden: Absätze, Überschriften, Listenpunkte, Tabellenzellen, die
+Leser-analytischen Attribute von Komponenten und HTML (`title`, `details`, `alt`,
+`label`, `description`, `summary`, `placeholder`, `aria-label`, `caption`), und
+der Text eines HTML `<summary>`. Jede Übersetzung wird zurück in die exakte
+Bytes ihrer Quelle geschrieben, so dass Code, Link-Bestimmungen, Komponenten, GitHub
+Warnungen, explizite Überschriftenanker wie `{#install}`, Listenmarker und Leer
+Zeilen Byte-für-Byte identisch bleiben.
 
-Überschriften werden im Code mit den Pluralregeln des Ziellokals erstellt. Quellnachricht
-Identifizierer, Kommentare und Katalogstruktur stammen aus der verarbeiteten Quelle. Wenn ein
-Batch enthält fehlerhafte Inhalte. Glossia führt es einmal erneut aus und teilt es in
-kleinere Batches. Erfolgreiche, benachbarte Batches müssen nicht erneut übersetzt werden.
+Jeder Absatz oder Überschriften wird als einziger Satz übersetzt. Inline-Formatierung
+wird nummerierte Tags: `<gN>...</gN>` um verknüpfte oder hervorgehobene Wörter, und
+`<gN/>` für Inhalt, der nicht geändert werden darf, wie Inline-Code oder eine Komponente.
+Das Modell kann Tags bewegen, um den Wortreihenfolge der Ziel-Sprache zu folgen, aber muss
+jedes Tag genau einmal behalten. Jede Anfrage enthält auch das umgebende Quell
+Dokument und die neuesten Übersetzungen desselben Dokuments, zum sich beziehen.
 
-## Anbieterdrosselung
+Eine Einheit, die ein Tag aufgibt oder erfunden, wird alleine erneut gesendet, mit dem Grund,
+bis zu dreimal. Einheiten, die zurück-gültig kamen, wurden behalten. Nach Einfügen, Glossia
+ordnet das Ergebnis und vergleicht seinen Bau zur Quelle. Eine Übersetzung, die
+zu einem Überschriften, Listen oder Fokus sein könnte, hat seine Prosa entfliehen,
+was keine weitere Modellaufruf benötigt.
 
-Worker, die dieselben Zugangsdaten und das Modell nutzen, teilen sich die Zulassung durch die
-Datenbank, einschließlich Worker auf verschiedenen Anwendungsrepliken. Ein Rate-Limit
-Antwort verlängert ihre gemeinsame Abkühlzeit und vergrößert den Abstand zwischen neuen Anfragen.
-Erfolgreicher Verkehr reduziert diesen Abstand nach einer Minute allmählich, ohne Throttling.
-Bereits laufende Anfragen dürfen bis zum Abschluss laufen.
+## Katalog-Übersetzung
 
-Provider-Retry-Hinweise sind minimale Verzögerungen. Wiederholte Fehler erhöhen ebenfalls den
-Backoff, bis zu einer Basisverzögerung von 30 Sekunden plus Jitter; ein längerer Provider-Hinweis nimmt
-Vorrang, maximal auf fünf Minuten begrenzt. Gemeinsamen `x-ratelimit-reset` Header ist
-anerkannt zusammen mit `retry-after`.
+Gettext-Kataloge werden in Sätze zerlegt bevor Übersetzungen. Anfragen führen bei
+meist acht Sätze, mit einem 8.000-Byte-Batch-Ziel. Eine einzelne größere Zeichenfolge
+bleibt intakt. Das Modell gibt ein Array mit der gleichen Anzahl von Sätzen in der
+gleichen Reihenfolge zurück. Glossia prüft Interpolationsvariablen und lehnt leere Übersetzungen ab.
 
-Nach acht fehlgeschlagenen Anfrageversuchen stellt die Repository-Ausführung das Starten neuer
-Dateien. Eine verzögerte Fortsetzung übernimmt den Übersetzungs-Zweig und setzt seine
-unvollendete Arbeit. Der vorherige Versuch bleibt im Sitzungsverlauf sichtbar und verknüpft
-durch die Fortsetzung. Verzögerungen steigen von einer auf fünf Minuten an, mit
-höchstens sechs automatische Fortsetzungen. Neuere aktive Sitzungen haben Vorrang, und
-abgebrochene Sitzungen werden nie wiederbelebt. Validierungsfehler allein planen nicht
-Provider-Wiederherstellung.
+Überschriften werden in Code mit den Pluralregeln der Ziel-Lokale gebaut. Quellnachrichten
+Identifizier, Kommentare und Katalogstruktur stammen aus dem analysierten Quell. Wenn ein
+Batch fehlerhaften Inhalt zurückgibt, wiederholt Glossia es einmal, dann teilt es in
+kleinere Batches auf. Erfolgreiche benachbarte Batches müssen nicht erneut übersetzt werden.
 
-## Dauerhafter Fortschritt
+## Anbieter-Drosselung
 
-Erledigte Dateien und deren Sperrdateien werden im Übersetzungs-Branch als
-davor. In unvollendeten Dateien werden lokal validierte Segmente und Wiederherstellungs-Batches
-sie werden zusätzlich in der Datenbank für sieben Tage gespeichert. Diese Prüfpunkte überstehen einen Worker-Prozess-Stopp.
-Stopp. Sie beziehen sich auf Konto, Projekt, Dokumenteneingabe,
-gültigen Credential und Modell, Kontext und Segment oder Reparaturversuch.
+Glossia koordiniert Übersetzungsanfragen, die dasselbe Credential und Modell verwenden. Ein Rate-Limit
+Antwort verlängert ihre gemeinsame Abkühmun und vergrößert den Abstand zwischen neuen Anfragen.
+Erfolgreicher Verkehr reduziert diesen Abstand nach einer Minute ohne Drosselung allmählich.
+Bereits ausgeführte Anfragen dürfen fertig gestellt werden.
 
-Eine wiederaufgenommene Ausführung kann ein Segment nur erneut verwenden, wenn dessen Eingaben noch übereinstimmen. Es validiert immer
-das fertige Dokument erneut. Abgelehnte Modellantworten sind keine
-Prüfpunkte. Eine fehlerhafte Validierung auf Dokumentenebene startet einen separaten Reparaturversuch.
-weil der Validator möglicherweise kein einzelnes verantwortliches Segment identifizieren kann.
+Anbieter-Retry-Hinweise sind minimale Verzögerungen. Wiederholte Fehler erhöhen auch die
+Rückkopplung, bis zu einer 30-Sekunden-Grundverzögerung plus Jitter; ein längerer Anbieter-Hinweis nimmt
+Vorrang, begrenzt auf fünf Minuten. Together's `x-ratelimit-reset` Header ist
+erkannt entlang `retry-after`.
 
-Abgelaufene Checkpoints und inaktive Provider-Pacing-Aufzeichnungen werden vom
-geplanten Sitzungs-Wiederherstellungs-Worker entfernt. Dies sind Betriebsaufzeichnungen; Benutzer müssen nicht
-müssen sie zu ihrem Repository hinzufügen oder sie in `L10N.md`.
+Nach acht fehlgeschlagene Versuche stoppt der Repository-Ablauf das Starten neuer
+Dateien. Eine verzögerte Fortsetzung erbt die Übersetzungs-Zweig und setzt seine
+unvollendete Arbeit fort. Der vorherige Versuch bleibt in der Sessionshistorie sichtbar, verknüpft
+durch die Fortsetzung. Verzögerungen erhöhen sich von einer bis fünf Minuten, mit
+höchstens sechs automatischen Fortsetzungen. Neuere aktive Sessionen haben Vorrang, und
+abgesagte Sessionen werden niemals wiedergekehrt. Validierungsfehler allein planen keine
+Anbieter-Wiederherstellung.
+
+## Langlebiger Fortschritt
+
+Abgeschlossene Dateien und ihre Lockdateien werden in den Übersetzungszweig in
+Chargen: ein Commit pro 25 Dateien, oder alle 15 Minuten, und ein finaler Commit
+wenn der Lauf endet. Jeder Push führt die Pull Request-Prüfungen des Repositorys aus, sodass
+Batching verhindert, dass bei einem großen Lauf pro Datei ein Check-Lauf gestartet wird. Ein Projekt hat
+einen einzigen Übersetzungs-Pull Request: ein neuer Commit auf dem Standardzweig setzt
+die offene fort, und übersetzt nur das, was seitdem geändert wurde. Sobald dieser Pull Request ist
+vereinigt oder geschlossen, startet der nächste Lauf einen neuen. Bei unvollendeten Dateien werden lokal validierte Segmente und Wiederherstellungs-Chargen
+werden ebenfalls in der Datenbank für sieben Tage gespeichert. Diese Checkpoints überstehen einen Worker
+Prozessstopp. Sie beziehen sich auf das Konto, das Projekt, die Dokumenteneingabe,
+wirksame Zugangsdaten und Modell, Kontext und Segment oder Reparaturversuch.
+
+Eine wiederaufgenommene Ausführung kann ein Segment nur dann wiederverwenden, wenn seine Eingaben noch übereinstimmen. Es immer
+validiert das finale zusammengefügtes Dokument erneut. Zurückgewiesene Modellantworten sind nicht
+Checkpoints. Ein Validierungsfehler auf Dokumentebene startet einen separaten Reparaturversuch
+weil der Validator möglicherweise nicht ein einzelnes verantwortliches Segment identifizieren kann.
+
+Abgelaufene Checkpoints und inaktive Anbieter-Pacing-Aufzeichnungen werden vom
+geplanten Sitzungsrecovery-Worker. Dies sind operationale Aufzeichnungen; Benutzer nicht
+müssen sie in ihrem Repository hinzufügen oder sie in `L10N.md`.
