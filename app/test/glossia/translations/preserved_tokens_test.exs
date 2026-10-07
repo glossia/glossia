@@ -1,7 +1,6 @@
 defmodule Glossia.Translations.PreservedTokensTest do
   use ExUnit.Case, async: true
 
-  alias Glossia.Translations.Markdown
   alias Glossia.Translations.PreservedTokens
 
   test "masks and restores atomic values without parsing the Markdown document" do
@@ -190,19 +189,6 @@ defmodule Glossia.Translations.PreservedTokensTest do
              ~r/```glossia-protected\nglossiaprotected[a-f0-9]{12}n2\n```/
 
     assert {:ok, ^source} = PreservedTokens.restore(protection.text, protection)
-  end
-
-  test "keeps placeholder markers intact through Markdown reconciliation" do
-    source =
-      "# Cache {#cache}\n\nCache your builds.\n\n## Restrict uploads to CI {#restrict-uploads-to-ci}\n"
-
-    protection = PreservedTokens.protect(source, ["placeholders"])
-
-    assert {:ok, reconciled} = Markdown.reconcile(protection.text, protection.text)
-    assert PreservedTokens.unpreserved_markers(protection, protection.text, reconciled) == []
-    assert {:ok, restored} = PreservedTokens.restore(reconciled, protection)
-    assert restored =~ "# Cache {#cache}"
-    assert restored =~ "## Restrict uploads to CI {#restrict-uploads-to-ci}"
   end
 
   test "accepts a link destination whose parentheses the renderer escaped" do

@@ -15,27 +15,24 @@ defmodule Glossia.Translations.Engine do
   """
 
   @segment_attempts 2
-  @markdown_text_literal_recovery_max_calls 128
-  # Production calls showed that arrays of sixteen strings still routinely
-  # needed retries and recursive splits. Eight literals stay within the small
-  # model's reliable JSON boundary, avoiding the extra calls that made a
-  # nominally larger batch slower in practice.
-  @markdown_text_literal_recovery_batch_size 8
-  @markdown_text_literal_recovery_batch_bytes 8_000
-  @markdown_text_literal_fast_path_min_literals 12
+  # A Markdown unit batch resends only the units that failed, so it can afford
+  # one more round than a whole segment.
+  @markdown_unit_attempts 3
+  @markdown_unit_batch_size 40
+  @markdown_unit_batch_bytes 6_000
+  @markdown_unit_previous_bytes 4_000
 
   require Logger
 
   alias Glossia.Translations.Checkpoints
   alias Glossia.Translations.ContentSegments
   alias Glossia.Translations.Context
-  alias Glossia.Translations.ExtractionPlan
   alias Glossia.Translations
   alias Glossia.Translations.Format
   alias Glossia.Translations.Failure
   alias Glossia.Translations.Frontmatter
   alias Glossia.Translations.JsonArray
-  alias Glossia.Translations.Markdown
+  alias Glossia.Translations.MarkdownUnits
   alias Glossia.Translations.Po
   alias Glossia.Translations.Quality
   alias Glossia.Translations.PreservedTokens
@@ -89,6 +86,7 @@ defmodule Glossia.Translations.Engine do
             preserve_kinds: segment_preserve_kinds(work_item.format, preserve_kinds),
             protections: translation.protections,
             preserved_frontmatter: translation.preserved_frontmatter,
+            markdown_plan: Map.get(translation, :markdown_plan),
             source_text: source_text,
             on_event: on_event,
             validate: validate,
@@ -182,536 +180,27 @@ defmodule Glossia.Translations.Engine do
 
     state.segments
     |> Enum.with_index(1)
-    |> Enum.reduce_while(
-      {:ok, %{segments: [], model: nil, provider: nil, markdown_text_literal_recovery_calls: 0}},
-      fn
-        {segment, segment_index}, {:ok, acc} ->
-          case translate_segment(
-                 state,
-                 segment,
-                 segment_index,
-                 segment_count,
-                 1,
-                 state.last_error
-               ) do
-            {:ok, text, result} ->
-              translated_segment = %{kind: segment.kind, text: text}
+    |> Enum.reduce_while({:ok, %{segments: [], model: nil, provider: nil}}, fn
+      {segment, segment_index}, {:ok, acc} ->
+        segment = with_previous_unit_translations(state, segment, acc.segments)
 
-              {:cont,
-               {:ok,
-                %{
-                  segments: acc.segments ++ [translated_segment],
-                  model: result.model,
-                  provider: result.provider,
-                  markdown_text_literal_recovery_calls: acc.markdown_text_literal_recovery_calls
-                }}}
-
-            {:error, reason} ->
-              {:halt, {:error, reason}}
-
-            {:preservation_error, message} ->
-              # Markdown's source tree already gives us a deterministic recovery
-              # path. Try that before asking the model to reproduce the same
-              # Markdown syntax in smaller blocks: models that normalize a link
-              # or list tend to do so on every ordinary retry, which turns one
-              # bad response into several slow, identical requests.
-              case recover_markdown_text_nodes(
-                     state,
-                     segment,
-                     segment_index,
-                     segment_count,
-                     message
-                   ) do
-                {:ok, recovered} ->
-                  {:cont,
-                   {:ok,
-                    %{
-                      segments: acc.segments ++ recovered.segments,
-                      model: recovered.model,
-                      provider: recovered.provider,
-                      markdown_text_literal_recovery_calls:
-                        acc.markdown_text_literal_recovery_calls
-                    }}}
-
-                {:error, reason} ->
-                  {:halt, {:error, reason}}
-
-                :error ->
-                  case recover_markdown_segment(
-                         state,
-                         segment,
-                         segment_index,
-                         segment_count,
-                         message
-                       ) do
-                    {:ok, recovered} ->
-                      {:cont,
-                       {:ok,
-                        %{
-                          segments: acc.segments ++ recovered.segments,
-                          model: recovered.model,
-                          provider: recovered.provider,
-                          markdown_text_literal_recovery_calls:
-                            acc.markdown_text_literal_recovery_calls
-                        }}}
-
-                    {:error, reason} ->
-                      {:halt, {:error, reason}}
-
-                    :error ->
-                      case recover_markdown_text_literals(
-                             state,
-                             segment,
-                             segment_index,
-                             segment_count,
-                             message,
-                             @markdown_text_literal_recovery_max_calls -
-                               acc.markdown_text_literal_recovery_calls
-                           ) do
-                        {:ok, recovered} ->
-                          {:cont,
-                           {:ok,
-                            %{
-                              segments: acc.segments ++ recovered.segments,
-                              model: recovered.model,
-                              provider: recovered.provider,
-                              markdown_text_literal_recovery_calls:
-                                acc.markdown_text_literal_recovery_calls +
-                                  recovered.markdown_text_literal_recovery_calls
-                            }}}
-
-                        {:error, reason} ->
-                          {:halt, {:error, reason}}
-
-                        {:preservation_error, reason} ->
-                          {:halt, {:preservation_error, reason}}
-
-                        :error ->
-                          {:halt, {:preservation_error, message}}
-                      end
-                  end
-              end
-          end
-      end
-    )
-  end
-
-  # A model occasionally combines or drops Markdown blocks even after the
-  # segment-level correction prompt. Re-run only a multi-block failed segment
-  # as individual source blocks, retaining both the document structure and all
-  # earlier successful segment output.
-  defp recover_markdown_segment(state, segment, index, count, message) do
-    segments =
-      [segment]
-      |> isolate_markdown_blocks()
-      |> Enum.map(&Map.put(&1, :markdown_block_recovery, true))
-
-    if markdown_recovery_error?(state, segment, message) and length(segments) > 1 do
-      recovered_count = count + length(segments) - 1
-
-      segments
-      |> Enum.with_index(index)
-      |> Enum.reduce_while({:ok, %{segments: [], model: nil, provider: nil}}, fn
-        {recovery_segment, recovery_index}, {:ok, acc} ->
-          case translate_segment(
-                 state,
-                 recovery_segment,
-                 recovery_index,
-                 recovered_count,
-                 1,
-                 message
-               ) do
-            {:ok, text, result} ->
-              {:cont,
-               {:ok,
-                %{
-                  segments: acc.segments ++ [%{kind: recovery_segment.kind, text: text}],
-                  model: result.model,
-                  provider: result.provider
-                }}}
-
-            {:error, reason} ->
-              {:halt, {:error, reason}}
-
-            _ ->
-              {:halt, :error}
-          end
-      end)
-    else
-      :error
-    end
-  end
-
-  # A Markdown block can contain links, lists, or admonitions that a model
-  # rearranges. Give the model marker-delimited text literals and rebuild the
-  # original Markdown tree directly, making syntax preservation independent of
-  # its rendered output.
-  defp recover_markdown_text_nodes(state, segment, index, count, message) do
-    with true <- markdown_recovery_error?(state, segment, message),
-         true <- not String.contains?(segment.content, "@@GLOSSIA-TEXT-"),
-         {:ok, marked_content} <- Markdown.mark_text_nodes(segment.content),
-         true <- String.contains?(marked_content, "@@GLOSSIA-TEXT-"),
-         recovery_segment <-
-           Map.merge(segment, %{
-             kind: "markdown_text_markers",
-             content: marked_content,
-             markdown_source: segment.content
-           }) do
-      case translate_segment(
-             state,
-             recovery_segment,
-             index,
-             count,
-             1,
-             markdown_marker_instruction(message)
-           ) do
-        {:ok, text, result} ->
-          {:ok,
-           %{
-             segments: [%{kind: segment.kind, text: text}],
-             model: result.model,
-             provider: result.provider
-           }}
-
-        {:error, reason} ->
-          {:error, reason}
-
-        _ ->
-          :error
-      end
-    else
-      _ -> :error
-    end
-  end
-
-  defp markdown_marker_instruction(message) do
-    "#{message}. Each @@GLOSSIA-TEXT-<number>-START@@ and " <>
-      "@@GLOSSIA-TEXT-<number>-END@@ marker is immutable: copy every marker " <>
-      "exactly once and translate only the text between its matching markers."
-  end
-
-  # Marker-delimited recovery keeps the ordinary fast path compact, but a
-  # smaller model can still lose markers in a dense document. At that point,
-  # translate bounded batches of source-tree text literals and rebuild the
-  # document ourselves. The model never receives Markdown syntax, so it cannot
-  # change headings, links, lists, code spans, or block ordering.
-  defp recover_markdown_text_literals(state, segment, index, count, message, remaining_calls) do
-    if markdown_recovery_error?(state, segment, message) do
-      translate_markdown_text_literals(state, segment, index, count, remaining_calls)
-    else
-      :error
-    end
-  end
-
-  # Complex Markdown used to take the ordinary full-document path first, then
-  # spend several corrections asking a model to restore headings, links, and
-  # lists it had already changed. For a large source tree it is both quicker
-  # and more reliable to translate the text nodes directly and rebuild the
-  # Markdown ourselves. Small fragments keep the normal path, whose single
-  # request is still cheaper than building a JSON array.
-  defp translate_large_markdown_segment_as_literals(state, segment, index, count) do
-    with %{format: "markdown"} <- state.work_item,
-         true <-
-           not String.contains?(segment.content, "{" <> ExtractionPlan.token_marker_prefix()),
-         true <- not String.contains?(segment.content, "@@GLOSSIA-TEXT-"),
-         {:ok, source_literals} <- Markdown.text_literals(segment.content),
-         true <- length(source_literals) >= @markdown_text_literal_fast_path_min_literals,
-         true <- length(source_literals) <= @markdown_text_literal_recovery_max_calls do
-      translate_markdown_text_literals(
-        state,
-        segment,
-        index,
-        count,
-        @markdown_text_literal_recovery_max_calls
-      )
-    else
-      _ -> :error
-    end
-  end
-
-  defp translate_markdown_text_literals(state, segment, index, count, remaining_calls) do
-    with true <- not String.contains?(segment.content, "@@GLOSSIA-TEXT-"),
-         {:ok, source_literals} <- Markdown.text_literals(segment.content),
-         true <- source_literals != [],
-         true <- length(source_literals) <= remaining_calls do
-      entries =
-        source_literals
-        |> Enum.with_index()
-        |> Enum.map(fn {literal, literal_index} ->
-          markdown_text_literal_entry(state, literal, literal_index)
-        end)
-
-      entries
-      |> Enum.reject(&(&1.content == ""))
-      |> batch_markdown_text_literals()
-      |> Enum.reduce_while(
-        {:ok,
-         %{
-           literals: blank_markdown_text_literals(entries),
-           model: nil,
-           provider: nil,
-           markdown_text_literal_recovery_calls: 0
-         }},
-        fn batch, {:ok, acc} ->
-          case translate_markdown_text_literal_batch(state, segment, batch, index, count, nil) do
-            {:ok, translated_literals, result} ->
-              literals =
-                batch
-                |> Enum.zip(translated_literals)
-                |> Map.new(fn {%{index: literal_index}, literal} -> {literal_index, literal} end)
-                |> then(&Map.merge(acc.literals, &1))
-
-              {:cont,
-               {:ok,
-                %{
-                  acc
-                  | literals: literals,
-                    model: result.model || acc.model,
-                    provider: result.provider || acc.provider,
-                    markdown_text_literal_recovery_calls:
-                      acc.markdown_text_literal_recovery_calls + 1
-                }}}
-
-            {:error, reason} ->
-              {:halt, {:error, reason}}
-
-            {:preservation_error, reason} ->
-              {:halt, {:preservation_error, reason}}
-
-            _ ->
-              {:halt, :error}
-          end
-        end
-      )
-      |> case do
-        {:ok, %{literals: literals} = recovery} ->
-          literals = Enum.map(entries, &Map.fetch!(literals, &1.index))
-
-          with {:ok, text} <-
-                 Markdown.rebuild_text_literals(segment.content, literals) do
-            state.on_event.({:segment_output, text})
-
-            {:ok,
-             %{
-               segments: [%{kind: segment.kind, text: text}],
-               model: recovery.model,
-               provider: recovery.provider,
-               markdown_text_literal_recovery_calls: recovery.markdown_text_literal_recovery_calls
-             }}
-          else
-            {:error, reason} -> {:preservation_error, reason}
-          end
-
-        other ->
-          other
-      end
-    else
-      _ -> :error
-    end
-  end
-
-  defp markdown_text_literal_entry(state, literal, index) do
-    {leading, content, trailing} = split_literal_whitespace(literal)
-
-    protection =
-      PreservedTokens.protect(
-        content,
-        state.preserve_kinds,
-        scope: "markdown_text_literal_#{index}",
-        mask_urls: true
-      )
-
-    %{
-      index: index,
-      leading: leading,
-      content: protection.text,
-      trailing: trailing,
-      protection: protection
-    }
-  end
-
-  defp blank_markdown_text_literals(entries) do
-    entries
-    |> Enum.filter(&(&1.content == ""))
-    |> Map.new(fn entry -> {entry.index, entry.leading <> entry.trailing} end)
-  end
-
-  defp batch_markdown_text_literals([]), do: []
-
-  defp batch_markdown_text_literals(entries) do
-    entries
-    |> Enum.reduce({[], [], 0}, fn entry, {batches, current, bytes} ->
-      entry_bytes = byte_size(entry.content)
-
-      if current != [] and
-           (length(current) >= @markdown_text_literal_recovery_batch_size or
-              bytes + entry_bytes > @markdown_text_literal_recovery_batch_bytes) do
-        {[Enum.reverse(current) | batches], [entry], entry_bytes}
-      else
-        {batches, [entry | current], bytes + entry_bytes}
-      end
-    end)
-    |> then(fn {batches, current, _bytes} -> Enum.reverse([Enum.reverse(current) | batches]) end)
-  end
-
-  defp translate_markdown_text_literal_batch(
-         state,
-         segment,
-         entries,
-         index,
-         count,
-         message,
-         attempt \\ 1
-       ) do
-    identity = {:markdown_literals, segment, entries}
-
-    case checkpoint(
-           state,
-           %{segment | kind: "markdown_text_literals"},
-           identity,
-           fn ->
-             case do_translate_markdown_text_literal_batch(
-                    state,
-                    segment,
-                    entries,
-                    index,
-                    count,
-                    message,
-                    attempt
-                  ) do
-               {:ok, literals, result} -> {:ok, JSON.encode!(literals), result}
-               other -> other
-             end
-           end,
-           false
-         ) do
-      {:ok, encoded, result} -> {:ok, JSON.decode!(encoded), result}
-      other -> other
-    end
-  end
-
-  defp do_translate_markdown_text_literal_batch(
-         state,
-         segment,
-         entries,
-         index,
-         count,
-         message,
-         attempt
-       ) do
-    recovery_segment =
-      Map.merge(segment, %{
-        kind: "markdown_text_literals",
-        content: entries |> Enum.map(& &1.content) |> JSON.encode!(),
-        protections: Enum.map(entries, & &1.protection),
-        markdown_text_literal_recovery: true,
-        suppress_progress: true,
-        suppress_stream_text: true
-      })
-
-    case translate_segment(state, recovery_segment, index, count, 1, message) do
-      {:ok, translated, result} ->
-        with {:ok, translated_literals} <-
-               decode_markdown_text_literal_batch(translated, length(entries)),
-             {:ok, restored_literals} <-
-               restore_markdown_text_literal_batch(entries, translated_literals) do
-          {:ok, restored_literals, result}
-        else
-          {:error, reason} when attempt < @segment_attempts ->
-            translate_markdown_text_literal_batch(
-              state,
-              segment,
-              entries,
-              index,
-              count,
-              reason,
-              attempt + 1
-            )
-
-          {:error, reason} when length(entries) > 1 ->
-            split_markdown_text_literal_batch(state, segment, entries, index, count, reason)
+        case translate_segment(state, segment, segment_index, segment_count, 1, state.last_error) do
+          {:ok, text, result} ->
+            {:cont,
+             {:ok,
+              %{
+                segments: acc.segments ++ [%{kind: segment.kind, text: text}],
+                model: result.model,
+                provider: result.provider
+              }}}
 
           {:error, reason} ->
-            {:preservation_error, reason}
+            {:halt, {:error, reason}}
+
+          {:preservation_error, message} ->
+            {:halt, {:preservation_error, message}}
         end
-
-      other ->
-        other
-    end
-  end
-
-  # A model that cannot return one large JSON array is still perfectly capable
-  # of translating the same text in smaller arrays. Keep the structural
-  # recovery path intact by splitting only the rejected batch rather than
-  # falling back to a full-Markdown prompt, where a model can change links,
-  # lists, and headings again.
-  defp split_markdown_text_literal_batch(state, segment, entries, index, count, reason) do
-    {left, right} = Enum.split(entries, div(length(entries), 2))
-
-    with {:ok, left_literals, left_result} <-
-           translate_markdown_text_literal_batch(state, segment, left, index, count, reason),
-         {:ok, right_literals, right_result} <-
-           translate_markdown_text_literal_batch(state, segment, right, index, count, reason) do
-      {:ok, left_literals ++ right_literals, right_result || left_result}
-    end
-  end
-
-  defp decode_markdown_text_literal_batch(text, expected_count) do
-    case JsonArray.decode(text) do
-      {:ok, literals} when is_list(literals) ->
-        if length(literals) == expected_count and Enum.all?(literals, &is_binary/1) do
-          {:ok, literals}
-        else
-          {:error,
-           "Markdown text-literal recovery must return a JSON string array of matching length"}
-        end
-
-      {:ok, _value} ->
-        {:error,
-         "Markdown text-literal recovery must return a JSON string array of matching length"}
-
-      {:error, _reason} ->
-        {:error, "Markdown text-literal recovery returned invalid JSON"}
-    end
-  end
-
-  defp restore_markdown_text_literal_batch(entries, translated_literals) do
-    entries
-    |> Enum.zip(translated_literals)
-    |> Enum.reduce_while({:ok, []}, fn {%{protection: protection} = entry, translated},
-                                       {:ok, literals} ->
-      with true <- String.trim(translated) != "",
-           {:ok, restored} <- PreservedTokens.restore(translated, protection) do
-        literal = entry.leading <> String.trim(restored) <> entry.trailing
-        {:cont, {:ok, [literal | literals]}}
-      else
-        false -> {:halt, {:error, "Markdown text-node recovery produced an empty translation"}}
-        {:error, _reason} = error -> {:halt, error}
-      end
     end)
-    |> case do
-      {:ok, literals} -> {:ok, Enum.reverse(literals)}
-      error -> error
-    end
-  end
-
-  defp split_literal_whitespace(literal) do
-    trimmed = String.trim(literal)
-
-    if trimmed == "" do
-      {literal, "", ""}
-    else
-      split_non_empty_literal_whitespace(literal, trimmed)
-    end
-  end
-
-  defp split_non_empty_literal_whitespace(literal, trimmed) do
-    leading_size = byte_size(literal) - byte_size(String.trim_leading(literal))
-    trailing_size = byte_size(literal) - byte_size(String.trim_trailing(literal))
-    leading = binary_part(literal, 0, leading_size)
-    trailing = binary_part(literal, byte_size(literal) - trailing_size, trailing_size)
-
-    {leading, trimmed, trailing}
   end
 
   # A long segment carrying many protected markers occasionally comes back with
@@ -720,8 +209,7 @@ defmodule Glossia.Translations.Engine do
   # If that focused recovery runs out, stop there rather than repeatedly
   # translating segments whose output has already passed preservation checks.
   defp translate_segment(state, segment, index, count, attempt, last_error) do
-    if segment.kind in ["markdown_text_literals", "po_text_literals"] and
-         not Map.has_key?(segment, :po_source) do
+    if segment.kind == "po_text_literals" and not Map.has_key?(segment, :po_source) do
       do_translate_segment(state, segment, index, count, attempt, last_error)
     else
       checkpoint(state, segment, {index, count, attempt, last_error}, fn ->
@@ -743,22 +231,13 @@ defmodule Glossia.Translations.Engine do
 
   defp do_translate_segment(
          state,
-         %{kind: "content"} = segment,
+         %{kind: "markdown_units"} = segment,
          index,
          count,
-         attempt,
-         last_error
+         _attempt,
+         _last_error
        ) do
-    case translate_large_markdown_segment_as_literals(state, segment, index, count) do
-      {:ok, %{segments: [%{text: text}], model: model, provider: provider}} ->
-        {:ok, text, %{model: model, provider: provider}}
-
-      {:error, reason} ->
-        {:error, reason}
-
-      _ ->
-        translate_segment_with_model(state, segment, index, count, attempt, last_error)
-    end
+    translate_markdown_units(state, segment, index, count)
   end
 
   defp do_translate_segment(state, segment, index, count, attempt, last_error) do
@@ -962,7 +441,7 @@ defmodule Glossia.Translations.Engine do
           |> strip_structured_code_fence(result.text)
 
         with :ok <- reject_empty_output(state, segment, text, index, count, attempt),
-             {:ok, text} <- reconcile_markdown_segment(text, segment, state.work_item.format) do
+             {:ok, text} <- reconcile_segment(text, segment, state.work_item.format) do
           case unpreserved(state, segment, text) do
             unpreserved when unpreserved != [] and attempt < @segment_attempts ->
               # Deliberately no `segment_output`: progress folds that event into
@@ -981,13 +460,8 @@ defmodule Glossia.Translations.Engine do
           end
         else
           {:error, message} when attempt < @segment_attempts ->
-            if markdown_structure_error?(state, message) and
-                 not Map.get(segment, :markdown_block_recovery, false) do
-              {:preservation_error, message}
-            else
-              emit_segment_event(state, segment, {:segment_retry, index, message})
-              translate_segment(state, segment, index, count, attempt + 1, message)
-            end
+            emit_segment_event(state, segment, {:segment_retry, index, message})
+            translate_segment(state, segment, index, count, attempt + 1, message)
 
           {:error, message} ->
             {:preservation_error, message}
@@ -1102,15 +576,32 @@ defmodule Glossia.Translations.Engine do
           [] -> nil
         end
 
-    body =
-      body_segments
-      |> Enum.map(&String.trim(&1.text))
-      |> Enum.reject(&(&1 == ""))
-      |> Enum.join("\n\n")
+    case state.markdown_plan do
+      nil ->
+        body =
+          body_segments
+          |> Enum.map(&String.trim(&1.text))
+          |> Enum.reject(&(&1 == ""))
+          |> Enum.join("\n\n")
 
-    frontmatter
-    |> reassemble(body)
-    |> String.trim_trailing()
+        frontmatter
+        |> reassemble(body)
+        |> String.trim_trailing()
+
+      plan ->
+        # The body is the source with its prose replaced, byte for byte
+        # everywhere else, including blank lines and the final newline.
+        rendered =
+          body_segments
+          |> Enum.flat_map(&(&1.text |> JSON.decode!() |> Map.fetch!("rendered")))
+          |> Map.new()
+
+        output = reassemble(frontmatter, MarkdownUnits.splice(plan, rendered))
+
+        if String.ends_with?(state.source_text, "\n") and not String.ends_with?(output, "\n"),
+          do: output <> "\n",
+          else: output
+    end
   end
 
   defp translate_stream(account, payload, on_event, []) do
@@ -1125,14 +616,6 @@ defmodule Glossia.Translations.Engine do
     message = to_string(message)
     log_validation_failure(state, message, stage, state.attempt < state.max_attempt)
     state.on_event.({:validation_error, message})
-
-    state =
-      if markdown_structure_error?(state, message) do
-        %{state | segments: isolate_markdown_blocks(state.segments)}
-      else
-        state
-      end
-
     run_attempt(%{state | attempt: state.attempt + 1, last_error: message})
   end
 
@@ -1159,42 +642,6 @@ defmodule Glossia.Translations.Engine do
     Logger.warning("Translation validation failed: #{JSON.encode!(details)}")
   end
 
-  # A model occasionally combines or drops Markdown blocks even after an
-  # explicit repair prompt. Retrying only the affected document as individual
-  # source blocks lets Markdown.reconcile/2 retain its source structure while
-  # still taking the model's translation for each piece of prose. Successful
-  # documents keep their normal, larger segments.
-  defp markdown_structure_error?(%{work_item: %{format: "markdown"}}, message) do
-    String.contains?(String.downcase(message), "markdown changed the document structure")
-  end
-
-  defp markdown_structure_error?(_state, _message), do: false
-
-  # Markdown's parsed source tree owns both its structure and link
-  # destinations. Rebuilding that tree therefore also repairs a model response
-  # that dropped a visible URL or another preserved value, without asking the
-  # model to reproduce it again. A segment carrying an internal marker still
-  # uses this path for a Markdown-structure error, but not for a marker-copy
-  # failure, where recovery must fail closed rather than move the marker.
-  defp markdown_recovery_error?(%{work_item: %{format: "markdown"}} = state, segment, message) do
-    markdown_structure_error?(state, message) or
-      not String.contains?(segment.content, "{" <> ExtractionPlan.token_marker_prefix())
-  end
-
-  defp markdown_recovery_error?(_state, _segment, _message), do: false
-
-  defp isolate_markdown_blocks(segments) do
-    Enum.flat_map(segments, fn
-      %{kind: "frontmatter"} = segment ->
-        [segment]
-
-      %{content: content} = segment ->
-        content
-        |> ContentSegments.split(max_segment_bytes: 1)
-        |> Enum.map(&%{segment | content: &1})
-    end)
-  end
-
   defp restore_protections(text, protections) do
     Enum.reduce_while(protections, {:ok, text}, fn protection, {:ok, current} ->
       case PreservedTokens.restore(current, protection) do
@@ -1219,23 +666,17 @@ defmodule Glossia.Translations.Engine do
 
     case {work_item.frontmatter_mode, split.ok} do
       {:preserve, true} ->
-        {segments, protections} =
-          planned_content_segments(split.body, work_item.format, preserve_kinds, "body")
-
-        %{
-          preserved_frontmatter: split.frontmatter,
-          segments: segments,
-          protections: protections
-        }
+        split.body
+        |> markdown_body_segments(preserve_kinds, "body")
+        |> Map.put(:preserved_frontmatter, split.frontmatter)
 
       {:translate, true} ->
-        translated_frontmatter_segments(split.frontmatter, preserve_kinds, split.body, work_item)
+        translated_frontmatter_segments(split.frontmatter, preserve_kinds, split.body)
 
       _ ->
-        {segments, protections} =
-          planned_content_segments(source_text, work_item.format, preserve_kinds, "document")
-
-        %{preserved_frontmatter: nil, segments: segments, protections: protections}
+        source_text
+        |> markdown_body_segments(preserve_kinds, "document")
+        |> Map.put(:preserved_frontmatter, nil)
     end
   end
 
@@ -1244,7 +685,7 @@ defmodule Glossia.Translations.Engine do
   # `catalog-source-entries`, orphan-msgstr, plural-forms mismatch, etc.).
   # Instead, extract the translatable strings from the source catalog, hand
   # the model only the string set as a JSON array, and rebuild the catalog
-  # from the parsed source tree in `reconcile_markdown_segment/3`.
+  # from the parsed source tree in `reconcile_segment/3`.
   #
   # A `po_diff` on the work item means the planner detected some msgids as
   # already translated in the current output. Only the stale msgids' sources
@@ -1313,6 +754,293 @@ defmodule Glossia.Translations.Engine do
   # trip. Placeholders remain opaque, including placeholders inside a link
   # destination. Other formats continue to use their existing format-neutral
   # plan.
+  # ── Markdown units ────────────────────────────────────────────────────────
+  #
+  # Markdown is translated as units of prose spliced back into the source
+  # bytes (see `Glossia.Translations.MarkdownUnits`). A document the parser
+  # cannot read keeps the older segment path.
+  defp markdown_body_segments(body, preserve_kinds, scope) do
+    case MarkdownUnits.plan(body) do
+      {:ok, plan} ->
+        %{
+          segments: markdown_unit_segments(plan, preserve_kinds),
+          protections: [],
+          markdown_plan: plan
+        }
+
+      {:error, _reason} ->
+        {segments, protections} =
+          planned_content_segments(body, "markdown", preserve_kinds, scope)
+
+        %{segments: segments, protections: protections, markdown_plan: nil}
+    end
+  end
+
+  defp markdown_unit_segments(plan, preserve_kinds) do
+    plan.units
+    |> Enum.map(fn unit ->
+      protection =
+        PreservedTokens.protect(unit.template, preserve_kinds,
+          scope: "markdown_unit_#{unit.id}",
+          mask_urls: true
+        )
+
+      Map.merge(unit, %{protection: protection, text: protection.text})
+    end)
+    |> batch_markdown_units()
+    |> Enum.map(fn units ->
+      %{
+        kind: "markdown_units",
+        content: markdown_units_content(units),
+        units: units,
+        source_context: MarkdownUnits.context(plan, units),
+        suppress_stream_text: true
+      }
+    end)
+  end
+
+  defp batch_markdown_units(units) do
+    units
+    |> Enum.chunk_while(
+      {[], 0},
+      fn unit, {current, bytes} ->
+        size = byte_size(unit.text)
+
+        if current != [] and
+             (length(current) >= @markdown_unit_batch_size or
+                bytes + size > @markdown_unit_batch_bytes) do
+          {:cont, Enum.reverse(current), {[unit], size}}
+        else
+          {:cont, {[unit | current], bytes + size}}
+        end
+      end,
+      fn
+        {[], _bytes} -> {:cont, {[], 0}}
+        {current, _bytes} -> {:cont, Enum.reverse(current), {[], 0}}
+      end
+    )
+  end
+
+  defp markdown_units_content(units),
+    do: units |> Enum.map(&%{"id" => &1.id, "text" => &1.text}) |> JSON.encode!()
+
+  # Batches are translated in order. Each one carries the most recent
+  # translations of the batches before it, so terminology and tone stay
+  # consistent across a long document.
+  defp with_previous_unit_translations(
+         %{markdown_plan: %{units: plan_units}},
+         %{kind: "markdown_units"} = segment,
+         translated_segments
+       ) do
+    sources = Map.new(plan_units, &{&1.id, &1.template})
+
+    previous =
+      translated_segments
+      |> Enum.filter(&(&1.kind == "markdown_units"))
+      |> Enum.flat_map(fn %{text: text} ->
+        text |> JSON.decode!() |> Map.fetch!("translated") |> Enum.sort_by(&unit_order/1)
+      end)
+      |> Enum.map(fn {id, translated} -> "#{Map.fetch!(sources, id)}\n=> #{translated}" end)
+      |> Enum.reverse()
+      |> Enum.reduce_while({[], 0}, fn entry, {kept, bytes} ->
+        size = byte_size(entry)
+
+        if bytes + size > @markdown_unit_previous_bytes,
+          do: {:halt, {kept, bytes}},
+          else: {:cont, {[entry | kept], bytes + size}}
+      end)
+      |> elem(0)
+
+    Map.put(segment, :previous_translations, previous)
+  end
+
+  defp with_previous_unit_translations(_state, segment, _translated_segments), do: segment
+
+  defp unit_order({"u" <> number, _value}), do: String.to_integer(number)
+
+  defp translate_markdown_units(state, segment, index, count) do
+    emit_segment_event(state, segment, {:segment_start, index, count, segment.kind})
+
+    case translate_markdown_unit_rounds(state, segment, index, count, segment.units, %{}, nil, 1) do
+      {:ok, accepted, result} ->
+        rendered = Map.new(accepted, fn {id, %{rendered: bytes}} -> {id, bytes} end)
+
+        case MarkdownUnits.check(state.markdown_plan, rendered) do
+          :ok ->
+            translated = Map.new(accepted, fn {id, %{translated: text}} -> {id, text} end)
+            preview = segment.units |> Enum.map(&Map.fetch!(rendered, &1.id)) |> Enum.join("\n\n")
+            emit_segment_event(state, segment, {:segment_output, preview})
+
+            {:ok, JSON.encode!(%{"rendered" => rendered, "translated" => translated}), result}
+
+          {:error, message} ->
+            {:preservation_error, message}
+        end
+
+      other ->
+        other
+    end
+  end
+
+  # One round asks the model for every pending unit. Units that come back
+  # valid are kept; only the ones that failed are sent again, with the reason,
+  # so a single bad unit never costs a retranslation of the whole batch.
+  defp translate_markdown_unit_rounds(
+         state,
+         segment,
+         index,
+         count,
+         pending,
+         accepted,
+         last_error,
+         round
+       ) do
+    request = %{segment | content: markdown_units_content(pending)}
+
+    payload =
+      state.work_item
+      |> payload(
+        request.content,
+        segment.server_context_body,
+        not is_nil(state.preserved_frontmatter),
+        last_error,
+        segment.kind,
+        index,
+        count
+      )
+      |> Map.put("source_context", markdown_units_context(segment))
+
+    case translate_stream(
+           state.account,
+           payload,
+           segment_on_event(state, segment),
+           state.translation_opts
+         ) do
+      {:ok, result} ->
+        {accepted, failures} =
+          result.text
+          |> decode_markdown_units()
+          |> accept_markdown_units(state.markdown_plan, pending, accepted)
+
+        cond do
+          failures == [] ->
+            {:ok, accepted, result}
+
+          round < @markdown_unit_attempts ->
+            message = markdown_unit_failure_message(failures)
+            emit_segment_event(state, segment, {:segment_retry, index, message})
+            failed = MapSet.new(failures, &elem(&1, 0))
+            pending = Enum.filter(pending, &MapSet.member?(failed, &1.id))
+
+            translate_markdown_unit_rounds(
+              state,
+              segment,
+              index,
+              count,
+              pending,
+              accepted,
+              message,
+              round + 1
+            )
+
+          true ->
+            {:preservation_error, markdown_unit_failure_message(failures)}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp markdown_units_context(segment) do
+    previous =
+      case Map.get(segment, :previous_translations, []) do
+        [] ->
+          ""
+
+        entries ->
+          "\n\nAlready translated earlier in this document:\n\n" <> Enum.join(entries, "\n\n")
+      end
+
+    segment.source_context <> previous
+  end
+
+  defp decode_markdown_units(text) do
+    if String.trim(text) == "", do: :empty, else: decode_markdown_units_object(text)
+  end
+
+  defp decode_markdown_units_object(text) do
+    text
+    |> String.trim()
+    |> strip_fence()
+    |> then(fn text ->
+      case {:binary.match(text, "{"), :binary.matches(text, "}")} do
+        {{start, _}, [_ | _] = closings} ->
+          {stop, _} = List.last(closings)
+          binary_part(text, start, stop - start + 1)
+
+        _ ->
+          text
+      end
+    end)
+    |> JSON.decode()
+    |> case do
+      {:ok, %{} = map} -> map
+      _ -> %{}
+    end
+  end
+
+  defp accept_markdown_units(:empty, _plan, pending, accepted) do
+    message = empty_output_message("markdown_units")
+    {accepted, Enum.map(pending, &{&1.id, message})}
+  end
+
+  defp accept_markdown_units(translations, plan, pending, accepted) do
+    Enum.reduce(pending, {accepted, []}, fn unit, {accepted, failures} ->
+      case accept_markdown_unit(plan, unit, Map.get(translations, unit.id)) do
+        {:ok, rendered, translated} ->
+          {Map.put(accepted, unit.id, %{rendered: rendered, translated: translated}), failures}
+
+        {:error, message} ->
+          {accepted, failures ++ [{unit.id, message}]}
+      end
+    end)
+  end
+
+  defp accept_markdown_unit(_plan, _unit, nil), do: {:error, "missing from the response"}
+
+  defp accept_markdown_unit(plan, unit, translated) when is_binary(translated) do
+    with false <- String.trim(translated) == "",
+         {:ok, restored} <- PreservedTokens.restore(translated, unit.protection),
+         {:ok, rendered} <- MarkdownUnits.render(unit, restored) do
+      # A translation that happens to contain Markdown punctuation can change
+      # the document's structure. Escaping that unit's prose fixes it without
+      # touching any syntax restored from the source.
+      with {:error, _message} <- MarkdownUnits.check(plan, %{unit.id => rendered}),
+           {:ok, escaped} <- MarkdownUnits.render(unit, restored, escape: true),
+           :ok <- MarkdownUnits.check(plan, %{unit.id => escaped}) do
+        {:ok, escaped, restored}
+      else
+        :ok -> {:ok, rendered, restored}
+        {:error, message} -> {:error, message}
+      end
+    else
+      true -> {:error, "the translation is empty"}
+      {:error, message} -> {:error, message}
+    end
+  end
+
+  defp accept_markdown_unit(_plan, _unit, _translated), do: {:error, "must be a string"}
+
+  # Grouped by reason, reason first, so the failure is classified by what went
+  # wrong and the model's retry feedback still names every affected unit.
+  defp markdown_unit_failure_message(failures) do
+    failures
+    |> Enum.group_by(&elem(&1, 1), &elem(&1, 0))
+    |> Enum.sort_by(fn {_message, [first | _]} -> unit_order({first, nil}) end)
+    |> Enum.map_join("; ", fn {message, ids} -> "#{message} (#{Enum.join(ids, ", ")})" end)
+  end
+
   defp planned_content_segments(content, "markdown", preserve_kinds, scope) do
     protection =
       PreservedTokens.protect(content, Enum.filter(preserve_kinds, &(&1 == "placeholders")),
@@ -1327,35 +1055,21 @@ defmodule Glossia.Translations.Engine do
     {content_segments(protection.text, format), [protection]}
   end
 
-  defp reconcile_markdown_segment(text, %{kind: "frontmatter"}, _format), do: {:ok, text}
+  defp reconcile_segment(text, %{kind: "frontmatter"}, _format), do: {:ok, text}
 
-  defp reconcile_markdown_segment(
+  defp reconcile_segment(
          text,
          %{kind: "frontmatter_text_literals", frontmatter_plan: plan},
          "markdown"
        ),
        do: Frontmatter.rebuild_nimble_publisher_text_literals(plan, text)
 
-  defp reconcile_markdown_segment(
-         text,
-         %{kind: "markdown_text_markers", markdown_source: source},
-         "markdown"
-       ) do
-    Markdown.reconcile_marked_text_nodes(source, text)
-  end
-
-  defp reconcile_markdown_segment(text, %{kind: "markdown_text_literal"}, "markdown"),
-    do: {:ok, text}
-
-  defp reconcile_markdown_segment(text, %{kind: "markdown_text_literals"}, "markdown"),
-    do: {:ok, text}
-
   # Model returns a JSON array of translated strings — one per source literal
   # in the shipped payload. In the full-file case the array covers every unit
   # in order. In the partial case the array only covers stale msgids; the
   # unchanged units' msgstrs are merged in from the previous output before
   # rebuilding the canonical `.po` from the source tree.
-  defp reconcile_markdown_segment(
+  defp reconcile_segment(
          text,
          %{kind: "po_text_literals", po_source: source} = segment,
          "po"
@@ -1377,15 +1091,7 @@ defmodule Glossia.Translations.Engine do
     end
   end
 
-  defp reconcile_markdown_segment(text, segment, "markdown") do
-    if Markdown.requires_reconciliation?(segment.content) do
-      Markdown.reconcile(segment.content, text)
-    else
-      {:ok, text}
-    end
-  end
-
-  defp reconcile_markdown_segment(text, _segment, _format), do: {:ok, text}
+  defp reconcile_segment(text, _segment, _format), do: {:ok, text}
 
   # Rebuild the flat, in-source-order translation list from either the
   # stale-only model response plus preserved msgstrs, or from the whole-file
@@ -1458,9 +1164,9 @@ defmodule Glossia.Translations.Engine do
     end
   end
 
-  defp translated_frontmatter_segments(frontmatter, preserve_kinds, body, work_item) do
-    {body_segments, body_protections} =
-      planned_content_segments(body, work_item.format, preserve_kinds, "body")
+  defp translated_frontmatter_segments(frontmatter, preserve_kinds, body) do
+    %{segments: body_segments, protections: body_protections, markdown_plan: markdown_plan} =
+      markdown_body_segments(body, preserve_kinds, "body")
 
     case Frontmatter.nimble_publisher_text_literals(frontmatter) do
       {:ok, plan} ->
@@ -1471,6 +1177,7 @@ defmodule Glossia.Translations.Engine do
 
         %{
           preserved_frontmatter: nil,
+          markdown_plan: markdown_plan,
           segments:
             [
               %{
@@ -1487,6 +1194,7 @@ defmodule Glossia.Translations.Engine do
 
         %{
           preserved_frontmatter: nil,
+          markdown_plan: markdown_plan,
           segments: [%{kind: "frontmatter", content: protection.text}] ++ body_segments,
           protections: [protection | body_protections]
         }

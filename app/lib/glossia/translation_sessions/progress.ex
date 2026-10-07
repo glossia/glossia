@@ -58,6 +58,7 @@ defmodule Glossia.TranslationSessions.Progress do
         reason
         glossary_applied
         glossary_shadowed
+        quality
       )a,
       %{},
       fn key, acc ->
@@ -153,7 +154,8 @@ defmodule Glossia.TranslationSessions.Progress do
           current_segment_text: "",
           turns: model_calls,
           glossary_applied: event[:glossary_applied] || item.glossary_applied,
-          glossary_shadowed: event[:glossary_shadowed] || item.glossary_shadowed
+          glossary_shadowed: event[:glossary_shadowed] || item.glossary_shadowed,
+          quality: event[:quality] || item.quality
       }
     end)
   end
@@ -395,7 +397,8 @@ defmodule Glossia.TranslationSessions.Progress do
       file_ref: nil,
       reason: nil,
       glossary_applied: [],
-      glossary_shadowed: []
+      glossary_shadowed: [],
+      quality: nil
     }
 
     %{

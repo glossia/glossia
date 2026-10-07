@@ -12,6 +12,8 @@ defmodule Glossia.TranslationSessions.Translate do
 
   alias Glossia.{Events, Ingestion, TranslationSessions}
   alias Glossia.Translations.Failure
+  alias Glossia.TranslationSessions.PublicationBatch
+  alias Glossia.TranslationSessions.PullRequestSummary
   alias Glossia.TranslationSessions.TranslationSession
 
   @translation_branch_prefix "glossia/translate"
@@ -64,20 +66,34 @@ defmodule Glossia.TranslationSessions.Translate do
       }
 
       locales = session.target_languages || []
+      batch = start_publication_batch(session, project, token)
 
       run_opts =
-        case publication_callback(session, project, token) do
+        case batch do
           nil -> []
-          callback -> [after_item_completed: callback]
+          batch -> [after_item_completed: &PublicationBatch.add(batch, &1)]
         end
 
-      case Glossia.Translations.RepositoryRun.run(session, account, repository, locales, run_opts) do
-        {:ok, changes} ->
-          result = publication_result(session, project, token, changes)
-          handle_translation_result(session, project, account, result)
+      try do
+        run_result =
+          Glossia.Translations.RepositoryRun.run(session, account, repository, locales, run_opts)
 
-        {:error, reason} ->
-          fail_translation(session, project, account, reason)
+        case {run_result, flush_publication_batch(batch)} do
+          {_run_result, {:error, :translation_cancelled}} ->
+            :ok
+
+          {{:ok, changes}, :ok} ->
+            result = publication_result(session, project, token, changes)
+            handle_translation_result(session, project, account, result)
+
+          {{:ok, _changes}, {:error, reason}} ->
+            fail_translation(session, project, account, reason)
+
+          {{:error, reason}, _flush_result} ->
+            fail_translation(session, project, account, reason)
+        end
+      after
+        if batch, do: PublicationBatch.stop(batch)
       end
     else
       {:error, :translation_cancelled} ->
@@ -185,14 +201,14 @@ defmodule Glossia.TranslationSessions.Translate do
       {:ok, %{"state" => "open"}} ->
         {:ok, session}
 
-      {:ok, %{"state" => "closed", "merged" => true}} ->
+      # A merged pull request landed its translations, and a closed one was
+      # rejected by someone on the project. Either way the next run starts a
+      # fresh branch from the default branch rather than building on it.
+      {:ok, %{"state" => "closed"}} ->
         with {:ok, session} <- reset_publication(session), do: {:reset, session}
 
-      {:ok, %{"state" => "closed"}} ->
-        clear_pull_request(session)
-
       {:error, {:api_error, 404, _body}} ->
-        clear_pull_request(session)
+        with {:ok, session} <- reset_publication(session), do: {:reset, session}
 
       {:ok, _response} ->
         {:error, :invalid_github_response}
@@ -203,13 +219,6 @@ defmodule Glossia.TranslationSessions.Translate do
   end
 
   defp refresh_inherited_pull_request(session, _project, _token), do: {:ok, session}
-
-  defp clear_pull_request(session) do
-    TranslationSessions.update_session_publication(session, %{
-      pull_request_url: nil,
-      pull_request_number: nil
-    })
-  end
 
   defp compare_source_history(
          %TranslationSession{commit_sha: previous_commit_sha},
@@ -373,18 +382,26 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
-  # Item workers run concurrently. GitHub commits must form a single linear
-  # history, so serialize checkpoints for one session before reading its latest
-  # published commit and advancing the translation branch.
-  defp publication_callback(session, project, clone_token)
+  # Item workers run concurrently and hand their validated files to a batch,
+  # which publishes them as one commit at a time. GitHub commits must form a
+  # single linear history, so `publish_changes/2` still serializes each push
+  # for the project before reading its latest published commit and advancing
+  # the translation branch.
+  defp start_publication_batch(session, project, clone_token)
        when not is_nil(project.github_installation) and is_binary(clone_token) and
               clone_token != "" do
-    fn changes ->
-      publish_changes(%{session_id: session.id}, %{changes: changes})
-    end
+    {:ok, batch} =
+      PublicationBatch.start_link(fn changes ->
+        publish_changes(%{session_id: session.id}, %{changes: changes})
+      end)
+
+    batch
   end
 
-  defp publication_callback(_session, _project, _clone_token), do: nil
+  defp start_publication_batch(_session, _project, _clone_token), do: nil
+
+  defp flush_publication_batch(nil), do: :ok
+  defp flush_publication_batch(batch), do: PublicationBatch.flush(batch)
 
   @doc false
   def serialize_project_publication(project_id, callback) do
@@ -472,6 +489,8 @@ defmodule Glossia.TranslationSessions.Translate do
           "content" => pull_request_url,
           "metadata" => %{"repo" => full_name}
         })
+      else
+        refresh_pull_request_description(updated_session, token)
       end
 
       {:ok, %{ref: branch_name, pull_request_url: pull_request_url}}
@@ -595,7 +614,7 @@ defmodule Glossia.TranslationSessions.Translate do
            full_name,
            %{
              title: translation_commit_message(session),
-             body: pull_request_body(session),
+             body: pull_request_description(%{session | publication_branch: branch_name}),
              head: branch_name,
              base: default_branch
            },
@@ -619,8 +638,10 @@ defmodule Glossia.TranslationSessions.Translate do
   defp handle_translation_result(session, project, account, {:published, _pull_request_url}) do
     summary = "Updated translation pull request."
 
-    with {:ok, _session} <-
+    with {:ok, finished} <-
            TranslationSessions.finish_session(session, "completed", summary: summary) do
+      refresh_pull_request_description(finished)
+
       Events.emit("translation_session.completed", account, nil,
         resource_type: "translation_session",
         resource_id: to_string(session.id),
@@ -688,6 +709,8 @@ defmodule Glossia.TranslationSessions.Translate do
 
     case TranslationSessions.finish_session(session, "failed", error: error_msg) do
       {:ok, finished_session} ->
+        refresh_pull_request_description(finished_session)
+
         if Glossia.TranslationSessions.ProviderRecovery.rate_limited?(reason) do
           Glossia.TranslationSessions.ProviderRecovery.schedule(finished_session)
         end
@@ -831,42 +854,63 @@ defmodule Glossia.TranslationSessions.Translate do
     end
   end
 
-  defp pull_request_body(session) do
-    languages =
-      case session.target_languages || [] do
-        [] -> "The translation run used the targets declared in `L10N.md`."
-        targets -> "Target languages: " <> Enum.join(targets, ", ") <> "."
-      end
+  defp pull_request_description(session) do
+    PullRequestSummary.body(session)
+  rescue
+    error ->
+      Logger.warning("Could not summarize the translation pull request",
+        translation_session_id: session.id,
+        reason: Exception.message(error)
+      )
 
-    commit =
-      case session.commit_sha do
-        sha when is_binary(sha) and sha != "" -> "Source commit: `#{sha}`."
-        _ -> "Source commit was not specified."
-      end
-
-    """
-    ## What changed
-
-    Glossia is translating stale or missing localized content and updating the corresponding `.glossia/` lockfiles. Each validated file is committed to this pull request as soon as it completes.
-
-    ## Why
-
-    #{languages}
-    #{commit}
-
-    ## Approach
-
-    The translation harness runs inside a sandbox, uses `L10N.md` to build the translation plan, and lets the lockfiles decide which outputs need work. The branch is updated incrementally while the session is running.
-
-    ## Impact
-
-    Reviewers should check the translated copy and keep the lockfile changes with the translated files.
-
-    ## Validation
-
-    Every committed file passed the translation validation before publication. More commits can appear until the session is complete.
-    """
+      "Glossia is translating this repository's content. The summary could not be generated."
   end
+
+  # The pull request description summarizes every run on the branch, so it is
+  # rewritten whenever the branch moves and when a run ends. It is a courtesy
+  # to reviewers: failing to update it never fails the translation.
+  defp refresh_pull_request_description(%TranslationSession{id: session_id}) do
+    session =
+      session_id
+      |> TranslationSessions.get_session!()
+      |> Glossia.Repo.preload(project: [:account, :github_installation])
+
+    with number when is_integer(number) <- session.pull_request_number,
+         %{github_installation_id: installation_id} <- session.project.github_installation,
+         {:ok, token} <- Glossia.Github.App.installation_token(installation_id) do
+      refresh_pull_request_description(session, token)
+    else
+      _ -> :ok
+    end
+  end
+
+  defp refresh_pull_request_description(
+         %TranslationSession{pull_request_number: number} = session,
+         token
+       )
+       when is_integer(number) do
+    session = Glossia.Repo.preload(session, project: [:account])
+
+    case Glossia.Github.Client.update_pull_request(
+           session.project.github_repo_full_name,
+           number,
+           %{body: pull_request_description(session)},
+           token
+         ) do
+      {:ok, _pull_request} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning("Could not update the translation pull request description",
+          translation_session_id: session.id,
+          reason: inspect(reason)
+        )
+
+        :ok
+    end
+  end
+
+  defp refresh_pull_request_description(_session, _token), do: :ok
 
   defp humanize_error(:translation_harness_failed),
     do: "The translation harness encountered an error and could not complete."

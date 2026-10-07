@@ -72,19 +72,14 @@ defmodule Glossia.Translations.PromptTest do
       assert prompt =~ "Never return an empty response for a non-empty metadata block."
     end
 
-    test "requires exact Markdown text recovery markers" do
-      prompt = Prompt.build_system_prompt(base(%{segment_kind: "markdown_text_markers"}))
+    test "explains the Markdown unit tags and the JSON object contract" do
+      prompt = Prompt.build_system_prompt(base(%{segment_kind: "markdown_units"}))
 
-      assert prompt =~ "@@GLOSSIA-TEXT-<number>-START@@"
-      assert prompt =~ "Copy every marker byte-for-byte exactly once"
-    end
-
-    test "requires a JSON array for batched Markdown text recovery" do
-      prompt = Prompt.build_system_prompt(base(%{segment_kind: "markdown_text_literals"}))
-
-      assert prompt =~ "JSON array of plain-text literals"
-      assert prompt =~ "exactly the same order"
-      assert prompt =~ "exactly the same number of elements"
+      assert prompt =~ "<gN>...</gN> wraps formatted or linked words"
+      assert prompt =~ "<gN/> stands for content that must not change"
+      assert prompt =~ "keep every tag exactly once"
+      assert prompt =~ "Return only a JSON object that maps every id to its translated text"
+      assert prompt =~ "provided for reference only"
     end
 
     test "appends a non-blank custom prompt, trimmed" do
@@ -199,20 +194,6 @@ defmodule Glossia.Translations.PromptTest do
       assert prompt =~ "Return a corrected translation of only this supplied segment."
     end
 
-    test "adds Markdown structure repair guidance after a structure validation error" do
-      prompt =
-        Prompt.build_user_prompt(
-          "English",
-          "de",
-          "German",
-          "## Heading\n\nParagraph.",
-          "translated Markdown changed the document structure at document.1"
-        )
-
-      assert prompt =~ "Do not alter the Markdown structure."
-      assert prompt =~ "Keep every heading, block quote, list item, paragraph, and its order"
-    end
-
     test "ignores a blank previous error" do
       refute Prompt.build_user_prompt("English", "es", "Spanish", "Hello.", "  ") =~
                "reassembled document previously failed validation"
@@ -250,34 +231,26 @@ defmodule Glossia.Translations.PromptTest do
       assert prompt =~ "Do not return an empty response."
     end
 
-    test "limits Markdown marker recovery to delimited prose" do
+    test "sends Markdown units after the read-only document context" do
       prompt =
         Prompt.build_user_prompt(
           "English",
           "es",
           "Spanish",
-          "@@GLOSSIA-TEXT-1-START@@Hello@@GLOSSIA-TEXT-1-END@@",
+          ~s([{"id":"u1","text":"Read the <g1>guide</g1>."}]),
           nil,
-          %{kind: "markdown_text_markers", index: 1, count: 1}
+          %{
+            kind: "markdown_units",
+            index: 1,
+            count: 1,
+            context: "# Guide\n\nRead the [guide](/x)."
+          }
         )
 
-      assert prompt =~ "Translate only the prose between matching @@GLOSSIA-TEXT-<number>-START@@"
-      assert prompt =~ "Return every marker exactly once."
-    end
+      assert prompt =~ "Return only a JSON object mapping each id to its translated text"
 
-    test "requires a matching JSON array for batched Markdown text recovery" do
-      prompt =
-        Prompt.build_user_prompt(
-          "English",
-          "es",
-          "Spanish",
-          ~s(["Hello", "world"]),
-          nil,
-          %{kind: "markdown_text_literals", index: 1, count: 1}
-        )
-
-      assert prompt =~ "Translate every string in this JSON array"
-      assert prompt =~ "same number of elements and the same order"
+      assert prompt =~
+               "Reference (do not translate or return):\n<<<\n# Guide\n\nRead the [guide](/x).\n>>>\n\nTranslate:\n[{\"id\":\"u1\""
     end
   end
 end

@@ -158,6 +158,28 @@ defmodule Glossia.Translations.TokenUsage do
 
   defp metadata(_value, _limit), do: nil
 
+  @doc """
+  Usage recorded for `project_id` since `since`, totalled per model.
+
+  Returns a list of `%{model, responses, input_tokens, output_tokens,
+  cached_tokens}` ordered by output tokens, largest first.
+  """
+  def project_totals(project_id, %DateTime{} = since) do
+    Repo.all(
+      from u in TokenUsage,
+        where: u.project_id == ^project_id and u.inserted_at >= ^since,
+        group_by: u.model,
+        order_by: [desc: sum(u.output_tokens)],
+        select: %{
+          model: u.model,
+          responses: count(u.id),
+          input_tokens: coalesce(sum(u.input_tokens), 0),
+          output_tokens: coalesce(sum(u.output_tokens), 0),
+          cached_tokens: coalesce(sum(u.cached_tokens), 0)
+        }
+    )
+  end
+
   @doc "Aggregates one account's ledger with a common scope for totals and daily usage."
   def overview(account, params \\ %{}, filters \\ []) do
     dimension =

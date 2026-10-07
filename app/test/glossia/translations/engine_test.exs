@@ -8,6 +8,7 @@ defmodule Glossia.Translations.EngineTest do
   alias Glossia.Translations
   alias Glossia.Translations.Context
   alias Glossia.Translations.Engine
+  alias Glossia.TranslationStubs
 
   defp work_item(overrides) do
     Map.merge(
@@ -94,10 +95,11 @@ defmodule Glossia.Translations.EngineTest do
       File.write!(source, "---\ntitle: Hi\n---\nHello, world.")
 
       stub_stream(fn %Account{}, payload, on_event ->
-        assert payload["source_content"] == "Hello, world."
+        assert payload["segment_kind"] == "markdown_units"
+        assert TranslationStubs.unit_texts(payload) == ["Hello, world."]
         assert payload["frontmatter_preserved"] == true
         on_event.(:turn_start)
-        translated("Hola, mundo.")
+        translated(TranslationStubs.respond(payload, fn "Hello, world." -> "Hola, mundo." end))
       end)
 
       assert {:ok, result} =
@@ -107,6 +109,156 @@ defmodule Glossia.Translations.EngineTest do
 
       assert result.text == "---\ntitle: Hi\n---\nHola, mundo."
       assert result.output_path == "docs/i18n/es/guide.md"
+    end
+
+    @tag :tmp_dir
+    test "translates Markdown sentence by sentence and keeps every other byte", %{tmp_dir: dir} do
+      source = Path.join(dir, "cache.md")
+
+      body = """
+      # Cache {#cache}
+
+      Run `tuist cache` on [Tuist Runners](https://tuist.dev/runners) to get warm hits.
+
+      <.home_card
+        title="Module cache"
+        link="/guides/features/cache/module-cache"
+      />
+
+      > [!TIP]
+      > See the <.localized_link href="/cli/release-channels">release channels</.localized_link>.
+      """
+
+      File.write!(source, "---\ntitle: Cache\n---\n" <> body)
+      test_pid = self()
+
+      stub_stream(fn _account, payload, _on_event ->
+        send(test_pid, {:payload, payload})
+
+        translated(
+          TranslationStubs.respond(payload, fn
+            "Cache <g1/>" ->
+              "Caché <g1/>"
+
+            "Run <g1/> on <g2>Tuist Runners</g2> to get warm hits." ->
+              "En <g2>Tuist Runners</g2>, ejecuta <g1/> para obtener aciertos."
+
+            "Module cache" ->
+              "Caché de módulos"
+
+            "See the <g1/>release channels<g2/>." ->
+              "Consulta los <g1/>canales de lanzamiento<g2/>."
+          end)
+        )
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ ->
+                 :ok
+               end)
+
+      assert result.text ==
+               "---\ntitle: Cache\n---\n" <>
+                 """
+                 # Caché {#cache}
+
+                 En [Tuist Runners](https://tuist.dev/runners), ejecuta `tuist cache` para obtener aciertos.
+
+                 <.home_card
+                   title="Caché de módulos"
+                   link="/guides/features/cache/module-cache"
+                 />
+
+                 > [!TIP]
+                 > Consulta los <.localized_link href="/cli/release-channels">canales de lanzamiento</.localized_link>.
+                 """
+
+      # One request carries the whole document as read-only context.
+      assert_received {:payload, payload}
+      refute_received {:payload, _another}
+      assert payload["source_context"] == String.trim_trailing(body)
+    end
+
+    @tag :tmp_dir
+    test "resends only the Markdown units that came back invalid", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "Read the [guide](https://example.com).\n\nRun `mix test` now.\n")
+      test_pid = self()
+
+      stub_stream(fn _account, payload, _on_event ->
+        send(test_pid, {:request, TranslationStubs.unit_texts(payload), payload["last_error"]})
+
+        translated(
+          TranslationStubs.respond(payload, fn
+            "Read the <g1>guide</g1>." ->
+              "Lee la <g1>guía</g1>."
+
+            "Run <g1/> now." ->
+              if payload["last_error"], do: "Ejecuta <g1/> ahora.", else: "Ejecuta ahora."
+          end)
+        )
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ ->
+                 :ok
+               end)
+
+      assert result.text == "Lee la [guía](https://example.com).\n\nEjecuta `mix test` ahora.\n"
+
+      assert_received {:request, ["Read the <g1>guide</g1>.", "Run <g1/> now."], nil}
+      assert_received {:request, ["Run <g1/> now."], error}
+      assert error == "every tag must appear exactly once: <g1/> (u2)"
+      refute_received {:request, _texts, _error}
+    end
+
+    @tag :tmp_dir
+    test "escapes a translation that would add Markdown structure without asking again", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "Intro.\n\nNumbers matter.\n")
+      test_pid = self()
+
+      stub_stream(fn _account, payload, _on_event ->
+        send(test_pid, :request)
+
+        translated(
+          TranslationStubs.respond(payload, fn
+            "Intro." -> "# Introducción"
+            "Numbers matter." -> "1. Los números importan."
+          end)
+        )
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ ->
+                 :ok
+               end)
+
+      assert result.text == "\\# Introducción\n\n1\\. Los números importan.\n"
+      assert_received :request
+      refute_received :request
+    end
+
+    @tag :tmp_dir
+    test "fails a Markdown file whose units stay invalid after every round", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "Run `mix test` now.\n")
+      test_pid = self()
+
+      stub_stream(fn _account, payload, _on_event ->
+        send(test_pid, :request)
+        translated(TranslationStubs.respond(payload, fn _text -> "Ejecuta ahora." end))
+      end)
+
+      item = work_item(%{source_abs: source, retries: 0})
+
+      assert {:error, {:validation_failed, "every tag must appear exactly once: <g1/> (u1)"}} =
+               Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+
+      for _round <- 1..3, do: assert_received(:request)
+      refute_received :request
     end
 
     @tag :tmp_dir
@@ -121,7 +273,7 @@ defmodule Glossia.Translations.EngineTest do
       assert {:error, {:validation_failed, message}} =
                Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
 
-      assert message == "translated output was empty for non-empty source content"
+      assert message == "translated output was empty for non-empty source content (u1, u2)"
     end
 
     @tag :tmp_dir
@@ -145,8 +297,8 @@ defmodule Glossia.Translations.EngineTest do
             assert error =~ "return the complete frontmatter block"
             translated(JSON.encode!(["Hola"]))
 
-          {"content", _error} ->
-            translated("Cuerpo")
+          {"markdown_units", _error} ->
+            translated(TranslationStubs.respond(payload, fn "Body" -> "Cuerpo" end))
         end
       end)
 
@@ -154,7 +306,7 @@ defmodule Glossia.Translations.EngineTest do
 
       log =
         capture_log([level: :warning], fn ->
-          assert {:ok, %{text: "%{title: \"Hola\"}\n---\nCuerpo"}} =
+          assert {:ok, %{text: "%{title: \"Hola\"}\n---\n\nCuerpo"}} =
                    Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
         end)
 
@@ -169,7 +321,7 @@ defmodule Glossia.Translations.EngineTest do
                {"frontmatter_text_literals", nil},
                {"frontmatter_text_literals",
                 "translated output was empty for non-empty frontmatter; return the complete frontmatter block with its syntax and delimiters intact"},
-               {"content", nil}
+               {"markdown_units", nil}
              ]
     end
 
@@ -193,11 +345,13 @@ defmodule Glossia.Translations.EngineTest do
         Elixir.Agent.update(payloads, &[payload | &1])
 
         translated(
-          payload["source_content"]
-          |> String.replace("First", "Primero")
-          |> String.replace("Second", "Segundo")
-          |> String.replace("Guide", "Guía")
-          |> String.replace("Next", "Siguiente")
+          TranslationStubs.respond(payload, fn text ->
+            text
+            |> String.replace("First", "Primero")
+            |> String.replace("Second", "Segundo")
+            |> String.replace("Guide", "Guía")
+            |> String.replace("Next", "Siguiente")
+          end)
         )
       end)
 
@@ -206,14 +360,25 @@ defmodule Glossia.Translations.EngineTest do
                  :ok
                end)
 
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert length(calls) == 2
-      assert Enum.all?(calls, &(&1["segment_count"] == 2))
-      assert Enum.all?(calls, &(&1["segment_kind"] == "content"))
-      refute Enum.any?(calls, &String.contains?(&1["source_content"], ~s(title: "Hello")))
+      assert [first_call, second_call] = payloads |> Elixir.Agent.get(&Enum.reverse/1)
+      assert Enum.all?([first_call, second_call], &(&1["segment_count"] == 2))
+      assert Enum.all?([first_call, second_call], &(&1["segment_kind"] == "markdown_units"))
 
-      assert result.text =~ "# Guía"
-      assert result.text =~ "## Siguiente"
+      refute Enum.any?(
+               [first_call, second_call],
+               &String.contains?(&1["source_content"], ~s(title: "Hello"))
+             )
+
+      # Every batch reads the document around it, and a later batch also sees
+      # the most recent passages already translated, so terminology stays
+      # consistent.
+      assert first_call["source_context"] =~ "## Next"
+      refute first_call["source_context"] =~ "Already translated"
+      assert second_call["source_context"] =~ "Already translated earlier in this document"
+      assert second_call["source_context"] =~ "Next\n=> Siguiente"
+
+      assert result.text =~ "\n# Guía\n"
+      assert result.text =~ "\n## Siguiente\n"
       assert result.text =~ "Primero paragraph remains together."
       assert result.text =~ "Segundo paragraph remains together."
     end
@@ -383,8 +548,12 @@ defmodule Glossia.Translations.EngineTest do
             assert JSON.decode!(payload["source_content"]) == ["Hello"]
             translated(JSON.encode!(["Hola"]))
 
-          "content" ->
-            translated("Cuerpo #{payload["segment_index"]}")
+          "markdown_units" ->
+            translated(
+              TranslationStubs.respond(payload, fn _text ->
+                "Cuerpo #{payload["segment_index"]}"
+              end)
+            )
         end
       end)
 
@@ -395,14 +564,14 @@ defmodule Glossia.Translations.EngineTest do
 
       assert Enum.map(calls, & &1["segment_kind"]) == [
                "frontmatter_text_literals",
-               "content",
-               "content"
+               "markdown_units",
+               "markdown_units"
              ]
 
       assert Enum.all?(calls, &(&1["segment_count"] == 3))
 
       assert result.text ==
-               "%{title: \"Hola\"}\n---\nCuerpo 2\n\nCuerpo 3"
+               "%{title: \"Hola\"}\n---\n\nCuerpo 2 \n\nCuerpo 3 "
     end
 
     @tag :tmp_dir
@@ -422,8 +591,8 @@ defmodule Glossia.Translations.EngineTest do
             assert JSON.decode!(payload["source_content"]) == ["Hello", "A summary"]
             translated(JSON.encode!(["Hola", "Un resumen"]))
 
-          "content" ->
-            translated("Cuerpo")
+          "markdown_units" ->
+            translated(TranslationStubs.respond(payload, fn "Body" -> "Cuerpo" end))
         end
       end)
 
@@ -435,7 +604,7 @@ defmodule Glossia.Translations.EngineTest do
                )
 
       assert result.text ==
-               "%{title: \"Hola\", summary: \"Un resumen\", date: ~D[2026-02-03], slug: \"guide\", author: \"pepicrft\"}\n---\nCuerpo"
+               "%{title: \"Hola\", summary: \"Un resumen\", date: ~D[2026-02-03], slug: \"guide\", author: \"pepicrft\"}\n---\n\nCuerpo"
     end
 
     @tag :tmp_dir
@@ -511,7 +680,6 @@ defmodule Glossia.Translations.EngineTest do
       assert result.text =~ ~s(msgid "Message 400")
     end
 
-    @tag :tmp_dir
     @tag :tmp_dir
     test "surfaces a per-file preservation error when preserved translations skew from source shape",
          %{tmp_dir: dir} do
@@ -648,721 +816,6 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "recovers a Markdown structure failure through text markers before splitting blocks", %{
-      tmp_dir: dir
-    } do
-      source = Path.join(dir, "guide.md")
-      File.write!(source, "[Guide](https://example.com/guide)\n\nParagraph.")
-
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        Elixir.Agent.update(payloads, &[payload | &1])
-
-        case String.trim(payload["source_content"]) do
-          "[Guide](https://example.com/guide)\n\nParagraph." ->
-            translated("Guide\n\nParagraph.")
-
-          marked when is_binary(marked) ->
-            assert payload["segment_kind"] == "markdown_text_markers"
-
-            translated(
-              "@@GLOSSIA-TEXT-1-START@@Leitfaden@@GLOSSIA-TEXT-1-END@@\n\n" <>
-                "@@GLOSSIA-TEXT-2-START@@Absatz.@@GLOSSIA-TEXT-2-END@@"
-            )
-        end
-      end)
-
-      item = work_item(%{source_abs: source, retries: 1})
-
-      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
-      assert result.text == "[Leitfaden](https://example.com/guide)\n\nAbsatz."
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert Enum.map(calls, & &1["segment_kind"]) == ["content", "markdown_text_markers"]
-    end
-
-    @tag :tmp_dir
-    test "recovers a structurally invalid Markdown block through text markers", %{tmp_dir: dir} do
-      source = Path.join(dir, "guide.md")
-      File.write!(source, "Read [the guide](https://example.com/guide).")
-
-      stub_stream(fn _account, payload, _on_event ->
-        if String.contains?(payload["source_content"], "@@GLOSSIA-TEXT-") do
-          translated(
-            "@@GLOSSIA-TEXT-1-START@@Lee @@GLOSSIA-TEXT-1-END@@" <>
-              "@@GLOSSIA-TEXT-2-START@@la guía@@GLOSSIA-TEXT-2-END@@" <>
-              "@@GLOSSIA-TEXT-3-START@@.@@GLOSSIA-TEXT-3-END@@"
-          )
-        else
-          translated("Lee la guía.")
-        end
-      end)
-
-      item = work_item(%{source_abs: source, retries: 0})
-
-      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
-      assert result.text == "Lee [la guía](https://example.com/guide)."
-    end
-
-    @tag :tmp_dir
-    test "falls back to source blocks when marker recovery is invalid", %{tmp_dir: dir} do
-      source = Path.join(dir, "guide.md")
-      File.write!(source, "[Guide](https://example.com/guide)\n\nParagraph.")
-
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        Elixir.Agent.update(payloads, &[payload | &1])
-
-        cond do
-          payload["segment_kind"] == "markdown_text_markers" ->
-            translated("The required recovery markers are absent.")
-
-          String.trim(payload["source_content"]) ==
-              "[Guide](https://example.com/guide)\n\nParagraph." ->
-            translated("Guide\n\nParagraph.")
-
-          String.trim(payload["source_content"]) == "[Guide](https://example.com/guide)" ->
-            translated("[Leitfaden](https://example.com/guide)")
-
-          String.trim(payload["source_content"]) == "Paragraph." ->
-            translated("Absatz.")
-        end
-      end)
-
-      assert {:ok, result} =
-               Engine.apply_item(
-                 work_item(%{source_abs: source, retries: 1}),
-                 %Account{id: 1},
-                 fn _ ->
-                   :ok
-                 end
-               )
-
-      assert result.text == "[Leitfaden](https://example.com/guide)\n\nAbsatz."
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert Enum.count(calls, &(&1["segment_kind"] == "markdown_text_markers")) == 2
-    end
-
-    @tag :tmp_dir
-    test "recovers a dropped Markdown link through text markers", %{tmp_dir: dir} do
-      source = Path.join(dir, "guide.md")
-      File.write!(source, "Read [the guide](https://example.com/guide).")
-
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        Elixir.Agent.update(payloads, &[payload | &1])
-
-        case payload["segment_kind"] do
-          "markdown_text_markers" ->
-            translated(
-              "@@GLOSSIA-TEXT-1-START@@Lee @@GLOSSIA-TEXT-1-END@@" <>
-                "@@GLOSSIA-TEXT-2-START@@la guía@@GLOSSIA-TEXT-2-END@@" <>
-                "@@GLOSSIA-TEXT-3-START@@.@@GLOSSIA-TEXT-3-END@@"
-            )
-
-          _ ->
-            translated("Lee la guía.")
-        end
-      end)
-
-      assert {:ok, result} =
-               Engine.apply_item(
-                 work_item(%{source_abs: source, retries: 0}),
-                 %Account{id: 1},
-                 fn _ -> :ok end
-               )
-
-      assert result.text == "Lee [la guía](https://example.com/guide)."
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert Enum.map(calls, & &1["segment_kind"]) == ["content", "markdown_text_markers"]
-    end
-
-    @tag :tmp_dir
-    test "rebuilds Markdown from bounded text-literal batches after every structural recovery fails",
-         %{
-           tmp_dir: dir
-         } do
-      source = Path.join(dir, "guide.md")
-      File.write!(source, "Read [Guide](https://example.com/guide) now.")
-
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-      {:ok, progress} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, on_event ->
-        Elixir.Agent.update(payloads, &[payload | &1])
-
-        case payload["segment_kind"] do
-          "markdown_text_markers" ->
-            translated("The required recovery markers are absent.")
-
-          "markdown_text_literals" ->
-            assert JSON.decode!(payload["source_content"]) == ["Read", "Guide", "now."]
-            on_event.({:text, "Lies"})
-            translated(JSON.encode!(["Lies", "Leitfaden", "jetzt."]))
-
-          _ ->
-            translated("Read Guide now.")
-        end
-      end)
-
-      item = work_item(%{source_abs: source, retries: 0})
-      on_event = fn event -> Elixir.Agent.update(progress, &[event | &1]) end
-
-      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, on_event)
-      assert result.text == "Lies [Leitfaden](https://example.com/guide) jetzt."
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literals"))
-
-      literal_batches =
-        calls
-        |> Enum.filter(&(&1["segment_kind"] == "markdown_text_literals"))
-        |> Enum.map(& &1["source_content"])
-
-      assert literal_batches == [JSON.encode!(["Read", "Guide", "now."])]
-
-      outputs =
-        progress
-        |> Elixir.Agent.get(&Enum.reverse/1)
-        |> Enum.filter(&match?({:segment_output, _}, &1))
-
-      assert outputs == [{:segment_output, "Lies [Leitfaden](https://example.com/guide) jetzt."}]
-
-      progress_events = progress |> Elixir.Agent.get(&Enum.reverse/1)
-      refute Enum.any?(progress_events, &match?({:text, _}, &1))
-    end
-
-    @tag :tmp_dir
-    test "preserves whitespace-only Markdown literals during text-literal recovery", %{
-      tmp_dir: dir
-    } do
-      source = Path.join(dir, "guide.md")
-      File.write!(source, "[Guide](https://example.com/guide) [Next](https://example.com/next)")
-
-      stub_stream(fn _account, payload, _on_event ->
-        case payload["segment_kind"] do
-          "markdown_text_literals" ->
-            assert JSON.decode!(payload["source_content"]) == ["Guide", "Next"]
-            translated(JSON.encode!(["Guía", "Siguiente"]))
-
-          _ ->
-            translated("The links and their destinations were lost.")
-        end
-      end)
-
-      assert {:ok, result} =
-               Engine.apply_item(
-                 work_item(%{source_abs: source, retries: 0}),
-                 %Account{id: 1},
-                 fn _ -> :ok end
-               )
-
-      assert result.text ==
-               "[Guía](https://example.com/guide) [Siguiente](https://example.com/next)"
-    end
-
-    @tag :tmp_dir
-    test "translates large Markdown segments as bounded text-literal batches", %{tmp_dir: dir} do
-      source = Path.join(dir, "guide.md")
-
-      content =
-        1..12
-        |> Enum.map_join("\n\n", fn index ->
-          "Read [guide #{index}](https://example.com/#{index})."
-        end)
-
-      File.write!(source, content)
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        Elixir.Agent.update(payloads, &[payload | &1])
-
-        case payload["segment_kind"] do
-          "markdown_text_literals" ->
-            translated =
-              payload["source_content"]
-              |> JSON.decode!()
-              |> Enum.map(&"translated #{&1}")
-              |> JSON.encode!()
-
-            translated(translated)
-
-          other ->
-            flunk("expected bounded Markdown literal batch, got #{inspect(other)}")
-        end
-      end)
-
-      assert {:ok, result} =
-               Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ ->
-                 :ok
-               end)
-
-      assert result.text =~ "[translated guide 1](https://example.com/1)"
-      assert result.text =~ "[translated guide 12](https://example.com/12)"
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert length(calls) > 1
-      assert Enum.all?(calls, &(&1["segment_kind"] == "markdown_text_literals"))
-
-      assert Enum.all?(calls, fn payload ->
-               payload["source_content"]
-               |> JSON.decode!()
-               |> length()
-               |> Kernel.<=(8)
-             end)
-    end
-
-    @tag :tmp_dir
-    test "retries only an invalid Markdown text-literal batch with validation feedback", %{
-      tmp_dir: dir
-    } do
-      source = Path.join(dir, "guide.md")
-
-      content =
-        1..12
-        |> Enum.map_join("\n\n", fn index ->
-          "Read [guide #{index}](https://example.com/#{index})."
-        end)
-
-      File.write!(source, content)
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        call_index =
-          Elixir.Agent.get_and_update(payloads, fn calls ->
-            {length(calls), [payload | calls]}
-          end)
-
-        case payload["segment_kind"] do
-          "markdown_text_literals" ->
-            if call_index == 0 do
-              translated("not a JSON string array")
-            else
-              translated =
-                payload["source_content"]
-                |> JSON.decode!()
-                |> Enum.map(&"translated #{&1}")
-                |> JSON.encode!()
-
-              translated(translated)
-            end
-
-          other ->
-            flunk("expected bounded Markdown literal batch, got #{inspect(other)}")
-        end
-      end)
-
-      assert {:ok, result} =
-               Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ ->
-                 :ok
-               end)
-
-      assert result.text =~ "[translated guide 1](https://example.com/1)"
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert length(calls) == 6
-
-      assert Enum.at(calls, 1)["last_error"] ==
-               "Markdown text-literal recovery returned invalid JSON"
-
-      assert Enum.at(calls, 2)["last_error"] == nil
-    end
-
-    @tag :tmp_dir
-    test "splits a persistently malformed Markdown text-literal batch", %{tmp_dir: dir} do
-      source = Path.join(dir, "guide.md")
-
-      content =
-        1..12
-        |> Enum.map_join("\n\n", fn index ->
-          "Read [guide #{index}](https://example.com/#{index})."
-        end)
-
-      File.write!(source, content)
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        call_index =
-          Elixir.Agent.get_and_update(payloads, fn calls ->
-            {length(calls), [payload | calls]}
-          end)
-
-        case payload["segment_kind"] do
-          "markdown_text_literals" when call_index in [0, 1] ->
-            translated("not a JSON string array")
-
-          "markdown_text_literals" ->
-            translated =
-              payload["source_content"]
-              |> JSON.decode!()
-              |> Enum.map(&"translated #{&1}")
-              |> JSON.encode!()
-
-            translated(translated)
-
-          other ->
-            flunk("expected bounded Markdown literal batch, got #{inspect(other)}")
-        end
-      end)
-
-      assert {:ok, result} =
-               Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ ->
-                 :ok
-               end)
-
-      assert result.text =~ "[translated guide 1](https://example.com/1)"
-      assert result.text =~ "[translated guide 12](https://example.com/12)"
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-
-      assert Enum.map(calls, fn payload ->
-               payload["source_content"] |> JSON.decode!() |> length()
-             end) == [8, 8, 4, 4, 8, 8, 8, 4]
-
-      assert Enum.all?(calls, &(&1["segment_kind"] == "markdown_text_literals"))
-    end
-
-    @tag :tmp_dir
-    test "does not split or restart Markdown after exhausted provider retries", %{tmp_dir: dir} do
-      source = Path.join(dir, "guide.md")
-
-      content =
-        1..12
-        |> Enum.map_join("\n\n", fn index ->
-          "Read [guide #{index}](https://example.com/#{index})."
-        end)
-
-      File.write!(source, content)
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        call_index =
-          Elixir.Agent.get_and_update(payloads, fn calls ->
-            {length(calls), [payload | calls]}
-          end)
-
-        case payload["segment_kind"] do
-          "markdown_text_literals" when call_index == 0 ->
-            {:error, :provider_unavailable}
-
-          "markdown_text_literals" ->
-            translated =
-              payload["source_content"]
-              |> JSON.decode!()
-              |> Enum.map(&"translated #{&1}")
-              |> JSON.encode!()
-
-            translated(translated)
-
-          other ->
-            flunk("expected bounded Markdown literal batch, got #{inspect(other)}")
-        end
-      end)
-
-      assert {:error, {:llm_failed, :provider_unavailable}} =
-               Engine.apply_item(work_item(%{source_abs: source}), %Account{id: 1}, fn _ ->
-                 :ok
-               end)
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert length(calls) == 1
-    end
-
-    @tag :tmp_dir
-    test "masks bare web addresses during batched Markdown text-literal recovery", %{
-      tmp_dir: dir
-    } do
-      source = Path.join(dir, "guide.md")
-      File.write!(source, "Find details at https://example.com/docs.")
-
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        Elixir.Agent.update(payloads, &[payload | &1])
-
-        case payload["segment_kind"] do
-          "markdown_text_literals" ->
-            [literal] = JSON.decode!(payload["source_content"])
-            assert literal =~ "__GLOSSIA_URL_"
-
-            translated(
-              JSON.encode!([String.replace(literal, "Find details at", "Weitere Details unter")])
-            )
-
-          "markdown_text_markers" ->
-            translated("The required recovery markers are absent.")
-
-          _ ->
-            translated("Weitere Details.")
-        end
-      end)
-
-      assert {:ok, result} =
-               Engine.apply_item(
-                 work_item(%{source_abs: source, retries: 0}),
-                 %Account{id: 1},
-                 fn _ -> :ok end
-               )
-
-      assert result.text == "Weitere Details unter https://example.com/docs."
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-
-      assert Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literals"))
-
-      refute Enum.any?(
-               calls,
-               fn payload ->
-                 payload["segment_kind"] == "markdown_text_literals" and
-                   payload["source_content"]
-                   |> JSON.decode!()
-                   |> Enum.any?(&(&1 =~ "https://example.com/docs"))
-               end
-             )
-    end
-
-    @tag :tmp_dir
-    test "bounds individual text-literal recovery", %{tmp_dir: dir} do
-      source = Path.join(dir, "guide.md")
-
-      content =
-        1..129
-        |> Enum.map_join(" ", fn index ->
-          "[Sentence #{index}](https://example.com/#{index})."
-        end)
-
-      File.write!(source, content)
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        Elixir.Agent.update(payloads, &[payload | &1])
-
-        if payload["segment_kind"] == "markdown_text_markers" do
-          translated("The required recovery markers are absent.")
-        else
-          translated("All sentences.")
-        end
-      end)
-
-      log =
-        capture_log(fn ->
-          assert {:error, {:validation_failed, _message}} =
-                   Engine.apply_item(
-                     work_item(%{source_abs: source, retries: 0}),
-                     %Account{id: 1},
-                     fn _ -> :ok end
-                   )
-        end)
-
-      assert log =~ ~s("validation_stage":"segment_recovery")
-      assert log =~ ~s("retrying":false)
-      refute log =~ "Sentence 1"
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      refute Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_literals"))
-    end
-
-    @tag :tmp_dir
-    test "does not run marker recovery when source prose contains a marker lookalike", %{
-      tmp_dir: dir
-    } do
-      source = Path.join(dir, "guide.md")
-
-      File.write!(
-        source,
-        "Docs mention @@GLOSSIA-TEXT-1-START@@ [the guide](https://example.com/guide)."
-      )
-
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        Elixir.Agent.update(payloads, &[payload | &1])
-        translated("Docs mention the guide.")
-      end)
-
-      assert {:error, {:validation_failed, message}} =
-               Engine.apply_item(
-                 work_item(%{source_abs: source, retries: 0}),
-                 %Account{id: 1},
-                 fn _ ->
-                   :ok
-                 end
-               )
-
-      assert message =~ "changed the document structure"
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      refute Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_markers"))
-    end
-
-    @tag :tmp_dir
-    test "recovers dense Markdown through markers instead of failing a single source block", %{
-      tmp_dir: dir
-    } do
-      source = Path.join(dir, "guide.md")
-      File.write!(source, String.duplicate("[Guide](https://example.com/guide) ", 110))
-
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        Elixir.Agent.update(payloads, &[payload | &1])
-
-        if payload["segment_kind"] == "markdown_text_markers" do
-          translated(payload["source_content"])
-        else
-          translated("Guide")
-        end
-      end)
-
-      assert {:ok, result} =
-               Engine.apply_item(
-                 work_item(%{source_abs: source, retries: 0}),
-                 %Account{id: 1},
-                 fn _ ->
-                   :ok
-                 end
-               )
-
-      assert result.text =~ "[Guide](https://example.com/guide)"
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_markers"))
-    end
-
-    @tag :tmp_dir
-    test "returns a marker recovery provider error without trying source blocks", %{tmp_dir: dir} do
-      source = Path.join(dir, "guide.md")
-      File.write!(source, "Read [the guide](https://example.com/guide).")
-
-      stub_stream(fn _account, payload, _on_event ->
-        if payload["segment_kind"] == "markdown_text_markers" do
-          {:error, :provider_timeout}
-        else
-          translated("Read the guide.")
-        end
-      end)
-
-      assert {:error, {:llm_failed, :provider_timeout}} =
-               Engine.apply_item(
-                 work_item(%{source_abs: source, retries: 0}),
-                 %Account{id: 1},
-                 fn _ ->
-                   :ok
-                 end
-               )
-    end
-
-    @tag :tmp_dir
-    test "reassembles Markdown structure while keeping placeholders opaque", %{
-      tmp_dir: dir
-    } do
-      source = Path.join(dir, "guide.md")
-
-      File.write!(
-        source,
-        "Visit [Glossia](https://glossia.ai/{locale}) and run `mix test`."
-      )
-
-      stub_stream(fn _account, payload, _on_event ->
-        # The source tree owns link destinations and code. Only the placeholder
-        # inside the destination is opaque to the model.
-        assert payload["source_content"] =~ "https://glossia.ai"
-        refute payload["source_content"] =~ "{locale}"
-        assert payload["source_content"] =~ "`mix test`"
-        assert payload["source_content"] =~ ~r/\{glossiaprotected[a-f0-9]{12}n\d+\}/
-
-        translated(String.replace(payload["source_content"], "Visit", "Visita"))
-      end)
-
-      assert {:ok, result} =
-               Engine.apply_item(
-                 work_item(%{source_abs: source}),
-                 %Account{id: 1},
-                 fn _ -> :ok end
-               )
-
-      assert result.text ==
-               "Visita [Glossia](https://glossia.ai/{locale}) and run `mix test`."
-    end
-
-    @tag :tmp_dir
-    test "keeps repeated web addresses visible to the model", %{tmp_dir: dir} do
-      source = Path.join(dir, "guide.md")
-
-      File.write!(
-        source,
-        "Compare [Anthropic](https://anthropic.com) with [Claude](https://anthropic.com)."
-      )
-
-      stub_stream(fn _account, payload, _on_event ->
-        assert length(Regex.scan(~r/https:\/\/anthropic\.com/, payload["source_content"])) == 2
-
-        translated(
-          payload["source_content"]
-          |> String.replace("Compare", "Compara")
-          |> String.replace(" with ", " con ")
-        )
-      end)
-
-      assert {:ok, result} =
-               Engine.apply_item(
-                 work_item(%{source_abs: source}),
-                 %Account{id: 1},
-                 fn _ -> :ok end
-               )
-
-      assert result.text ==
-               "Compara [Anthropic](https://anthropic.com) con [Claude](https://anthropic.com)."
-    end
-
-    @tag :tmp_dir
-    test "rebuilds a segment that copied another segment's protected marker", %{tmp_dir: dir} do
-      source = Path.join(dir, "guide.md")
-
-      File.write!(
-        source,
-        "{name} " <>
-          String.duplicate("First paragraph remains together. ", 180) <>
-          "\n\n" <> String.duplicate("Second paragraph remains together. ", 180)
-      )
-
-      {:ok, markers} = Elixir.Agent.start_link(fn -> %{} end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        case payload["segment_index"] do
-          1 ->
-            [marker] =
-              Regex.run(
-                ~r/\{glossiaprotected[a-f0-9]{12}n\d+\}/,
-                payload["source_content"]
-              )
-
-            Elixir.Agent.update(markers, &Map.put(&1, :copied, marker))
-            translated(payload["source_content"])
-
-          2 ->
-            marker = Elixir.Agent.get(markers, & &1.copied)
-            translated(payload["source_content"] <> " " <> marker)
-        end
-      end)
-
-      item = work_item(%{source_abs: source, retries: 0})
-
-      # The second segment never carried a marker, so after its retries the
-      # Markdown recovery rebuilds it from the source tree and drops the copy.
-      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
-
-      refute result.text =~ "glossiaprotected"
-      assert length(String.split(result.text, "{name}")) == 2
-      assert result.text =~ "Second paragraph remains together."
-    end
-
-    @tag :tmp_dir
     test "strips a structured code fence from the model output", %{tmp_dir: dir} do
       source = Path.join(dir, "data.json")
       File.write!(source, "{}")
@@ -1402,214 +855,6 @@ defmodule Glossia.Translations.EngineTest do
       assert log =~ ~s("retrying":true)
       assert log =~ ~s("retrying":false)
       refute log =~ "private output"
-    end
-
-    @tag :tmp_dir
-    test "returns a source-block recovery provider error", %{tmp_dir: dir} do
-      source = Path.join(dir, "guide.md")
-
-      File.write!(
-        source,
-        "@@GLOSSIA-TEXT-1-START@@ [Guide](https://example.com/guide)\n\nParagraph."
-      )
-
-      stub_stream(fn _account, payload, _on_event ->
-        if String.contains?(payload["source_content"], "\n\n") do
-          translated("Guide\n\nParagraph.")
-        else
-          {:error, :provider_timeout}
-        end
-      end)
-
-      assert {:error, {:llm_failed, :provider_timeout}} =
-               Engine.apply_item(
-                 work_item(%{source_abs: source, retries: 0}),
-                 %Account{id: 1},
-                 fn _ ->
-                   :ok
-                 end
-               )
-    end
-
-    @tag :tmp_dir
-    test "retranslates only the segment that lost a protected marker", %{tmp_dir: dir} do
-      source = Path.join(dir, "links.md")
-
-      first = String.duplicate("First paragraph stays together. ", 90)
-      second = String.duplicate("Second paragraph stays together. ", 80)
-
-      File.write!(
-        source,
-        "#{first}\n\nSee [the report]({report_url}) for details.\n\n#{second}"
-      )
-
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        Elixir.Agent.update(payloads, &[payload | &1])
-        content = payload["source_content"]
-
-        marker =
-          case Regex.run(~r/\{glossiaprotected[a-f0-9]{12}n\d+\}/, content) do
-            [marker] -> marker
-            nil -> nil
-          end
-
-        cond do
-          # The first attempt on the segment holding the link removes the link
-          # entirely. The model keeps the rest of this segmented response.
-          is_nil(marker) ->
-            translated(content)
-
-          Enum.count(Elixir.Agent.get(payloads, & &1), &(&1["source_content"] == content)) == 1 ->
-            translated(Regex.replace(~r/\[the report\]\([^)]*\)/, content, "the report"))
-
-          true ->
-            translated(
-              content
-              |> String.replace("See [the report]", "Consulta [el informe]")
-              |> String.replace("for details.", "para más detalles.")
-            )
-        end
-      end)
-
-      item = work_item(%{source_abs: source, frontmatter_mode: :translate})
-
-      {:ok, events} = Elixir.Agent.start_link(fn -> [] end)
-      on_event = fn event -> Elixir.Agent.update(events, &[event | &1]) end
-
-      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, on_event)
-      assert result.text =~ "{report_url}"
-
-      # Progress folds `segment_output` into the item's completed text, so the
-      # rejected attempt must not announce output it is about to discard.
-      outputs =
-        events
-        |> Elixir.Agent.get(&Enum.reverse/1)
-        |> Enum.flat_map(fn
-          {:segment_output, text} -> [text]
-          _ -> []
-        end)
-
-      refute Enum.any?(outputs, &String.contains?(&1, "the report for details"))
-
-      calls = Elixir.Agent.get(payloads, &Enum.reverse/1)
-
-      # The valid first segment was left alone, and the invalid Markdown
-      # segment was retried once through the marker-based recovery path.
-      assert length(calls) == 3
-      assert Enum.any?(calls, &(&1["segment_kind"] == "markdown_text_markers"))
-
-      retry = Enum.find(calls, &(&1["last_error"] not in [nil, ""]))
-      assert retry["last_error"] =~ "changed the document structure"
-    end
-
-    @tag :tmp_dir
-    test "recovers a dropped Markdown link without retranslating prior segments", %{
-      tmp_dir: dir
-    } do
-      source = Path.join(dir, "links.md")
-      first = String.duplicate("First paragraph remains together. ", 130)
-      third = String.duplicate("Third paragraph remains together. ", 130)
-
-      File.write!(
-        source,
-        "#{first}\n\nSee [the report]({report_url}) for details.\n\n#{third}"
-      )
-
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        Elixir.Agent.update(payloads, &[payload | &1])
-
-        if payload["source_content"] =~ "{glossiaprotected" do
-          translated(
-            Regex.replace(~r/\[the report\]\([^)]*\)/, payload["source_content"], "the report")
-          )
-        else
-          translated(payload["source_content"])
-        end
-      end)
-
-      item = work_item(%{source_abs: source, frontmatter_mode: :translate, retries: 2})
-
-      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
-      assert result.text =~ "{report_url}"
-
-      calls = payloads |> Elixir.Agent.get(&Enum.reverse/1)
-      assert Enum.count(calls, &(&1["segment_index"] == 1)) == 1
-      assert Enum.count(calls, &(&1["segment_index"] == 2)) == 2
-      assert Enum.at(calls, 2)["last_error"] =~ "changed the document structure"
-    end
-
-    @tag :tmp_dir
-    test "keeps web addresses visible to the model and validates the returned address", %{
-      tmp_dir: dir
-    } do
-      source = Path.join(dir, "links.md")
-      File.write!(source, "See [the report](https://example.com/report) for details.")
-
-      stub_stream(fn _account, payload, _on_event ->
-        assert payload["source_content"] =~ "https://example.com/report"
-        refute payload["source_content"] =~ "GLOSSIA_URL"
-
-        translated("Consulta [el informe](https://example.com/report) para más detalles.")
-      end)
-
-      item = work_item(%{source_abs: source, frontmatter_mode: :translate})
-
-      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
-      assert result.text =~ "https://example.com/report"
-    end
-
-    @tag :tmp_dir
-    test "accepts an address the translation ends with its own sentence punctuation", %{
-      tmp_dir: dir
-    } do
-      source = Path.join(dir, "links.md")
-      File.write!(source, "See https://example.com/report for details.")
-
-      # Japanese closes the sentence with 。 and puts no space after the
-      # address. The address is unchanged; only the prose around it moved.
-      stub_stream(fn _account, _payload, _on_event ->
-        translated("詳細は https://example.com/report。をご覧ください")
-      end)
-
-      item = work_item(%{source_abs: source, frontmatter_mode: :translate})
-
-      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
-      assert result.text =~ "https://example.com/report"
-    end
-
-    @tag :tmp_dir
-    test "restores a changed link destination without another model call", %{tmp_dir: dir} do
-      source = Path.join(dir, "links.md")
-      File.write!(source, "See [the report](https://example.com/report) for details.")
-
-      {:ok, payloads} = Elixir.Agent.start_link(fn -> [] end)
-
-      stub_stream(fn _account, payload, _on_event ->
-        Elixir.Agent.update(payloads, &[payload | &1])
-
-        assert payload["last_error"] in [nil, ""]
-        translated("Consulta [el informe](https://example.com/es/report) para más detalles.")
-      end)
-
-      {:ok, events} = Elixir.Agent.start_link(fn -> [] end)
-      on_event = fn event -> Elixir.Agent.update(events, &[event | &1]) end
-
-      item = work_item(%{source_abs: source, frontmatter_mode: :translate})
-
-      assert {:ok, result} = Engine.apply_item(item, %Account{id: 1}, on_event)
-      assert result.text =~ "https://example.com/report"
-      refute result.text =~ "/es/report"
-
-      calls = Elixir.Agent.get(payloads, &Enum.reverse/1)
-      assert length(calls) == 1
-
-      recorded = Elixir.Agent.get(events, &Enum.reverse/1)
-      assert Enum.count(recorded, &match?({:attempt_start, _}, &1)) == 1
-      assert Enum.count(recorded, &match?({:segment_retry, _, _}, &1)) == 0
     end
   end
 end

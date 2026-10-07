@@ -231,7 +231,10 @@ defmodule Glossia.TranslationSessions do
           )
           |> Repo.all()
 
-        continued_from = Enum.find(active_sessions, &reusable_publication?/1)
+        continued_from =
+          Enum.find(active_sessions, &reusable_publication?/1) ||
+            latest_published_session(project.id)
+
         now = DateTime.utc_now()
 
         superseded_sessions =
@@ -357,6 +360,22 @@ defmodule Glossia.TranslationSessions do
       )
 
       :ok
+  end
+
+  # A project keeps a single translation pull request. Once a run finishes,
+  # the next push to the default branch continues the branch and pull request
+  # that run published, so its translations and lockfiles carry over and only
+  # what changed since is translated again. `Translate` drops the publication
+  # when that pull request was merged or closed.
+  defp latest_published_session(project_id) do
+    from(s in TranslationSession,
+      where: s.project_id == ^project_id,
+      where: not is_nil(s.publication_branch) and s.publication_branch != "",
+      where: not is_nil(s.publication_commit_sha) and s.publication_commit_sha != "",
+      order_by: [desc: s.inserted_at],
+      limit: 1
+    )
+    |> Repo.one()
   end
 
   defp reusable_publication?(session) do
