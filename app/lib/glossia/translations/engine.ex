@@ -762,10 +762,16 @@ defmodule Glossia.Translations.Engine do
   defp markdown_body_segments(body, preserve_kinds, scope) do
     case MarkdownUnits.plan(body) do
       {:ok, plan} ->
-        %{segments: markdown_unit_segments(plan, preserve_kinds), protections: [], markdown_plan: plan}
+        %{
+          segments: markdown_unit_segments(plan, preserve_kinds),
+          protections: [],
+          markdown_plan: plan
+        }
 
       {:error, _reason} ->
-        {segments, protections} = planned_content_segments(body, "markdown", preserve_kinds, scope)
+        {segments, protections} =
+          planned_content_segments(body, "markdown", preserve_kinds, scope)
+
         %{segments: segments, protections: protections, markdown_plan: nil}
     end
   end
@@ -949,8 +955,11 @@ defmodule Glossia.Translations.Engine do
   defp markdown_units_context(segment) do
     previous =
       case Map.get(segment, :previous_translations, []) do
-        [] -> ""
-        entries -> "\n\nAlready translated earlier in this document:\n\n" <> Enum.join(entries, "\n\n")
+        [] ->
+          ""
+
+        entries ->
+          "\n\nAlready translated earlier in this document:\n\n" <> Enum.join(entries, "\n\n")
       end
 
     segment.source_context <> previous

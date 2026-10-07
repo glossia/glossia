@@ -489,7 +489,11 @@ defmodule Glossia.Translations.MarkdownUnits do
             true -> {:open, n}
           end
 
-        acc = if start > cursor, do: [{:text, binary_part(text, cursor, start - cursor)} | acc], else: acc
+        acc =
+          if start > cursor,
+            do: [{:text, binary_part(text, cursor, start - cursor)} | acc],
+            else: acc
+
         {[token | acc], start + length}
       end)
 
@@ -510,7 +514,8 @@ defmodule Glossia.Translations.MarkdownUnits do
         {:error, "unknown tag; use only the tags present in the source text"}
 
       Enum.sort(tag_tokens) != Enum.sort(expected) ->
-        {:error, "every tag must appear exactly once: #{Enum.map_join(expected, " ", &tag_text/1)}"}
+        {:error,
+         "every tag must appear exactly once: #{Enum.map_join(expected, " ", &tag_text/1)}"}
 
       not nested?(tag_tokens) ->
         {:error, "paired tags must open before they close and must not overlap"}
@@ -589,7 +594,10 @@ defmodule Glossia.Translations.MarkdownUnits do
   defp node_signature(%MDEx.SoftBreak{}), do: []
 
   defp node_signature(%module{} = node) do
-    [{module, node_values(node)} | node |> Map.get(:nodes, []) |> Enum.flat_map(&node_signature/1)]
+    [
+      {module, node_values(node)}
+      | node |> Map.get(:nodes, []) |> Enum.flat_map(&node_signature/1)
+    ]
   end
 
   defp inline_signature(children) do
@@ -598,10 +606,17 @@ defmodule Glossia.Translations.MarkdownUnits do
 
   defp inline_nodes(children) do
     Enum.flat_map(children, fn
-      %MDEx.Text{} -> []
-      %MDEx.SoftBreak{} -> []
-      %module{nodes: [_ | _] = nested} = node -> [{module, node_values(node), inline_signature(nested)}]
-      %module{} = node -> [{module, node_values(node)}]
+      %MDEx.Text{} ->
+        []
+
+      %MDEx.SoftBreak{} ->
+        []
+
+      %module{nodes: [_ | _] = nested} = node ->
+        [{module, node_values(node), inline_signature(nested)}]
+
+      %module{} = node ->
+        [{module, node_values(node)}]
     end)
   end
 
