@@ -6,7 +6,7 @@ defmodule GlossiaWeb.ChangelogControllerTest do
 
     assert html =~ ~s(id="calmer-translation-pull-requests")
     assert html =~ "Calmer translation pull requests"
-    assert html =~ "one translation pull request per project"
+    assert html =~ "You learn a lot the first time your tool meets a real repository."
   end
 
   test "publishes the entries in the feed", %{conn: conn} do
