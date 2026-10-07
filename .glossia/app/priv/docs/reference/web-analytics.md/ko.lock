@@ -1,15 +1,16 @@
 {
-  "hash": "29191016f1735822ae05a3c8b46f2c139d10adf5433b5ca84e18411fa8e10e91",
+  "baseline_schema_version": 1,
+  "hash": "2ddf634da61e705c501ecf1f1673703c172d447d9453ddc3c34009638e3ffdeb",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "7a1cbd67c040feae22872612a73098e9b73da4f42c2707827e1b6c20c8778ebb",
+          "hash": "9ffe97288fca6d1cd66037b95bf10e3e13a3cbc4091dd65133955a3e15f28805",
           "kind": "source",
           "label": "app/priv/docs/reference/web-analytics.md",
           "metadata": {
-            "content_hash": "d3c8df08abe32a8d7f49a782a4b1ff4af7bc8ba4e13a844747e7a72f8bf40891"
+            "content_hash": "b441c6f1fba017eea6faf92df039067a846c2306e115559771716467728b51a5"
           }
         },
         {
@@ -37,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "29191016f1735822ae05a3c8b46f2c139d10adf5433b5ca84e18411fa8e10e91",
+      "hash": "2ddf634da61e705c501ecf1f1673703c172d447d9453ddc3c34009638e3ffdeb",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/web-analytics.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "c50a3fb6bfbefa83d98ca756be667969e7368179fa3431cf32f476fda6272d6a",
+  "output_hash": "5c2bbf826452b84246c1477e96cda318ed11b57508125454caa6f099a43e661d",
   "output_path": "app/priv/i18n/ko/docs/reference/web-analytics.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "0f07976f14349ebdc15af14d7b0449547d09e6e1",
   "source_path": "app/priv/docs/reference/web-analytics.md",
-  "translated_at": "2026-09-17T11:54:36.242710Z"
+  "translated_at": "2026-10-07T07:28:12.839890Z",
+  "translation_session_id": "01a114e7-8c83-793d-9f63-641be1b9ed61"
 }
