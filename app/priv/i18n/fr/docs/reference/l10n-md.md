@@ -1,18 +1,19 @@
 %{
   title: "L10N.md",
-  summary: "Référence pour les paramètres de traduction du dépôt et le contexte.",
-  category: "Référence",
+  summary: "Référence pour les paramètres de traduction du référentiel et du contexte.",
+  category: "référence",
+  section: "translation",
   order: 1
 }
 ---
-`L10N.md` indique à Glossia quels fichiers traduire, où les fichiers traduits appartiennent, les langues à cibler et le contexte qui devrait guider le résultat. Un dépôt peut avoir un fichier racine et des fichiers scopés supplémentaires dans des sous-répertoires.
+`L10N.md`indique à Glossia quels fichiers traduire, où appartiennent les fichiers traduits, quelles langues cibler, et quel contexte doit guider le résultat. Un dépôt de code peut avoir un fichier racine et des fichiers étendus supplémentaires dans des sous-répertoires.
 
 ## Structure
 
-Chaque fichier a deux parties:
+Chaque fichier a deux parties :
 
-1. [YAML Ain't Markup Language](https://yaml.org/) frontmatter entre `---` marqueurs.
-2. Markdown sous la frontmatter avec contexte produit, public, voix ou domaine.
+1. [YAML Ain't Markup Language](https://yaml.org/)frontmatter entre`---`marqueurs.
+2. Markdown sous le frontmatter avec le contexte de produit, public, ton ou domaine.
 
 <!-- end list -->
 
@@ -37,40 +38,43 @@ preserve:
 Write for software developers. Keep product names and code samples unchanged.
 ```
 
-Les identifiants du fournisseur appartiennent aux paramètres du compte, jamais dans `L10N.md`. La valeur optionnelle `model` est un identifiant de modèle de compte.
+Les credentials du fournisseur appartiennent aux paramètres de compte, jamais dans`L10N.md`. La valeur `model`model
 
-## Champs frontmatter
+## Champs de frontmatter
 
-| Champ | Type | Requis | Description |
+| Champ | Type | Obligatoire | Description |
 |---|---|---|---|
-| `source_language` | string | non | Locale source pour cette portée. Défaut à `en`. |
-| `model` | string | non | Identifiant de modèle de compte. Glossia utilise le défaut du compte si omis et signale une erreur si un identifiant explicite n'existe pas. |
-| `sources` | map ou list | pour une règle de niveau supérieur | Modèles de fichiers source. Les valeurs map peuvent définir des modèles de sortie. |
-| `targets` | map ou list | lorsque sources sont configurées | Codes de locale cible. Une map peut associer un code de locale à un nom de langue. |
-| `output` | string | lorsque pas de mappage source ou `target_path` fournit une destination | Modèle de fichier de sortie. |
-| `target_path` | string | lorsque pas de mappage source ou `output` fournit une destination | Modèle de dossier de base pour les fichiers traduits. |
-| `translate` | list | non | Plusieurs règles de traduction, chacune avec ses propres sources et overrides optionnels. |
-| `exclude` | list | non | Modèles de fichiers à exclure. |
-| `preserve` | list | non | Types de contenu qui doivent rester inchangés, tels que des placeholders ou des uniform resource locators. |
-| `frontmatter` | string | non | `preserve` par défaut, ou `translate`. |
-| `prompt` | string | non | Guidance supplémentaire pour cette portée ou règle. |
-| `validation` | list | pour des extensions de fichiers sans adaptateur intégré | Une commande de validation suivie de ses arguments. La commande reçoit le candidat à son véritable chemin de cible et doit retourner un statut non nul lorsque le fichier est invalide. |
-| `check_cmd` | string | non | Une commande de vérification disponible pour le flux de traduction. |
-| `check_cmds` | map | non | Commandes de vérification nommées disponibles pour le flux de traduction. |
-| `retries` | entier | non | Nombre de tentatives de réessai après une vérification échouée. Défaut à `2`. |
-| `locale` | string | non | Locale attachée à un fichier de contexte spécifique à cette locale. |
+| \``source_language` | string | non | Langue source pour cette portée. Par défaut `en`. |
+| \``model` | string | non | Identifiant de modèle de compte. Glossia utilise la valeur par défaut du compte si omis et signale une erreur si un identifiant explicite n'existe pas. |
+| \``sources` | mappe ou liste | pour une règle de niveau supérieur | Motifs de fichiers sources. Les valeurs de mappe peuvent définir des modèles de sortie. |
+| \``targets` | mappe ou liste | lorsque les sources sont configurées | Codes de langue cible. Une mappe peut associer un code de langue à un nom de langue. |
+| \``output` | string | si aucun mappage de source ou `target_path` ne fournit une destination | Modèle de fichier de sortie. |
+| \``target_path` | string | si aucun mappage de source ou `output` ne fournit une destination | Modèle de répertoire de base pour les fichiers traduits. |
+| \``translate` | liste | non | Plusieurs règles de traduction, chacune avec ses sources et des corrections optionnelles. |
+| \``exclude` | liste | non | Motifs de fichiers à omettre. |
+| \``preserve` | liste | non | Types de contenu qui doit rester inchangé, tels que des séquences ou des uniform resource locators. |
+| \``frontmatter` | string | non | `preserve` par défaut, ou `translate`. |
+| \``prompt` | string | non | Guidance supplémentaire pour cette portée ou règle. |
+| \``validation` | liste | pour les extensions de fichier sans adaptateur intégré | Une commande de validation suivie de ses arguments. La commande reçoit le candidat à son chemin réel de cible et doit retourner un statut non nul si le fichier est invalide. |
+| \``check_cmd` | string | non | Une commande de vérification disponible au flux de travail de traduction. |
+| \``check_cmds` | mappe | non | Commandes de vérification nommées disponibles au flux de travail de traduction. |
+| \``retries` | entier | non | Nombre d'essais redemande après une vérification échouée. Par défaut `2`. |
+| \``locale` | string | non | Langue jointe à un fichier de contexte spécifique à la langue. |
+| \``glossary` | liste ou mappe | non | Dans `L10N.md`, une liste de termes de vocabulaire. Dans `L10N/<locale>.md`, une mappe de chaque terme à sa traduction dans cette langue. Les fichiers imbriqués ajoutent et modifient les entrées héritées. Voir la [référence du vocabulaire](/docs/reference/glossary). |
 
-Les champs frontmatter inconnus sont ignorés.
+Les champs de frontmatter inconnus sont ignorés.
 
-## Formats de fichiers
+## Formats de fichier
 
-Glossia possède une prise en charge native de Markdown, JavaScript Object Notation, YAML Ain't Markup Language, objet portable et fichiers de texte brut. D'autres extensions échouent la planification à moins que `L10N.md` déclare une `validation` command. Cela évite de traiter silencieusement un format structuré propriétaire comme du texte sans contraintes.
+Glossia a un traitement natif pour Markdown, JavaScript Object Notation, YAML Ain't Markup Language, portable object, et fichiers texte simple. D'autres extensions échouent la planification sauf si le `L10N.md` applicable déclare un `validation`commande. Cela évite de traiter silencieusement un format structuré propriétaire comme un texte non contraint.
 
-La commande de validation s'exécute après que le candidat ait été écrit temporairement à son véritable chemin de cible. Elle peut invoquer l'analyseur natif, le compilateur ou la commande de build du dépôt. Glossia restaure la cible précédente après chaque tentative de validation et n'écrit le candidat accepté qu'ensuite.
+Dans Markdown, seul le discours est traduit : paragraphes, titres, éléments de liste, éléments de table, les `title`, `details`, `alt`, `label`, `description`, `summary`, `placeholder`, `aria-label`, et `caption`attributs des composants et HTML, et le texte d'un HTML `<summary>`. Chaque autre octet, y compris le code, les destinations de lien, les composants, les alertes et les ancres explicites de titre, est conservé exactement comme dans la source. Voir [récupération de traduction](/docs/explanation/translation-recovery)pour comprendre le fonctionnement.
 
-## Mappings des sources
+La commande de validation s’exécute après que le candidat ait été écrit temporairement dans son chemin de cible réel. Elle peut invoquer l’analyseur natif, le compilateur ou la commande de construction du dépôt. Glossia restaure la cible précédente après chaque tentative de validation et n’écrit le candidat accepté qu’ensuite.
 
-La forme la plus claire mappe chaque modèle source à un modèle de sortie:
+## Correspondances de source
+
+La forme la plus claire associe chaque motif de source à un modèle de sortie :
 
 ```yaml
 sources:
@@ -78,7 +82,7 @@ sources:
   "content/*.json": "content/{locale}/{basename}.{ext}"
 ```
 
-Une liste de sources est également valide, mais elle a besoin `output` ou `target_path` pour définir la destination:
+Une liste de source est également valide, mais elle nécessite `output` ou `target_path` pour définir la destination :
 
 ```yaml
 sources:
@@ -88,7 +92,7 @@ target_path: "docs/i18n/{locale}"
 
 ## Langues cibles
 
-Une liste utilise chaque code de localisation comme identifiant de langue:
+Cette liste utilise chaque code de localisation comme identifiant de langue :
 
 ```yaml
 targets:
@@ -96,7 +100,7 @@ targets:
   - ja
 ```
 
-Une mapping peut ajouter un nom de langue lisible:
+Un tableau peut ajouter un nom de langue lisible :
 
 ```yaml
 targets:
@@ -109,13 +113,13 @@ targets:
 | Variable | Valeur |
 |---|---|
 | `{locale}` ou `{lang}` | Code de localisation cible. |
-| `{relpath}` | Chemin source relatif au motif correspondant. |
-| `{basename}` | Nom de fichier source sans son extension. |
+| `{relpath}` | Chemin de source relatif au motif correspondant. |
+| `{basename}` | Nom de fichier source sans extension. |
 | `{ext}` | Extension de fichier source sans le point initial. |
 
 ## Règles multiples
 
-Utilisez `translate` lorsque des groupes de contenu différents nécessitent des destinations ou des vérifications différentes:
+Utilisez `translate` lorsque différents groupes de contenu ont besoin de destinations ou de contrôles différents :
 
 ```yaml
 ---
@@ -131,15 +135,15 @@ translate:
 ---
 ```
 
-Les valeurs de règle surchargent les valeurs héritées du fichier environnant.
+Les valeurs de règle remplacent les valeurs héritées du fichier environnant.
 
 ## Contexte de portée
 
-Glossia lit `L10N.md` à partir de la racine du dépôt vers le fichier source:
+Glossia lit les fichiers `L10N.md` depuis la racine du dépôt vers le fichier source :
 
-- Les paramètres du parent fournissent des valeurs par défaut.
-- Un fichier plus profond surcharge les champs de son dossier.
-- Le contexte Markdown est accumulé du parent à l'enfant.
-- les conseils spécifiques à la localisation et un gestionnaire de modèle spécifique à la localisation`L10N/<locale>.md` .
+- Les paramètres parents fournissent des valeurs par défaut.
+- Un fichier plus profond remplace les champs pour son dossier.
+- Le contexte Markdown est accumulé du parent vers l'enfant.
+- Les conseils spécifiques au code local et le gestionnaire de modèle spécifique au code local peuvent vivre dans `L10N/<locale>.md`.
 
-Cela permet à un dépôt de conserver des orientations vocales larges à la racine tout en plaçant les conseils spécifiques à un domaine produit ou à une langue à proximité du contenu qu'ils affectent.
+Cela permet à un dépôt de maintenir des directives générales de ton à la racine tout en plaçant les directives spécifiques au domaine de produit ou à la langue près du contenu qu'il affecte.
