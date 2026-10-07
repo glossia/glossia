@@ -1,28 +1,28 @@
 %{
-  title: "Análises de localização",
+  title: "Análise de localização",
   summary:
-    "Veja quais idiomas e países seus visitantes realmente desejam e onde há uma lacuna de localização antes de investir em uma nova localização.",
+    "Veja quais idiomas e países seus visitantes realmente desejam e onde existe uma lacuna de localização, antes de investir em um novo idioma.",
   order: 6,
-  icon: "Globo",
-  hero_cta_text: "Iniciar",
+  icon: "Mundo",
+  hero_cta_text: "Começar",
   hero_cta_url: "/signup",
   highlights: [
     %{
       title: "Oportunidade, não vaidade",
       description:
-        "Os painéis são construídos em torno da lacuna de localização: a proporção do tráfego que deseja um idioma que você ainda não oferece.",
-      icon: "Globo"
+        "Os painéis são construídos em torno da lacuna de localização: a parcela do tráfego que deseja um idioma que você ainda não oferece.",
+      icon: "Mundo"
     },
     %{
       title: "Sem cookies por design",
       description:
-        "Sem cookies, sem rastreamento de impressão digital, sem banners de consentimento. Visitantes únicos vêm de um hash rotacionado diariamente que não pode ser vinculado entre dias.",
+        "Sem cookies, sem fingerprinting, sem banners de consentimento. Visitantes únicos provêm de um hash rotacionado diariamente que não pode ser vinculado entre dias.",
       icon: "Relâmpago"
     },
     %{
       title: "Uma linha para instalar",
       description:
-        "Insira uma tag de script no seu site e o Glossia se mede. Distribua via npm ou CDN.",
+        "Insira uma única tag script em seu site e a Glossia faz a medição. Publique via npm ou CDN.",
       icon: "Código"
     }
   ]
@@ -30,19 +30,19 @@
 ---
 ## Decida o próximo idioma com dados
 
-A maioria das equipes escolhe idiomas-alvo por intuição. Analytics de localização substitui isso por sinal. Adicione o SDK web e a Glossia mostrará os idiomas que os navegadores dos seus visitantes solicitam, os países de origem e, crucialmente, a sobreposição com os idiomas que você já suporta.
+A maioria das equipes escolhe idiomas-alvo baseando-se na intuição. A análise de localização substitui isso por sinais. Adicione o SDK da web e o Glossia mostrará os idiomas solicitados pelos navegadores dos seus visitantes, os países de origem e, crucialmente, a sobreposição com os idiomas que você já suporta.
 
-A métrica principal é a **brecha de localização**: a porcentagem dos seus visitantes cujo idioma preferido não tem tradução suportada. Analise a fundo por país, por referrer e por página para ver exatamente onde a demanda não atendida se concentra e qual novo idioma moveria a agulha.
+O indicador principal é o **lacuna de localização**: a porcentagem dos visitantes cujos idiomas preferidos não possuem tradução suportada. Explore-a por país, por referrer e por página para ver exatamente onde a demanda subatendida se concentra e qual novo idioma moverá a agulha.
 
 ## Privacidade sem concessões
 
-A Glossia Analytics não coleta nada do que não precisa e não armazena nada identificável. O navegador envia a URL da página, o referrer, os idiomas preferidos, o fuso horário e o tamanho da tela. O servidor extrai o visitante único de um hash rotacionado diariamente do IP e do User-Agent, e depois os descarta. Nenhum cookie é definido, nada é fingerprinted, e nenhum visitante pode ser rastreado entre dias ou entre sites.
+A análise do Glossia coleta apenas o necessário e nada identificável. O navegador envia a URL da página, referrer, idiomas preferidos, fuso horário e tamanho da tela. O servidor deriva o visitante único a partir de um hash rotativo diário do IP e User-Agent, e depois descarta-os. Nenhum cookie é definido, nada é rastreado por impressão digital e nenhum visitante pode ser monitorado entre dias ou sites.
 
-O resultado é um conjunto de análises que você pode implementar sem um banner de consentimento, alinhado às expectativas de privacidade que seus visitantes internacionais já têm.
+O resultado é uma análise que você pode lançar sem um banner de consentimento, alinhada às expectativas de privacidade dos seus visitantes internacionais.
 
 ## Instale em segundos
 
-Adicione uma linha ao seu site e o Glossia começa a medir:
+Adicione uma linha ao seu site e Glossia começa a medir:
 
 ```html
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
