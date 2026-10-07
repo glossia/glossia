@@ -1,44 +1,38 @@
 %{
-  title: "Vista general",
+  title: "Visión general",
   summary:
-    "Conecta los agentes de codificación a tus proyectos de Glossia mediante el Protocolo de Contexto del Modelo.",
+    "Conecta agentes de codificación a tus proyectos de Glossia a través del Protocolo de Contexto del Modelo.",
   category: "Referencia",
   subcategory: "mcp",
   order: 1
 }
 ---
-Glossia expone un [Protocolo de Contexto del Modelo](https://modelcontextprotocol.io) (MCP) servidor que permite a los agentes de programación interactuar con sus proyectos de localización. El servidor implementa OAuth 2.1 con PKCE y Registro de Clientes Dinámicos ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)), por lo que cualquier cliente compatible con MCP puede autenticarse sin configuración manual de credenciales.
+glosia expone un [protocolo de contexto del modelo](https://modelcontextprotocol.io) (mcp) sirve para que los agentes de codificación interactúen con tus proyectos de localización. el servidor implementa oauth 2.1 con pkce y registro dinámico de cliente ([rfc 7591](https://datatracker.ietf.org/doc/html/rfc7591)), por lo tanto, cualquier cliente compatible con mcp puede autenticarse sin una configuración manual de credenciales.
 
-## Qué proporciona el servidor MCP
+## qué proporciona el servidor mcp
 
-Una vez conectado, un agente de programación puede:
+una vez conectado, un agente de codificación puede listar cuentas y proyectos, crear proyectos, gestionar miembros y invitaciones de la organización, leer o actualizar ajustes de voz y glosario, y gestionar modelos y tokens de cuenta, sujeto a sus permisos.
 
-- Consultar el estado de traducción en sus proyectos
-- Iniciar traducciones y revisiones
-- Inspeccionar configuración y entradas de contenido
-- Acceder al contexto del proyecto para sugerencias de código más inteligentes
+el servidor no expone actualmente herramientas para iniciar traducciones o revisiones, ni para inspeccionar el estado de traducción por archivo. vea la [Referencia de herramientas](/docs/reference/mcp) para las herramientas disponibles.
 
 ## URL del servidor
 
-| Entorno | URL |
-|---|---|
-| Producción | `https://glossia.ai/mcp` |
-| Desarrollo local | `http://localhost:4050/mcp` |
+Conectar al servicio alojado de Glossia en `https://glossia.ai/mcp`. Glossia ejecuta y mantiene este punto final; solo configuras la conexión en tu agente de codificación.
 
 ## Flujo de autenticación
 
 El servidor MCP utiliza el flujo estándar de código de autorización OAuth 2.1 con PKCE. No necesitas crear clientes OAuth manualmente. El flujo funciona de la siguiente manera:
 
-1. El agente descubre tu servidor a través de `/.well-known/oauth-authorization-server`
-2. Se registra como cliente OAuth mediante el endpoint de registro dinámico
+1. El agente descubre Glossia a través de `https://glossia.ai/.well-known/oauth-authorization-server`
+2. Se registra como un cliente OAuth a través del endpoint de registro dinámico
 3. Abre tu navegador para iniciar sesión y dar consentimiento
-4. Una vez que apruebas, el agente recibe un token de acceso y lo adjunta a todas las solicitudes MCP
+4. Después de aprobar, el agente recibe un token de acceso y lo adjunta a todas las solicitudes MCP
 
-## Añadir Glossia a un agente de programación
+## Añadir Glossia a un agente de codificación
 
 ### OpenAI Codex
 
-Añade el servidor a tu archivo de configuración de Codex en `~/.codex/config.toml`:
+Siguiendo la [Guía de conexión de Codex](https://developers.openai.com/codex/mcp), añade el servidor a tu archivo de configuración de Codex en `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.glossia]
@@ -51,7 +45,7 @@ Luego, ejecuta el inicio de sesión OAuth:
 codex mcp login glossia
 ```
 
-Tu navegador se abrirá para la autenticación. Tras la aprobación, Codex almacena el token localmente y lo utiliza para sesiones futuras.
+Tu navegador se abrirá para la autenticación. Después de aprobar, Codex guarda el token localmente y lo usa para las sesiones futuras.
 
 Para verificar la conexión:
 
@@ -59,40 +53,26 @@ Para verificar la conexión:
 codex mcp list
 ```
 
-Para el desarrollo local, reemplaza la URL:
-
-```toml
-[mcp_servers.glossia-local]
-url = "http://localhost:4050/mcp"
-```
-
 ### Claude Code
 
-Añade el servidor a tu configuración MCP de Claude Code (`.claude/settings.json` o al archivo de configuración global):
+Añade el servidor alojado con el comando documentado en [la guía de conexión de Claude Code](https://code.claude.com/docs/en/mcp):
 
-```json
-{
-  "mcpServers": {
-    "glossia": {
-      "url": "https://glossia.ai/mcp",
-      "transport": "streamable-http"
-    }
-  }
-}
+```bash
+claude mcp add --transport http glossia https://glossia.ai/mcp
 ```
 
-Claude Code gestionará el flujo OAuth automáticamente cuando se conecte por primera vez.
+Ejecutar `/mcp` Dentro de Claude Code y siguiendo el flujo de autenticación del navegador.
 
 ### Otros clientes MCP
 
-Cualquier cliente que soporte la [especificación de autorización MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) funcionará. Los requisitos clave son:
+Un cliente debe soportar el [flujo de autorización del Protocolo de Contexto del Modelo](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) implementado por Glossia. La conexión requiere:
 
-- **Transporte**: HTTP transmisible
-- **Descubrimiento**: El cliente debe soportar Metadatos de Recursos Protegidos OAuth 2.0 ([RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728))
-- **Registro**: Registro Dinámico de Clientes ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)) o Documentos de Metadatos del ID del Cliente
+- **Transporte**: HTTP streaming
+- **Descubrimiento**: El cliente debe soportar los metadatos de recursos protegidos de OAuth 2.0 ([RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728))
+- **Registro**: Registro de cliente dinámico ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591))
 - **Flujo de autenticación**: Código de autorización con PKCE (S256)
 
-, Dirige el cliente a tu URL de servidor MCP de Glossia y déjalo manejar el descubrimiento y el registro automáticamente.
+Apunta el cliente a `https://glossia.ai/mcp` y déjalo gestionar el descubrimiento y el registro automáticamente.
 
 ## Endpoints de descubrimiento
 
@@ -100,36 +80,36 @@ El servidor publica dos documentos de metadatos que los clientes MCP utilizan pa
 
 | Endpoint | Descripción |
 |---|---|
-| `/.well-known/oauth-authorization-server` | Metadatos del servidor de autorización (puntos finales, tipos de concesión compatibles, métodos PKCE) |
-| `/.well-known/oauth-protected-resource` | Metadatos de recursos protegidos (ámbitos, servidores de autorización) |
+| `/.well-known/oauth-authorization-server` | Metadatos del servidor de autorización (endpoints, tipos de concesión admitidos, métodos PKCE) |
+| `/.well-known/oauth-protected-resource` | Metadatos de recursos protegidos (scopes, servidores de autorización) |
 
 ## Límites de tasa
 
-Los puntos finales de OAuth imponen límites de tasa para evitar abusos:
+Los endpoints OAuth imponen límites de tasa para prevenir el abuso:
 
-| Punto final | Límite |
+| Endpoint | Límite |
 |---|---|
 | `POST /oauth/register` | 5 solicitudes por minuto |
 | `POST /oauth/token` | 30 solicitudes por minuto |
 | `POST /oauth/introspect` | 30 solicitudes por minuto |
 | `POST /oauth/revoke` | 30 solicitudes por minuto |
 
-Cuando se excede el límite de tasa, el servidor devuelve HTTP 429 con un `Retry-After` encabezado.
+Cuando se excede un límite de tasa, el servidor devuelve HTTP 429 con un `Retry-After` encabezado.
 
 ## Solución de problemas
 
 ### El registro falla con "invalid\_client\_metadata"
 
-El endpoint de registro dinámico solo acepta específicos `token_endpoint_auth_method` valores. Los clientes públicos (la mayoría de los agentes de codificación) deben enviar `"none"`, lo cual Glossia gestiona automáticamente al recurrir a los métodos de autenticación predeterminados con aplicación de PKCE.
+El endpoint de registro dinámico solo acepta específicos `token_endpoint_auth_method` valores. Los clientes públicos (la mayoría de los agentes de codificación) deben enviar `"none"`, lo que Glossia gestiona automáticamente al volver a los métodos de autenticación predeterminados con el cumplimiento del PKCE.
 
-### "Inválido OAuth callback" después de aprobar
+### "Llamada de retorno OAuth no válida" tras la aprobación
 
-Asegúrate de que tu servidor de Glossia esté ejecutándose y sea accesible en la URL que configuraste. La llamada de retorno ocurre en un puerto local que el agente de codificación abre temporalmente. Los firewalls o las VPNs pueden a veces bloquear esto.
+Confirma que tu agente de codificación pueda alcanzar `https://glossia.ai`. La devolución de llamada ocurre en un puerto local que el agente de codificación abre temporalmente en tu computadora. Glossia sigue alojado; este escuchador local pertenece a tu agente. Los cortafuegos o redes privadas virtuales a veces pueden bloquear la devolución de llamada.
 
 ### El intercambio de tokens falla
 
-Comprueba que el campo `code_challenge_methods_supported` esté presente en los metadatos del servidor de autorización. El servidor debe anunciar soporte S256 para que funcione PKCE. Glossia incluye esto por defecto.
+Verifica que el `code_challenge_methods_supported` el campo está presente en los metadatos del servidor de autorización. El servidor debe anunciar el soporte de S256 para que PKCE funcione. Glossia incluye esto por defecto.
 
 ### El agente no puede alcanzar el servidor
 
-Para el desarrollo local, asegúrate de que el servidor de Phoenix esté ejecutándose (`mix phx.server`) y escuchando en el puerto esperado (default: 4050). El endpoint de MCP debe ser accesible desde el proceso del agente.
+Verifique que el punto final configurado es `https://glossia.ai/mcp` y que su red permita que su agente de codificación pueda alcanzarlo. Si el servicio alojado permanece no disponible, contacte al soporte de Glossia.
