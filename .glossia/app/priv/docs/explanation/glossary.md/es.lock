@@ -1,0 +1,124 @@
+{
+  "baseline_schema_version": 1,
+  "hash": "3cfa13c0a0447f0f4080d7e3b169759f4c4ed08cafaa65781d17bc859f064fc8",
+  "hash_tree": {
+    "root": {
+      "children": [
+        {
+          "children": [],
+          "hash": "e0e75532613713ed186f483abda7c42bad6a7658095bcc949b4e9e92d067cc32",
+          "kind": "source",
+          "label": "app/priv/docs/explanation/glossary.md",
+          "metadata": {
+            "content_hash": "edb0dbc62fadfcd9b48764ef0ee91d6208b62d2605187bb11d1ce8b3d931f10f"
+          }
+        },
+        {
+          "children": [],
+          "hash": "62169e871e15d378372287cb1891daf487a0de1cb8b0e55e41d2e92e37735439",
+          "kind": "translation_config",
+          "label": "generation",
+          "metadata": {
+            "custom_prompt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "format": "markdown",
+            "frontmatter_mode": "translate",
+            "language": "es",
+            "locale": "es",
+            "model": "",
+            "preserve": [],
+            "prompt_version": 8,
+            "provider": "",
+            "retries": 3,
+            "segmentation_version": 1,
+            "source_language": "en",
+            "validation_hash": "064760dc472b525acbc80c5ce08973a94fc7a5b06ba42cfab835324c7c048924"
+          }
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "kind": "context",
+              "label": "project",
+              "metadata": {
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+              }
+            },
+            {
+              "children": [],
+              "hash": "a54709e3cea48e4871dba3f92b628c2156e257d7f78528c44bf202db4cab7630",
+              "kind": "context",
+              "label": "locale",
+              "metadata": {
+                "content_hash": "94bb6a27769a21802f1ca275e7afd7e42beae6d50ce0ecdf22c63e45228fe7d2"
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "hash": "1ce1060bb675f8cc75ef107e56162abcff4ca3e6f9f3adcd41022326a1dff73e",
+                  "kind": "context",
+                  "label": "voice",
+                  "metadata": {
+                    "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126"
+                  }
+                },
+                {
+                  "children": [],
+                  "hash": "ea2167195b0aab99d3386e4f6db44094cd48916b7ba288bed69a4b11369983aa",
+                  "kind": "context",
+                  "label": "terminology",
+                  "metadata": {
+                    "content_hash": "25b97175b533acc2917139ffe72808afde46ec8fb2efcce87b0f6c06b360fd02"
+                  }
+                }
+              ],
+              "hash": "5bf720fea610dca2194d4ede91d6bb69405f3e53b0505b7770821427113a9dd3",
+              "kind": "server_context",
+              "label": "organization",
+              "metadata": {
+                "compiler_version": 3,
+                "selector_version": 2
+              }
+            }
+          ],
+          "hash": "3146d40a0cec5d26d48ed1c9af8af44e3c5db5f82336fcccb8de0cda0cda7f3b",
+          "kind": "context_bundle",
+          "label": "context",
+          "metadata": {}
+        }
+      ],
+      "hash": "3cfa13c0a0447f0f4080d7e3b169759f4c4ed08cafaa65781d17bc859f064fc8",
+      "kind": "translation_input",
+      "label": "app/priv/docs/explanation/glossary.md",
+      "metadata": {}
+    }
+  },
+  "model": "",
+  "output_hash": "af9b53582027245009f662264a3201b6cc6a10cb626556d63bd3a7ab7a55ce27",
+  "output_path": "app/priv/i18n/es/docs/explanation/glossary.md",
+  "protection_state": "recorded",
+  "provider": "",
+  "server_context": {
+    "compiler_version": 3,
+    "glossary": {
+      "applied": [
+        "repo:lockfile"
+      ],
+      "content_hash": "25b97175b533acc2917139ffe72808afde46ec8fb2efcce87b0f6c06b360fd02",
+      "shadowed": [],
+      "version": null
+    },
+    "selector_version": 2,
+    "voice": {
+      "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
+      "version": null
+    }
+  },
+  "source_commit_sha": "dae15eaabdbae3c83fe89f4a220550f8a0b07098",
+  "source_path": "app/priv/docs/explanation/glossary.md",
+  "translated_at": "2026-10-07T05:37:29.486246Z",
+  "translation_session_id": "01a114da-a611-76f8-8436-174b78100e74"
+}
