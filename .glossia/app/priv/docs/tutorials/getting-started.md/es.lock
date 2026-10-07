@@ -1,15 +1,16 @@
 {
-  "hash": "88f240c60ddfef95c45d1e5800f21e501128b58f5c2f5f799fe89b36c78c86a1",
+  "baseline_schema_version": 1,
+  "hash": "14b6aaffc439c0c678dac1cc80ed2635ba142be2b5a462fe1f484f46d3393b8e",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "1e61ca2b22b4007e873f7f3fe6264c0144f5ea59d7a9e94673b42f641bb04cd0",
+          "hash": "86741d34e1dea2dd8f386ef2664c2687a7777e3d373a755f29aaf20645c0edf5",
           "kind": "source",
           "label": "app/priv/docs/tutorials/getting-started.md",
           "metadata": {
-            "content_hash": "ccddc1425a03d93fa8bbb174c4deb9894e0c1277545eeef559650442f4c16a42"
+            "content_hash": "2fc6ae3b457b0e0b29aa05194ed64e59a10d033af6d08dcd5d42d42a6c24638a"
           }
         },
         {
@@ -37,20 +38,20 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
               "children": [],
-              "hash": "1424b207fea998c4fef898d526dcb29e10da43d23480340193ea637c2fd3d43d",
+              "hash": "a54709e3cea48e4871dba3f92b628c2156e257d7f78528c44bf202db4cab7630",
               "kind": "context",
               "label": "locale",
               "metadata": {
-                "content_hash": "cc29cd8eebf5d547c8f217c0af8fa84e2300279090f0f6312ed2903aedeb1b61"
+                "content_hash": "94bb6a27769a21802f1ca275e7afd7e42beae6d50ce0ecdf22c63e45228fe7d2"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
+          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "88f240c60ddfef95c45d1e5800f21e501128b58f5c2f5f799fe89b36c78c86a1",
+      "hash": "14b6aaffc439c0c678dac1cc80ed2635ba142be2b5a462fe1f484f46d3393b8e",
       "kind": "translation_input",
       "label": "app/priv/docs/tutorials/getting-started.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "fcde328d5dbf43f50d34cfdc65ae80fe8849919eb527895027f2eb978188d631",
+  "output_hash": "e3948b4f320c8a5a296c8e6cea4cf8047f25ad159705829fabc1dc893afea5a1",
   "output_path": "app/priv/i18n/es/docs/tutorials/getting-started.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "0f07976f14349ebdc15af14d7b0449547d09e6e1",
   "source_path": "app/priv/docs/tutorials/getting-started.md",
-  "translated_at": "2026-09-12T09:56:02.069487Z"
+  "translated_at": "2026-10-07T07:28:24.403274Z",
+  "translation_session_id": "01a114e7-8c83-793d-9f63-641be1b9ed61"
 }
