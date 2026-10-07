@@ -106,6 +106,11 @@ defmodule Glossia.Github.Client do
     api_post(url, params, access_token)
   end
 
+  def update_pull_request(full_name, number, params, access_token, opts \\ []) do
+    api_url = github_api_url(opts)
+    api_patch("#{api_url}/repos/#{full_name}/pulls/#{number}", params, access_token)
+  end
+
   def get_pull_request(full_name, number, access_token, opts \\ []) do
     api_url = github_api_url(opts)
     api_get("#{api_url}/repos/#{full_name}/pulls/#{number}", access_token)

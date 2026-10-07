@@ -17,6 +17,19 @@ defmodule Glossia.TranslationSessions.TranslateTest do
   # request builder. These tests stub RepositoryRun.run/5 and exercise the
   # publication and outcome path.
 
+  # The pull request description is refreshed whenever a run publishes or
+  # ends. Tests that care assert on it; the rest must never reach GitHub.
+  setup do
+    Mimic.stub(Glossia.Github.Client, :update_pull_request, fn _repository,
+                                                               _number,
+                                                               _params,
+                                                               _token ->
+      {:ok, %{}}
+    end)
+
+    :ok
+  end
+
   defp project_with_installation(email, handle) do
     user = TestHelpers.create_user(email, handle)
 
@@ -276,6 +289,106 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert updated.publication_commit_sha == "batch-commit"
     assert updated.pull_request_number == 3
     assert updated.pull_request_url == "https://github.com/glossia/demo/pull/3"
+  end
+
+  test "describes the translation work in the pull request and keeps it current" do
+    {user, project} = project_with_installation("summary-translate@test.com", "summary")
+    session = session_for(user, project)
+    test_pid = self()
+
+    changes = [
+      %{path: "docs/i18n/es/guide.md", status: "added", content: "# Hola mundo\n"},
+      %{path: ".glossia/docs/guide.md/es.lock", status: "added", content: "{}"}
+    ]
+
+    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn running,
+                                                            _account,
+                                                            _repo,
+                                                            _locales,
+                                                            opts ->
+      for event <- [
+            %{type: "plan_assessed", seq: 2, total: 3, needs_translation: 1, up_to_date: 2},
+            %{
+              type: "item_started",
+              seq: 3,
+              index: 0,
+              output_path: "docs/i18n/es/guide.md",
+              locale: "es"
+            },
+            %{
+              type: "item_completed",
+              seq: 4,
+              index: 0,
+              output_path: "docs/i18n/es/guide.md",
+              model_calls: 2,
+              glossary_applied: [%{id: "account:tuist", term: "Tuist", translation: "Tuist"}],
+              quality: %{passed: true, threshold: 7, ratings: [%{label: "Accuracy", score: 9}]}
+            }
+          ] do
+        TranslationSessions.broadcast_session_event(running, event)
+      end
+
+      assert :ok = Keyword.fetch!(opts, :after_item_completed).(changes)
+      {:ok, changes}
+    end)
+
+    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    Mimic.stub(Glossia.Github.Client, :get_commit, fn _repo, _sha, _token ->
+      {:ok, %{"tree" => %{"sha" => "tree"}}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_blob, fn _repo, _params, _token ->
+      {:ok, %{"sha" => "blob"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_tree, fn _repo, _params, _token ->
+      {:ok, %{"sha" => "tree"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_commit, fn _repo, _params, _token ->
+      {:ok, %{"sha" => "commit"}}
+    end)
+
+    Mimic.stub(Glossia.Github.Client, :create_branch, fn _repo, _branch, _sha, _token ->
+      {:ok, %{}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :create_pull_request, fn "glossia/demo",
+                                                                 params,
+                                                                 "github-token" ->
+      send(test_pid, {:created, params.body})
+      {:ok, %{"html_url" => "https://github.com/glossia/demo/pull/9", "number" => 9}}
+    end)
+
+    Mimic.expect(Glossia.Github.Client, :update_pull_request, fn "glossia/demo",
+                                                                 9,
+                                                                 %{body: body},
+                                                                 "github-token" ->
+      send(test_pid, {:updated, body})
+      {:ok, %{}}
+    end)
+
+    assert :ok = Translate.run(session.id)
+
+    assert_received {:created, created}
+    assert created =~ "## Summary"
+    assert created =~ "🔄 **Translating `abc1234`.**"
+
+    assert_received {:updated, body}
+
+    assert body =~
+             "Glossia translated **1 file** into **1 language** from **1 source commit** on `main`."
+
+    assert body =~ "✅ **Up to date with `abc1234`.** 2 files were already up to date."
+    assert body =~ "| `es` | 1 | 0 | 2 | 9.0/10 |"
+    assert body =~ "[`abc1234`](https://github.com/glossia/demo/commit/abc1234567890)"
+
+    assert body =~
+             "[`docs/i18n/es/guide.md`](https://github.com/glossia/demo/blob/glossia/translate-abc123456789/docs/i18n/es/guide.md)"
+
+    assert body =~ "| Tuist | Tuist | 1 |"
+    assert body =~ "## Reviewing this pull request"
   end
 
   test "updates the branch behind a recorded pull request when publication is retried" do

@@ -882,7 +882,8 @@ defmodule Glossia.Translations.RepositoryRun do
                   output_preview: completed_output_preview(result.text),
                   model_calls: Process.get(model_calls_key, 0),
                   glossary_applied: glossary_summary.applied,
-                  glossary_shadowed: glossary_summary.shadowed
+                  glossary_shadowed: glossary_summary.shadowed,
+                  quality: quality_summary(Map.get(result, :quality))
                 },
                 progress_node
               )
@@ -1333,7 +1334,21 @@ defmodule Glossia.Translations.RepositoryRun do
       id:
         Map.get(entry, :namespaced_id) ||
           "account:" <> to_string(Map.get(entry, :logical_key, Map.get(entry, :id, ""))),
-      origin: Map.get(entry, :origin, :account)
+      origin: Map.get(entry, :origin, :account),
+      term: Map.get(entry, :term),
+      translation: Map.get(entry, :translation)
+    }
+  end
+
+  # Only the scores are kept: the session history and the translation pull
+  # request report them, and the reviewer's hints stay in the live stream.
+  defp quality_summary(nil), do: nil
+
+  defp quality_summary(report) do
+    %{
+      passed: report.passed,
+      threshold: report.threshold,
+      ratings: Enum.map(report.ratings, &%{label: &1.label, score: &1.score})
     }
   end
 end
