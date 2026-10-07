@@ -14,29 +14,29 @@ msgstr "Language: ja\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "At a glance"
-msgstr "サマリー"
+msgstr "概要"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Browser languages"
-msgstr "ブラウザ言語"
+msgstr "ブラウザの言語"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Top countries"
-msgstr "上位国"
+msgstr "トップ国"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Top pages"
-msgstr "上位ページ"
+msgstr "トップページ"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
-msgstr "次におすすめの翻訳箇所"
+msgstr "次の翻訳先"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Traffic"
-msgstr "トラフィック"
+msgstr "アクセス"
