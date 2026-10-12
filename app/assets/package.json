@@ -1,6 +1,7 @@
 {
   "name": "glossia-assets",
   "version": "0.0.0",
+  "license": "SEE LICENSE IN ../../LICENSE.md",
   "private": true,
   "description": "Client-side JavaScript dependencies for the Glossia web app (d3-geo for the localization-priority map).",
   "dependencies": {

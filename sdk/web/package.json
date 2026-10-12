@@ -2,7 +2,12 @@
   "name": "@glossia/web",
   "version": "0.1.0",
   "description": "Cookieless, privacy-friendly web analytics that surfaces localization opportunities for Glossia.",
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/glossia/glossia.git",
+    "directory": "sdk/web"
+  },
   "type": "module",
   "main": "./dist/glossia-web.cjs",
   "module": "./dist/glossia-web.js",
@@ -14,7 +19,7 @@
       "require": "./dist/glossia-web.cjs"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": ["dist", "README.md", "LICENSE.md", "src"],
   "sideEffects": false,
   "scripts": {
     "build": "node build.mjs",

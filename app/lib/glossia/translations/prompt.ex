@@ -2,10 +2,10 @@ defmodule Glossia.Translations.Prompt do
   @moduledoc """
   Builds the system and user prompts for content translation.
 
-  This is the translation "moat": the proprietary prompt logic that used to live
-  in the Rust CLI (`cli/src/translate/prompt.rs`). It now runs server-side so it
-  is never shipped to clients — the CLI sends source content and receives
-  translations, without ever seeing how the prompt is constructed.
+  Prompt construction runs server-side: the CLI sends source content and
+  receives translations rather than constructing the prompts itself.
+  The prompt implementation is part of Glossia's source-available code under
+  the O'Saasy License.
 
   Keep this in sync with the formats understood by the CLI planner. Supported
   formats: `"markdown"`, `"json"`, `"yaml"`, `"po"`, `"text"`.

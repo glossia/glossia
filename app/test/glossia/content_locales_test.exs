@@ -45,6 +45,23 @@ defmodule Glossia.ContentLocalesTest do
     end
   end
 
+  test "current legal pages use O'Saasy in every locale" do
+    for locale <- I18n.locales(), document <- ~w(terms privacy cookies) do
+      version = Legal.latest_version!(document, locale)
+
+      assert version.date == ~D[2026-10-12]
+      assert version.body =~ "O'Saasy License"
+      refute version.body =~ "MPL-2.0"
+    end
+  end
+
+  test "historical terms retain the license that applied at publication" do
+    version = Legal.get_version!("terms", "2026-02-12")
+
+    assert version.body =~ "O'Saasy License"
+    assert version.body =~ "may not use it to offer"
+  end
+
   test "a section with no translations yet keeps serving English" do
     assert Changelog.all_entries("ja") == Changelog.all_entries()
   end

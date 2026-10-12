@@ -21,7 +21,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 env:
   REGISTRY: ghcr.io
@@ -30,7 +29,8 @@ env:
 jobs:
   test:
     if: github.event.pull_request.draft == false || github.event_name != 'pull_request'
-    runs-on: hetzner-docker
+    # Fork pull requests never need access to the Hetzner runner cluster.
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || 'hetzner-docker' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -58,6 +58,9 @@ jobs:
     needs: test
     if: github.event_name != 'pull_request'
     runs-on: hetzner-docker
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
@@ -84,6 +87,9 @@ jobs:
           file: infra/cloudflare-operator/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.licenses=LicenseRef-O-Saasy
           tags: ${{ steps.tags.outputs.tags }}
           cache-from: type=gha,scope=cloudflare-operator
           cache-to: type=gha,mode=max,scope=cloudflare-operator

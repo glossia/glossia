@@ -2,6 +2,7 @@ import Ecto.Query
 
 alias Babel.Accounts.Account
 alias Babel.Errors
+alias Babel.Errors.Event
 alias Babel.Errors.Issue
 alias Babel.Errors.IssueCoalescer
 alias Babel.Errors.SentryEvent
@@ -15,16 +16,13 @@ alias Babel.Repo
 today = Date.utc_today()
 now = DateTime.utc_now(:second)
 
+# All people, organizations, research sources, and outreach below are fictional
+# development examples. They do not describe real customers or prospects.
 accounts = [
-  %{email: "marek@glossia.ai", name: "Marek", pomerium_id: "google/marek", last_seen_at: now},
-  %{
-    email: "paulina@glossia.ai",
-    name: "Paulina",
-    pomerium_id: "google/paulina",
-    last_seen_at: now
-  },
-  %{email: "nina@glossia.ai", name: "Nina", pomerium_id: "google/nina", last_seen_at: now},
-  %{email: "tomas@glossia.ai", name: "Tomas", pomerium_id: "google/tomas", last_seen_at: now}
+  %{email: "alex@example.com", name: "Alex", pomerium_id: "google/alex", last_seen_at: now},
+  %{email: "jordan@example.com", name: "Jordan", pomerium_id: "google/jordan", last_seen_at: now},
+  %{email: "morgan@example.com", name: "Morgan", pomerium_id: "google/morgan", last_seen_at: now},
+  %{email: "taylor@example.com", name: "Taylor", pomerium_id: "google/taylor", last_seen_at: now}
 ]
 
 for attributes <- accounts do
@@ -37,7 +35,7 @@ end
 work_items = [
   %{
     area: "Customer success",
-    assignee: "Marek",
+    assignee: "Alex",
     due_on: Date.add(today, 2),
     priority: "High",
     status: "In progress",
@@ -45,7 +43,7 @@ work_items = [
   },
   %{
     area: "Finance",
-    assignee: "Paulina",
+    assignee: "Jordan",
     due_on: Date.add(today, 4),
     priority: "Urgent",
     status: "Blocked",
@@ -53,7 +51,7 @@ work_items = [
   },
   %{
     area: "Growth",
-    assignee: "Nina",
+    assignee: "Morgan",
     due_on: Date.add(today, 6),
     priority: "Normal",
     status: "Open",
@@ -61,7 +59,7 @@ work_items = [
   },
   %{
     area: "Operations",
-    assignee: "Tomas",
+    assignee: "Taylor",
     due_on: Date.add(today, -1),
     priority: "Low",
     status: "Done",
@@ -96,36 +94,36 @@ organizations = [
     glossia_account_handle: "paper-kite-publishing"
   },
   %{
-    name: "Braze",
-    website_url: "https://www.braze.com",
-    origin_url: "https://phrase.com/customers/braze/",
+    name: "Cedar Trail",
+    website_url: "https://cedar-trail.example.com",
+    origin_url: "https://cedar-trail.example.com/stories/localization",
     state: "engaging",
     translation_tool: "Phrase",
-    notes: "Publicly evidenced multilingual content and content-management workflow."
+    notes: "Sample multilingual content and content-management workflow."
   },
   %{
-    name: "Strava",
-    website_url: "https://www.strava.com",
-    origin_url: "https://crowdin.com/customers",
+    name: "Summit Fitness",
+    website_url: "https://summit-fitness.example.com",
+    origin_url: "https://summit-fitness.example.com/stories/globalization",
     state: "researching",
     translation_tool: "Crowdin",
-    notes: "Confirm the current public globalization contact before preparing outreach."
+    notes: "Confirm the sample globalization contact before preparing outreach."
   },
   %{
-    name: "Tito",
-    website_url: "https://ti.to",
-    origin_url: "https://phrase.com/customers/tito/",
+    name: "Harbor Tickets",
+    website_url: "https://harbor-tickets.example.com",
+    origin_url: "https://harbor-tickets.example.com/stories/localization",
     state: "qualified",
     translation_tool: "Phrase",
-    notes: "Small developer team with a public history of scaling a translation workflow."
+    notes: "Sample small developer team scaling a translation workflow."
   },
   %{
-    name: "Dailymotion",
-    website_url: "https://www.dailymotion.com",
-    origin_url: "https://lokalise.com/case-studies/",
+    name: "Juniper Video",
+    website_url: "https://juniper-video.example.com",
+    origin_url: "https://juniper-video.example.com/stories/localization",
     state: "researching",
     translation_tool: "Lokalise",
-    notes: "Public localization outcome is relevant; current contact has not been verified."
+    notes: "Sample localization outcome; no contact has been verified."
   }
 ]
 
@@ -142,93 +140,93 @@ organizations_by_name =
 
 prospects = [
   %{
-    company: "Braze",
-    website_url: "https://www.braze.com",
+    company: "Cedar Trail",
+    website_url: "https://cedar-trail.example.com",
     translation_tool: "Phrase",
-    source_title: "How Braze Transformed Global Growth and Customer Engagement",
-    source_url: "https://phrase.com/customers/braze/",
+    source_title: "Sample: scaling multilingual content at Cedar Trail",
+    source_url: "https://cedar-trail.example.com/stories/localization",
     evidence:
-      "Braze describes scaling multilingual content and its Sanity content-management workflow while expanding into new markets.",
-    contact_name: "Liz Lopacki",
+      "This fictional case study describes scaling multilingual content and a content-management workflow while expanding into new markets.",
+    contact_name: "Casey Morgan",
     contact_role: "Senior Manager, Localization",
     status: "ready",
     outreach_angle:
-      "Offer a working session that keeps product, help, and campaign copy aligned through a reviewable voice and glossary check alongside the existing workflow.",
+      "Demonstrate a reviewable voice and glossary check alongside the sample content workflow.",
     intro_email_draft: """
-    Hi Liz,
+    Hi Casey,
 
-    I read Braze's public story about scaling localized content through Sanity. Growing into new markets while keeping a consistent customer experience stood out.
+    This is a fictional introduction for the Cedar Trail development example.
 
-    We are building Glossia for teams that want their voice and glossary to travel with code and content changes, with reviewable changes instead of another opaque handoff.
+    We could demonstrate how voice and glossary guidance stays attached to a small, non-production content change, so a localization contact can inspect the proposed wording before it ships.
 
-    Would you be open to a 20-minute working demo using a small, non-production content change? We could show how a localization contact can inspect the context and proposed wording before it ships.
+    Would a 20-minute working demo be useful?
     """,
-    next_step: "Verify the current public localization contact.",
-    organization_id: organizations_by_name["Braze"].id
+    next_step: "Verify the sample localization contact.",
+    organization_id: organizations_by_name["Cedar Trail"].id
   },
   %{
-    company: "Strava",
-    website_url: "https://www.strava.com",
+    company: "Summit Fitness",
+    website_url: "https://summit-fitness.example.com",
     translation_tool: "Crowdin",
-    source_title: "Companies and people making their products multilingual with Crowdin",
-    source_url: "https://crowdin.com/customers",
+    source_title: "Sample: a multilingual fitness product",
+    source_url: "https://summit-fitness.example.com/stories/globalization",
     evidence:
-      "Crowdin's public customer page attributes a global accessibility and market-launch localization program at Strava to its Globalization Director.",
-    contact_name: "Eduardo D'Antonio",
+      "This fictional case study describes a global accessibility and market-launch localization program at a fitness company.",
+    contact_name: "Robin Ellis",
     contact_role: "Globalization Director",
     status: "researching",
     outreach_angle:
-      "Lead with an additive quality workflow, not a replacement pitch: show how repository-linked voice guidance makes localization context inspectable for a fast-moving product team.",
+      "Demonstrate repository-linked review context as an addition to the sample team's workflow.",
     intro_email_draft: """
-    Hi Eduardo,
+    Hi Robin,
 
-    I saw the public account of Strava's work to make its product more accessible to runners worldwide. It is a good example of localization being a product decision, not a final translation step.
+    This is a fictional introduction for the Summit Fitness development example.
 
-    Glossia is exploring a repository-native way to keep approved glossary, audience guidance, and review context attached to the changes that create them.
+    We could show how approved glossary and audience guidance stays attached to product changes, without adding another manual handoff.
 
-    If it is useful, I would love to share a short demo focused on one question: how can a globalization team inspect the context behind a proposed change without adding another manual handoff?
+    Would you like to review a small example together?
     """,
-    next_step: "Verify the current role and public contact.",
-    organization_id: organizations_by_name["Strava"].id
+    next_step: "Verify the sample role and contact.",
+    organization_id: organizations_by_name["Summit Fitness"].id
   },
   %{
-    company: "Tito",
-    website_url: "https://ti.to",
+    company: "Harbor Tickets",
+    website_url: "https://harbor-tickets.example.com",
     translation_tool: "Phrase",
-    source_title: "The Fast and Scalable Localization Solution for Small Teams",
-    source_url: "https://phrase.com/customers/tito/",
+    source_title: "Sample: localization for a small ticketing team",
+    source_url: "https://harbor-tickets.example.com/stories/localization",
     evidence:
-      "Tito's public case study describes a Ruby on Rails application that moved from difficult-to-maintain translation files to a managed workflow as it added languages.",
-    contact_name: "Paul Campbell",
+      "This fictional case study describes a Rails application moving from translation files to a managed workflow as it adds languages.",
+    contact_name: "Jamie Park",
     contact_role: "Chief Executive Officer",
     status: "ready",
     outreach_angle:
-      "Offer a no-migration proof of concept: review one pull request that keeps translation guidance and release context beside the existing application files.",
+      "Demonstrate one pull request that keeps translation guidance beside the sample application files.",
     intro_email_draft: """
-    Hi Paul,
+    Hi Jamie,
 
-    I came across Tito's story about growing from translation files into a workflow that lets a small team add languages without pulling engineers into every handoff.
+    This is a fictional introduction for the Harbor Tickets development example.
 
-    We are building Glossia around a complementary idea: keep translation context, glossary, and brand voice versioned with the work that changes the product, so review stays concrete and familiar to developers.
+    We could review a small Rails-style pull request that keeps translation context and brand voice versioned with the application, with no migration required.
 
-    Would a 20-minute demo be useful? We can use a small Rails-style example and show the output as a pull request, with no migration or account setup required.
+    Would a 20-minute demo be useful?
     """,
-    next_step: "Verify the product or engineering contact route.",
-    organization_id: organizations_by_name["Tito"].id
+    next_step: "Verify the sample product or engineering contact route.",
+    organization_id: organizations_by_name["Harbor Tickets"].id
   },
   %{
-    company: "Dailymotion",
-    website_url: "https://www.dailymotion.com",
+    company: "Juniper Video",
+    website_url: "https://juniper-video.example.com",
     translation_tool: "Lokalise",
-    source_title: "Lokalise customer stories",
-    source_url: "https://lokalise.com/case-studies/",
+    source_title: "Sample: localization for a video platform",
+    source_url: "https://juniper-video.example.com/stories/localization",
     evidence:
-      "Lokalise publicly describes Dailymotion as reducing time to market and developer time spent on localization, which is a clear workflow signal but does not name a current contact.",
+      "This fictional case study describes reducing developer time spent on localization, without naming a contact.",
     status: "researching",
     outreach_angle:
-      "Use a developer-led artifact to start the conversation: offer a public repository review that identifies where localization context could be easier to inspect in code.",
-    next_step: "Identify a current public localization contact.",
-    organization_id: organizations_by_name["Dailymotion"].id
+      "Demonstrate a repository review that identifies where localization context could be easier to inspect.",
+    next_step: "Identify a sample localization contact.",
+    organization_id: organizations_by_name["Juniper Video"].id
   }
 ]
 
@@ -256,46 +254,43 @@ end
 
 interactions = [
   %{
-    organization_name: "Braze",
+    organization_name: "Cedar Trail",
     kind: "research",
-    summary: "Reviewed the public Phrase customer story.",
-    body:
-      "The source describes multilingual content growth and a Sanity content-management workflow.",
-    source_url: "https://phrase.com/customers/braze/",
+    summary: "Reviewed the fictional multilingual content case study.",
+    body: "The sample source describes multilingual content and a content-management workflow.",
+    source_url: "https://cedar-trail.example.com/stories/localization",
     occurred_at: DateTime.add(now, -7 * 86_400, :second)
   },
   %{
-    organization_name: "Braze",
+    organization_name: "Cedar Trail",
     kind: "introduction_draft",
-    summary: "Prepared a reviewed working-demo introduction for the localization contact.",
+    summary: "Prepared a fictional working-demo introduction for the sample contact.",
     body:
-      "The draft offers a small, non-production content change and does not send anything automatically.",
+      "The sample draft offers a non-production content change and does not send anything automatically.",
     occurred_at: DateTime.add(now, -2 * 86_400, :second)
   },
   %{
-    organization_name: "Strava",
+    organization_name: "Summit Fitness",
     kind: "research",
-    summary: "Captured the public Crowdin globalization signal for review.",
-    body: "Confirm the role and current contact before creating a tailored introduction.",
-    source_url: "https://crowdin.com/customers",
+    summary: "Captured the fictional globalization example for review.",
+    body: "Confirm the sample role and contact before creating a demonstration introduction.",
+    source_url: "https://summit-fitness.example.com/stories/globalization",
     occurred_at: DateTime.add(now, -5 * 86_400, :second)
   },
   %{
-    organization_name: "Tito",
+    organization_name: "Harbor Tickets",
     kind: "research",
-    summary:
-      "Reviewed the public Phrase case study about scaling languages in a Rails application.",
-    body: "A no-migration pull request demonstration is the proposed next conversation artifact.",
-    source_url: "https://phrase.com/customers/tito/",
+    summary: "Reviewed the fictional Rails localization case study.",
+    body: "A sample no-migration pull request demonstration is the next conversation artifact.",
+    source_url: "https://harbor-tickets.example.com/stories/localization",
     occurred_at: DateTime.add(now, -4 * 86_400, :second)
   },
   %{
-    organization_name: "Dailymotion",
+    organization_name: "Juniper Video",
     kind: "note",
-    summary: "Identified a public localization workflow signal; contact remains unverified.",
-    body:
-      "Keep this organization in research until a current public contact and workflow are confirmed.",
-    source_url: "https://lokalise.com/case-studies/",
+    summary: "Identified a fictional localization example with no verified contact.",
+    body: "Keep this sample organization in research until a contact and workflow are confirmed.",
+    source_url: "https://juniper-video.example.com/stories/localization",
     occurred_at: DateTime.add(now, -3 * 86_400, :second)
   }
 ]
@@ -444,7 +439,12 @@ duplicate_payload =
 
 for payload <- errors_seed_payloads ++ [duplicate_payload] do
   event = SentryEvent.parse(payload)
-  :ok = Errors.record_event(errors_org.id, event)
+  event_id = event.event_id |> Base.decode16!(case: :mixed) |> Ecto.UUID.load!()
+
+  # Stable sample event IDs must not be reinserted or counted again on reruns.
+  unless Repo.get(Event, event_id) do
+    :ok = Errors.record_event(errors_org.id, event)
+  end
 end
 
 # The coalescer batches rollups on a 5s tick; flush synchronously so

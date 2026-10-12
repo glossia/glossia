@@ -4,7 +4,9 @@
 // - IIFE (`glossia-web.iife.js`) — used by the classic `<script>` snippet,
 //   exposed as the `glossia` global so callers can do `glossia("track", "...")`.
 import { build } from "esbuild";
-import { rmSync } from "node:fs";
+import { copyFileSync, rmSync } from "node:fs";
+
+copyFileSync(new URL("../../LICENSE.md", import.meta.url), new URL("./LICENSE.md", import.meta.url));
 
 rmSync("dist", { recursive: true, force: true });
 
@@ -14,6 +16,9 @@ const base = {
   target: "es2020",
   sourcemap: false,
   legalComments: "none",
+  banner: {
+    js: "/*! @glossia/web | O'Saasy License | Source: https://github.com/glossia/glossia/tree/main/sdk/web */",
+  },
 };
 
 await build({ ...base, format: "esm", outfile: "dist/glossia-web.js" });

@@ -123,7 +123,10 @@ jobs:
           mkdir -p ../release
           binary="target/release/${{ matrix.binary_name }}"
           test -s "$binary"
-          tar -C "$(dirname "$binary")" -czf "../release/${{ matrix.archive_name }}" "${{ matrix.binary_name }}"
+          package_dir="../release/${{ matrix.label }}"
+          mkdir -p "$package_dir"
+          cp "$binary" ../LICENSE.md ../README.md "$package_dir/"
+          tar -C "$package_dir" -czf "../release/${{ matrix.archive_name }}" "${{ matrix.binary_name }}" LICENSE.md README.md
 
       - name: Package archive (Windows)
         if: runner.os == 'Windows'
@@ -134,7 +137,7 @@ jobs:
           if ((Get-Item $binary).Length -eq 0) {
             throw "The release binary is empty."
           }
-          Compress-Archive -Path $binary -DestinationPath "../release/${{ matrix.archive_name }}" -Force
+          Compress-Archive -Path $binary, "../LICENSE.md", "../README.md" -DestinationPath "../release/${{ matrix.archive_name }}" -Force
 
       - uses: actions/upload-artifact@v4
         with:

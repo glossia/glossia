@@ -75,7 +75,10 @@ config :esbuild,
   ],
   glossia_sdk_web: [
     args:
-      ~w(#{Path.expand("../../sdk/web/src/index.js", __DIR__)} --bundle --format=iife --global-name=glossia --target=es2020 --outfile=../priv/static/assets/glossia-web.js),
+      ~w(#{Path.expand("../../sdk/web/src/index.js", __DIR__)} --bundle --format=iife --global-name=glossia --target=es2020 --outfile=../priv/static/assets/glossia-web.js) ++
+        [
+          "--banner:js=/*! @glossia/web | O'Saasy License | Source: https://github.com/glossia/glossia/tree/main/sdk/web */"
+        ],
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]

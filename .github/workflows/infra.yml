@@ -30,7 +30,8 @@ jobs:
   helm:
     if: github.event.pull_request.draft != true
     name: Helm Charts
-    runs-on: hetzner-docker
+    # Fork pull requests never need access to the Hetzner runner cluster.
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || 'hetzner-docker' }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
