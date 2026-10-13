@@ -252,7 +252,7 @@ func TestReconcile_Adopt_ZeroChangeIsNoop(t *testing.T) {
 }
 
 // TestPublicPagesRateLimitPairIsComplementary guards the handoff
-// between the human-facing challenge rule and the separate crawler
+// between the unverified-client rate limit and the separate verified-crawler
 // rule that ship together in k8s/workload-platforms/glossia-production/cloudflare/.
 // A regression here (both rules matching cf.client.bot, or neither, or
 // disagreeing on the counting header) would either double-count
@@ -279,11 +279,22 @@ func TestPublicPagesRateLimitPairIsComplementary(t *testing.T) {
 		t.Errorf("counting expressions must agree so the two buckets tick on the same responses:\n humans=%q\n crawlers=%q",
 			humans.Spec.RateLimit.CountingExpression, crawlers.Spec.RateLimit.CountingExpression)
 	}
-	if humans.Spec.Action != "managed_challenge" {
-		t.Errorf("public-pages action = %q, want managed_challenge (humans should be challenged, not blocked)", humans.Spec.Action)
-	}
-	if crawlers.Spec.Action != "block" {
-		t.Errorf("verified-crawlers action = %q, want block (compliant crawlers must see 429 and back off)", crawlers.Spec.Action)
+	for name, rule := range map[string]*cfv1alpha1.CloudflareRateLimit{
+		"unverified-clients": humans,
+		"verified-crawlers":  crawlers,
+	} {
+		if rule.Spec.Action != "block" {
+			t.Errorf("%s action = %q, want block (machine readers need 429, not a browser challenge)", name, rule.Spec.Action)
+		}
+		if !strings.Contains(rule.Spec.Expression, `http.request.method in {"GET" "HEAD"}`) {
+			t.Errorf("%s must rate-limit both GET and HEAD, got %q", name, rule.Spec.Expression)
+		}
+		if rule.Spec.RateLimit.RequestsPerPeriod != 60 || rule.Spec.RateLimit.Period != 10 {
+			t.Errorf("%s must retain its 60-request/10-second resource bound", name)
+		}
+		if rule.Spec.RateLimit.MitigationTimeoutSeconds != 10 {
+			t.Errorf("%s must use a bounded 10-second backoff", name)
+		}
 	}
 }
 
