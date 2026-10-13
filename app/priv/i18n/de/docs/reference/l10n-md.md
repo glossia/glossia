@@ -2,19 +2,19 @@
   title: "L10N.md",
   summary: "Referenz für Repository-Übersetzungseinstellungen und Kontext.",
   category: "Referenz",
+  section: "translation",
   order: 1
 }
 ---
-`L10N.md` definiert für Glossia, welche Dateien zu übersetzen sind, wohin die übersetzten Dateien gehören, welche Sprachen als Ziel gesetzt werden sollen und welcher Kontext das Ergebnis leiten soll. Ein Repository kann eine Root-Datei und weitere scoped Dateien in Unterordnern haben.
+
+`L10N.md` definiert, welche Dateien zu übersetzen sind, wohin die Übersetzungen gehören, welche Sprachen als Ziel dienen und welcher Kontext das Ergebnis leiten soll. Ein Repository kann eine Root-Datei und weitere, in Unterordnern eingeschränkte Dateien enthalten.
 
 ## Struktur
 
 Jede Datei besteht aus zwei Teilen:
 
-1. [YAML Ain't Markup Language](https://yaml.org/) Frontmatter zwischen `---` Markern.
-2. Markdown nach dem Frontmatter mit Produkt-, Zielgruppen-, Sprach- oder Bereichskontext.
-
-<!-- end list -->
+1. [YAML Ain't Markup Language](https://yaml.org/) Frontmatter zwischen `---` Markierungen.
+2. Markdown unterhalb des Frontmatter mit Produkt-, Zielgruppen-, Stil- oder Domänenkontext.
 
 ```yaml
 ---
@@ -37,40 +37,43 @@ preserve:
 Write for software developers. Keep product names and code samples unchanged.
 ```
 
-Provider-Credentials gehören in die Kontoeinstellungen, niemals in `L10N.md`. Der optionale `model` Wert ist ein Kontokenvollständiger Handle.
+Anbieterzugangsdaten gehören in die Kontoeinstellungen, niemals in `L10N.md`. Der optionale `model`-Wert ist ein Konto-Modell-Handle.
 
 ## Frontmatter-Felder
 
 | Feld | Typ | Erforderlich | Beschreibung |
 |---|---|---|---|
-| `source_language` | string | nein | Quellformat für diesen Geltungsbereich. Standardmäßig `en`.|
-| `model` | string | nein | Kontokenvollständiger Handle. Glossia verwendet den Konteenstandard, wenn dieser nicht spezifiziert wird, und meldet einen Fehler, wenn ein expliziter Handle nicht existiert. |
-| `sources` | map oder Liste | für eine Top-Level-Regel | Quelldatei-Muster. Map-Werte können Ausgabevorlagen definieren. |
-| `targets` | map oder Liste | wenn Quellen konfiguriert sind | Zielsprachen-Code. Eine Map kann einen Sprachcode mit einem Sprachnamen verbinden. |
-| `output` | string | wenn keine Quellzuordnung oder `target_path` ein Ziel angibt | Ausgabe-Dateivorlage. |
-| `target_path` | string | wenn keine Quellzuordnung oder `output` ein Ziel angibt | Basisverzeichnissvorlage für übersetzte Dateien. |
-| `translate` | Liste | nein | Mehrere Übersetzungsregeln, jede mit ihren eigenen Quellen und optionalen Überlagerungen. |
+| `source_language` | Zeichenkette | nein | Quell-Locale für diesen Bereich. Der Standardwert ist `en`. |
+| `model` | Zeichenkette | nein | Konto-Modell-Handle. Glossia verwendet den Standardwert des Kontos, wenn dieser weggelassen wird, und meldet einen Fehler, wenn ein expliziter Handle nicht existiert. |
+| `sources` | Mappe oder Liste | für eine Top-Level-Regel | Quelldatei-Patterns. Map-Werte können Ausgabe-Vorlagen definieren. |
+| `targets` | Mappe oder Liste | wenn Quellen konfiguriert sind | Ziel-Locale-Codes. Eine Mappe kann einen Locale-Code mit einem Sprachnamen zuordnen. |
+| `output` | Zeichenkette | wenn keine Quell-Mapping verfügbar ist oder `target_path` ein Ziel bereitstellt | Ausgabe-Datei-Vorlage. |
+| `target_path` | Zeichenkette | wenn keine Quell-Mapping verfügbar ist oder `output` ein Ziel bereitstellt | Vorlagetempel für Übersetzungsdateien im Basisverzeichnis. |
+| `translate` | Liste | nein | Mehrfache Übersetzungsregeln, jede mit eigenen Quellen und optionalen Überschreibungen. |
 | `exclude` | Liste | nein | Dateimuster, die übersprungen werden sollen. |
-| `preserve` | Liste | nein | Inhalt, der unverändert bleiben muss, wie Platzhalter oder uniforme Ressourcenlokatoren. |
-| `frontmatter` | string | nein | `preserve` standardmäßig, oder `translate`.|
-| `prompt` | string | nein | Zusätzliche Hinweisungen für diesen Geltungsbereich oder diese Regel. |
-| `validation` | Liste | für Dateinamenerweiterungen ohne eingebauten Adapter | Ein Validierungsbefehl gefolgt von seinen Argumenten. Der Befehl erhält den Kandidaten an seinem echten Zielverzeichnissweg und muss einen nicht-null Status zurückgeben, wenn die Datei ungültig ist. |
-| `check_cmd` | string | nein | Ein Prüf-Befehl, der im Übersetzungsworkflow verfügbar ist. |
-| `check_cmds` | map | nein | Benannte Prüf-Befehle, die im Übersetzungsworkflow verfügbar sind. |
-| `retries` | Ganzzahl | nein | Anzahl der Wiederversuchungsversuche nach einem fehlgeschlagenen Check. Standardmäßig `2`.|
-| `locale` | string | nein | Format, das einer formatabhängigen Kontextdatei beiliegt. |
+| `preserve` | Liste | nein | Inhaltstypen, die unverändert bleiben müssen, wie Platzhalter oder URLs. |
+| `frontmatter` | Zeichenkette | nein | `preserve` standardmäßig, oder `translate`. |
+| `prompt` | Zeichenkette | nein | Zusätzliche Anleitung für diesen Bereich oder Regel. |
+| `validation` | Liste | für Datei-Endungen ohne eingebauten Adapter | Ein Validierungsbefehl gefolgt von seinen Argumenten. Der Befehl empfängt den Kandidaten an seinem realen Ziel-Pfad und muss bei ungültiger Datei einen Status ungleich Null zurückgeben. |
+| `check_cmd` | Zeichenkette | nein | Ein Überprüfungs-Befehl, der dem Übersetzungs-Workflow zur Verfügung steht. |
+| `check_cmds` | Mappe | nein | Benannte Überprüfungs-Befehle, die dem Übersetzungs-Workflow zur Verfügung stehen. |
+| `retries` | Ganzzahl | nein | Anzahl der Wiederversuche nach einer fehlgeschlagenen Überprüfung. Standardmäßig `2`. |
+| `locale` | Zeichenkette | nein | Locale, die an eine lokal-spezifische Kontext-Datei angehängt ist. |
+| `glossary` | Liste oder Mappe | nein | In `L10N.md` eine Liste von Glossar-Begriffen. In `L10N/<locale>.md` eine Mappe von jedem Begriff zu dessen Übersetzung in dieser Sprache. Geschachtelte Dateien erweitern und überschreiben die vererbten Einträge. Siehe die [Glossarreferenz](/docs/reference/glossary). |
 
 Unbekannte Frontmatter-Felder werden ignoriert.
 
 ## Dateiformate
 
-Glossia hat einen eigenen Handler für Markdown, JavaScript Object Notation, YAML Ain't Markup Language, portable object und Text-Dateien. Andere Dateinamenerweiterungen planen außerhalb üblichen Ablaufs, es sei denn, das eigenständige `L10N.md` deklariert ein `validation` Befehl. Dies vermeidet einen stillen Umgang einer eigenständigenStructured-Format als unbeschränkten Text.
+Glossia bietet integrierte Verarbeitung für Markdown, JavaScript Object Notation, YAML Ain't Markup Language, portables Objekte und Textdateien. Andere Dateiendungen scheitern bei der Planung, es sei denn, die anwendbare `L10N.md` deklariert einen `validation`-Befehl. So wird verhindert, dass ein proprietäres Format stumm als unbeschränkter Text behandelt wird.
 
-Der Validierungsbefehl läuft, nachdem der Kandidat vorübergehend seinem echten Zielverzeichnissweg geschrieben wurde. Er kann den natürlichen Parser, Compiler oder Build-Befehl des Repositories aufrufen. Glossia stellt die vorherige Zielseite nach jedem Validierungsversuch wieder her und schreibt nur den akzeptierten Kandidaten danach.
+In Markdown wird nur Prosa übersetzt: Absätze, Überschriften, Listeneinträge, Tabellenzellen, die `title`-, `details`-, `alt`-, `label`-, `description`-, `summary`-, `placeholder`-, `aria-label`- und `caption`-Attribute von Komponenten und HTML, sowie der Text einesHTML `<summary>`-Elements. Jedes andere Byte, einschließlich Code, Link-Ziele, Komponenten, Warnmeldungen und explizite Überschriften-Anker, wird genau wie in der Quelle beibehalten. Für die Funktionsweise siehe [Übersetzungswiederherstellung](/docs/explanation/translation-recovery).
 
-## Quellzuordnungen
+Der Validierungsbefehl wird ausgeführt, nachdem der Kandidat vorübergehend an seinen realen Ziel-Pfad geschrieben wurde. Er kann den nativen Parser, Compiler oder Build-Befehl des Repositories aufrufen. Glossia stellt das vorherige Ziel nach jeder Validierungsversuch wieder her und schreibt nur den akzeptierten Kandidaten danach.
 
-Die klarste Form ordnet jedes Quellmuster einer Ausgabe-Vorlage zu:
+## Quell-Mapping
+
+Die klarste Form ordnet jedes Quellmuster einem Ausgabe-Vorlage zu:
 
 ```yaml
 sources:
@@ -78,7 +81,7 @@ sources:
   "content/*.json": "content/{locale}/{basename}.{ext}"
 ```
 
-Eine Quell-Liste ist ebenfalls gültig, benötigt aber `output` oder `target_path`, um das Ziel zu definieren:
+Eine Quellenliste ist auch gültig, benötigt aber `output` oder `target_path` um das Ziel zu definieren:
 
 ```yaml
 sources:
@@ -86,9 +89,9 @@ sources:
 target_path: "docs/i18n/{locale}"
 ```
 
-## Zielssprachen
+## Zielsprachen
 
-Eine Liste verwendet jeden Locale-Code als Sprachkennzeichen:
+Eine Liste verwendet jeweils den Locale-Code als Sprach-Identifier:
 
 ```yaml
 targets:
@@ -96,7 +99,7 @@ targets:
   - ja
 ```
 
-Eine Mapping-Struktur kann einen lesbaren Sprachnamen hinzufügen:
+Eine Mappe kann einen lesbaren Sprachnamen hinzufügen:
 
 ```yaml
 targets:
@@ -104,18 +107,18 @@ targets:
   ja: Japanese
 ```
 
-## Ausgabevariablen
+## Ausgabeevariablen
 
 | Variable | Wert |
 |---|---|
-| `{locale}` oder `{lang}` | Code der Zielsprache. |
-| `{relpath}` | Quell-Pfad relativ zum abgeglichenen Muster. |
-| `{basename}` | Quell-Dateiname ohne Erweiterung. |
-| `{ext}` | Dateierweiterung ohne den führenden Punkt. |
+| `{locale}` oder `{lang}` | Ziel-Locale-Code. |
+| `{relpath}` | Quell-Pfad relativ zum übereinstimmenden Muster. |
+| `{basename}` | Quell-Dateiname ohne seine Erweiterung. |
+| `{ext}` | Quell-Dateiendung ohne den führenden Punkt. |
 
 ## Mehrere Regeln
 
-Verwenden Sie `translate`, wenn unterschiedliche Inhaltsgruppen verschiedene Ziele oder Prüfungen benötigen:
+Verwenden Sie `translate` wenn unterschiedliche Inhaltsgruppen verschiedene Ziele oder Prüfungen benötigen:
 
 ```yaml
 ---
@@ -131,15 +134,15 @@ translate:
 ---
 ```
 
-Regelwerte überschreiben Werte, die vom umgebenden Dokument geerbt wurden.
+Regelwerte überschreiben Werte, die von der umgebenden Datei vererbt werden.
 
-## Begrenzter Kontext
+## Kontext mit Geltungsbereich
 
-Glossia liest `L10N.md`-Dateien von der Repository-Wurzel zur Quelldatei:
+Glossia liest `L10N.md`-Dateien vom Repository-Root in Richtung der Quelldatei:
 
-- Elterneinstellungen bieten Standardwerte.
-- Eine tiefer liegende Datei überschreibt Felder für ihr Verzeichnis.
-- Markdown-Kontext wird von Eltern zu Kind angesammelt.
-- Sprachspezifische Anweisungen und ein sprachspezifisches Modell-Handle können in `L10N/<locale>.md` liegen.
+- Elterneinstellungen liefern Standardwerte.
+- Eine tiefere Datei überschreibt Felder für ihr Verzeichnis.
+- Der Markdown-Kontext wird von übergeordneten zu untergeordneten Ebenen akkumuliert.
+- Lokalspezifische Hinweise und ein lokalspezifisches Modell-Handle können in `L10N/<locale>.md` liegen.
 
-Dies ermöglicht es einem Repository, weitreichende Stimmrichtlinien an der Wurzel zu halten, während produktbereichs- oder -sprachspezifische Anweisungen in die Nähe des Inhalts rückt, der sie betrifft.
+Dies ermöglicht es einem Repository, breite Stimmenführung am Root zu behalten, während produktbereichs- oder sprachspezifische Hinweise nah am von ihnen betroffenen Inhalt platziert werden.
