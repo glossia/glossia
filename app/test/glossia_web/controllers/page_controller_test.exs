@@ -3,6 +3,8 @@ defmodule GlossiaWeb.PageControllerTest do
 
   alias Glossia.{Docs, I18n, TestHelpers}
 
+  @comparison_slugs ~w(glossia-vs-crowdin glossia-vs-lokalise glossia-vs-phrase glossia-vs-weblate)
+
   test "GET / renders the public homepage for guests", %{conn: conn} do
     conn = get(conn, ~p"/")
     response = html_response(conn, 200)
@@ -11,6 +13,23 @@ defmodule GlossiaWeb.PageControllerTest do
     assert response =~ "https://community.glossia.ai"
     assert response =~ "Visit the forum"
     refute response =~ "discord.gg"
+  end
+
+  for {locale, path} <- [{"en", "/"}, {"es", "/es"}] do
+    test "#{path} keeps competitor comparisons out of the FAQ", %{conn: conn} do
+      faq_links =
+        conn
+        |> get(unquote(path))
+        |> html_response(200)
+        |> LazyHTML.from_document()
+        |> LazyHTML.query(".faq a")
+        |> LazyHTML.attribute("href")
+
+      for slug <- @comparison_slugs do
+        path = I18n.localize_path(unquote(locale), ~p"/docs/explanation/#{slug}")
+        refute path in faq_links
+      end
+    end
   end
 
   test "GET /es does not loop for an account whose handle reads as a locale", %{conn: conn} do
@@ -149,6 +168,28 @@ defmodule GlossiaWeb.PageControllerTest do
     assert response =~ "# Glossia"
     assert response =~ "## Documentation"
     assert response =~ "Getting started"
+    assert response =~ "## Comparisons"
+
+    for slug <- @comparison_slugs do
+      path = ~p"/docs/explanation/#{slug <> ".md"}"
+      url = GlossiaWeb.Endpoint.url() |> URI.merge(path) |> URI.to_string()
+      assert response =~ "](#{url}):"
+    end
+  end
+
+  test "Markdown and documentation navigation expose comparisons without FAQ links", %{conn: conn} do
+    markdown = conn |> get(~p"/index.md") |> response(200)
+    docs = conn |> get(~p"/docs/explanation") |> html_response(200)
+    robots = conn |> get(~p"/robots.txt") |> response(200)
+
+    for slug <- @comparison_slugs do
+      html_path = ~p"/docs/explanation/#{slug}"
+      markdown_path = ~p"/docs/explanation/#{slug <> ".md"}"
+      assert markdown =~ "](#{markdown_path})"
+      assert docs =~ ~s(href="#{html_path}")
+      assert robots_allowed?(robots, html_path)
+      assert robots_allowed?(robots, markdown_path)
+    end
   end
 
   test "GET /llms-full.txt exports documentation without the website chrome", %{conn: conn} do
@@ -177,7 +218,12 @@ defmodule GlossiaWeb.PageControllerTest do
 
   test "sitemap contains comparisons and no fragment URLs", %{conn: conn} do
     body = conn |> get(~p"/sitemap.xml") |> response(200)
-    assert body =~ "/docs/explanation/glossia-vs-crowdin</loc>"
+
+    for slug <- @comparison_slugs do
+      path = ~p"/docs/explanation/#{slug}"
+      assert body =~ "#{path}</loc>"
+    end
+
     refute body =~ "/changelog#"
   end
 

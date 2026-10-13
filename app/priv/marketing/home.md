@@ -29,6 +29,13 @@ Glossia does not replace editorial judgment. It supplies the context, automation
 - [Changelog](/changelog.md): product changes.
 - [Source code](https://github.com/glossia/glossia): inspect the implementation and contribute.
 
+## Comparisons
+
+- [Glossia vs Crowdin](/docs/explanation/glossia-vs-crowdin.md)
+- [Glossia vs Lokalise](/docs/explanation/glossia-vs-lokalise.md)
+- [Glossia vs Phrase](/docs/explanation/glossia-vs-phrase.md)
+- [Glossia vs Weblate](/docs/explanation/glossia-vs-weblate.md)
+
 ## For crawlers and agents
 
 Published pages are available as Markdown by appending `.md` to their URL, or by requesting `Accept: text/markdown` at the HTML URL. The homepage's Markdown URL is `/index.md`. Translated content uses the same locale prefixes as HTML and falls back to English when no translation is published.

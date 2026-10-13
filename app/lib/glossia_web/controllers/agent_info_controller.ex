@@ -8,6 +8,9 @@ defmodule GlossiaWeb.AgentInfoController do
     base_url = GlossiaWeb.Endpoint.url()
     locale = I18n.default_locale()
 
+    {comparisons, documentation} =
+      Enum.split_with(Docs.all_pages(locale), &String.starts_with?(&1.slug, "glossia-vs-"))
+
     content =
       [
         "# Glossia",
@@ -41,7 +44,10 @@ defmodule GlossiaWeb.AgentInfoController do
         ),
         "",
         "## Documentation",
-        Enum.map(Docs.all_pages(locale), &documentation_link(base_url, &1)),
+        Enum.map(documentation, &documentation_link(base_url, &1)),
+        "",
+        "## Comparisons",
+        Enum.map(comparisons, &documentation_link(base_url, &1)),
         "",
         "## Feature guides",
         Enum.map(Features.all_pages(locale), &feature_link(base_url, &1)),
