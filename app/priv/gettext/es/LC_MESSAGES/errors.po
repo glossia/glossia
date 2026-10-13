@@ -12,15 +12,15 @@ msgstr "Language: es\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8
 ## effect: edit them in PO (`.po`) files instead.
 ## From Ecto.Changeset.cast/4
 msgid "can't be blank"
-msgstr "no se puede dejar en blanco"
+msgstr "no puede estar vacío"
 
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
-msgstr "ya está ocupado"
+msgstr "ya ha sido tomado"
 
 ## From Ecto.Changeset.put_change/3
 msgid "is invalid"
-msgstr "no es válido"
+msgstr "es inválido"
 
 ## From Ecto.Changeset.validate_acceptance/3
 msgid "must be accepted"
@@ -28,7 +28,7 @@ msgstr "debe ser aceptado"
 
 ## From Ecto.Changeset.validate_format/3
 msgid "has invalid format"
-msgstr "tiene formato inválido"
+msgstr "tiene un formato inválido"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
@@ -44,10 +44,10 @@ msgstr "no coincide con la confirmación"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
-msgstr "sigue asociada a esta entrada"
+msgstr "aún está asociada a esta entrada"
 
 msgid "are still associated with this entry"
-msgstr "siguen asociadas a esta entrada"
+msgstr "aún están asociadas a esta entrada"
 
 ## From Ecto.Changeset.validate_length/3
 msgid "should have %{count} item(s)"
@@ -57,8 +57,8 @@ msgstr[1] "debe tener %{count} elemento(s)"
 
 msgid "should be %{count} character(s)"
 msgid_plural "should be %{count} character(s)"
-msgstr[0] "debe ser de %{count} carácter(s)"
-msgstr[1] "debe ser de %{count} carácter(s)"
+msgstr[0] "debe ser de %{count} carácter(es)"
+msgstr[1] "debe ser de %{count} carácter(es)"
 
 msgid "should be %{count} byte(s)"
 msgid_plural "should be %{count} byte(s)"
@@ -67,23 +67,23 @@ msgstr[1] "debe ser de %{count} byte(s)"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
-msgstr[0] "Debe tener al menos %{count} elemento(s)"
-msgstr[1] "Debe tener al menos %{count} elemento(s)"
+msgstr[0] "debe tener al menos %{count} elemento(s)"
+msgstr[1] "debe tener al menos %{count} elemento(s)"
 
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "Debe tener al menos %{count} carácter(s)"
-msgstr[1] "Debe tener al menos %{count} carácter(s)"
+msgstr[0] "debe ser al menos %{count} carácter(es)"
+msgstr[1] "debe ser al menos %{count} carácter(es)"
 
 msgid "should be at least %{count} byte(s)"
 msgid_plural "should be at least %{count} byte(s)"
-msgstr[0] "Debe tener al menos %{count} byte(s)"
-msgstr[1] "Debe tener al menos %{count} byte(s)"
+msgstr[0] "debe ser al menos %{count} byte(s)"
+msgstr[1] "debe ser al menos %{count} byte(s)"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "Debe tener como máximo %{count} elemento(s)"
-msgstr[1] "Debe tener como máximo %{count} elemento(s)"
+msgstr[0] "debe tener como máximo %{count} elemento(s)"
+msgstr[1] "debe tener como máximo %{count} elemento(s)"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
@@ -92,21 +92,21 @@ msgstr[1] "debería tener como máximo %{count} carácter(es)"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "debería tener como máximo %{count} byte(s)"
-msgstr[1] "debería tener como máximo %{count} byte(s)"
+msgstr[0] "debería tener como máximo %{count} bytes"
+msgstr[1] "debería tener como máximo %{count} bytes"
 
 ## From Ecto.Changeset.validate_number/3
 msgid "must be less than %{number}"
-msgstr "debe ser menor que %{number}"
+msgstr "debe ser menor a %{number}"
 
 msgid "must be greater than %{number}"
-msgstr "debe ser mayor que %{number}"
+msgstr "debe ser mayor a %{number}"
 
 msgid "must be less than or equal to %{number}"
-msgstr "debe ser menor o igual que %{number}"
+msgstr "debe ser menor o igual a %{number}"
 
 msgid "must be greater than or equal to %{number}"
-msgstr "debe ser mayor o igual que %{number}"
+msgstr "debe ser mayor o igual a %{number}"
 
 msgid "must be equal to %{number}"
 msgstr "debe ser igual a %{number}"

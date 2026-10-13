@@ -12,11 +12,11 @@ msgstr "Language: ja\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8
 ## effect: edit them in PO (`.po`) files instead.
 ## From Ecto.Changeset.cast/4
 msgid "can't be blank"
-msgstr "入力が必要です"
+msgstr "空にできません"
 
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
-msgstr "すでに使われています"
+msgstr "既に使用されています"
 
 ## From Ecto.Changeset.put_change/3
 msgid "is invalid"
@@ -32,7 +32,7 @@ msgstr "形式が無効です"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
-msgstr "無効なエントリです"
+msgstr "値が無効です"
 
 ## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
@@ -44,60 +44,60 @@ msgstr "確認と一致しません"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
-msgstr "まだこのエントリと関連付けられています"
+msgstr "このエントリーはもう関連付けられています"
 
 msgid "are still associated with this entry"
-msgstr "まだこれらのエントリと関連付けられています"
+msgstr "このエントリーはもう関連付けられています"
 
 ## From Ecto.Changeset.validate_length/3
 msgid "should have %{count} item(s)"
 msgid_plural "should have %{count} item(s)"
-msgstr[0] "%{count} アイテム必要です"
+msgstr[0] "%{count} 個の項目であるべきです"
 
 msgid "should be %{count} character(s)"
 msgid_plural "should be %{count} character(s)"
-msgstr[0] "%{count} 文字必要です"
+msgstr[0] "%{count} 文字であるべきです"
 
 msgid "should be %{count} byte(s)"
 msgid_plural "should be %{count} byte(s)"
-msgstr[0] "%{count} バイト必要です"
+msgstr[0] "%{count} バイトであるべきです"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
-msgstr[0] "最少 %{count} 個必要です"
+msgstr[0] "%{count} 個以上必要です"
 
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "最少 %{count} 文字必要です"
+msgstr[0] "%{count} 文字以上必要です"
 
 msgid "should be at least %{count} byte(s)"
 msgid_plural "should be at least %{count} byte(s)"
-msgstr[0] "最少 %{count} バイト必要です"
+msgstr[0] "%{count} バイト以上必要です"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "最大 %{count} 個までです"
+msgstr[0] "%{count} 個以下必要です"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "%{count}文字以内である必要があります"
+msgstr[0] "文字数は %{count} 文字以下である必要があります"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "%{count}バイト以内である必要があります"
+msgstr[0] "バイト数は %{count} バイト以下である必要があります"
 
 ## From Ecto.Changeset.validate_number/3
 msgid "must be less than %{number}"
-msgstr "%{number}より小さい必要があります"
+msgstr "%{number} 未満である必要があります"
 
 msgid "must be greater than %{number}"
-msgstr "%{number}より大きい必要があります"
+msgstr "%{number} より大きい必要があります"
 
 msgid "must be less than or equal to %{number}"
-msgstr "%{number}以下である必要があります"
+msgstr "%{number} 以下である必要があります"
 
 msgid "must be greater than or equal to %{number}"
-msgstr "%{number}以上である必要があります"
+msgstr "%{number} 以上である必要があります"
 
 msgid "must be equal to %{number}"
-msgstr "%{number} に等しい必要があります"
+msgstr "は %{number} に一致する必要があります"
