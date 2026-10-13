@@ -1,26 +1,28 @@
 %{
   title: "Modellanbieter konfigurieren",
-  summary: "Fügen Sie ein Account-Modell hinzu und beziehen Sie es sicher aus Repositorien.",
+  summary: "Fügen Sie ein Konto-Modell hinzu und verweisen Sie darauf sicher aus Repositories.",
   category: "Anleitung",
+  section: "translation",
   order: 3
 }
 ---
-Projekteinrichtung und Übersetzungsabläufe verwenden Modelle, die für das aktuelle Glossia-Konto konfiguriert sind. Konfigurieren Sie mindestens ein Modell, bevor Sie ein Projekt erstellen.
+
+Projektseinrichtungs- und Übersetzungsläufe verwenden Modelle, die für das aktuelle Glossia-Konto konfiguriert wurden. Konfigurieren Sie mindestens ein Modell, bevor Sie ein Projekt erstellen.
 
 ## Ein Modell hinzufügen
 
-1. Öffnen **Einstellungen** und wählen Sie **Modelle**.
-2. Auswählen **Neues Modell**.
-3. Geben Sie einen eindeutigen Handle ein, wie zum Beispiel `translation-default`.
-4. Öffnen Sie die Modellauswahl und geben Sie einen Teil eines Anbieter- oder Modellnamens ein, um die Liste zu filtern.
+1. Öffnen Sie **Settings** und wählen Sie **Models**.
+2. Wählen Sie **New model**.
+3. Geben Sie einen eindeutigen Handle an, wie etwa `translation-default`.
+4. Öffnen Sie den Modellauswahl-Dialog und geben Sie einen Teil des Anbieter- oder Modellnamens ein, um die Liste zu filtern.
 5. Wählen Sie ein Modell und geben Sie dessen Anbieter-Schlüssel ein.
-6. Modell speichern.
+6. Speichern Sie das Modell.
 
-Der Handle bleibt stabil, auch wenn Sie das dahinterstehende Anbieter-Modell später ändern. Das erste für ein Konto hinzugefügte Modell wird dessen Standardmodell.
+Der Handle bleibt stabil, auch wenn Sie später das dahinterliegende Modellauswahl-Anbieter-Modell ändern. Das zuerst zu einem Konto hinzugefügte Modell wird dessen Standard.
 
-## Verweisen Sie auf das Modell aus einem Repository
+## Beziehen Sie das Modell auf ein Repository
 
-Festlegen `model` im relevanten `L10N.md` frontmatter:
+Stellen Sie `model` im relevanten `L10N.md` frontmatter ein:
 
 ```yaml
 ---
@@ -28,20 +30,30 @@ model: translation-default
 ---
 ```
 
-Das Repository enthält nur das Handle. Der Provider-Schlüssel bleibt in den Kontoeinstellungen.
+Das Repository speichert nur den Handle. Der Anbieter-Schlüssel bleibt in den Kontoeinstellungen.
 
-## Wählen Sie das Standardmodell aus
+## Wählen Sie, welches Modell standardmäßig verwendet wird
 
-Wenn `L10N.md` überspringt `model`, Glossia verwendet das Standardmodell des Kontos. Um es zu ändern, öffnen Sie das Modell, das Standard werden soll, und wählen **Als Standard festlegen**.
+Wenn `L10N.md` `model` weglässt, verwendet Glossia das Standardmodell des Kontos. Um dieses zu ändern, öffnen Sie das Modell, das zum Standard werden soll, und wählen Sie **Make default**.
 
-Für vorhersehbares Verhalten über mehrere Modelle verweisen Sie explizit auf einen Handle in `L10N.md`.
+Für vorhersehbares Verhalten über mehrere Modelle hinweg beziehen Sie sich explizit auf einen Handle in `L10N.md`.
 
-Sie können einen anderen `model` Handle in einem verschachtelten `L10N.md` für einen Inhaltsbereich, oder in `L10N/<locale>.md` Für eine Ziel-Lokalisierung. Glossia verwendet die passendste anwendbare Einstellung für jedes Dokument und jede Lokalisierung. Es teilt die Arbeit nicht automatisch unter konfigurierten Modellen auf.
+Sie können einen anderen `model` Handle in einer verschachtelten `L10N.md` für einen Inhaltsbereich oder in `L10N/<locale>.md` für eine Zielortsangabe platzieren. Glossia verwendet für jedes Dokument und jede Sprachangabe den passendsten Einstellungen. Es teilt die Arbeit nicht automatisch unter den konfigurierten Modellen auf.
 
-Wenn kein explizites Handle im Konto existiert, endet die Übersetzung mit einem Fehler. Es greift nicht auf ein anderes Modell zurück.
+Wenn ein expliziter Handle im Konto nicht existiert, wird die Übersetzung mit einem Fehler gestoppt. Es fällt nicht auf ein anderes Modell zurück.
 
-## Anbieter-Schlüssel ändern oder rotieren
+## Ändern oder rotieren Sie einen Anbieter-Schlüssel
 
-Öffnen **Einstellungen**, wählen **Modelle**, und öffnen Sie das Modell-Handle. Geben Sie einen neuen Anbieter-Schlüssel ein und speichern Sie. Wenn Sie das Schlüsselfeld leer lassen, bleibt der aktuelle Schlüssel erhalten.
+Öffnen Sie **Settings**, wählen Sie **Models** und öffnen Sie den Modell-Handle. Geben Sie einen neuen Anbieter-Schlüssel ein und speichern. Wenn Sie das Schlüsselfeld leer lassen, bleibt der aktuelle Schlüssel erhalten.
 
-Repositorien, die den Handle referenzieren, müssen nicht geändert werden.
+Repositorys, die auf den Handle referenzieren, müssen nicht geändert werden.
+
+## Jev für Entscheidungen zur Übersetzungsqualität hinzufügen
+
+1. Öffnen Sie **Settings → Models → New model** und wählen Sie **Decision** als Kategorie.
+2. Verwenden Sie einen Handle wie `translation-quality`. Halten Sie `typesafe/jev-latest` bei, oder geben Sie eine TypeSafe-Jev-Modellversion ein.
+3. Geben Sie Ihren TypeSafe-Anbieterschlüssel ein. Lassen Sie die Basis-Adresse leer, um den integrierten TypeSafe-Endpoint zu verwenden; eine benutzerdefinierte Adresse muss ihr Versionspräfix enthalten, wie etwa `https://api.typesafe.ai/v1`.
+4. Stellen Sie die minimale Qualitätspunktzahl von 1 bis 10, dann speichern. Das erste Entscheidungsmodell wird zum standardmäßigen Entscheidungsmodell und aktiviert die Bewertung automatisch.
+5. Starten Sie die Übersetzung. Fehlgeschlagene Qualitätskriterien fordern innerhalb des `retries` Budgets, das in Ihrem Repository konfiguriert wurde, eine Korrektur an.
+
+Generative und Entscheidungsmodelle haben separate Standards. Halten Sie Ihre Übersetzungsmodell-Handles unverändert. Entscheidungsmodelle können nicht durch Repository-Ubersetzungs-Handles oder Sprachangabe-Verweispfade ausgewählt werden. Entfernen Sie alle Entscheidungsmodelle, um die Bewertung zu deaktivieren.
