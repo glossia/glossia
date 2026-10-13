@@ -1,44 +1,45 @@
 %{
-  title: "Analytique de localisation",
+  title: "Analytiques de localisation",
   summary:
-    "Voyez quelles langues et pays vos visiteurs souhaitent réellement, et où se situent vos lacunes de localisation, avant d'investir dans une nouvelle localisation.",
+    "Voyez quelles langues et quels pays vos visiteurs veulent réellement, et où vous avez un écart de localisation, avant d'investir dans une nouvelle localisation.",
   order: 6,
   icon: "Globe",
   hero_cta_text: "Commencer",
   hero_cta_url: "/signup",
   highlights: [
     %{
-      title: "Opportunité, pas de vanité",
+      title: "Opportunité, pas vanité",
       description:
-        "Les tableaux de bord reposent sur la lacune de localisation : la part de trafic qui souhaite une langue que vous ne servez pas encore.",
+        "Les tableaux de bord sont construits autour de l'écart de localisation : la part du trafic qui souhaite une langue que vous ne servez encore pas.",
       icon: "Globe"
     },
     %{
-      title: "Sans cookies par conception",
+      title: "Sans cookie par conception",
       description:
-        "Aucun cookie, aucune empreinte numérique, aucune bannière de consentement. Les visiteurs uniques proviennent d'un hachage quotidien qui ne peut être lié entre les jours.",
+        "Aucun cookie, aucun pistage, aucune bannière de consentement. Les visiteurs uniques proviennent d'un hachage quotidiennement rotatif qui ne peut pas être lié d'un jour à l'autre.",
       icon: "Éclair"
     },
     %{
       title: "Une ligne pour installer",
       description:
-        "Ajoutez une unique balise script dans votre site et Glossia se mesure lui-même. Publiez via npm ou CDN.",
+        "Ajoutez une simple balise script à votre site et Glossia se mesure elle-même. Déployez via npm ou CDN.",
       icon: "Code"
     }
   ]
 }
 ---
-## Décidez la langue cible suivante avec des données
 
-La plupart des équipes choisissent les langues cibles à l'instinct. L'analyse de localisation remplace cela par du signal. Ajoutez l'SDK web et Glossia vous montre les langues que les navigateurs de vos visiteurs demandent, les pays d'où ils proviennent, et, crucialement, le chevauchement avec les langues que vous supportez déjà.
+## Décidez votre prochaine localisation avec des données
 
-L'indicateur principal est le **écart de localisation**: le pourcentage de vos visiteurs dont la langue préférée n'a pas de traduction supportée. Approfondissez l'analyse par pays, par référent et par page pour voir exactement où se concentre la demande non desservie et quelle nouvelle langue bougerait l'aiguille.
+La plupart des équipes choisissent les langues cibles de façon intuitive. L'analyse de localisation remplace cela par du signal. Ajoutez le SDK web et Glossia vous montre les langues que les navigateurs de vos visiteurs sollicitent, les pays d'origine, et, nottement, le recoupement avec les langues que vous supportez déjà.
 
-## Vie privée sans compromis
+Le principal indicateur est le **écart de localisation** : le pourcentage de vos visiteurs dont la langue préférée n'a pas de traduction supportée. Approfondissez-le par pays, par source et par page pour voir exactement où la demande non couverte se concentre et quelle nouvelle localisation ferait la différence.
 
-L'analyse de Glossia ne collecte rien de ce dont elle n'a pas besoin et ne stocke rien d'identifiable. Le navigateur transmet l'URL de la page, le référent, les langues préférées, le fuseau horaire et la taille de l'écran. Le serveur déduit le visiteur unique à partir d'un hachage renouvelé quotidiennement de l'IP et du User-Agent, puis les efface. Aucun cookie n'est défini, aucune empreinte n'est créée, et aucun visiteur ne peut être suivi d'un jour à l'autre ou d'un site à l'autre.
+## Intimité sans compromis
 
-Le résultat est une analyse que vous pouvez déployer sans bannière de consentement, alignée avec les attentes de vie privée déjà présentes chez vos visiteurs internationaux.
+L'analyse Glossia ne collecte rien dont elle n'a pas besoin et ne stocke rien d'identifiable. Le navigateur envoie l'URL de la page, le referrer, les langues préférées, l'heure et la taille de l'écran. Le serveur déduit le visiteur unique à partir d'un hash quotidiennement pivoté de l'IP et de l'User-Agent, puis les supprime. Aucun cookie n'est défini, rien n'est fingerprinté et aucun visiteur ne peut être suivi d'un jour sur l'autre ou entre sites.
+
+Le résultat est une analyse que vous pouvez déployer sans bandeau de consentement, alignée sur les attentes en matière d'intimité que vos visiteurs internationaux ont déjà.
 
 ## Installation en quelques secondes
 
@@ -48,4 +49,4 @@ Ajoutez une ligne à votre site et Glossia commence à mesurer :
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-Préférez-vous npm ? Installez `@glossia/web` et appelez `init({ domain })`. Dans tous les cas, les vues de page, la navigation côté client et les événements personnalisés s'intègrent dans le même tableau de bord qui classe vos opportunités de localisation.
+Préférez-vous npm ? Installez `@glossia/web` et appelez `init({ domain })`. De toute façon, les vues de page, la navigation côté client et les événements personnalisés s'écoulent dans le même tableau de bord qui classe vos opportunités de localisation.
