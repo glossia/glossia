@@ -1,15 +1,16 @@
 {
-  "hash": "dcb9e6fbd9d53a91778617ad8990aeba21fe2a0c7c880f44be684f9d36298acd",
+  "baseline_schema_version": 1,
+  "hash": "6d70d65fd0377ae6bbe2ebc1721e03055e50e3c5536bcfd52fa8079b64375a02",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "90061390c698f3b6946397ed2c96fa83e6debee94dd1c8e0242fb20addf977f7",
+          "hash": "cb055677cba08b7f9d8cc46544f9107452fe2d7ac2201d0c619f4ed31139641d",
           "kind": "source",
           "label": "app/priv/features/localization.md",
           "metadata": {
-            "content_hash": "4bfa18b3c052c4dfe1d10e76ddacc97e4fe97b9f166b12d8baa4978f2426ed22"
+            "content_hash": "d8c6af882ac46b0060468a4fa13e95eec46cb48cc4f07177257b3ec1208df31d"
           }
         },
         {
@@ -37,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "dcb9e6fbd9d53a91778617ad8990aeba21fe2a0c7c880f44be684f9d36298acd",
+      "hash": "6d70d65fd0377ae6bbe2ebc1721e03055e50e3c5536bcfd52fa8079b64375a02",
       "kind": "translation_input",
       "label": "app/priv/features/localization.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "00c2196b127a4b2c04548a185e8dcf1cfdb0eb7e076421fb042499660c931ecd",
+  "output_hash": "d3a74238a0eae1dada70a72e9af482fd973ec9cdfb828c261b2994d0f887cfc0",
   "output_path": "app/priv/i18n/zh-Hans/features/localization.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "d596bbd337e708c49bed7ba7b289db30b6c7389a",
   "source_path": "app/priv/features/localization.md",
-  "translated_at": "2026-09-12T09:59:30.760472Z"
+  "translated_at": "2026-10-13T19:44:28.812516Z",
+  "translation_session_id": "01a13628-9556-729b-9753-d7e8a1c7b2e0"
 }

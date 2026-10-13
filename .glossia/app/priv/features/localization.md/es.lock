@@ -1,15 +1,16 @@
 {
-  "hash": "f9b04253f8825fe6c686eea6f45c687250081b365c35d8620f7d8fa7aaf111c1",
+  "baseline_schema_version": 1,
+  "hash": "c5e532a8703bdc7bfe7888c3550987dc4b898b94a936f25e2c3bca09d5bc5f75",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "90061390c698f3b6946397ed2c96fa83e6debee94dd1c8e0242fb20addf977f7",
+          "hash": "cb055677cba08b7f9d8cc46544f9107452fe2d7ac2201d0c619f4ed31139641d",
           "kind": "source",
           "label": "app/priv/features/localization.md",
           "metadata": {
-            "content_hash": "4bfa18b3c052c4dfe1d10e76ddacc97e4fe97b9f166b12d8baa4978f2426ed22"
+            "content_hash": "d8c6af882ac46b0060468a4fa13e95eec46cb48cc4f07177257b3ec1208df31d"
           }
         },
         {
@@ -37,20 +38,20 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
               "children": [],
-              "hash": "1424b207fea998c4fef898d526dcb29e10da43d23480340193ea637c2fd3d43d",
+              "hash": "a54709e3cea48e4871dba3f92b628c2156e257d7f78528c44bf202db4cab7630",
               "kind": "context",
               "label": "locale",
               "metadata": {
-                "content_hash": "cc29cd8eebf5d547c8f217c0af8fa84e2300279090f0f6312ed2903aedeb1b61"
+                "content_hash": "94bb6a27769a21802f1ca275e7afd7e42beae6d50ce0ecdf22c63e45228fe7d2"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
+          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "f9b04253f8825fe6c686eea6f45c687250081b365c35d8620f7d8fa7aaf111c1",
+      "hash": "c5e532a8703bdc7bfe7888c3550987dc4b898b94a936f25e2c3bca09d5bc5f75",
       "kind": "translation_input",
       "label": "app/priv/features/localization.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "9b56c9d1827a610ad3ad5a18085072c5a22553ddfa39ffca3210ed88ba83fc06",
+  "output_hash": "46e8a154ba6aef0fe0b380bb75b209b57ea378e4200f677d75b9916f07f1593c",
   "output_path": "app/priv/i18n/es/features/localization.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "d596bbd337e708c49bed7ba7b289db30b6c7389a",
   "source_path": "app/priv/features/localization.md",
-  "translated_at": "2026-09-12T09:58:20.455677Z"
+  "translated_at": "2026-10-13T19:42:00.292306Z",
+  "translation_session_id": "01a13628-9556-729b-9753-d7e8a1c7b2e0"
 }
