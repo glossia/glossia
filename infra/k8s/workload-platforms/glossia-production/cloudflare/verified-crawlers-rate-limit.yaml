@@ -12,7 +12,7 @@ spec:
   zoneId: ${ZONE_ID}
   description: "Verified crawlers - public pages"
   expression: |-
-    http.request.method eq "GET"
+    http.request.method in {"GET" "HEAD"}
     and cf.client.bot
     and not starts_with(http.request.uri.path, "/dashboard")
     and not starts_with(http.request.uri.path, "/api")

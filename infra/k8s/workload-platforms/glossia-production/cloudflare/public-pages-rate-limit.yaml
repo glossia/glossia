@@ -1,11 +1,11 @@
-# Rate limit GET requests to publicly reachable pages. Excludes the
+# Rate limit GET/HEAD requests to publicly reachable pages. Excludes the
 # authenticated, programmatic, and internal surfaces by prefix, so
 # what's left is the marketing site + docs + blog + anything else
 # reachable without a session. countingExpression is intentionally
 # omitted because it's a Business+ Advanced Rate Limiting feature;
 # the basic-plan-friendly form here counts requests directly.
 #
-# 60 GET / 10s per IP+colo is generous enough that a real human
+# 60 GET/HEAD / 10s per IP+colo is generous enough that a real human
 # browsing a few pages per minute never trips it, and tight enough
 # that a scraper hitting page after page immediately does.
 apiVersion: cloudflare.glossia.ai/v1alpha1
@@ -19,7 +19,7 @@ spec:
   zoneId: ${ZONE_ID}
   description: "Public pages - anti-bombardment"
   expression: |-
-    http.request.method eq "GET"
+    http.request.method in {"GET" "HEAD"}
     and not cf.client.bot
     and not starts_with(http.request.uri.path, "/dashboard")
     and not starts_with(http.request.uri.path, "/api")
@@ -33,7 +33,10 @@ spec:
     and not starts_with(http.request.uri.path, "/callbacks")
     and not starts_with(http.request.uri.path, "/v1")
     and not starts_with(http.request.uri.path, "/.well-known")
-  action: managed_challenge
+  # Rate limiting returns HTTP 429 rather than an HTML/JavaScript challenge.
+  # Markdown readers and agent crawlers may not be cf.client.bot-verified;
+  # they need a backoff signal, not a browser-only interstitial.
+  action: block
   enabled: true
   mode: active
   createNewRule: true
@@ -44,4 +47,4 @@ spec:
       - "cf.colo.id"
     requestsPerPeriod: 60
     period: 10
-    mitigationTimeoutSeconds: 0
+    mitigationTimeoutSeconds: 10

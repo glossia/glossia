@@ -5,29 +5,34 @@ defmodule GlossiaWeb.SitemapController do
 
   def show(conn, _params) do
     base_url = GlossiaWeb.Endpoint.url()
+    latest_entry = List.first(Changelog.all_entries())
 
     urls =
       [
-        %{path: "/"},
-        %{path: "/blog"},
-        %{path: "/features"},
-        %{path: "/changelog"},
-        %{path: "/docs"}
+        %{path: ~p"/"},
+        %{path: ~p"/blog"},
+        %{path: ~p"/features"},
+        %{path: ~p"/changelog", lastmod: latest_entry && latest_entry.date},
+        %{path: ~p"/docs"}
       ] ++
-        Enum.map(Blog.all_posts(), &%{path: "/blog/#{&1.slug}", lastmod: &1.date}) ++
-        Enum.map(Features.all_pages(), &%{path: "/features/#{&1.slug}"}) ++
-        Enum.map(
-          Changelog.all_entries(),
-          &%{path: URI.to_string(%URI{path: "/changelog", fragment: &1.slug}), lastmod: &1.date}
-        ) ++
+        Enum.map(Blog.all_posts(), &%{path: ~p"/blog/#{&1.slug}", lastmod: &1.date}) ++
+        Enum.map(Features.all_pages(), &%{path: ~p"/features/#{&1.slug}"}) ++
         Enum.map(Docs.all_pages(), &%{path: Docs.path_for(&1)}) ++
         Enum.map(~w(terms privacy cookies), fn document ->
-          %{path: "/#{document}", lastmod: Legal.latest_version!(document).date}
+          path =
+            case document do
+              "terms" -> ~p"/terms"
+              "privacy" -> ~p"/privacy"
+              "cookies" -> ~p"/cookies"
+            end
+
+          %{path: path, lastmod: Legal.latest_version!(document).date}
         end)
 
     xml = render_sitemap(base_url, urls)
 
     conn
+    |> put_resp_header("cache-control", "public, max-age=300")
     |> put_resp_content_type("application/xml")
     |> send_resp(200, xml)
   end

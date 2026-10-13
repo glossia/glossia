@@ -10,6 +10,7 @@ defmodule Glossia.Blog.Post do
     :date,
     :author,
     :body,
+    :raw_markdown,
     :cta_title,
     :cta_description,
     :cta_text,
@@ -53,7 +54,8 @@ defmodule Glossia.Blog.Post do
     |> Map.merge(%{
       id: id,
       author: author!(attrs[:author]),
-      body: body
+      body: body,
+      raw_markdown: Glossia.MarketingMarkdown.raw_markdown(filename)
     })
     |> then(&struct!(__MODULE__, &1))
   end

@@ -2,7 +2,7 @@ defmodule Glossia.Changelog.Entry do
   @moduledoc false
 
   @enforce_keys [:id, :slug, :title, :summary, :date, :body]
-  defstruct [:id, :slug, :title, :summary, :date, :body]
+  defstruct [:id, :slug, :title, :summary, :date, :body, :raw_markdown]
 
   def build(filename, attrs, body) do
     id =
@@ -28,7 +28,11 @@ defmodule Glossia.Changelog.Entry do
     attrs
     |> Map.put_new(:date, fallback_date)
     |> Map.put_new(:slug, fallback_slug)
-    |> Map.merge(%{id: id, body: body})
+    |> Map.merge(%{
+      id: id,
+      body: body,
+      raw_markdown: Glossia.MarketingMarkdown.raw_markdown(filename)
+    })
     |> then(&struct!(__MODULE__, &1))
   end
 end

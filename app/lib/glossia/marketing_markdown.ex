@@ -3,6 +3,16 @@ defmodule Glossia.MarketingMarkdown do
 
   @heading_regex ~r/<(h[23])>(.*?)<\/\1>/s
 
+  # Read the source while publishing, never on a crawler request. Keep code-like
+  # content and links intact rather than converting rendered HTML back to Markdown.
+  def raw_markdown(filename) do
+    filename
+    |> File.read!()
+    |> :binary.split(["\n---\n", "\r\n---\r\n"])
+    |> List.last()
+    |> String.trim()
+  end
+
   def process(html, opts \\ []) do
     {html, toc} = add_heading_anchors(html, Keyword.get(opts, :toc, false))
 

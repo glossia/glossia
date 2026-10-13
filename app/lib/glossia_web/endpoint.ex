@@ -68,6 +68,7 @@ defmodule GlossiaWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+  plug GlossiaWeb.Plugs.NoIndex, only_if_unset: true
   plug GlossiaWeb.Plugs.SiteMarkdown
   plug GlossiaWeb.Router
 end

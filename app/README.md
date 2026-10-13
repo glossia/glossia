@@ -34,9 +34,9 @@ After the server boots, visit `http://localhost:${GLOSSIA_SERVER_PORT}`. If that
 
 ## Production
 
-Production infrastructure is maintained separately from this source
-repository. The application image is published to the GitHub Container Registry
-after the application checks pass on `main`.
+Production infrastructure lives in this repository under `deploy/helm/glossia/`
+and `infra/`. Pushes to `main` build and publish the application image to GitHub
+Container Registry, and Flux reconciles the production deployment.
 
 ## Learn more
 

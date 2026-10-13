@@ -71,7 +71,7 @@ defmodule GlossiaWeb.MarketingLocaleTest do
     test "tell caches the response depends on the visitor", %{conn: conn} do
       conn = conn |> browser_request("en") |> get(~p"/blog")
 
-      assert get_resp_header(conn, "vary") == ["accept-language, cookie"]
+      assert get_resp_header(conn, "vary") == ["accept-language, cookie, Accept"]
     end
 
     test "leaves non-HTML requests alone", %{conn: conn} do
@@ -134,10 +134,10 @@ defmodule GlossiaWeb.MarketingLocaleTest do
       assert response =~ ~s(rel="canonical" href="#{canonical_url}")
     end
 
-    test "do not vary, since the URL alone decides the language", %{conn: conn} do
+    test "vary only by representation, since the URL decides the language", %{conn: conn} do
       conn = get(conn, "/es/blog")
 
-      assert get_resp_header(conn, "vary") == []
+      assert get_resp_header(conn, "vary") == ["Accept"]
     end
 
     test "advertise their translations through hreflang", %{conn: conn} do

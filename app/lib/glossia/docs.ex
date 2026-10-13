@@ -33,7 +33,7 @@ defmodule Glossia.Docs.Page do
       id: id,
       body: body,
       toc: toc,
-      raw_markdown: raw_markdown(filename),
+      raw_markdown: Glossia.MarketingMarkdown.raw_markdown(filename),
       markdown: true
     })
     |> then(&struct!(__MODULE__, &1))
@@ -54,18 +54,12 @@ defmodule Glossia.Docs.Page do
 
     {category, subcategory, slug, id}
   end
-
-  defp raw_markdown(filename) do
-    filename
-    |> File.read!()
-    |> String.split("\n---\n", parts: 2)
-    |> List.last()
-    |> String.trim()
-  end
 end
 
 defmodule Glossia.Docs do
   @moduledoc false
+
+  use GlossiaWeb, :verified_routes
 
   use Gettext, backend: GlossiaWeb.Gettext
 
@@ -449,11 +443,11 @@ defmodule Glossia.Docs do
     do: gettext("Model Context Protocol server, tools, and prompts.")
 
   def path_for(%Page{subcategory: nil, category: category, slug: slug}) do
-    "/docs/#{category}/#{slug}"
+    path(%URI{}, ~p"/docs/#{category}/#{slug}")
   end
 
   def path_for(%Page{category: category, subcategory: subcategory, slug: slug}) do
-    "/docs/#{category}/#{subcategory}/#{slug}"
+    path(%URI{}, ~p"/docs/#{category}/#{subcategory}/#{slug}")
   end
 end
 
