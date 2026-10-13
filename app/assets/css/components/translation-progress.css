@@ -27,6 +27,21 @@
   display: flex;
   flex-direction: column;
   gap: var(--noora-spacing-4);
+  min-width: var(--noora-spacing-0);
+
+  /* Noora's max-content minimum also measures collapsed expanded rows.
+   * Let paths and translated output wrap within the card instead of making
+   * every column as wide as the longest line in the session. */
+  & table {
+    min-width: var(--noora-spacing-0);
+  }
+
+  & [data-part="path"] [data-part="label"],
+  & [data-part="progress-meta"] [data-part="label"] {
+    min-width: var(--noora-spacing-0);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 
   & [data-part="file-cell"],
   & [data-part="path"] {
@@ -75,6 +90,8 @@
       var(--noora-spacing-0);
     color: var(--noora-surface-label-primary);
     font: var(--noora-font-body-medium);
+    min-width: var(--noora-spacing-0);
+    overflow-wrap: anywhere;
   }
 
   & [data-part="item-diagnostics"],
@@ -183,6 +200,21 @@
 
 @media (width < 768px) {
   #translation-progress {
+    & th,
+    & [data-part="cell"] {
+      padding-inline: var(--noora-spacing-4);
+    }
+
+    & th {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    & [data-part="expand-cell"] {
+      gap: var(--noora-spacing-4);
+      padding-left: var(--noora-spacing-4);
+    }
+
     & [data-part="item-diagnostics"] dl {
       grid-template-columns: minmax(var(--noora-spacing-0), 1fr);
     }
