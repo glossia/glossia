@@ -19,6 +19,15 @@ defmodule GlossiaWeb.MarketingRoutes do
   defmacro marketing_routes do
     quote do
       get "/", PageController, :home
+      # These verified routes are answered by SiteMarkdown before rendering.
+      get "/index.md", PageController, :home
+      get "/blog.md", BlogController, :index
+      get "/features.md", FeatureController, :index
+      get "/changelog.md", ChangelogController, :index
+      get "/docs.md", DocsController, :index
+      get "/terms.md", LegalController, :terms
+      get "/privacy.md", LegalController, :privacy
+      get "/cookies.md", LegalController, :cookies
       get "/blog", BlogController, :index
       get "/blog/feed.xml", BlogController, :feed
       get "/blog/:slug", BlogController, :show

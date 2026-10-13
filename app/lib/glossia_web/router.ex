@@ -25,6 +25,7 @@ defmodule GlossiaWeb.Router do
     plug :put_layout, html: {GlossiaWeb.Layouts, :app}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug GlossiaWeb.Plugs.NoIndex
     plug GlossiaWeb.Plugs.Auth
     plug GlossiaWeb.Plugs.Locale
     plug GlossiaWeb.Plugs.OtelAttributes
@@ -69,6 +70,7 @@ defmodule GlossiaWeb.Router do
   end
 
   pipeline :api do
+    plug GlossiaWeb.Plugs.NoIndex
     plug :accepts, ["json"]
     # Error messages are translated too, and a connection is reused across
     # requests, so the locale has to be resolved here rather than inherited
@@ -265,6 +267,7 @@ defmodule GlossiaWeb.Router do
 
     get "/robots.txt", RobotsController, :show
     get "/llms.txt", AgentInfoController, :show
+    get "/llms-full.txt", AgentInfoController, :full
   end
 
   # Explicit language switch: remembers the choice and returns to the page the

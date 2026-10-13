@@ -23,7 +23,8 @@ defmodule Glossia.Features.Page do
     :hero_cta_text,
     :hero_cta_url,
     :highlights,
-    :body
+    :body,
+    :raw_markdown
   ]
 
   def build(filename, attrs, body) do
@@ -36,7 +37,11 @@ defmodule Glossia.Features.Page do
 
     attrs
     |> Map.put_new(:slug, slug)
-    |> Map.merge(%{id: slug, body: body})
+    |> Map.merge(%{
+      id: slug,
+      body: body,
+      raw_markdown: Glossia.MarketingMarkdown.raw_markdown(filename)
+    })
     |> then(&struct!(__MODULE__, &1))
   end
 end

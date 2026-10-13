@@ -538,6 +538,26 @@
             "For the first time in history, we have tools that can capture context and interact with the outside world to produce and transform content across languages. LLMs changed what is possible, but possibility alone is not enough. You need a system that orchestrates those capabilities reliably: hashing to avoid redundant work, validation to catch errors, and retries to close the loop. On top of that, we build experiences for humans to review, correct, and enhance the system over time. That is what we are building from first principles and from years of experience building developer experiences and localization systems."
           )}
         </p>
+        <p>
+          <.link href={locale_path(~p"/docs/explanation/why-glossia")}>
+            {gettext("Why Glossia")}
+          </.link>
+          ·
+          <.link href={locale_path(~p"/docs/explanation/continuous-localization")}>
+            {gettext("Continuous localization")}
+          </.link>
+          ·
+          <.link href={locale_path(~p"/docs/explanation/content-ownership")}>
+            {gettext("Content ownership")}
+          </.link>
+        </p>
+        <p>
+          {gettext("Compare the approaches:")}
+          <.link href={locale_path(~p"/docs/explanation/glossia-vs-crowdin")}>Crowdin</.link>
+          · <.link href={locale_path(~p"/docs/explanation/glossia-vs-lokalise")}>Lokalise</.link>
+          · <.link href={locale_path(~p"/docs/explanation/glossia-vs-phrase")}>Phrase</.link>
+          · <.link href={locale_path(~p"/docs/explanation/glossia-vs-weblate")}>Weblate</.link>
+        </p>
       </details>
       <details class="card faq-item reveal">
         <summary>{gettext("Do I need to bring my own models?")}</summary>

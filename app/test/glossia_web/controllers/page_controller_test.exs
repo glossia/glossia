@@ -1,7 +1,7 @@
 defmodule GlossiaWeb.PageControllerTest do
   use GlossiaWeb.ConnCase, async: true
 
-  alias Glossia.TestHelpers
+  alias Glossia.{Docs, I18n, TestHelpers}
 
   test "GET / renders the public homepage for guests", %{conn: conn} do
     conn = get(conn, ~p"/")
@@ -71,7 +71,75 @@ defmodule GlossiaWeb.PageControllerTest do
 
     conn = get(conn, ~p"/robots.txt")
 
-    assert response(conn, 200) == "User-agent: *\nAllow: /\nSitemap: #{sitemap_url}\n"
+    body = response(conn, 200)
+    assert body =~ "User-agent: *\nDisallow: /\n"
+    assert body =~ "Allow: /$\n"
+    assert body =~ "Allow: /docs/tutorials/getting-started$\n"
+    assert body =~ "Allow: /docs/tutorials/getting-started.md$\n"
+    assert body =~ "Allow: /es/docs/tutorials/getting-started$\n"
+    assert body =~ "Sitemap: #{sitemap_url}\n"
+    refute body =~ "Allow: /api"
+    refute body =~ "Allow: /auth"
+    refute body =~ "Allow: /*"
+  end
+
+  test "robots allow rendering assets and public previews without exposing application routes", %{
+    conn: conn
+  } do
+    body = conn |> get(~p"/robots.txt") |> response(200)
+
+    for path <- [
+          ~p"/assets/styles.css",
+          ~p"/assets/noora.css",
+          ~p"/assets/js/app.js",
+          ~p"/assets/logos/glossia.svg",
+          ~p"/fonts/inter.woff2",
+          ~p"/images/logo-rounded.png",
+          ~p"/images/logo-squared.jpg",
+          ~p"/favicon.ico",
+          ~p"/og/marketing/blog/example"
+        ] do
+      assert robots_allowed?(body, path), "rendering resource blocked: #{path}"
+    end
+
+    for path <- [
+          ~p"/auth/login",
+          ~p"/api/openapi.json",
+          "/acme",
+          "/acme/project",
+          "/acme/project/-/translations",
+          "/og/app/acme/example",
+          "/og/app/acme/project/example",
+          "/assets-lookalike/project",
+          "/favicon.ico/project"
+        ] do
+      refute robots_allowed?(body, path), "application route allowed: #{path}"
+    end
+
+    for locale <- I18n.locales(), path <- [~p"/blog/feed.xml", ~p"/changelog/feed.xml"] do
+      assert robots_allowed?(body, I18n.localize_path(locale, path))
+    end
+  end
+
+  for path <- ["/robots.txt", "/llms.txt", "/llms-full.txt"] do
+    test "#{path} stays fetchable and nonindexable for GET, HEAD and revalidation", %{conn: conn} do
+      conn = get(conn, unquote(path))
+      assert response(conn, 200) != ""
+      assert get_resp_header(conn, "x-robots-tag") == ["noindex, follow"]
+      [etag] = get_resp_header(conn, "etag")
+
+      cached = conn |> recycle() |> put_req_header("if-none-match", etag) |> get(unquote(path))
+      assert response(cached, 304) == ""
+      assert get_resp_header(cached, "x-robots-tag") == ["noindex, follow"]
+      assert get_resp_header(cached, "etag") == [etag]
+
+      head = conn |> recycle() |> head(unquote(path))
+      assert response(head, 200) == ""
+      assert get_resp_header(head, "x-robots-tag") == ["noindex, follow"]
+
+      robots = conn |> recycle() |> get(~p"/robots.txt") |> response(200)
+      assert robots_allowed?(robots, unquote(path))
+    end
   end
 
   test "GET /llms.txt gives agents an index of public documentation", %{conn: conn} do
@@ -81,6 +149,36 @@ defmodule GlossiaWeb.PageControllerTest do
     assert response =~ "# Glossia"
     assert response =~ "## Documentation"
     assert response =~ "Getting started"
+  end
+
+  test "GET /llms-full.txt exports documentation without the website chrome", %{conn: conn} do
+    conn = get(conn, ~p"/llms-full.txt")
+    body = response(conn, 200)
+    assert body =~ "# Glossia documentation"
+    assert body =~ "# Why Glossia"
+    assert body =~ "# Glossia vs Weblate"
+
+    for page <- Docs.all_pages() do
+      source = GlossiaWeb.Endpoint.url() |> URI.merge(Docs.path_for(page)) |> URI.to_string()
+      assert body =~ "Source: #{source}\n", "missing documentation: #{page.id}"
+    end
+
+    assert get_resp_header(conn, "content-type") == ["text/plain; charset=utf-8"]
+    refute String.starts_with?(body, "<!DOCTYPE")
+    assert get_resp_header(conn, "etag") != []
+  end
+
+  test "published HTML is indexable but authentication pages are not", %{conn: conn} do
+    marketing = get(conn, ~p"/docs/explanation/why-glossia")
+    assert get_resp_header(marketing, "x-robots-tag") == ["index, follow"]
+    auth = get(recycle(marketing), ~p"/auth/login")
+    assert get_resp_header(auth, "x-robots-tag") == ["noindex, nofollow"]
+  end
+
+  test "sitemap contains comparisons and no fragment URLs", %{conn: conn} do
+    body = conn |> get(~p"/sitemap.xml") |> response(200)
+    assert body =~ "/docs/explanation/glossia-vs-crowdin</loc>"
+    refute body =~ "/changelog#"
   end
 
   test "documentation pages expose complete social metadata and structured data", %{conn: conn} do
@@ -97,6 +195,31 @@ defmodule GlossiaWeb.PageControllerTest do
     assert response =~ ~s(name="twitter:card" content="summary_large_image")
     assert response =~ ~s(type="application/ld+json")
     assert response =~ ~s("@type":"WebPage")
+  end
+
+  # The generated policy uses literal prefixes and exact `$` rules. Evaluate
+  # their longest-match semantics instead of merely asserting lines exist.
+  defp robots_allowed?(body, path) do
+    body
+    |> String.split("\n")
+    |> Enum.flat_map(fn line ->
+      case String.split(line, ": ", parts: 2) do
+        [action, pattern] when action in ["Allow", "Disallow"] ->
+          prefix = String.trim_trailing(pattern, "$")
+
+          matches? =
+            if String.ends_with?(pattern, "$"),
+              do: path == prefix,
+              else: String.starts_with?(path, prefix)
+
+          if matches?, do: [{String.length(prefix), action == "Allow"}], else: []
+
+        _ ->
+          []
+      end
+    end)
+    |> Enum.max(fn -> {0, true} end)
+    |> elem(1)
   end
 
   # `es` is reserved now, so the collision can only be created the way it
