@@ -12,7 +12,7 @@ msgstr "Language: pt-BR\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UT
 ## effect: edit them in PO (`.po`) files instead.
 ## From Ecto.Changeset.cast/4
 msgid "can't be blank"
-msgstr "não pode ficar em branco"
+msgstr "não pode estar vazio"
 
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
@@ -32,7 +32,7 @@ msgstr "tem formato inválido"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
-msgstr "possui uma entrada inválida"
+msgstr "tem entrada inválida"
 
 ## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
@@ -44,10 +44,10 @@ msgstr "não corresponde à confirmação"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
-msgstr "ainda está associado a esta entrada"
+msgstr "ainda está associada a esta entrada"
 
 msgid "are still associated with this entry"
-msgstr "ainda estão associados a esta entrada"
+msgstr "ainda estão associadas a esta entrada"
 
 ## From Ecto.Changeset.validate_length/3
 msgid "should have %{count} item(s)"
@@ -82,18 +82,18 @@ msgstr[1] "deve ter pelo menos %{count} byte(s)"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "não pode ter mais do que %{count} item(s)"
-msgstr[1] "não pode ter mais do que %{count} item(s)"
+msgstr[0] "deve ter no máximo %{count} item(s)"
+msgstr[1] "deve ter no máximo %{count} item(s)"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "deve ter no máximo %{count} caractere(s)"
-msgstr[1] "deve ter no máximo %{count} caractere(s)"
+msgstr[0] "não pode ter mais do que %{count} caractere(s)"
+msgstr[1] "não pode ter mais do que %{count} caractere(s)"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "deve ter no máximo %{count} byte(s)"
-msgstr[1] "deve ter no máximo %{count} byte(s)"
+msgstr[0] "não pode ter mais do que %{count} byte(s)"
+msgstr[1] "não pode ter mais do que %{count} byte(s)"
 
 ## From Ecto.Changeset.validate_number/3
 msgid "must be less than %{number}"

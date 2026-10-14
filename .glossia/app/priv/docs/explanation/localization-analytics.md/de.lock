@@ -1,15 +1,16 @@
 {
-  "hash": "17a190497b5f8c4653bbbdfb0501116acc5cee89ec19c5ef95caa3550dbf8d48",
+  "baseline_schema_version": 1,
+  "hash": "7708d441d8535b150d657ce671522bd4d835da9fc6008cb5fdc0ed9f92d7f25f",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "35baa2f8f1e88bc17b6d0cff2fb094ed7a96e3da5c0b65a999085e2eff492018",
+          "hash": "e2d083b4c5c1ac50de709231c1a91979b2cdf04e17e979420c5a88778117cf01",
           "kind": "source",
           "label": "app/priv/docs/explanation/localization-analytics.md",
           "metadata": {
-            "content_hash": "d1c03b7e8b029a7493567e0dcb4b90944f4b9ec5b6a7d56843649ed2be7b8661"
+            "content_hash": "c86358e6ff6b97ab5d3ab9b2e5eb8a4c2bbce8a76ca765fc67b09d04185e5925"
           }
         },
         {
@@ -37,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "17a190497b5f8c4653bbbdfb0501116acc5cee89ec19c5ef95caa3550dbf8d48",
+      "hash": "7708d441d8535b150d657ce671522bd4d835da9fc6008cb5fdc0ed9f92d7f25f",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/localization-analytics.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "61e313f102dbf3b8f17cf21a445e9c16ba8974224c21b0606a47ed9840ad237f",
+  "output_hash": "fe67e053434cec3e0bdea3f15383ae170a8ad0f8b22269b97a9adbbb88dbe4f1",
   "output_path": "app/priv/i18n/de/docs/explanation/localization-analytics.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "d596bbd337e708c49bed7ba7b289db30b6c7389a",
   "source_path": "app/priv/docs/explanation/localization-analytics.md",
-  "translated_at": "2026-09-12T09:12:20.360860Z"
+  "translated_at": "2026-10-13T15:43:48.393518Z",
+  "translation_session_id": "01a135ca-2fbd-7f02-8cbf-37a3c14b00b6"
 }

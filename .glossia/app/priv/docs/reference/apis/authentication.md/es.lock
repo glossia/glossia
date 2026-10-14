@@ -1,15 +1,16 @@
 {
-  "hash": "244f42075b098fcfef81e8c77c8f63b97d27f39e93b09b3c20cafcf441ec910f",
+  "baseline_schema_version": 1,
+  "hash": "6932e7cc2ccc80a7aac20217694b93c03404dff467f264f50476a1c25ad8b3ae",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "4caba72ff722b837dfbf0099936bc20adab3bcba3c01fb1f47d32130f79d5759",
+          "hash": "ef85a8b7cc84137c12b27456995dd7125c8da1d7910331c68ccb0e922afb53f8",
           "kind": "source",
           "label": "app/priv/docs/reference/apis/authentication.md",
           "metadata": {
-            "content_hash": "52db76e59deb30ff31d01499bc22662e9f12f49f398dcfd207d8fd7b2b2737e9"
+            "content_hash": "c417a47a0b5c9447d649f333b0a22209fa52c1dd6c614522365ffaf81dc6c173"
           }
         },
         {
@@ -37,20 +38,20 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
               "children": [],
-              "hash": "1424b207fea998c4fef898d526dcb29e10da43d23480340193ea637c2fd3d43d",
+              "hash": "a54709e3cea48e4871dba3f92b628c2156e257d7f78528c44bf202db4cab7630",
               "kind": "context",
               "label": "locale",
               "metadata": {
-                "content_hash": "cc29cd8eebf5d547c8f217c0af8fa84e2300279090f0f6312ed2903aedeb1b61"
+                "content_hash": "94bb6a27769a21802f1ca275e7afd7e42beae6d50ce0ecdf22c63e45228fe7d2"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
+          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "244f42075b098fcfef81e8c77c8f63b97d27f39e93b09b3c20cafcf441ec910f",
+      "hash": "6932e7cc2ccc80a7aac20217694b93c03404dff467f264f50476a1c25ad8b3ae",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/apis/authentication.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "344e0cd43fb1f2ce11b4e60ac22375142d34ee546fc242dea9e8231d5555375b",
+  "output_hash": "4f602218b504c346a7491c2f8abe2e22f6c0449170a00c8a30d3a750843c308f",
   "output_path": "app/priv/i18n/es/docs/reference/apis/authentication.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "d596bbd337e708c49bed7ba7b289db30b6c7389a",
   "source_path": "app/priv/docs/reference/apis/authentication.md",
-  "translated_at": "2026-09-12T09:53:53.141446Z"
+  "translated_at": "2026-10-13T17:58:21.994820Z",
+  "translation_session_id": "01a13628-9556-729b-9753-d7e8a1c7b2e0"
 }

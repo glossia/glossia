@@ -1,15 +1,16 @@
 {
-  "hash": "35d14cda0ed2cb0fb2496cd2e0bfb74def9e10e3ac2d40e2102573ee7a589235",
+  "baseline_schema_version": 1,
+  "hash": "d137e80bd61bb20bb89444d37f09dec49614e814cf70ad28c1fab45c3c42e8c7",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "e9899a4b7338075ddf5663639c5877f91aac52524d171f9ac58fe03a969eed45",
+          "hash": "5e7bde11ea6c5741011f282dafb88f80bda14b2bfed8c1f9bd73601e4c2b932e",
           "kind": "source",
           "label": "app/priv/docs/reference/apis/account-tokens.md",
           "metadata": {
-            "content_hash": "dd976768ce886ca2645e9042ac2ce6279ec415d62009c524f77d5d2d645cade6"
+            "content_hash": "839e659697c22278b18663585814e56d557fb4d994d7c0b2cf542f24c2419b32"
           }
         },
         {
@@ -37,20 +38,20 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
               "children": [],
-              "hash": "1424b207fea998c4fef898d526dcb29e10da43d23480340193ea637c2fd3d43d",
+              "hash": "a54709e3cea48e4871dba3f92b628c2156e257d7f78528c44bf202db4cab7630",
               "kind": "context",
               "label": "locale",
               "metadata": {
-                "content_hash": "cc29cd8eebf5d547c8f217c0af8fa84e2300279090f0f6312ed2903aedeb1b61"
+                "content_hash": "94bb6a27769a21802f1ca275e7afd7e42beae6d50ce0ecdf22c63e45228fe7d2"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
+          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "35d14cda0ed2cb0fb2496cd2e0bfb74def9e10e3ac2d40e2102573ee7a589235",
+      "hash": "d137e80bd61bb20bb89444d37f09dec49614e814cf70ad28c1fab45c3c42e8c7",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/apis/account-tokens.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "b3adf19d1c12b11084c7c69dc43559fbb13975a74b19573847ad379ce0f6e499",
+  "output_hash": "3beaa8c4033d0076be6de469cd983af494c453d2c390c089156fba4938468889",
   "output_path": "app/priv/i18n/es/docs/reference/apis/account-tokens.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "d596bbd337e708c49bed7ba7b289db30b6c7389a",
   "source_path": "app/priv/docs/reference/apis/account-tokens.md",
-  "translated_at": "2026-09-12T09:46:34.089879Z"
+  "translated_at": "2026-10-13T17:49:48.313480Z",
+  "translation_session_id": "01a13628-9556-729b-9753-d7e8a1c7b2e0"
 }
