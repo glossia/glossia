@@ -1,5 +1,6 @@
 {
-  "hash": "093c334fd0ece57b7d6c68d0d101d9a73ac994df2aa7dd3e684671d8ddebd1bd",
+  "baseline_schema_version": 1,
+  "hash": "7d95df6e44547eb058c15f9af65400c278c60e8c51b70ff2d611e9fbb422b953",
   "hash_tree": {
     "root": {
       "children": [
@@ -37,20 +38,20 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
               "children": [],
-              "hash": "1424b207fea998c4fef898d526dcb29e10da43d23480340193ea637c2fd3d43d",
+              "hash": "a54709e3cea48e4871dba3f92b628c2156e257d7f78528c44bf202db4cab7630",
               "kind": "context",
               "label": "locale",
               "metadata": {
-                "content_hash": "cc29cd8eebf5d547c8f217c0af8fa84e2300279090f0f6312ed2903aedeb1b61"
+                "content_hash": "94bb6a27769a21802f1ca275e7afd7e42beae6d50ce0ecdf22c63e45228fe7d2"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
+          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "093c334fd0ece57b7d6c68d0d101d9a73ac994df2aa7dd3e684671d8ddebd1bd",
+      "hash": "7d95df6e44547eb058c15f9af65400c278c60e8c51b70ff2d611e9fbb422b953",
       "kind": "translation_input",
       "label": "app/priv/legal/cookies-2026-02-12.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "cba3e49683c4be7d9b891382406021b722c735b772caedacd797ff653632667b",
+  "output_hash": "560190d1fe18f852a1198f869ebe3390c94d1285693a3a879fc3db09fdc5db69",
   "output_path": "app/priv/i18n/es/legal/cookies-2026-02-12.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "648911cf1a4303ff5a1b32c84086f2696cf71928",
   "source_path": "app/priv/legal/cookies-2026-02-12.md",
-  "translated_at": "2026-09-12T10:09:39.902731Z"
+  "translated_at": "2026-10-18T15:53:40.722655Z",
+  "translation_session_id": "01a14f57-94f4-7fb3-b8b5-592edb698901"
 }
