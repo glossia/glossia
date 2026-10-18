@@ -5492,3 +5492,18 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Queued"
 msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Content ownership"
+msgstr "Élément de contenu"
+
+#: lib/glossia_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format
+msgid "Continuous localization"
+msgstr ""
+
+#: lib/glossia_web/controllers/page_html/home.html.heex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Why Glossia"
+msgstr "Glossia"

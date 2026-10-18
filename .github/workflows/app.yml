@@ -30,12 +30,12 @@ on:
 permissions:
   contents: read
 
-# Fork pull requests never need access to the Hetzner runner cluster.
+# Pull request checks must not depend on Hetzner runner availability.
 jobs:
   build:
     if: github.event.pull_request.draft != true
     name: Build
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || 'hetzner-docker' }}
+    runs-on: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || 'hetzner-docker' }}
     timeout-minutes: 20
     defaults:
       run:
@@ -64,7 +64,7 @@ jobs:
   test:
     if: github.event.pull_request.draft != true
     name: Test
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || 'hetzner-docker' }}
+    runs-on: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || 'hetzner-docker' }}
     timeout-minutes: 30
     services:
       postgres:
@@ -131,7 +131,7 @@ jobs:
   lint:
     if: github.event.pull_request.draft != true
     name: Lint
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || 'hetzner-docker' }}
+    runs-on: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || 'hetzner-docker' }}
     timeout-minutes: 20
     defaults:
       run:
