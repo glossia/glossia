@@ -1,0 +1,122 @@
+{
+  "baseline_schema_version": 1,
+  "hash": "5623e2edab2f440631a05d9a8163a8963dfcf2145137798eb7fe7d11fd3c79bd",
+  "hash_tree": {
+    "root": {
+      "children": [
+        {
+          "children": [],
+          "hash": "7ad47d94d57985636748828dcde6cf189eedf4f498898d333ac3c2dcc5d9ccf3",
+          "kind": "source",
+          "label": "app/priv/blog/2026-10-01-translation-is-the-easy-part.md",
+          "metadata": {
+            "content_hash": "37fc4ca1d52aba4b46cef3105001b41c8b022f75f85d8e1ce75e44721f38b3b3"
+          }
+        },
+        {
+          "children": [],
+          "hash": "721fca88898d7c935026f366d013255ac8c3f94fa231fffee457edb49d965898",
+          "kind": "translation_config",
+          "label": "generation",
+          "metadata": {
+            "custom_prompt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "format": "markdown",
+            "frontmatter_mode": "translate",
+            "language": "fr",
+            "locale": "fr",
+            "model": "",
+            "preserve": [],
+            "prompt_version": 8,
+            "provider": "",
+            "retries": 3,
+            "segmentation_version": 1,
+            "source_language": "en",
+            "validation_hash": "064760dc472b525acbc80c5ce08973a94fc7a5b06ba42cfab835324c7c048924"
+          }
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "kind": "context",
+              "label": "project",
+              "metadata": {
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+              }
+            },
+            {
+              "children": [],
+              "hash": "a92a1d3a18c1e1be86e613b194613064b411b73893253185405d19abfb685e7d",
+              "kind": "context",
+              "label": "locale",
+              "metadata": {
+                "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "hash": "1ce1060bb675f8cc75ef107e56162abcff4ca3e6f9f3adcd41022326a1dff73e",
+                  "kind": "context",
+                  "label": "voice",
+                  "metadata": {
+                    "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126"
+                  }
+                },
+                {
+                  "children": [],
+                  "hash": "70a46d36422990ac658b3e9615b5a3ec8c9ab24e53c20ac6e06aaafb9ac57183",
+                  "kind": "context",
+                  "label": "terminology",
+                  "metadata": {
+                    "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+                  }
+                }
+              ],
+              "hash": "dcebe04e5b7d13287ceb7e484de7b00a697c7ae291f406ec32563e84ccfe7c11",
+              "kind": "server_context",
+              "label": "organization",
+              "metadata": {
+                "compiler_version": 3,
+                "selector_version": 2
+              }
+            }
+          ],
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
+          "kind": "context_bundle",
+          "label": "context",
+          "metadata": {}
+        }
+      ],
+      "hash": "5623e2edab2f440631a05d9a8163a8963dfcf2145137798eb7fe7d11fd3c79bd",
+      "kind": "translation_input",
+      "label": "app/priv/blog/2026-10-01-translation-is-the-easy-part.md",
+      "metadata": {}
+    }
+  },
+  "model": "",
+  "output_hash": "def049fd2a349484108669fb37c9a6fd4ac3858ee4e48ccfd70312c84bf01002",
+  "output_path": "app/priv/i18n/fr/blog/2026-10-01-translation-is-the-easy-part.md",
+  "protection_state": "recorded",
+  "provider": "",
+  "server_context": {
+    "compiler_version": 3,
+    "glossary": {
+      "applied": [],
+      "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "shadowed": [],
+      "version": null
+    },
+    "selector_version": 2,
+    "voice": {
+      "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
+      "version": null
+    }
+  },
+  "source_commit_sha": "648911cf1a4303ff5a1b32c84086f2696cf71928",
+  "source_path": "app/priv/blog/2026-10-01-translation-is-the-easy-part.md",
+  "translated_at": "2026-10-18T14:08:35.581183Z",
+  "translation_session_id": "01a14f57-94f4-7fb3-b8b5-592edb698901"
+}
