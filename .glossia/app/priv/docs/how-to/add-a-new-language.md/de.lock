@@ -1,15 +1,16 @@
 {
-  "hash": "47f1f02e7d56b302f91f55777414a5a1f11c13383ac82071921af0550706f208",
+  "baseline_schema_version": 1,
+  "hash": "7960d6fa5194b8fd69688a5a4b0d5301d017d795f4a51a828cadca1e84fece97",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "d4fc0970fde2ae03babf25100c7fe526b35bcc5ebabd6462051cd103df87e9f0",
+          "hash": "01656d84da5af2e194c54f536ce1479594ac3a00bc7ad50db8540337c8a057f7",
           "kind": "source",
           "label": "app/priv/docs/how-to/add-a-new-language.md",
           "metadata": {
-            "content_hash": "9bc3e59f26def8cdfe93765cdd33630535fc1bcaaba33d9d92e3fa2a6134d6f4"
+            "content_hash": "20bdf2ba6d8a8784210e64e90da4f602563c895647cd6848886364bab19340b8"
           }
         },
         {
@@ -37,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "47f1f02e7d56b302f91f55777414a5a1f11c13383ac82071921af0550706f208",
+      "hash": "7960d6fa5194b8fd69688a5a4b0d5301d017d795f4a51a828cadca1e84fece97",
       "kind": "translation_input",
       "label": "app/priv/docs/how-to/add-a-new-language.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "65fec708b4b38b286cd87638ff6b480cf7629983d68528f5ef7b8d639106e85a",
+  "output_hash": "6fee27253b2a2fd0f21df4a529e8f18c8be8c67f1249287599f7c198cafae8e6",
   "output_path": "app/priv/i18n/de/docs/how-to/add-a-new-language.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "648911cf1a4303ff5a1b32c84086f2696cf71928",
   "source_path": "app/priv/docs/how-to/add-a-new-language.md",
-  "translated_at": "2026-09-12T09:13:03.352414Z"
+  "translated_at": "2026-10-18T14:11:14.223270Z",
+  "translation_session_id": "01a14f57-94f4-7fb3-b8b5-592edb698901"
 }
