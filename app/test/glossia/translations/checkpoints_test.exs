@@ -3,7 +3,105 @@ defmodule Glossia.Translations.CheckpointsTest do
   use Mimic
   alias Glossia.Accounts.Account
   alias Glossia.Translations
-  alias Glossia.Translations.{Checkpoints, Context, Engine, Prompt}
+  alias Glossia.Translations.{Checkpoints, Context, Engine, MarkdownUnits, Prompt}
+  alias Glossia.TranslationStubs
+
+  @tag :tmp_dir
+  test "corrected Markdown templates miss old checkpoints without purging unrelated documents", %{
+    tmp_dir: dir
+  } do
+    source_text = "**Missing `source`.**\n"
+    source = Path.join(dir, "glossary.md")
+    File.write!(source, source_text)
+    {:ok, fixed_plan} = MarkdownUnits.plan(source_text)
+    [unit] = fixed_plan.units
+    old_plan = %{fixed_plan | units: [%{unit | template: "<g1>.<g2/>Missing </g1>"}]}
+
+    item = %{
+      source_abs: source,
+      output_abs: Path.join(dir, "es.md"),
+      output_path: "es.md",
+      locale: "es",
+      language: "Spanish",
+      source_language: "en",
+      format: "markdown",
+      frontmatter_mode: :preserve,
+      preserve: [],
+      prompt: nil,
+      check_cmd: nil,
+      check_cmds: %{},
+      validation: nil,
+      retries: 0,
+      model: "translator",
+      context_body: "",
+      locale_override_body: "",
+      server_context: Context.empty_bundle("es")
+    }
+
+    unrelated_source = Path.join(dir, "unrelated.md")
+    File.write!(unrelated_source, "Hello, world.\n")
+    unrelated_item = %{item | source_abs: unrelated_source}
+    opts = [checkpoint_scope: Checkpoints.key({:templates, dir})]
+    parent = self()
+
+    stub(Translations, :translate_stream, fn _, payload, _, _ ->
+      send(parent, {:translated_templates, TranslationStubs.unit_texts(payload)})
+
+      {:ok,
+       %{text: TranslationStubs.respond(payload, & &1), model: "test/model", provider: "test"}}
+    end)
+
+    stub(MarkdownUnits, :plan, fn
+      ^source_text -> {:ok, old_plan}
+      text -> Mimic.call_original(MarkdownUnits, :plan, [text])
+    end)
+
+    assert {:ok, _} =
+             Engine.apply_item(
+               item,
+               %Account{id: "account"},
+               fn _ -> :ok end,
+               fn _, _ -> :ok end,
+               opts
+             )
+
+    assert_receive {:translated_templates, ["<g1>.<g2/>Missing </g1>"]}
+
+    assert {:ok, _} =
+             Engine.apply_item(
+               unrelated_item,
+               %Account{id: "account"},
+               fn _ -> :ok end,
+               fn _, _ -> :ok end,
+               opts
+             )
+
+    assert_receive {:translated_templates, ["Hello, world."]}
+
+    stub(MarkdownUnits, :plan, fn text -> Mimic.call_original(MarkdownUnits, :plan, [text]) end)
+
+    assert {:ok, _} =
+             Engine.apply_item(
+               item,
+               %Account{id: "account"},
+               fn _ -> :ok end,
+               fn _, _ -> :ok end,
+               opts
+             )
+
+    assert_receive {:translated_templates, ["<g1>Missing <g2/>.</g1>"]}
+
+    assert {:ok, _} =
+             Engine.apply_item(
+               unrelated_item,
+               %Account{id: "account"},
+               fn _ -> :ok end,
+               fn _, _ -> :ok end,
+               opts
+             )
+
+    refute_receive {:translated_templates, _}
+  end
 
   @tag :tmp_dir
   test "an interrupted catalog resumes validated batches in a new process", %{tmp_dir: dir} do

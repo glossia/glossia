@@ -90,6 +90,47 @@ defmodule Glossia.Translations.EngineTest do
 
   describe "apply_item/4" do
     @tag :tmp_dir
+    test "translates glossary sentences without corrupting nested Markdown", %{tmp_dir: dir} do
+      source = Path.join(dir, "glossary.md")
+
+      File.write!(
+        source,
+        "---\ntitle: Glossary\n---\n" <>
+          "**Missing `source`.** Every term needs a non-empty one.\n\n" <>
+          "**Duplicate `id`.** Every id must be unique.\n"
+      )
+
+      stub_stream(fn _account, payload, _on_event ->
+        translated(
+          TranslationStubs.respond(payload, fn template ->
+            template
+            |> String.replace("Missing", "Falta")
+            |> String.replace("Duplicate", "Duplicado")
+            |> String.replace("Every term needs a non-empty one.", "Cada término necesita uno.")
+            |> String.replace("Every id must be unique.", "Cada id debe ser único.")
+          end)
+        )
+      end)
+
+      validate = fn output, original ->
+        Glossia.Translations.Validate.validate_output(dir, "markdown", output, original)
+      end
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, retries: 0}),
+                 %Account{id: 1},
+                 fn _ -> :ok end,
+                 validate
+               )
+
+      assert result.text ==
+               "---\ntitle: Glossary\n---\n" <>
+                 "**Falta `source`.** Cada término necesita uno.\n\n" <>
+                 "**Duplicado `id`.** Cada id debe ser único.\n"
+    end
+
+    @tag :tmp_dir
     test "translates the body and reattaches preserved frontmatter", %{tmp_dir: dir} do
       source = Path.join(dir, "guide.md")
       File.write!(source, "---\ntitle: Hi\n---\nHello, world.")

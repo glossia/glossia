@@ -80,6 +80,30 @@ defmodule Glossia.Translations.MarkdownUnitsTest do
              ]
     end
 
+    test "preserves the order of text and code inside nested inline containers" do
+      examples = [
+        {"**Missing `source`.** Every term needs a non-empty one.\n",
+         "<g1>Missing <g2/>.</g1> Every term needs a non-empty one."},
+        {"**Duplicate `id`.** Every id must be unique.\n",
+         "<g1>Duplicate <g2/>.</g1> Every id must be unique."},
+        {"*Read **the `guide` now** please*.\n", "<g1>Read <g2>the <g3/> now</g2> please</g1>."},
+        {"[Run `mix test` now](https://example.com \"Tests\").\n", "<g1>Run <g2/> now</g1>."}
+      ]
+
+      for {source, template} <- examples do
+        plan = plan!(source)
+        assert templates(plan) == [template]
+        assert MarkdownUnits.splice(plan, render_all(plan, & &1)) == source
+
+        # Exercise rendering rather than the unchanged-template fast path.
+        rendered = render_all(plan, &String.replace(&1, ~w(Missing Duplicate Read Run), "ES"))
+        assert MarkdownUnits.check(plan, rendered) == :ok
+
+        assert MarkdownUnits.splice(plan, rendered) ==
+                 String.replace(source, ~w(Missing Duplicate Read Run), "ES")
+      end
+    end
+
     test "skips blocks without prose" do
       assert templates(plan!("<g1/>\n\n`code`\n\n---\n\n12.5%\n")) == []
     end
