@@ -107,7 +107,7 @@ defmodule Glossia.MixProject do
       {:browse_chrome, "~> 0.4.0"},
       {:mimic, "~> 1.10", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:muontrap, "~> 2.0.0-rc.1", override: true},
+      {:muontrap, "~> 2.0.1", override: true},
       {:req_llm, "~> 1.17"},
       {:yaml_elixir, "~> 2.12"},
       {:toml, "~> 0.7"},
