@@ -19,6 +19,9 @@ defmodule Glossia.TranslationSessions.ProviderRecovery do
     end)
   end
 
+  def rate_limited?({:translation_and_publication_failed, reason, _publication_reason}),
+    do: rate_limited?(reason)
+
   def rate_limited?(_), do: false
 
   def schedule(%TranslationSession{} = session) do

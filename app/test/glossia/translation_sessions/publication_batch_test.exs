@@ -50,6 +50,43 @@ defmodule Glossia.TranslationSessions.PublicationBatchTest do
     assert_received {:published, ["es/a.md", "ja/a.md"]}
   end
 
+  test "does not log private publisher errors and keeps their files pending" do
+    log =
+      ExUnit.CaptureLog.capture_log(fn ->
+        batch = recording_batch([max_files: 1], {:error, {:api_error, 500, "TOKEN=secret"}})
+        assert :ok = PublicationBatch.add(batch, [change("es/a.md")])
+        assert {:error, {:api_error, 500, "TOKEN=secret"}} = PublicationBatch.flush(batch)
+        assert_received {:published, ["es/a.md"]}
+        assert_received {:published, ["es/a.md"]}
+      end)
+
+    assert log =~ "Could not publish a batch"
+    refute log =~ "TOKEN=secret"
+  end
+
+  test "retains files when a publisher raises without exposing the exception" do
+    test_pid = self()
+
+    {:ok, batch} =
+      PublicationBatch.start_link(
+        fn changes ->
+          send(test_pid, {:attempted, changes})
+          raise "private source TOKEN=secret"
+        end,
+        max_files: 1
+      )
+
+    log =
+      ExUnit.CaptureLog.capture_log(fn ->
+        assert :ok = PublicationBatch.add(batch, [change("es/a.md")])
+        assert {:error, :publication_callback_failed} = PublicationBatch.flush(batch)
+      end)
+
+    assert_received {:attempted, [%{path: "es/a.md"}]}
+    assert_received {:attempted, [%{path: "es/a.md"}]}
+    refute log =~ "TOKEN=secret"
+  end
+
   test "keeps changes pending after a failed push and reports it on flush" do
     batch =
       recording_batch([max_files: 1, max_interval_ms: :timer.hours(1)], {:error, :github_down})

@@ -1115,6 +1115,66 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     refute render(view) =~ "repository-secret"
   end
 
+  test "publication failures name the publication stage and show only safe diagnostics", %{
+    conn: conn
+  } do
+    user = TestHelpers.create_user("translation-publication@test.com", "translation-publication")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "publication-failure",
+        name: "Publication failure"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "running",
+        source_language: "en",
+        target_languages: ["de"]
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    TranslationSessions.broadcast_session_event(session, %{type: "plan", total: 1})
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_failed",
+      index: 0,
+      output_path: "docs/de/guide.md",
+      locale: "de",
+      reason: %{
+        kind: "publication-failed",
+        scope: "session",
+        publication_code: "artifact-unreadable",
+        publication_file_error: "enoent",
+        publication_message: "TOKEN=private-output"
+      }
+    })
+
+    assert has_element?(
+             view,
+             "#translation-progress [data-part='failure-summary'][data-kind='publication-failed']",
+             "Translated files could not be published"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-expanded [data-part='item-diagnostics']",
+             "A translated output or lockfile could not be read"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-expanded [data-part='item-diagnostics']",
+             "enoent"
+           )
+
+    refute render(view) =~ "private-output"
+  end
+
   test "empty model output explains that no changes were published", %{conn: conn} do
     user =
       TestHelpers.create_user("translation-empty-output@test.com", "translation-empty-output")

@@ -156,7 +156,10 @@ defmodule Glossia.Translations.RepositoryRun do
         {:ok, failures} ->
           case Enum.reverse(failures) do
             [] ->
-              collect_changes(repo_path)
+              case collect_item_changes(repo_path, items) do
+                {:ok, changes} -> {:ok, changes}
+                {:error, reason} -> {:error, {:translation_publication_failed, reason}}
+              end
 
             failures ->
               {:error, {:translation_items_failed, failures}}
@@ -996,6 +999,9 @@ defmodule Glossia.Translations.RepositoryRun do
       "validation_code" => Map.get(failure, :validation_code),
       "validation_message" => Map.get(failure, :validation_message),
       "validation_exit_status" => Map.get(failure, :validation_exit_status),
+      "publication_code" => Map.get(failure, :publication_code),
+      "publication_message" => Map.get(failure, :publication_message),
+      "publication_file_error" => Map.get(failure, :publication_file_error),
       "provider_status" => failure.status,
       "provider_error_code" => failure.code,
       "provider_request_id" => failure.request_id
@@ -1063,40 +1069,56 @@ defmodule Glossia.Translations.RepositoryRun do
 
   defp po_units_for(_item, _text), do: nil
 
-  # The local checkout remains on the source commit for the whole run, so its
-  # status contains every earlier translation. Select just the current output
-  # and lockfile so each publication is a small, durable checkpoint.
+  # Other workers can still be writing their artifacts. Restrict Git's manifest
+  # to this item's exact paths before reading content, not after a checkout-wide
+  # scan. Git retains added/modified and unchanged-file semantics.
   defp publish_completed_item(nil, _repo_path, _item), do: :ok
 
   defp publish_completed_item(callback, repo_path, item) when is_function(callback, 1) do
-    with {:ok, changes} <- completed_item_changes(repo_path, item) do
-      case callback.(changes) do
-        :ok -> :ok
-        {:ok, _publication} -> :ok
-        {:error, _reason} = error -> error
-        other -> {:error, {:invalid_publication_result, other}}
-      end
+    case collect_changes(repo_path, item_paths(repo_path, item)) do
+      {:ok, []} ->
+        :ok
+
+      {:ok, changes} ->
+        case callback.(changes) do
+          :ok -> :ok
+          {:ok, _publication} -> :ok
+          {:error, _reason} = error -> error
+          other -> {:error, {:invalid_publication_result, other}}
+        end
+
+      {:error, _reason} = error ->
+        error
     end
   rescue
-    error -> {:error, {:publication_callback_failed, Exception.message(error)}}
+    _error -> {:error, :publication_callback_failed}
   end
 
-  defp completed_item_changes(repo_path, item) do
+  defp item_paths(repo_path, item) do
     lock_path =
       repo_path
       |> Locks.lock_path(item.source_path, item.locale)
       |> Path.relative_to(repo_path)
 
-    expected_paths = MapSet.new([item.output_path, lock_path])
+    [item.output_path, lock_path]
+  end
 
-    with {:ok, changes} <- collect_changes(repo_path) do
-      changes = Enum.filter(changes, &MapSet.member?(expected_paths, &1.path))
-
-      if changes == [] do
-        {:error, :translation_change_manifest_empty}
-      else
-        {:ok, changes}
+  # Bound both the argument list and captured output. Never publish files a
+  # validator happened to leave behind, even after all workers have finished.
+  defp collect_item_changes(repo_path, items) do
+    items
+    |> Enum.flat_map(&item_paths(repo_path, &1))
+    |> Enum.uniq()
+    |> Enum.chunk_every(100)
+    |> Enum.reduce_while({:ok, []}, fn paths, {:ok, batches} ->
+      case collect_changes(repo_path, paths) do
+        {:ok, changes} -> {:cont, {:ok, [changes | batches]}}
+        {:error, _reason} = error -> {:halt, error}
       end
+    end)
+    |> case do
+      {:ok, batches} -> {:ok, batches |> List.flatten() |> Enum.sort_by(& &1.path)}
+      error -> error
     end
   end
 
@@ -1122,20 +1144,42 @@ defmodule Glossia.Translations.RepositoryRun do
 
   # ── change collection (git status) ────────────────────────────────────────
 
-  @doc "Collects changed files under `repo_path` as `%{path, status, content}`."
-  def collect_changes(repo_path) do
-    # `--untracked-files=all` lists new files individually instead of collapsing
-    # untracked directories (e.g. `docs/i18n/`, `.glossia/`) into a single entry.
-    #
-    case MuonTrap.cmd(
-           "git",
-           ["-C", repo_path, "status", "--porcelain", "--untracked-files=all"],
+  @doc "Collects changed files, optionally restricted to exact repository-relative paths."
+  def collect_changes(repo_path, paths \\ []) do
+    # Literal pathspecs prevent brackets or wildcard characters in an output
+    # path from including another worker's artifacts. Untracked directories
+    # must be expanded into individual files.
+    args =
+      [
+        "--literal-pathspecs",
+        "-C",
+        repo_path,
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=all",
+        "--"
+      ] ++
+        paths
+
+    case MuonTrap.cmd("git", args,
            stderr_to_stdout: true,
            into: "",
            timeout: :timer.minutes(1)
          ) do
-      {output, 0} -> {:ok, output |> parse_git_status() |> attach_content(repo_path)}
-      {output, code} -> {:error, {:git_status_failed, code, String.trim(output)}}
+      {output, 0} ->
+        case Glossia.Git.PorcelainStatus.parse_z(output) do
+          {:ok, changes} ->
+            changes = Enum.uniq_by(changes, & &1.path)
+            changes = if paths == [], do: changes, else: Enum.filter(changes, &(&1.path in paths))
+            attach_content(changes, repo_path)
+
+          {:error, _reason} ->
+            {:error, :translation_change_manifest_incomplete}
+        end
+
+      {_output, code} ->
+        {:error, {:git_status_failed, code}}
     end
   end
 
@@ -1147,10 +1191,31 @@ defmodule Glossia.Translations.RepositoryRun do
   end
 
   defp attach_content(changes, repo_path) do
-    Enum.map(changes, fn
-      %{status: "deleted"} = change -> Map.put(change, :content, nil)
-      change -> Map.put(change, :content, File.read!(Path.join(repo_path, change.path)))
+    Enum.reduce_while(changes, {:ok, []}, fn change, {:ok, acc} ->
+      case read_change(change, repo_path) do
+        {:ok, change} -> {:cont, {:ok, [change | acc]}}
+        {:error, _reason} = error -> {:halt, error}
+      end
     end)
+    |> case do
+      {:ok, changes} -> {:ok, Enum.reverse(changes)}
+      error -> error
+    end
+  end
+
+  defp read_change(%{status: "deleted"} = change, _repo_path),
+    do: {:ok, Map.put(change, :content, nil)}
+
+  defp read_change(change, repo_path) do
+    path = Path.join(repo_path, change.path)
+
+    with {:ok, %{type: :regular}} <- File.lstat(path),
+         {:ok, content} <- File.read(path) do
+      {:ok, Map.put(change, :content, content)}
+    else
+      {:ok, _stat} -> {:error, {:translation_artifact_unreadable, :not_regular}}
+      {:error, reason} -> {:error, {:translation_artifact_unreadable, reason}}
+    end
   end
 
   # ── clone ─────────────────────────────────────────────────────────────────

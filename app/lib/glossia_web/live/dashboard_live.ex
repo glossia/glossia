@@ -9124,6 +9124,16 @@ defmodule GlossiaWeb.DashboardLive do
     }
   end
 
+  defp translation_failure_presentation("publication-failed") do
+    %{
+      title: gettext("Translated files could not be published"),
+      description: gettext("Retry the translation session to publish the validated files."),
+      item_description:
+        gettext("This file was translated, but its output or lockfile could not be published."),
+      action_label: nil
+    }
+  end
+
   defp translation_failure_presentation("source-unreadable") do
     %{
       title: gettext("Source file could not be read"),
@@ -9151,6 +9161,9 @@ defmodule GlossiaWeb.DashboardLive do
     [
       {gettext("Validation code"), Map.get(failure, :validation_code)},
       {gettext("Validation message"), Map.get(failure, :validation_message)},
+      {gettext("Publication code"), Map.get(failure, :publication_code)},
+      {gettext("Publication message"), Map.get(failure, :publication_message)},
+      {gettext("File error"), Map.get(failure, :publication_file_error)},
       {gettext("Provider"), failure.provider},
       {gettext("Provider response status"), failure.status && to_string(failure.status)},
       {gettext("Provider error code"), failure.code},

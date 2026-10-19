@@ -7,13 +7,21 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
   alias Glossia.Translations.Context
   alias Glossia.Translations.RepositoryRun
   alias Glossia.TranslationSessions
+  alias Glossia.TranslationSessions.PublicationBatch
   alias Glossia.TranslationSessions.TranslationSession
   alias Glossia.TranslationStubs
 
   setup :set_mimic_global
 
   defp git!(root, args) do
-    {_out, 0} = MuonTrap.cmd("git", ["-C", root | args], stderr_to_stdout: true, into: "")
+    {_out, 0} =
+      MuonTrap.cmd(
+        "git",
+        ["-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", "-C", root | args],
+        stderr_to_stdout: true,
+        into: "",
+        timeout: 10_000
+      )
   end
 
   defp init_repo(root) do
@@ -29,6 +37,12 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
       "docs/*.md": "docs/i18n/{locale}/*.md"
     targets:
       es: Spanish
+      de: German
+      ja: Japanese
+      pt-BR: Brazilian Portuguese
+      zh-Hans: Simplified Chinese
+      fr: French
+      ko: Korean
     ---
     """)
 
@@ -40,6 +54,88 @@ defmodule Glossia.Translations.RepositoryRunConcurrencyTest do
 
     git!(root, ["add", "."])
     git!(root, ["commit", "-q", "-m", "init"])
+  end
+
+  @tag :tmp_dir
+  @tag timeout: 120_000
+  test "repeated concurrent runs publish every output and lockfile with exact contents", %{
+    tmp_dir: root
+  } do
+    stub(TranslationSessions, :broadcast_session_event, fn _session, _event -> :ok end)
+    stub(TranslationSessions, :heartbeat_session, fn _session_id -> :ok end)
+
+    stub(Translations, :translate_stream, fn _account, payload, _on_event, _opts ->
+      {:ok,
+       %{
+         text: TranslationStubs.respond(payload, &("ES " <> &1)),
+         model: "openai/gpt-5",
+         provider: "openai"
+       }}
+    end)
+
+    published = start_supervised!({Agent, fn -> %{} end})
+
+    for pass <- 1..3 do
+      repo = Path.join(root, "run-#{pass}")
+      File.mkdir_p!(repo)
+      init_repo(repo)
+
+      for n <- 1..44 do
+        File.write!(
+          Path.join(repo, "docs/#{n}-#{String.duplicate("x", 80)}.md"),
+          "# Document #{n}\n"
+        )
+      end
+
+      git!(repo, ["add", "."])
+      git!(repo, ["commit", "-q", "-m", "add corpus"])
+      Agent.update(published, fn _ -> %{} end)
+
+      {:ok, batch} =
+        PublicationBatch.start_link(
+          fn changes ->
+            Agent.update(published, fn acc ->
+              Enum.reduce(changes, acc, &Map.put(&2, &1.path, &1.content))
+            end)
+
+            :ok
+          end,
+          max_files: 25
+        )
+
+      try do
+        assert {:ok, changes} =
+                 RepositoryRun.translate_repository(
+                   %TranslationSession{id: Ecto.UUID.generate()},
+                   %Account{id: Ecto.UUID.generate()},
+                   repo,
+                   ["es", "de", "ja", "pt-BR", "zh-Hans", "fr", "ko"],
+                   context_snapshot: Context.empty_snapshot(),
+                   credential_node: Node.self(),
+                   translation_concurrency: 16,
+                   after_item_completed: &PublicationBatch.add(batch, &1)
+                 )
+
+        assert :ok = PublicationBatch.flush(batch)
+        assert length(changes) == 686
+        assert Enum.sum(Enum.map(changes, &(byte_size(&1.path) + 4))) > 65_536
+        assert Enum.all?(changes, &(&1.status == "added"))
+        assert Map.new(changes, &{&1.path, &1.content}) == Agent.get(published, & &1)
+
+        for change <- changes do
+          assert change.content == File.read!(Path.join(repo, change.path))
+
+          if String.ends_with?(change.path, ".lock") do
+            lock = JSON.decode!(change.content)
+            assert File.read!(Path.join(repo, lock["output_path"])) =~ "# ES "
+          else
+            assert change.content =~ "# ES "
+          end
+        end
+      after
+        PublicationBatch.stop(batch)
+      end
+    end
   end
 
   @tag :tmp_dir

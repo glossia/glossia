@@ -19,6 +19,8 @@ defmodule Glossia.TranslationSessions.PublicationBatch do
 
   require Logger
 
+  alias Glossia.Translations.Failure
+
   @default_max_files 25
   @default_max_interval_ms :timer.minutes(15)
   # Publishing builds blobs, a tree, and a commit through the GitHub API. A
@@ -116,7 +118,8 @@ defmodule Glossia.TranslationSessions.PublicationBatch do
 
       {:error, reason} ->
         Logger.warning("Could not publish a batch of translations, keeping it for the next push",
-          reason: inspect(reason),
+          publication_code:
+            Failure.from({:translation_publication_failed, reason}).publication_code,
           files: state.pending_files
         )
 
@@ -127,7 +130,7 @@ defmodule Glossia.TranslationSessions.PublicationBatch do
   defp safely_publish(publish, changes) do
     publish |> apply([changes]) |> normalize()
   rescue
-    error -> {:error, {:publication_failed, Exception.message(error)}}
+    _error -> {:error, :publication_callback_failed}
   end
 
   defp normalize(:ok), do: :ok

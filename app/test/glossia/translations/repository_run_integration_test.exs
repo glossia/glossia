@@ -19,7 +19,14 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
   alias Glossia.TranslationStubs
 
   defp git!(root, args) do
-    {_out, 0} = MuonTrap.cmd("git", ["-C", root | args], stderr_to_stdout: true, into: "")
+    {_out, 0} =
+      MuonTrap.cmd(
+        "git",
+        ["-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", "-C", root | args],
+        stderr_to_stdout: true,
+        into: "",
+        timeout: 10_000
+      )
   end
 
   defp init_repo(root) do
@@ -166,6 +173,112 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
              ".glossia/docs/guide.md/es.lock",
              "docs/i18n/es/guide.md"
            ]
+  end
+
+  @tag :tmp_dir
+  test "publishes only owned artifacts even while unrelated files are unreadable", %{
+    tmp_dir: root
+  } do
+    init_repo(root)
+    File.ln_s!("missing-target", Path.join(root, "unrelated.md"))
+    File.write!(Path.join(root, "validator-output.txt"), "private validator log")
+    test_pid = self()
+
+    Mimic.stub(Translations, :translate_stream, fn _account, payload, _on_event ->
+      {:ok, %{text: spanish(payload), model: "openai/gpt-5", provider: "openai"}}
+    end)
+
+    publish = fn changes ->
+      send(test_pid, {:published, changes})
+      :ok
+    end
+
+    assert {:ok, changes} =
+             RepositoryRun.translate_repository(
+               %TranslationSession{id: Ecto.UUID.generate()},
+               %Account{id: 1},
+               root,
+               ["es"],
+               context_snapshot: Context.empty_snapshot(),
+               after_item_completed: publish
+             )
+
+    assert_receive {:published, ^changes}
+    assert length(changes) == 2
+    refute Enum.any?(changes, &(&1.path == "unrelated.md"))
+    assert {:ok, %{type: :symlink}} = File.lstat(Path.join(root, "unrelated.md"))
+  end
+
+  @tag :tmp_dir
+  test "a plan with no selected items never publishes unrelated checkout changes", %{
+    tmp_dir: root
+  } do
+    init_repo(root)
+    File.write!(Path.join(root, "unrelated.md"), "private validator log")
+
+    assert {:ok, []} =
+             RepositoryRun.translate_repository(
+               %TranslationSession{id: Ecto.UUID.generate()},
+               %Account{id: 1},
+               root,
+               ["ja"],
+               context_snapshot: Context.empty_snapshot()
+             )
+  end
+
+  @tag :tmp_dir
+  test "an empty owned manifest is a successful no-op without calling the publisher", %{
+    tmp_dir: root
+  } do
+    init_repo(root)
+    Mimic.stub(MuonTrap, :cmd, fn "git", _args, _opts -> {"", 0} end)
+
+    Mimic.stub(Translations, :translate_stream, fn _account, payload, _on_event ->
+      {:ok, %{text: spanish(payload), model: "openai/gpt-5", provider: "openai"}}
+    end)
+
+    assert {:ok, []} =
+             RepositoryRun.translate_repository(
+               %TranslationSession{id: Ecto.UUID.generate()},
+               %Account{id: 1},
+               root,
+               ["es"],
+               context_snapshot: Context.empty_snapshot(),
+               after_item_completed: fn _ ->
+                 flunk("unchanged artifacts must not be published")
+               end
+             )
+  end
+
+  @tag :tmp_dir
+  test "classifies publication callback exceptions without exposing their contents", %{
+    tmp_dir: root
+  } do
+    init_repo(root)
+
+    Mimic.stub(Translations, :translate_stream, fn _account, payload, _on_event ->
+      {:ok, %{text: spanish(payload), model: "openai/gpt-5", provider: "openai"}}
+    end)
+
+    log =
+      capture_log(fn ->
+        assert {:error, {:translation_items_failed, [failure]}} =
+                 RepositoryRun.translate_repository(
+                   %TranslationSession{id: Ecto.UUID.generate()},
+                   %Account{id: 1},
+                   root,
+                   ["es"],
+                   context_snapshot: Context.empty_snapshot(),
+                   after_item_completed: fn _changes -> raise "TOKEN=private-output" end
+                 )
+
+        assert failure.reason.kind == "publication-failed"
+        assert failure.reason.publication_code == "callback-failed"
+        assert failure.reason.scope == "session"
+      end)
+
+    assert log =~ ~s("publication_code":"callback-failed")
+    refute log =~ "TOKEN=private-output"
   end
 
   @tag :tmp_dir

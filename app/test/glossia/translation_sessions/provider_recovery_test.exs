@@ -71,6 +71,22 @@ defmodule Glossia.TranslationSessions.ProviderRecoveryTest do
     assert {:ok, nil} = ProviderRecovery.schedule(session)
   end
 
+  test "retains provider throttling recovery when final publication also fails" do
+    translation =
+      {:translation_items_failed, [%{reason: %{kind: "provider-rate-limit", status: 429}}]}
+
+    assert ProviderRecovery.rate_limited?(
+             {:translation_and_publication_failed, translation, :github_down}
+           )
+
+    refute ProviderRecovery.rate_limited?({:translation_publication_failed, :github_down})
+
+    refute ProviderRecovery.rate_limited?(
+             {:translation_and_publication_failed,
+              {:translation_items_failed, [%{reason: %{kind: "validation"}}]}, :github_down}
+           )
+  end
+
   test "validation failures alone do not trigger provider recovery" do
     refute ProviderRecovery.rate_limited?(
              {:translation_items_failed, [%{reason: %{kind: "validation", scope: "item"}}]}
