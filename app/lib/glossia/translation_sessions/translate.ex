@@ -87,9 +87,17 @@ defmodule Glossia.TranslationSessions.Translate do
             handle_translation_result(session, project, account, result)
 
           {{:ok, _changes}, {:error, reason}} ->
-            fail_translation(session, project, account, reason)
+            fail_translation(session, project, account, {:translation_publication_failed, reason})
 
-          {{:error, reason}, _flush_result} ->
+          {{:error, reason}, {:error, publication_reason}} ->
+            fail_translation(
+              session,
+              project,
+              account,
+              {:translation_and_publication_failed, reason, publication_reason}
+            )
+
+          {{:error, reason}, :ok} ->
             fail_translation(session, project, account, reason)
         end
       after
@@ -792,8 +800,24 @@ defmodule Glossia.TranslationSessions.Translate do
     }
   end
 
-  defp failure_metadata({:translation_publication_failed, _reason}) do
-    %{"failure_kind" => "translation_publication_failed"}
+  defp failure_metadata({:translation_publication_failed, _reason} = reason) do
+    failure = Failure.from(reason)
+
+    %{
+      "failure_kind" => "translation_publication_failed",
+      "publication_code" => failure.publication_code,
+      "publication_message" => failure.publication_message,
+      "publication_file_error" => Map.get(failure, :publication_file_error)
+    }
+  end
+
+  defp failure_metadata({:translation_and_publication_failed, reason, publication_reason}) do
+    %{
+      "failure_kind" => "translation_and_publication_failed",
+      "translation_failure" => failure_metadata(reason),
+      "publication_failure" =>
+        failure_metadata({:translation_publication_failed, publication_reason})
+    }
   end
 
   defp failure_metadata(_reason), do: %{"failure_kind" => "translation_failed"}
@@ -816,6 +840,9 @@ defmodule Glossia.TranslationSessions.Translate do
       "validation_code" => Map.get(failure, :validation_code),
       "validation_message" => Map.get(failure, :validation_message),
       "validation_exit_status" => Map.get(failure, :validation_exit_status),
+      "publication_code" => Map.get(failure, :publication_code),
+      "publication_message" => Map.get(failure, :publication_message),
+      "publication_file_error" => Map.get(failure, :publication_file_error),
       "provider_status" => failure.status,
       "provider_error_code" => failure.code,
       "provider_request_id" => failure.request_id
@@ -974,8 +1001,13 @@ defmodule Glossia.TranslationSessions.Translate do
   defp humanize_error(:translation_lockfile_invalid),
     do: "The translation harness reported an invalid Glossia lockfile."
 
-  defp humanize_error({:translation_publication_failed, reason}),
-    do: "The translation pull request could not be updated: #{inspect(reason)}"
+  defp humanize_error({:translation_publication_failed, _reason} = reason),
+    do: reason |> Failure.from() |> Failure.describe()
+
+  defp humanize_error({:translation_and_publication_failed, reason, publication_reason}),
+    do:
+      humanize_error(reason) <>
+        " " <> humanize_error({:translation_publication_failed, publication_reason})
 
   defp humanize_error({:translation_pull_request_closed, pull_request_number}),
     do:

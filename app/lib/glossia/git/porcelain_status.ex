@@ -20,6 +20,35 @@ defmodule Glossia.Git.PorcelainStatus do
     |> Enum.flat_map(&parse_line/1)
   end
 
+  @doc "Parses porcelain v1 -z output without interpreting or trimming filenames."
+  def parse_z(""), do: {:ok, []}
+
+  def parse_z(output) when is_binary(output),
+    do: parse_z_records(:binary.split(output, <<0>>, [:global]), [])
+
+  defp parse_z_records([""], acc), do: {:ok, Enum.reverse(acc)}
+
+  # In -z mode Git puts the destination first and the original path in a
+  # second NUL-terminated field. Neither field is quoted or escaped.
+  defp parse_z_records([<<x, y, 32, path::binary>>, original | rest], acc)
+       when (x in [?R, ?C] or y in [?R, ?C]) and path != "" and original != "" do
+    changes =
+      if x == ?R or y == ?R do
+        [%{path: path, status: "added"}, %{path: original, status: "deleted"} | acc]
+      else
+        [%{path: path, status: "added"} | acc]
+      end
+
+    parse_z_records(rest, changes)
+  end
+
+  defp parse_z_records([<<x, y, 32, path::binary>> | rest], acc)
+       when x not in [?R, ?C] and y not in [?R, ?C] and path != "" do
+    parse_z_records(rest, [%{path: path, status: classify(<<x, y>>)} | acc])
+  end
+
+  defp parse_z_records(_records, _acc), do: {:error, :incomplete_status}
+
   defp parse_line(line) when byte_size(line) >= 4 do
     code = String.slice(line, 0, 2)
     rest = (String.slice(line, 3..-1//1) || "") |> String.trim()

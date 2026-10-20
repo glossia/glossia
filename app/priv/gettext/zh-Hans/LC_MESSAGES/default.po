@@ -5500,3 +5500,33 @@ msgstr ""
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Why Glossia"
 msgstr "Glossia"
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "File error"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Publication code"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Publication message"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Retry the translation session to publish the validated files."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "This file was translated, but its output or lockfile could not be published."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Translated files could not be published"
+msgstr ""

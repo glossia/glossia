@@ -336,7 +336,7 @@ defmodule Glossia.Translations.MarkdownUnits do
         close: binary_part(source, last, stop - last)
       }
 
-      parts = ["</g#{n}>", Enum.reverse(inner), "<g#{n}>" | parts]
+      parts = ["</g#{n}>", inner, "<g#{n}>" | parts]
       {:ok, {parts, Map.put(tags, n, tag), stop, nil}}
     else
       _ -> leaf(source, {start, stop}, parts, tags)

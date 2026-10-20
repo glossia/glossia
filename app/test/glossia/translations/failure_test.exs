@@ -3,6 +3,62 @@ defmodule Glossia.Translations.FailureTest do
 
   alias Glossia.Translations.Failure
 
+  test "classifies publication failures without treating them as model failures" do
+    for {reason, code} <- [
+          {{:git_status_failed, 128}, "manifest-command"},
+          {:translation_change_manifest_incomplete, "manifest-incomplete"},
+          {:translation_change_manifest_empty, "manifest-empty"},
+          {{:translation_artifact_unreadable, :enoent}, "artifact-unreadable"},
+          {:publication_callback_failed, "callback-failed"},
+          {{:invalid_publication_result, "private-output"}, "callback-invalid"},
+          {{:api_error, 500, "private-output"}, "publish-failed"}
+        ] do
+      failure = Failure.from({:translation_publication_failed, reason}, "openai")
+      assert failure.kind == "publication-failed"
+      assert failure.publication_code == code
+      assert failure.provider == nil
+      assert Failure.run_stopping?(failure)
+      refute Failure.retryable?(failure)
+      refute inspect(failure) =~ "private-output"
+      assert failure |> JSON.encode!() |> JSON.decode!() |> Failure.normalize() == failure
+      assert Failure.describe(failure) =~ "could not be published"
+    end
+  end
+
+  test "reconstructs only canonical publication diagnostics at messaging boundaries" do
+    failure =
+      Failure.normalize(%{
+        "kind" => "publication-failed",
+        "scope" => "item",
+        "publication_code" => "artifact-unreadable",
+        "publication_message" => "/private/source TOKEN=secret",
+        "publication_file_error" => "enoent",
+        "code" => "secret",
+        "request_id" => "secret"
+      })
+
+    assert failure.publication_message == "A translated output or lockfile could not be read"
+    assert failure.publication_file_error == "enoent"
+    assert failure.scope == "session"
+    assert failure.code == nil
+    assert failure.request_id == nil
+    refute inspect(failure) =~ "secret"
+
+    for reason <- ["secret", %{}, 123] do
+      failure =
+        Failure.normalize(%{
+          kind: "publication-failed",
+          publication_code: "secret",
+          publication_message: "secret",
+          publication_file_error: reason
+        })
+
+      assert failure.publication_code == "publish-failed"
+      refute Map.has_key?(failure, :publication_file_error)
+      refute inspect(failure) =~ "secret"
+    end
+  end
+
   test "catalog conversion diagnostics are classified without exposing response content" do
     for {message, code} <- [
           {"po text-literal response must be a JSON array of strings", "catalog-literal-shape"},

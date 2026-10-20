@@ -84,6 +84,7 @@ defmodule Glossia.Translations.Failure do
     validation
     source-invalid-encoding
     source-unreadable
+    publication-failed
     translation-failed
   )
 
@@ -101,6 +102,17 @@ defmodule Glossia.Translations.Failure do
     provider-error
   )
 
+  @publication_reasons [
+    {"manifest-command", "Git could not collect the translation changes"},
+    {"manifest-incomplete", "Git returned an incomplete translation change manifest"},
+    {"manifest-empty", "The completed translation had no changes to publish"},
+    {"artifact-unreadable", "A translated output or lockfile could not be read"},
+    {"callback-failed", "The translation publication callback failed"},
+    {"callback-invalid", "The translation publication callback returned an invalid result"},
+    {"publish-failed", "The translated files could not be published"}
+  ]
+  @publication_file_errors ~w(enoent eacces eisdir eloop enotdir eperm enospc not_regular)
+
   @search_keys ~w(reason message error errors response_body cause code type status)
   @nested_error_keys ~w(reason error errors response_body cause headers)
   @request_id_keys ~w(x-request-id request-id openai-request-id)
@@ -115,6 +127,18 @@ defmodule Glossia.Translations.Failure do
   def from(reason, provider \\ nil)
 
   def from({:llm_failed, reason}, provider), do: provider_failure(reason, provider)
+
+  def from({:translation_publication_failed, reason}, _provider) do
+    {code, file_error} = publication_diagnostics(reason)
+
+    failure("publication-failed", "session")
+    |> Map.merge(
+      normalize_publication_diagnostics(%{
+        publication_code: code,
+        publication_file_error: file_error
+      })
+    )
+  end
 
   def from({:validation_failed, reason}, _provider) do
     text = searchable_text(reason)
@@ -176,16 +200,21 @@ defmodule Glossia.Translations.Failure do
       |> safe_kind()
       |> normalize_provider_kind(status)
 
-    scope = if kind in @provider_kinds, do: "session", else: "item"
+    if kind == "publication-failed" do
+      failure(kind, "session")
+      |> Map.merge(normalize_publication_diagnostics(failure))
+    else
+      scope = if kind in @provider_kinds, do: "session", else: "item"
 
-    failure(kind, scope,
-      provider: safe_provider(map_value(failure, :provider)),
-      status: status,
-      code: safe_identifier(map_value(failure, :code), 80),
-      request_id: safe_identifier(map_value(failure, :request_id), 200),
-      retry_after_ms: safe_retry_after_ms(map_value(failure, :retry_after_ms))
-    )
-    |> Map.merge(normalize_validation_diagnostics(failure, kind))
+      failure(kind, scope,
+        provider: safe_provider(map_value(failure, :provider)),
+        status: status,
+        code: safe_identifier(map_value(failure, :code), 80),
+        request_id: safe_identifier(map_value(failure, :request_id), 200),
+        retry_after_ms: safe_retry_after_ms(map_value(failure, :retry_after_ms))
+      )
+      |> Map.merge(normalize_validation_diagnostics(failure, kind))
+    end
   end
 
   def normalize(reason), do: from(reason)
@@ -219,7 +248,8 @@ defmodule Glossia.Translations.Failure do
   A run shares one provider and one credential, so an exhausted balance or a
   rejected key fails every remaining file identically. Transient session-level
   failures - rate limits, timeouts, 5xx - are excluded, because another file or
-  another attempt can still succeed.
+  another attempt can still succeed. Publication failures stop the run too:
+  generating more output cannot repair a broken manifest or publisher.
   """
   def run_stopping?(failure), do: session_level?(failure) and not retryable?(failure)
 
@@ -250,6 +280,8 @@ defmodule Glossia.Translations.Failure do
 
   defp cause("provider-error"), do: "The model provider returned an error"
 
+  defp cause("publication-failed"), do: "The translated files could not be published"
+
   defp cause(_kind), do: "The translation could not be completed"
 
   defp provider_detail(%{provider: nil, status: nil}), do: ""
@@ -269,6 +301,9 @@ defmodule Glossia.Translations.Failure do
     do: "Check the account's model credentials and retry."
 
   defp remediation("provider-rate-limit"), do: "Retry once the provider's limit resets."
+
+  defp remediation("publication-failed"),
+    do: "Retry the translation session to publish the validated files."
 
   defp remediation(_kind), do: "Please retry."
 
@@ -321,6 +356,41 @@ defmodule Glossia.Translations.Failure do
       request_id: extract_request_id(reason, text),
       retry_after_ms: extract_retry_after_ms(reason)
     )
+  end
+
+  defp publication_diagnostics({:git_status_failed, _status}), do: {"manifest-command", nil}
+
+  defp publication_diagnostics(:translation_change_manifest_incomplete),
+    do: {"manifest-incomplete", nil}
+
+  defp publication_diagnostics(:translation_change_manifest_empty),
+    do: {"manifest-empty", nil}
+
+  defp publication_diagnostics({:translation_artifact_unreadable, reason}),
+    do: {"artifact-unreadable", reason}
+
+  defp publication_diagnostics(:publication_callback_failed), do: {"callback-failed", nil}
+
+  defp publication_diagnostics({:invalid_publication_result, _result}),
+    do: {"callback-invalid", nil}
+
+  defp publication_diagnostics(_reason), do: {"publish-failed", nil}
+
+  defp normalize_publication_diagnostics(value) do
+    code = map_value(value, :publication_code)
+
+    {code, message} =
+      List.keyfind(@publication_reasons, code, 0) ||
+        List.keyfind(@publication_reasons, "publish-failed", 0)
+
+    reason = map_value(value, :publication_file_error)
+    reason = if is_atom(reason), do: Atom.to_string(reason), else: reason
+
+    diagnostics = %{publication_code: code, publication_message: message}
+
+    if code == "artifact-unreadable" and reason in @publication_file_errors,
+      do: Map.put(diagnostics, :publication_file_error, reason),
+      else: diagnostics
   end
 
   defp validation_kind(text) do

@@ -924,6 +924,102 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     refute event.metadata =~ "private source content"
   end
 
+  test "preserves both item failures and a failed final publication flush" do
+    {user, project} = project_with_installation("translate-flush@test.com", "translate-flush")
+    session = session_for(user, project)
+
+    stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    stub(Glossia.Github.Client, :get_commit, fn _, _, _ ->
+      {:error, {:api_error, 500, "TOKEN=private-output"}}
+    end)
+
+    stub(Glossia.Translations.RepositoryRun, :run, fn _, _, _, _, opts ->
+      assert :ok =
+               Keyword.fetch!(opts, :after_item_completed).([
+                 %{path: "docs/es/complete.md", status: "added", content: "Complete"}
+               ])
+
+      {:error, {:translation_items_failed, [%{output_path: "docs/es/failed.md"}]}}
+    end)
+
+    log =
+      capture_log(fn ->
+        assert {:error,
+                {:translation_and_publication_failed, {:translation_items_failed, [_]},
+                 {:api_error, 500, "TOKEN=private-output"}}} =
+                 Translate.run(session.id)
+      end)
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.status == "failed"
+    assert updated.error =~ "Translation failed for 1 file"
+    assert updated.error =~ "could not be published"
+    refute updated.error =~ "private-output"
+    refute log =~ "private-output"
+
+    [event] = Glossia.Ingestion.list_translation_session_events(session.id)
+    metadata = JSON.decode!(event.metadata)
+    assert metadata["failure_kind"] == "translation_and_publication_failed"
+    assert metadata["translation_failure"]["failure_count"] == 1
+    assert metadata["publication_failure"]["publication_code"] == "publish-failed"
+    refute event.metadata =~ "private-output"
+  end
+
+  test "reports a failed final flush even when every translation succeeded" do
+    {user, project} =
+      project_with_installation("translate-only-flush@test.com", "translate-only-flush")
+
+    session = session_for(user, project)
+    stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    stub(Glossia.Github.Client, :get_commit, fn _, _, _ ->
+      {:error, {:api_error, 500, "TOKEN=private-output"}}
+    end)
+
+    stub(Glossia.Translations.RepositoryRun, :run, fn _, _, _, _, opts ->
+      changes = [%{path: "docs/es/complete.md", status: "added", content: "Complete"}]
+      assert :ok = Keyword.fetch!(opts, :after_item_completed).(changes)
+      {:ok, changes}
+    end)
+
+    log =
+      capture_log(fn ->
+        assert {:error,
+                {:translation_publication_failed, {:api_error, 500, "TOKEN=private-output"}}} =
+                 Translate.run(session.id)
+      end)
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.error =~ "could not be published"
+    refute updated.error =~ "private-output"
+    refute log =~ "private-output"
+    [event] = Glossia.Ingestion.list_translation_session_events(session.id)
+    assert JSON.decode!(event.metadata)["publication_code"] == "publish-failed"
+  end
+
+  test "records safe diagnostics when the final manifest cannot be collected" do
+    {user, project} =
+      project_with_installation("translate-manifest@test.com", "translate-manifest")
+
+    session = session_for(user, project)
+    stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    stub(Glossia.Translations.RepositoryRun, :run, fn _, _, _, _, _ ->
+      {:error, {:translation_publication_failed, {:git_status_failed, 128}}}
+    end)
+
+    capture_log(fn ->
+      assert {:error, {:translation_publication_failed, {:git_status_failed, 128}}} =
+               Translate.run(session.id)
+    end)
+
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.error =~ "could not be published"
+    [event] = Glossia.Ingestion.list_translation_session_events(session.id)
+    assert JSON.decode!(event.metadata)["publication_code"] == "manifest-command"
+  end
+
   test "fails the session when the isolated repository run returns an exit" do
     {user, project} = project_with_installation("translate-exit@test.com", "translate-exit")
     session = session_for(user, project)
