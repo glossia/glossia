@@ -16,7 +16,7 @@ msgstr "não pode ficar em branco"
 
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
-msgstr "já está sendo usado"
+msgstr "já está em uso"
 
 ## From Ecto.Changeset.put_change/3
 msgid "is invalid"
@@ -32,7 +32,7 @@ msgstr "tem formato inválido"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
-msgstr "possui uma entrada inválida"
+msgstr "tem uma entrada inválida"
 
 ## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
@@ -40,7 +40,7 @@ msgstr "está reservado"
 
 ## From Ecto.Changeset.validate_confirmation/3
 msgid "does not match confirmation"
-msgstr "não corresponde à confirmação"
+msgstr "não coincide com a confirmação"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
@@ -82,8 +82,8 @@ msgstr[1] "deve ter pelo menos %{count} byte(s)"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "não pode ter mais do que %{count} item(s)"
-msgstr[1] "não pode ter mais do que %{count} item(s)"
+msgstr[0] "deve ter no máximo %{count} item(s)"
+msgstr[1] "deve ter no máximo %{count} item(s)"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
