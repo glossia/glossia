@@ -15,6 +15,7 @@ on:
       - "mise/**"
       - "mise.toml"
       - ".github/workflows/app.yml"
+      - ".github/workflows/deploy.yml"
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
@@ -26,16 +27,19 @@ on:
       - "mise/**"
       - "mise.toml"
       - ".github/workflows/app.yml"
+      - ".github/workflows/deploy.yml"
 
 permissions:
   contents: read
 
-# Pull request checks must not depend on Hetzner runner availability.
+# Both PR checks and post-merge checks use hosted runners. Image publication
+# waits for the post-merge checks, so an unavailable self-hosted runner would
+# otherwise leave production on an old image even after a fix has merged.
 jobs:
   build:
     if: github.event.pull_request.draft != true
     name: Build
-    runs-on: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || 'hetzner-docker' }}
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
       run:
@@ -64,7 +68,7 @@ jobs:
   test:
     if: github.event.pull_request.draft != true
     name: Test
-    runs-on: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || 'hetzner-docker' }}
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
       postgres:
@@ -131,7 +135,7 @@ jobs:
   lint:
     if: github.event.pull_request.draft != true
     name: Lint
-    runs-on: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || 'hetzner-docker' }}
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
       run:
