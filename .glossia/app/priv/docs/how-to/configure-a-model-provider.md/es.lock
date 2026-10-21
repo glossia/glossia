@@ -1,15 +1,16 @@
 {
-  "hash": "eceb0258d3a547b035fd73a90970662f62f32bea93df3d76e60045f39f690d3b",
+  "baseline_schema_version": 1,
+  "hash": "018ccd782fbb0375f1399e8d7bad328bd1422a8cd1acc40ac6f1de32bf575a59",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "09e8309cc212a33942e6b7b9fe34e4442993f71ef6564ca53c1dac9e17fec7b1",
+          "hash": "02769e62d604c03a3c291d847558469d4ce6c0673c97b2d6a5de1ecbc82da2eb",
           "kind": "source",
           "label": "app/priv/docs/how-to/configure-a-model-provider.md",
           "metadata": {
-            "content_hash": "cba272636eea1e44d148cf2affc61465a22bcebc6a2415caa371b1da623cc6b7"
+            "content_hash": "c692b8432efd9c3ed3ea25ec2b577fd4b5364e6feeaecd7f26f9236ae8d914f1"
           }
         },
         {
@@ -37,20 +38,20 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
               "children": [],
-              "hash": "1424b207fea998c4fef898d526dcb29e10da43d23480340193ea637c2fd3d43d",
+              "hash": "a54709e3cea48e4871dba3f92b628c2156e257d7f78528c44bf202db4cab7630",
               "kind": "context",
               "label": "locale",
               "metadata": {
-                "content_hash": "cc29cd8eebf5d547c8f217c0af8fa84e2300279090f0f6312ed2903aedeb1b61"
+                "content_hash": "94bb6a27769a21802f1ca275e7afd7e42beae6d50ce0ecdf22c63e45228fe7d2"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "c58665e9121a98074c51f3e7b56c1f44bc6f884adfb19eee85770407ab189b08",
+          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "eceb0258d3a547b035fd73a90970662f62f32bea93df3d76e60045f39f690d3b",
+      "hash": "018ccd782fbb0375f1399e8d7bad328bd1422a8cd1acc40ac6f1de32bf575a59",
       "kind": "translation_input",
       "label": "app/priv/docs/how-to/configure-a-model-provider.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "2ea46e0a6379d5bb1e4f08fd7481ce85b1f53532f6910832616cfb6e5deea36a",
+  "output_hash": "46fe3767cf821594bb45c0bd07e0cbc7b40c5e68800554eb7e0c151e43b49a55",
   "output_path": "app/priv/i18n/es/docs/how-to/configure-a-model-provider.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "8c946ab2f6b10f009391d70fc5133dad149ab8a2",
   "source_path": "app/priv/docs/how-to/configure-a-model-provider.md",
-  "translated_at": "2026-09-12T09:23:26.166909Z"
+  "translated_at": "2026-10-21T16:59:29.130829Z",
+  "translation_session_id": "01a15f5f-f115-757e-9113-1d0e7d250066"
 }
