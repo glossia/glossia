@@ -1,106 +1,106 @@
 %{
-  title: "Die Übersetzung ist der leichte Teil",
+  title: "Übersetzung ist der einfache Teil",
   slug: "translation-is-the-easy-part",
   summary:
-    "Wie Gespräche über Sprachen, Softwareauslieferung und Vertrauen María José und mich veranlassten, Glossia zu bauen.",
+    "Wie Gespräche über Sprachen, Softwareauslieferung und Vertrauen María José und mich dazu brachten, Glossia zu bauen.",
   author: "pedro"
 }
 ---
 
-Sprachen sind ein großartiges und oft unterschätztes Werkzeug für Barrierefreiheit, um Technologieprodukte auf neue Märkte zu bringen. Wenn Ihr Produkt an Gemeinschaften spricht, deren Hauptsprache nicht Englisch ist, signalisieren Sie, dass Sie an sie gedacht haben. So können Sie eine sehr tiefe Verbindung aufbauen.
+Sprachen sind ein großartiges und unterbewertetes Werkzeug für Barrierefreiheit und das Erschließen neuer Märkte für Technologieprodukte. Wenn Ihr Produkt Gemeinschaften anspricht, deren Hauptsprache nicht Englisch ist, signalisieren Sie, dass Sie an sie gedacht haben. So können Sie eine sehr tiefe Verbindung aufbauen.
 
-Leider können sich viele Teams nicht leisten, Ihr Produkt und Ihre Marke auf mehrere Sprachen zu bringen. Sie müssen sich oft zwei von drei aussuchen: **Qualität, Geschwindigkeit und Kosten**.
+Leider können sich viele Teams nicht leisten, ihr Produkt und ihre Marke in mehreren Sprachen sprechen zu lassen. Sie müssen sich oft für zwei von drei entscheiden: **Qualität, Geschwindigkeit und Kosten**.
 
-Wenn sie Übersetzungen auf einen Software-Lieferprozess abstimmen möchten, können sie in ein dediziertes Team investieren, um die Qualität zu sichern – aber das kostet. Oder sie können stärker auf maschinelle Übersetzung setzen, schnell voran, aber geringere Qualität akzeptieren. Wenn sie Qualität und geringe Kosten wählen und auf menschliche Übersetzung ohne ein dediziertes Team setzen, müssen sie meist auf Geschwindigkeit verzichten. Dabei landen sie in verwobenen Systemen, die Übersetzungen zwischen ihren Repositories und Drittanbieter-Tools hin und her schieben.
+Wenn sie möchten, dass Übersetzungen mit der Softwareauslieferung Schritt halten, können sie in eine dedizierte Mannschaft investieren, um die Qualität zu wahren, aber das kostet etwas. Oder sie können stärker auf maschinelle Übersetzung setzen, schnell voranschreiten und niedrigere Qualität akzeptieren. Wenn sie Qualität und niedrigen Kosten wählen und auf menschliche Übersetzung ohne ein dediziertes Team vertrauen, opfern sie in der Regel Geschwindigkeit. Auf ihrem Weg landen sie mit verworrenen Systemen, die Übersetzungen zwischen ihren Repositories und Drittanbieter-Tools schieben und ziehen.
 
-Seit [große Sprachmodelle](https://en.wikipedia.org/wiki/Large_language_model) erscheinen, haben meine Frau, [María José](https://www.linkedin.com/in/mariajosesalmeron/), und ich viel darüber gesprochen, ob sie uns helfen könnten, auf solche Kompromisse zu verzichten. Sie liebt Sprachen und ist tief in der Lokalisierungsbranche verankert. Ich hingegen bin ein Erbauer.
+Seit [Große Sprachmodelle](https://en.wikipedia.org/wiki/Large_language_model) aufgetaucht sind, habe ich viel mit meiner Frau, [María José](https://www.linkedin.com/in/mariajosesalmeron/), darüber gesprochen, ob sie uns dabei helfen können, diese Kompromisse zu beenden. Sie liebt Sprachen und ist tief im Lokalisierungsmarkt verwurzelt. Ich bin ein Builder.
 
-Tuist ist mein Hauptgeschäft. Bei der Übersetzung des Produkts und seiner Marketingoberflächen hatte ich mich mit verschlungenen Lösungen zu tun. Keine davon hielt unserem Liefergeschwindigkeit stand. Einige führten zu Konflikten, die ein Albtraum waren zu lösen. Ich hatte das Moment «...das fühlt sich falsch an» vieler Male.
+Tuist ist meine Hauptbeschäftigung. Als ich versuchte, das Produkt und seine Marketing-Oberflächen zu übersetzen, habe ich festgestellt, dass ich mit verworrenen Lösungen zu kämpfen hatte. Keines davon konnte mithalten mit unserer Auslieferungsgeschwindigkeit, und einige führten zu Konflikten, die ein Albtraum waren zu lösen. Ich habe diesen Moment, „ dies fühlt sich falsch an “, viele Male erlebt.
 
 ## Von Gesprächen zu Glossia
 
-Jede Woche diskutierten wir neue Muster, die sich um die Fähigkeiten von Sprachmodellen bildeten. Wir sahen immer mehr Entwickler, die ihre eigenen Übersetzungs-Pipelines bauten. Im Kern zielen diese Pipelines auf ein Modell ab: Quell-Sprache rein, Übersetzung raus, dann einfach fortfahren.
+Jede Woche diskutierten wir über neue Muster, die sich um die Fähigkeiten von Sprachmodellen ergaben. Wir sahen immer mehr Entwickler, die ihre eigenen Übersetzungs-Pipelines aufbauten. Im Kern legten diese Pipelines ein Modell fest: Quellsprache rein, Übersetzung raus, dann weitermachen.
 
-Es fühlte sich verständlich an. Genau so agieren wir Erbauer. Aber jemand näher an den Sprachen und Prozessen könnte sehen, wie es fehlgehen könnte, von Inkonsistenzen bis hin zu Übersetzungsfehlern.
+Das fühlte sich verständlich an. Das ist, wie wir Builder arbeiten. Aber jemand, der näher an Sprachen und den Prozessen darum herum ist, könnte sehen, wie es schief gehen könnte, von Inkonsistenzen bis hin zu bestenfällen falschen Übersetzungen.
 
-Entwickler bewegen sich immer schneller. Sie können nicht langsamer machen, um ein System einzuführen, dessen darunterliegende Workflows lange vor dem Internet entwickelt wurden, im Browser gelandet sind und dennoch Schwierigkeiten haben, den Bedürfnissen von Softwareteams zu entsprechen.
+Entwickler bewegen sich immer schneller. Sie können nicht langsamen, um ein System einzuführen, dessen zugrundeliegende Workflows lange vor dem Internet entworfen wurden, in einen Browser umgezogen sind und trotzdem Schwierigkeiten haben, die Bedürfnisse von Softwareteams zu erfüllen.
 
-So begann die Idee, Glossia zu bauen. Auf der einen Seite setzen wir auf Modelle, die bei anderen Sprachen und Übersetzungen besser werden. Auf der anderen Seite bauen wir ein System, zunächst mit Fokus auf Software-Inhalte, das sich Plug-and-Play anfühlt. Etwas, das im Hintergrund läuft, Ihre Liefergeschwindigkeit passend, und Ihnen Sicherheit gibt, dass der Output korrekt ist und für die Produktion bereitsteht.
+So begann die Idee, Glossia aufzubauen. Auf einer Seite würden wir darauf wetten, dass Modelle bei anderen Sprachen außer Englisch und bei Übersetzungen besser werden. Auf der anderen Seite würden wir ein System bauen, das zunächst auf Software-Inhalte fokussiert ist, das sich plug-and-play anfühlte. Etwas, das im Hintergrund läuft, mit Ihrer Auslieferungsgeschwindigkeit übereinstimmt und Ihnen Sicherheit gibt, dass die Ausgabe richtig ist und für die Produktion bereit.
 
-Viele Entwickler behandeln Übersetzungen als eine One-Prompt-Lösung. Ein paar Tokens, Englisch rein, Übersetzung raus, fertig. Aber wenn man mit ihnen spricht, merkt man, dass sie nicht wissen, ob der Output präzise ist, die Stimme ihrer Organisation in dieser Sprache einfängt oder die intendierte Nachricht effektiv übermittelt.
+Viele Entwickler sehen Übersetzung als eine Ein-Prompt-Lösung an. Einige Token, Englisch rein, Übersetzung raus, und es ist erledigt. Aber wenn Sie mit ihnen sprechen, erkennen Sie, dass sie nicht wissen, ob die Ausgabe genau ist, die Stimme ihrer Organisation in dieser Sprache einfängt oder die beabsichtigte Botschaft effektiv kommuniziert.
 
-Ich habe eine ähnliche Pipeline bei Tuist, die in Sprachen wie Japanisch übersetzt, und ich mache das mit großer Unsicherheit. Sprachen sind keine Logik. Wir können Tests schreiben, um sicherzustellen, dass das Format korrekt ist, aber das sagt uns nicht **ob die Wörter richtig sind**.
+Ich habe eine ähnliche Pipeline bei Tuist, übersetzte in Sprachen wie Japanisch, und ich tue das mit einem riesigen Mangel an Vertrauen. Sprachen sind keine Logik. Wir können Tests schreiben, um sicherzustellen, dass das Format korrekt ist, aber das sagt uns nicht **ob die Wörter richtig sind**.
 
-«Übersetzung ist der leichte Teil», wie meine Frau gerne sagt.
+“Übersetzung ist der leichte Teil,“, wie meine Mutter gerne sagt.
 
-Also machten wir uns daran zu ermitteln, wie das richtige System aussehen könnte. Wir nannten es Glossia und beginnen dafür, es für Menschen und Organisationen zu öffnen, die uns beim gemeinsamen Iterieren dabei helfen wollen.
+So machten wir uns darauf fest, wie das richtige System aussehen könnte. Wir nannten es Glossia, und wir beginnen damit, es für Leute und Organisationen zu öffnen, die uns dabei helfen wollen, gemeinsam daran zu iterieren.
 
-## Entscheiden Sie, was übersetzt werden soll
+## Entscheiden, was zu übersetzen ist
 
-Erstmals konzentrierten wir uns darauf, Menschen zu helfen, zu entscheiden, was übersetzt werden soll. Die Kosten für Übersetzungen gehen zurück und werden weiter zurückgehen, aber niemals bis auf Null. Organisationen sollten weiterhin informiert über Sprachen sein, in die sie investieren.
+Der erste Teil, an dem wir arbeiteten, war es Menschen zu helfen, zu entscheiden, was zu übersetzen ist. Die Kosten für Übersetzung gehen nach unten und werden weiter abnehmen, aber sie werden niemals null sein. Organisationen sollten bei den Sprachen, die sie investieren, immer noch selektiv sein.
 
-Manchmal folgt diese Entscheidung direkt aus einer Geschäftsentscheidung. Andere Male haben Teams eine grobe Vorstellung ihrer Gemeinschaften und treffen eine fundierte Vermutung. Wir dachten, es gäbe viel zu lernen von den Menschen, die Ihre Websites besuchen oder Ihre Apps verwenden. Ihre Präferenzen für Sprachen, kombiniert mit Informationen über die Regionen, aus denen Ihre Produkte genutzt werden, können Ihnen eine bessere Grundlage für diese Entscheidungen geben.
+Manchmal folgt diese Entscheidung direkt aus einer Geschäftsentscheidung. Anderenfalls haben Teams eine grobe Vorstellung ihrer Gemeinschaften und machen eine fundierte Vermutung. Wir glauben, dass es viel zu lernen gibt von den Menschen, die Ihre Websites besuchen oder Ihre Apps verwenden. Ihre Sprachpräferenzen, kombiniert mit Informationen über die Regionen, aus denen Sie Ihre Produkte verwenden, können Ihnen eine bessere Grundlage für diese Entscheidungen geben.
 
-Die erste Funktion, die wir in Glossia landeten, war Analysen. Fügen Sie eine Zeile Code zu Ihrer Website hinzu, und Analysen beginnen, in Ihr Konto zu fließen. Wir präsentieren diese Informationen um die Entscheidung, die Sie treffen müssen: In welche Sprachen sollten Sie als Nächstes investieren?
+Die erste Funktion, die wir in Glossia gelandet haben, war Analytik. Fügen Sie eine Zeile Code in Ihre Website ein, und Analytik beginnt, in Ihr Konto zu strömen. Wir präsentieren diese Informationen um die Entscheidung, die Sie treffen müssen: In welche Sprachen sollten Sie an Ihrecio investieren?
 
-Auf dem Weg dorthin werden wir untersuchen, wie Experimente in die Sprachdimension eines Produkts einfließen. Stellen Sie sich vor, Sie messen, wie oft人们 auf einen Call-to-Action klickt, wenn eine Seite unterschiedliche Stimmen in derselben Sprache verwendet. Würde das nicht cool sein? Das Vergleichen von Varianten hat sich traditionell um Produkt- und Designentscheidungen gruppiert, aber Sprachen sind auch Teil des Produkts.
+Langfristig werden wir untersuchen, wie wir Experimente in die Sprachdimension eines Produkts einbringen. Stellen Sie sich vor, Sie messen, wie oft Leute auf einen Call-to-Action klicken, wenn eine Seite verschiedene Stimmen in derselben Sprache verwendet. Würde das nicht cool sein? Das Vergleichen von Varianten hat traditionell um Produkt- und Designentscheidungen gravitiert, aber Sprachen sind auch Teil des Produkts.
 
-## Von Null zu Übersetzung
+## Von null zu Übersetzung
 
-Sobald Sie sich entschieden haben, ein Projekt zu übersetzen, ist der nächste Schritt das Einrichten desselben. Als Entwickler finde ich Prozesse, die mit viel Reibung kommen, abschätzig. Wir einigten uns darauf, dass der Weg von Null zu Übersetzung idealerweise in einem Schritt erfolgen sollte. Das ist die Erfahrungsebene, auf die wir hinarbeiten.
+Indem Sie entschieden haben, ein Projekt zu übersetzen, ist der nächste Schritt, es aufzusetzen. Als Entwickler mag ich Prozesse, die mit viel Reibung kommen. Wir haben vereinbart, dass der Weg von null zu Übersetzung am besten nur einem Schritt bedurfte. Das ist das Erfahrungsniveau, das wir anstreben.
 
-Die Einrichtung umfasst normalerweise zwei Dinge. Erstens, den Inhalt aus dem Repository extrahieren, damit er übersetzt werden kann, da er oft als wörtliche Strings im Code beginnt. Zweitens, das Projekt konfigurieren, um den richtigen Inhalt basierend auf der Sprache zu wählen. Das kommt möglicherweise vom Gerät des Benutzers oder, in mehr ausgefeilten Fällen, einer ihrer gewählten Präferenzen.
+Aufsetzungen enthalten meist zwei Dinge. Erstens, den Inhalt aus dem Repository extrahieren, damit er übersetzt werden kann, da er oft als wörtliche Strings im Code beginnt. Second, das Projekt konfigurieren, um den richtigen Inhalt basierend auf der Sprache zu wählen. Das könnte vom Usersgerät kommen oder, in den raffinierteren Fällen, eine Präferenz, die sie gewählt haben.
 
-Dies zuverlässig vor automatisieren, vor wenigen Jahren hätte ein Albtraum sein können. Die Dinge haben sich geändert, und Agenten können dabei recht effektiv sein.
+Diese zuverlässig vor ein paar Jahren zu automatisieren wäre ein Albtraum gewesen. Die Dinge haben sich geändert, und Agenten können dabei recht effektiv sein.
 
-Das Verfahren läuft so: Sie verbinden Ihr GitHub-Repository, wählen die Sprachen aus, die Sie übersetzen möchten, und nach einer Weile öffnet sich ein Pull-Request mit den Änderungen. Sobald Sie ihn merged haben, beginnen die Übersetzungen. Das ist alles.
+Der Prozess läuft so ab: Sie verbinden Ihr GitHub-Repository, wählen die Sprachen aus, in die Sie übersetzen möchten, und nach einer Weile öffnet sich ein Pull-Request mit den Änderungen. Sobald Sie ihn merged haben, beginnen Übersetzungen. Das ist es.
 
-Wir halten Übersetzungen im Repository, gemeinsam mit den Formatprüfungen und anderen Validierungen, die Sie bereits im Rahmen des [kontinuierliche Integration](https://docs.github.com/en/actions/about-github-actions/understanding-github-actions) ausführen. Die Übersetzungspipeline leitet die Ergebnisse dieser Prüfungen an den Übersetzungsagenten weiter. So beseitigt man eine ganze Klasse von Problemen, bei denen eine Plattform einen Pull-Request öffnet und Sie der Bewältigung fehlgeschlagener Prüfungen oder Merge-Konflikte überlässt.
+Speichern wir Übersetzungen im Repository, gemeinsam mit Formatprüfungen und anderen Validierungen, die Sie bereits im Rahmen von [kontinuierlicher Integration](https://docs.github.com/en/actions/about-github-actions/understanding-github-actions) durchführen. Die Übersetzungs-Pipeline führt die Ergebnisse dieser Prüfungen zurück an den Übersetzungs-Agent. Dadurch werden eine ganze Klasse von Problemen beseitigt, bei denen eine Plattform einen Pull-Request erstellt und Ihnen überlässt, fehlgeschlagene Prüfungen oder Merge-Konflikte zu lösen.
 
-In Kombination mit anderen Mechanismen zum Aufbau von Vertrauen kann dies ermöglichen, Übersetzungen automatisch zu mergen. Das ist das Modell, an das wir glauben. Es hat wenig Wert, einen Entwickler zu bitten, zu prüfen, ob ein Übersetzungs-Pull-Request grün ist und auf einen Button zu klicken, besonders wenn sie die Sprache selbst nicht beurteilen können. Wir haben diese zusätzliche Zeremonie immer als Zeichen dafür gesehen, dass das Design besser sein könnte.
+Kombiniert mit anderen Mechanismen zur Vertrauensbildung ist dies das, was eine automatische Zusammenführung von Übersetzungen ermöglicht. Das ist das Modell, an das wir glauben. Es gibt wenig Wert darin, einen Entwickler zu bitten, zu prüfen, ob ein Übersetzungs-Pull-Request grün ist, und einen Knopf zu klicken, insbesondere wenn er die Sprache selbst nicht bewerten kann. Wir haben immer diese zusätzliche Zeremonie als Anzeichen dafür gesehen, dass das Design bessere sein könnte.
 
 Wir glauben, dass das beste Übersetzungssystem eines ist, das funktioniert, ohne dass Sie darüber nachdenken müssen.
 
-## Nur das Übersetzen, was geändert wurde
+## Nur Übersetzen geänderter Inhalte
 
-Das Übersetzungssystem verdient seinen eigenen Abschnitt. Tokens sind immer noch nicht kostenlos. Alles immerdar zu übersetzen ist langsam, teuer und eine Verschwendung von Ressourcen.
+Das Übersetzungssystem verdient einen eigenen Abschnitt. Tokens sind immer noch nicht kostenlos. Das ständige, gleichzeitige Übersetzen von allem ist langsam, teuer und verschwendet Ressourcen.
 
-Um dies zu lösen, haben wir ein Lockdatei-System gebaut, das uns sagt, ob etwas übersetzt werden muss. Wir nennen dies **inkrementelle Übersetzung**. Die Idee ist nicht neu: Buildsysteme haben es lange Zeit genutzt, um bei jedem Build nicht alles neu zu kompilieren. Wir haben es an Sprachen angepasst.
+Um das zu lösen, haben wir ein Filesystem für Sperrdateien entwickelt, das uns sagt, ob etwas übersetzt werden muss. Wir nennen dies **inkrementelle Übersetzung**. Die Idee ist nicht neu: Bausysteme nutzen sie seit langem, um nichts auf jedem Build erneut zu kompilieren. Wir haben sie an Sprachen angepasst.
 
-Das System berücksichtigt den gesamten Kontext, der eine bestimmte Übersetzung beeinflusst. Ein Teil dieses Kontexts lebt im Repository. Ein anderer Teil lebt in Glossia und erstrebt mehrere Repositories. Wir erstellen einen Abhängigkeitsbaum und verwenden [Merkle-Bäume](https://en.wikipedia.org/wiki/Merkle_tree), um Hashes zu berechnen, die uns anzeigen, ob sich die Eingaben einer Übersetzung geändert haben.
+Das System berücksichtigt alle Kontextdaten, die eine bestimmte Übersetzung beeinflussen.某个 dieser Kontextdaten lebt im Repository. Ein anderer lebt in Glossia und erstreckt sich über mehrere Repositories. Wir erstellen einen Abhängigkeitsbaum und verwenden [Merkle-Bäume](https://en.wikipedia.org/wiki/Merkle_tree), um Hashes zu berechnen, die uns darauf hinweisen, ob die Eingaben einer Übersetzung geändert wurden.
 
-Die Lockdatei bewahrt diesen Baum auf. Sie kann erklären, warum etwas für die Übersetzung gesendet wurde, oder warum es nicht gesendet wurde, anstatt Menschen zu lassen, zu raten.
+Die Sperrdatei bewahrt diesen Baum. Sie kann erklären, warum etwas für Übersetzungen gesendet wurde, oder warum nicht, statt Menschen raten zu lassen.
 
-[`L10N.md`](/docs/reference/l10n-md) Dateien stellen Lokalisierungskontext für unsere Übersetzungsagenten bereit, ähnlich wie `AGENTS.md` Anweisungen für Codierungsagenten bereitstellen. Sie unterstützen mehr spezifischen Kontext in verschachtelten Verzeichnissen sowie Sprach-Überschreibungen auf jeder Ebene.
+[`L10N.md`](/docs/reference/l10n-md) Dateien bieten Kontext für unsere Übersetzungs-Agenten, ähnlich wie `AGENTS.md` Dateien Anweisungen für Coding-Agenten bieten. Sie unterstützen spezifischere Kontextdaten in verschachtelten Verzeichnissen sowie Sprach-Übersetzungen auf jeder Ebene.
 
-Für Informationen, die für mehr als eines Repositories zutreffen, wie z. B. geteilte Terminologie, ist der Server die wahre Quelle. Das System stellt sicher, dass es den richtigen Kontext verwendet und diesen in der Lockdatei widerspiegelt. Wenn sich dieser Kontext ändert, können wir die Änderung auf die Übersetzungen zurückführen, die ihn verwendet haben, und diese aktualisieren.
+Für Informationen, die sich auf mehr als ein Repository beziehen, wie z. B. gemeinsame Terminologie, ist der Server die Quelle der Wahrheit. Das System stellt sicher, dass es den richtigen Kontext verwendet und dies in der Sperrdatei widerspiegelt. Wenn sich dieser Kontext ändert, können wir die Änderung auf die Übersetzungen abbilden, die sie verwendet haben und aktualisiert werden müssen.
 
-## Vertrauen in die Wörter aufbauen
+## Vertrauen in die Worte aufbauen
 
-Das System ist darauf ausgelegt, sich auf ein Qualitätsniveau zuzuspitzen. Um dorthin zu gelangen, verfügen wir über mehrere Werkzeuge.
+Das System ist so designed, dass es sich einem Qualitätsniveau annähert. Um dorthin zu gelangen, haben wir einige Werkzeuge.
 
-Das erste sind gegnerische Prüfungen, die nach der Übersetzung laufen. Stellen Sie sich einen Kollegen vor, der den Code in einem Pull-Request überprüft. Hier bringen die Prüfungen linguistisches Wissen in die Überprüfung ein. Zum Beispiel sollte eine Übersetzung keine Bedeutung aus der Quelle hinzufügen oder entfernen. Dies kann passieren, weil Sprachmodelle nicht immer denselben Output aus denselben Eingaben erzeugen.
+Das erste sind antagonistische Prüfungen, die nach der Übersetzung durchgeführt werden. Stellen Sie sich vor, ein Kollege revidiert den Code, den Sie in einen Pull-Request aufgenommen haben. Hier bringen die Prüfungen linguistisches Wissen in die Überprüfung ein. Zum Beispiel sollte eine Übersetzung keine Bedeutung aus der Quelle hinzufügen oder entfernen. Das kann passieren, weil Sprachmodelle nicht immer die gleiche Ausgabe aus denselben Eingaben produzieren.
 
-Je mehr wir von unseren Nutzern und unserer eigenen Forschung zu Modellen und bestehenden Systemen lernen, werden wir der Pipeline weitere automatische Prüfungen hinzufügen. Jede davon sollte das Vertrauen erhöhen, das Sie in eine Übersetzung haben können.
+Je mehr wir von unseren Nutzern und unserer eigenen Forschung zu Modellen und bestehenden Systemen lernen, fügen wir der Pipeline mehr automatisierte Prüfungen hinzu. Jede sollte das Vertrauen erhöhen, das Sie in eine Übersetzung haben können.
 
-Die Idee ist, einen Punkt zu erreichen, an dem Sie dem System genug vertrauen, dass Sie nicht den Eindruck haben, muss jeden Pull-Request durchlaufen. Dieses Vertrauen hängt sowohl vom System als auch von den Modellen ab. Wir können helfen, Modelle basierend auf der Zielsprache auszuwählen, da nicht alle Modelle in denselben Sprachen gleich gut sind.
+Die Idee besteht darin, einen Punkt zu erreichen, an dem Sie dem System genug vertrauen, dass Sie keine Lust mehr haben, jeden Pull-Request durchzugehen. Dieses Vertrauen hängt sowohl vom System als auch von den Modellen ab. Wir können helfen, Modelle basierend auf der Zielsprache auszuwählen, da nicht alle Modelle gleich gut in denselben Sprachen sind.
 
-Auch mit diesen Prüfungen an Ort und Stelle müssen Sie möglicherweise eine übersetzte Stelle ändern. Es könnte eine einmalige Korrektur sein, Terminologie, die noch nicht im Kontext geschrieben wurde, oder eines der vielen Szenarien, die wir noch zu beabsichtigen haben.
+Selbst mit diesen Prüfungen im Ort müssen Sie möglicherweise einen übersetzten Teil ändern. Es könnte eine einmalige Korrektur sein, Terminologie, die noch nicht in den Kontext geschrieben wurde, oder eine der vielen Szenarien, die wir noch vorfinden werden.
 
-Jemand sollte in der Lage sein, diese Änderungen direkt in das Repository einzuführen. Aber wir glauben auch, das System soll diese Beiträge als Feedback verarbeiten und vorschlagen, wie diese mit dem Kontext in Einklang gebracht werden sollen. Dies könnte bedeuten, einen Begriff im Glossar hinzuzufügen oder die Stimme anzupassen.
+Jemand sollte in der Lage sein, diese Änderungen direkt ins Repository einzuziehen. Aber wir denken auch, das System sollte diese Beiträge als Feedback verarbeiten und vorschlagen, wie sie mit seinem Kontext harmonisiert werden. Das könnte bedeuten, einen Begriff in das Glossar einzufügen oder die Stimme anzupassen.
 
-Dies etwas kann ein Mensch asynchron tun, ohne die kontinuierliche Übersetzung zu unterbrechen. Das System soll Ihnen helfen, den Arbeitsplatz effektiver zu machen, indem es aus dem, was die Leute zu sagen haben, lernt. Wir könnten dies erweitern, damit Menschen Feedback direkt aus dem Produkt vorschlagen. Würde das nicht cool sein?
+Das kann ein Mensch asynchron tun, ohne kontinuierliche Übersetzungen zu unterbrechen. Das System sollte Ihnen dabei helfen, in Ihrer Aufgabe effektiver zu werden, indem es aus dem, was Menschen sagen, lernt. Wir könnten das auf Menschen erweitern, die direkt aus dem Produkt Feedback vorschlagen. Würde das nicht cool sein?
 
-Diese Korrekturen müssen ebenfalls berücksichtigt werden, damit zukünftige Übersetzungen sie nicht überschreiben. Ein zustandslosem Übersetzungsaufforderung hat kein Wissen über die Änderungen, die die Leute vor ihm gemacht haben. In traditionellen Systemen übernehmen Übersetzungsgedächtnisse diese Rolle. Die Notwendigkeit, die sie erfüllen, verschwindet nicht, einfach weil sich die Technologie ändert.
+Auch diese Korrekturen müssen berücksichtigt werden, damit künftige Übersetzungen sie nicht überschreiben. Ein Zustandloses Übersetzungsaustauschen kennt nicht die Änderungen, die Menschen vor ihm vorgenommen haben. In herkömmlichen Systemen helfen Übersetzungsgedächtnisse dabei. Das Bedürfnis, das sie erfüllen, verschwindet nicht nur, weil sich die Technologie ändert.
 
-## Wo wir ab jetzt hinfahren
+## Wo wir hin gehen
 
-Dies ist Glossia. Wir verwenden es bereits, um Glossia zu übersetzen, und ich arbeite daran, es einzurichten, um Tuist's Dokumentation, Marketingseite und Dashboard in die Sprachen unserer Gemeinschaften zu übersetzen.
+Das ist Glossia. Wir verwenden es bereits, um Glossia zu übersetzen, und ich arbeite daran, es einzurichten, um Tuist's Dokumentation, Marketingseite und Dashboard in die Sprachen unserer Communities zu übersetzen.
 
-María José und ich bauen Glossia in unserer Freizeit, befolgend eine Neugier, die Teil unserer Unterhaltungen seit Jahren ist.
+María José und ich bauen Glossia in unserer Freizeit, befolgend eine Neugier, die schon seit Jahren Teil unserer Gespräche ist.
 
-Im Programmieren stellen sich viele Personen die Rolle von Programmierern undfragefrage in Frage und wie es sich evolvieren wird. Ich denke, dass die Lokalisierungsbranche von einer ähnlichen Infragestellung ihrer Annahmen und Modelle profitieren würde. Wie sollen wir unsere Branche dabei helfen, schneller und zu niedrigeren Kosten zu übersetzen, ohne die Qualität zu beeinträchtigen?
+In der Programmierung hinterfragen viele Menschen die Rolle von Programmieren und wie sich diese entwickeln wird. Ich denke, die Lokalisierungsindustrie würde von einem ähnlichen Hinterfragen von deren Annahmen und Modellen profitieren. Wie können wir unserer Industrie helfen, mehr, schneller und zu niedrigeren Kosten zu übersetzen, ohne Qualität zu kompromittieren?
 
-Wir haben noch keine Antworten auf alle Fragen. Aber wir glauben, dass wir die richtige Richtung einschlagen, mit der Einfachheit und Aufmerksamkeit für Handwerkskunst, die wir gerne in alles investiert ist, das wir tun.
+Wir haben die Antworten auf alle Fragen noch nicht. Aber wir glauben, wir gehen in die richtige Richtung, mit der Einfachheit und Sorgfalt, die wir gerne in alles einbringen, was wir tun.
 
-Wenn das auf Sie zutrifft, [lassen Sie uns sprechen](mailto:pedro@glossia.ai).
+Wenn Sie das spüren, [Lass uns sprechen](mailto:pedro@glossia.ai).
