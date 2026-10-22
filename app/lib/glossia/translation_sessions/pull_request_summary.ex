@@ -22,6 +22,7 @@ defmodule Glossia.TranslationSessions.PullRequestSummary do
   alias Glossia.TranslationSessions
   alias Glossia.TranslationSessions.Progress
   alias Glossia.TranslationSessions.TranslationSession
+  alias GlossiaWeb.PublicURL
 
   # GitHub rejects pull request bodies over 65,536 characters.
   @max_body_length 60_000
@@ -34,7 +35,7 @@ defmodule Glossia.TranslationSessions.PullRequestSummary do
     session = Repo.preload(session, project: :account)
     runs = runs(session)
     since = runs |> Enum.map(&(&1.started_at || &1.inserted_at)) |> Enum.min(DateTime)
-    base_uri = configured_base_uri()
+    base_uri = PublicURL.base_uri()
 
     render(%{
       repository: session.project.github_repo_full_name,
@@ -74,28 +75,6 @@ defmodule Glossia.TranslationSessions.PullRequestSummary do
   end
 
   defp runs(session), do: [session]
-
-  # Detached translation Jobs do not start the endpoint, so neither its URL
-  # nor its path helpers are available. A URI context keeps routes verified
-  # while reading only the runtime configuration, not the endpoint's state.
-  defp configured_base_uri do
-    config = Application.fetch_env!(:glossia, GlossiaWeb.Endpoint)
-    url = Keyword.fetch!(config, :url)
-
-    {scheme, port} =
-      cond do
-        https = config[:https] -> {"https", https[:port] || 443}
-        http = config[:http] -> {"http", http[:port] || 80}
-        true -> {"http", 80}
-      end
-
-    %URI{
-      scheme: url[:scheme] || scheme,
-      host: url[:host] || "localhost",
-      port: (url[:port] || port) |> to_string() |> String.to_integer(),
-      path: if(url[:path] == "/", do: nil, else: url[:path])
-    }
-  end
 
   @doc """
   Renders the description from already loaded data:
