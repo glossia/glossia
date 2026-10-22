@@ -144,9 +144,10 @@ cover light/dark mode and a narrow screen at 150% font scale. Those captures
 are not device tests or a completed browser sign-in. Swift sources passed a
 syntax parse; the unchanged runtime actor was also exercised on Linux with
 substitute storage/network boundaries to check cancellation, durable token
-rotation, and registration reset. The iOS build, Keychain runtime, browser
-handoff, 16 KB-device JNI loading, and physical device behavior still require
-macOS/device verification.
+rotation, and registration reset. CI also builds the iOS simulator and device
+bundles on macOS. Native iOS rendering, Keychain runtime, browser handoff,
+16 KB-device JNI loading, and physical device behavior still require
+simulator/device verification.
 
 Tuist's MIT attribution is included in both app bundles through
 [`third_party_notices.txt`](android/res/raw/third_party_notices.txt).
