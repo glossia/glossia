@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "dad75f17a3cd78740c96f07b8c9e52d1640bb0ed77d7932094bf7ae0497fc112",
+  "hash": "b6229a720941fc077eb40231494ab07b4ec575c143de6a20e66b61accdf76407",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "58a33d32ce210727b9cc9d6a560b1c24f74ca8f4ab23f3f2d31da0669e282c44",
+          "hash": "d5f62daa069c294f64bfb9a56237db2eaec238852f05cc98d7f1f687422e6b6c",
           "kind": "source",
           "label": "app/priv/docs/explanation/translation-recovery.md",
           "metadata": {
-            "content_hash": "62063d0b0a8107693f0dc99f99e2b2ade05cc5356c42e0a55471da88f5a35f0e"
+            "content_hash": "a97e03fa8747b2bc9bf4c764ecfd8403aa9e2d4303fb200cbc8590fe304e7d50"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "dad75f17a3cd78740c96f07b8c9e52d1640bb0ed77d7932094bf7ae0497fc112",
+      "hash": "b6229a720941fc077eb40231494ab07b4ec575c143de6a20e66b61accdf76407",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/translation-recovery.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "a613a23fce032ea79d8c7db7389fc81e5b7813f5874e5a3de259eb03c782e085",
+  "output_hash": "66dc3f8aad185db2251118bdeb1140d2ccb78a0a6f5e66e0774892913da71a05",
   "output_path": "app/priv/i18n/es/docs/explanation/translation-recovery.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "8c946ab2f6b10f009391d70fc5133dad149ab8a2",
+  "source_commit_sha": "f66a625779a7ff3a8c2c2133e60d9d7fef02a1d4",
   "source_path": "app/priv/docs/explanation/translation-recovery.md",
-  "translated_at": "2026-10-21T16:54:04.372254Z",
-  "translation_session_id": "01a15f5f-f115-757e-9113-1d0e7d250066"
+  "translated_at": "2026-10-22T15:58:16.318183Z",
+  "translation_session_id": "01a16450-7d9a-7596-acb4-e68babf041a8"
 }

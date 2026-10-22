@@ -5530,3 +5530,13 @@ msgstr "이 파일은 번역되었으나 결과나 잠금 파일이 게시되지
 #, elixir-autogen, elixir-format
 msgid "Translated files could not be published"
 msgstr "번역된 파일을 게시하지 못했습니다"
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Not recorded"
+msgstr "기록되지 않음"
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Translation engine"
+msgstr "번역 엔진"

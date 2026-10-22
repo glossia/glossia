@@ -5537,3 +5537,13 @@ msgstr "Ce fichier a été traduit, mais sa sortie ou son fichier de verrouillag
 #, elixir-autogen, elixir-format
 msgid "Translated files could not be published"
 msgstr "Les fichiers traduits n'ont pas pu être publiés."
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Not recorded"
+msgstr "Non enregistré"
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Translation engine"
+msgstr "Moteur de traduction"

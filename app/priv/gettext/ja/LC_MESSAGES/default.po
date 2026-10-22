@@ -5530,3 +5530,13 @@ msgstr "このファイルは翻訳済みですが、出力またはロックフ
 #, elixir-autogen, elixir-format
 msgid "Translated files could not be published"
 msgstr "翻訳されたファイルが公開できませんでした。"
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Not recorded"
+msgstr "未記録"
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Translation engine"
+msgstr "翻訳エンジン"
