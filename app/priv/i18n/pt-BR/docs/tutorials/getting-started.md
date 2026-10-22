@@ -5,63 +5,68 @@
   order: 1
 }
 ---
-Este tutorial conecta um repositório GitHub ao Glossia, seleciona seus primeiros idiomas-alvo e prepara uma base de localização para sua equipe revisar.
+
+Este tutorial conecta um repositório do GitHub ao Glossia, escolhe os primeiros idiomas-alvo e prepara uma base de localização para sua equipe revisar.
 
 ## Antes de começar
 
-O que você precisa:
+Você precisa:
 
-- Uma conta do Glossia onde você pode gerenciar configurações e projetos.
-- Um repositório GitHub onde você pode conceder permissão ao Glossia GitHub App para ler e atualizar.
-- Uma chave de provedor para um suportado [modelo de linguagem grande](https://en.wikipedia.org/wiki/Large_language_model).
+- Uma conta do Glossia onde você possa gerenciar configurações e projetos.
+- Um repositório do GitHub no qual você pode conceder permissão à App do GitHub do Glossia para ler e atualizar.
+- Uma chave de provedor para um [modelo de linguagem grande](https://en.wikipedia.org/wiki/Large_language_model) suportado.
 
-## 1\. Configure um modelo de conta
+## 1. Configure um modelo de conta
 
-Abra **Configurações**, então **Modelos**, e selecione **Novo modelo**.
+Abra **Configurações**, depois **Modelos** e selecione **Novo modelo**.
 
-1. Dê ao modelo um nome curto, por exemplo `translation-default`.
-2. Abra o seletor de modelos e digite parte do nome de um provedor ou modelo para filtrar a lista.
+1. Dê ao modelo um código curto, como `translation-default`.
+2. Abra o seletor de modelos e digite parte do nome do provedor ou do modelo para filtrar a lista.
 3. Selecione o modelo que você deseja que o Glossia utilize.
-4. Digite a chave do provedor e salve o modelo.
+4. Insira a chave de provedor e salve o modelo.
 
-O identificador permite que os repositórios façam referência a este modelo de conta sem colocar credenciais do provedor no controle de versão. Veja [Configurar provedor de modelo](/docs/how-to/configure-a-model-provider) para mais detalhes.
+O código curto permite que os repositórios se referam a este modelo de conta sem incluir credenciais de provedor no controle de versão. Consulte [Configure um provedor de modelo](/docs/how-to/configure-a-model-provider) para mais detalhes.
 
-## 2\. Iniciar um projeto
+## 2. Iniciar um projeto
 
-Voltar para **Projetos** e selecione **Novo projeto**.
+Volte para **Projetos** e selecione **Novo projeto**.
 
-Se o Glossia solicitar acesso ao repositório, siga o link para o GitHub e conceda ao Glossia GitHub App acesso ao repositório. Após retornar ao Glossia, reabra **Novo projeto** se necessário.
+Se o Glossia solicitar acesso ao repositório, siga o link para o GitHub e conceda acesso do App do GitHub do Glossia ao repositório. Após retornar ao Glossia, reabra **Novo projeto** se necessário.
 
-## 3\. Escolha um repositório
+## 3. Escolher um repositório
 
-Selecione o repositório que deseja localizar. O Glossia apresenta apenas repositórios disponíveis por meio da instalação do aplicativo GitHub da conta atual.
+Selecione o repositório que deseja localizar. O Glossia lista apenas os repositórios disponíveis através da instalação do App do GitHub da conta atual.
 
-Continue para o passo de idioma.
+## 4. Escolher como configurar o projeto
 
-## 4\. Escolha os idiomas de destino
+Selecione **Configuração automatizada** para permitir que o Glossia inspecione o repositório e proponha a configuração de localização em um pull request. Este tutorial segue esse caminho.
 
-Selecione um ou mais idiomas que devem ser gerados a partir do conteúdo de origem do repositório e, em seguida, inicie a configuração.
+Se o repositório já tiver um arquivo `L10N.md` ou se preferir escrevê-lo você mesmo, selecione **Configuração manual** ao invés. O Glossia cria o projeto imediatamente e você pode pular os passos restantes. Consulte [Configuração do projeto](/docs/reference/project-setup) para o que cada modo faz.
 
-## 5\. Acompanhe o progresso da configuração
+## 5. Escolher idiomas-alvo
 
-Mantenha a página de configuração aberta enquanto o Glossia prepara o projeto. O cartão de progresso exibe o estado atual e as atividades recentes, incluindo preparação do repositório, inspeção de arquivos, alterações, verificações e conclusão.
+Selecione um ou mais idiomas que devem ser produzidos a partir do conteúdo de origem do repositório e inicie a configuração.
 
-Você pode sair da página e retornar à visão geral do projeto sem perder o estado da configuração. Se a configuração falhar, o mesmo cartão explica o que precisa de atenção e oferece **Retentar a configuração**,
+## 6. Acompanhar o progresso da configuração
 
-## 6\. Verificar o resultado
+Mantenha a página de configuração aberta enquanto o Glossia prepara o projeto. O cartão de progresso mostra o estado atual e a atividade recente, incluindo preparação do repositório, inspeção de arquivos, alterações, verificações e conclusão.
 
-Quando a configuração termina, abra a visão geral do projeto e revise o pull request criado para o repositório. A base proposta normalmente inclui:
+Você pode sair da página e retornar ao resumo do projeto sem perder o estado da configuração. Se a configuração falhar, leia a notificação de falha. O Glossia descarta o projeto provisório; corrija o pré-requisito e inicie novamente através de **Novo projeto**. Veja [Retentar a configuração do projeto](/docs/how-to/retry-project-setup).
 
-- A raiz `L10N.md` arquivo com idioma de origem, caminhos de origem e idiomas de destino.
-- As menores alterações de aplicação ou de conteúdo necessárias para carregar os arquivos localizados.
-- Qualquer validação leve já disponível no repositório.
+## 7. Revisar o resultado
 
-Revise e mesclhe o pull request através do seu fluxo de trabalho normal do GitHub. As execuções futuras de tradução usam o mesclado `L10N.md` contexto.
+Quando a configuração terminar, abra o resumo do projeto e revise o pull request criado para o repositório. A base proposta normalmente inclui:
 
-A visão geral do projeto mantém o pull request de configuração visível até que seja mesclado. Se for fechado sem ser mesclado, reabra-o pelo link no aviso de configuração.
+- Um arquivo `L10N.md` raiz com idioma de origem, caminhos de origem e idiomas-alvo.
+- As alterações de aplicação ou conteúdo mínimas necessárias para carregar os arquivos localizados.
+- Qualquer validação leve que já estivesse disponível no repositório.
 
-## Próximas etapas
+Revise e funde o pull request através do seu fluxo de trabalho normal do GitHub. As execuções futuras de tradução usam o contexto `L10N.md` fundido.
 
-- [Adicionar um novo idioma](/docs/how-to/add-a-new-language)
-- [Entenda os estados de configuração do projeto](/docs/reference/project-setup)
-- [Aprenda como os modelos de conta funcionam](/docs/explanation/account-models)
+O resumo do projeto mantém o pull request de configuração visível até que seja fundido. Se for fechado sem ser fundido, reabra-o a partir do link no aviso de configuração.
+
+## Próximos passos
+
+- [Adicionar uma nova linguagem](/docs/how-to/add-a-new-language)
+- [Entender os estados de configuração do projeto](/docs/reference/project-setup)
+- [Aprender como os modelos de conta funcionam](/docs/explanation/account-models)

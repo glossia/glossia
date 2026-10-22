@@ -1,30 +1,37 @@
 %{
-  title: "認証と認可",
-  summary: "Glossia がユーザーを認証し、API アクセスを認可する方法。",
+  title: "認証",
+  summary: "ブラウザのサインイン、アクセストークン、認証エンドポイント。",
   category: "リファレンス",
   subcategory: "API",
   order: 1
 }
 ---
+
+このページは、[オープン・オーソライゼーション](https://oauth.net/2.1/)（OAuth）、[コード交換用証明キー](https://datatracker.ietf.org/doc/html/rfc7636)（PKCE）、および [アプリケーションプログラミングインタフェース](https://developer.mozilla.org/en-US/docs/Glossary/API)（API）について説明します。以下にリンクされているプロトコル仕様は、意見公募として（RFCs）公開されています。
+
 ## 認証方法
 
-Glossia はコンテキストに応じて 2 つの認証方法をサポートしています。
+Glossia はブラウザセッションとベアータークンをサポートしています。ベアータークンは以下の認証フローを通じて発行するか、[アカウントトークン](/docs/reference/apis/account-tokens)として作成することもできます。
 
 ### ブラウザセッション
 
-Web インターフェースでのサインイン時に、Glossia はセッションベースの認証を使用します。サードパーティプロバイダー（GitHub または GitLab）を介して認証を行う際、使用する [Assent](https://github.com/pow-auth/assent) ライブラリです。サインインが成功した後、セッション Cookie が設定され、以降のリクエストに使用されます。
+ウェブインターフェースからサインインすると、Glossia はセッションベースの認証を使用します。GitHub、GitLab、Google、または構成された組織のアイデンティティプロバイダを使用して[Assent](https://github.com/pow-auth/assent) ライブラリを通じて認証します。サインインが成功すると、セッションクッキーが設定され、次のリクエストで使用されます。
 
-### Bearer トークン (OAuth 2.1)
+組織は Google Workspace または Okta を構成し、自動登録を許可する前に勤務先メールドメインを検証できます。設定およびアカウントリンク要件については[組織サインインの設定](/docs/how-to/organization-sign-in)を参照してください。
 
-API アクセス（CLI など他のツールから）の場合は、Glossia は認証コードフローおよび PKCE を採用した OAuth 2.1 を実装します。クライアントは Bearer トークンを取得し、これを `Authorization` ヘッダー：
+### ベアータークン（OAuth 2.1）
 
-    Authorization: Bearer <access_token>
+API アクセス（CLI や他のツールなど）から、Glossia は PKCE を含む OAuth 2.1 の認可コードフローを実装しています。クライアントはベアータークンを取得し、それを`Authorization`ヘッダーに含めます：
 
-## OAuth 2.1 フロー
+```
+Authorization: Bearer <access_token>
+```
 
-### 1\. ダイナミッククライアント登録
+## OAuth 2.1フロー
 
-クライアント自身が、呼び出しで登録します `POST /oauth/register` そのメタデータを用いて。これには～に従います [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)。
+### 1. ダイナミッククライアント登録
+
+クライアントはメタデータ付きで`POST /oauth/register`を呼び出して自ら登録します。これは[RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)に従います。
 
 ```json
 {
@@ -34,129 +41,73 @@ API アクセス（CLI など他のツールから）の場合は、Glossia は�
 }
 ```
 
-サーバーは結果を返します。 `client_id` と `client_secret`.
+Glossia は`client_id`と`client_secret`を返します。この例の`localhost`リダイレクトは、開発中のアプリケーションに属しています。
 
-### 2\. 認証リクエスト
+### 2. 認可要求
 
-クライアントはユーザーをリダイレクトします。 `/oauth/authorize` PKCE パラメータを伴います。
+クライアントは PKCE パラメータを付けてユーザーを`/oauth/authorize`にリダイレクトします：
 
-    GET /oauth/authorize?response_type=code&client_id=<id>&redirect_uri=<uri>&code_challenge=<challenge>&code_challenge_method=S256&state=<state>
+```
+GET /oauth/authorize?response_type=code&client_id=<id>&redirect_uri=<uri>&code_challenge=<challenge>&code_challenge_method=S256&state=<state>
+```
 
-**すべてのクライアントで PKCE が必要です。** 唯一の `S256` コード チャレンジ方法はサポートされています。
+**PKCE はすべてのクライアントについて必要です。** `S256` チャレンジ方式のみがサポートされています。
 
-### 3\. トークン交換
+### 3. トークン交換
 
-ユーザーが承認した後、クライアントは次の場所で認証コードをトークンに交換します `POST /oauth/token`:
+ユーザーが承認した後、クライアントは`POST /oauth/token`で認証コードをトークンに交換します：
 
-    POST /oauth/token
-    Content-Type: application/x-www-form-urlencoded
-    
-    grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<id>&code_verifier=<verifier>
+```
+POST /oauth/token
+Content-Type: application/x-www-form-urlencoded
 
-レスポンスにはアクセストークンが含まれ、オプションでリフレッシュトークンが含まれます。
+grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<id>&client_secret=<secret>&code_verifier=<verifier>
+```
 
-### 4\. トークンリフレッシュ
+レスポンスにはアクセストークンと、オプションでリフレッシュトークンが含まれます。
 
-アクセストークンが期限切れの場合、リフレッシュトークンを使用してください：
+### 4. トークンリフレッシュ
 
-    POST /oauth/token
-    Content-Type: application/x-www-form-urlencoded
-    
-    grant_type=refresh_token&refresh_token=<token>&client_id=<id>&client_secret=<secret>
+アクセストークンが期限切れになった際、リフレッシュトークンを使用します：
 
-## スコープ
+```
+POST /oauth/token
+Content-Type: application/x-www-form-urlencoded
 
-スコープはトークンが実行できるアクションを制御します。それらは以下に従います。 `object:action` パターン。
+grant_type=refresh_token&refresh_token=<token>&client_id=<id>&client_secret=<secret>
+```
 
-| スコープ | 説明 |
-|-------|-------------|
-| `user:read` | ユーザープロフィール情報の読み取り |
-| `user:write` | ユーザープロフィールの更新 |
-| `account:read` | アクセス可能な組織アカウントの一覧表示 |
-| `organization:read` | 組織詳細の閲覧（組織の一覧表示） |
-| `organization:write` | 組織の作成・更新 |
-| `organization:delete` | 組織の削除 |
-| `organization:admin` | 組織管理のアクション |
-| `members:read` | 組織メンバーと招待の読み取り |
-| `members:write` | 組織メンバーと招待の管理 |
-| `project:read` | プロジェクトの読み取り |
-| `project:write` | プロジェクトの作成または更新 |
-| `project:admin` | プロジェクト管理操作 |
-| `project:delete` | プロジェクトの削除 |
-| `voice:read` | 音声設定の読み取り |
-| `voice:write` | 音声設定の作成・更新 |
-| `voice:admin` | 音声管理 |
-| `glossary:read` | 用語エントリの表示 |
-| `glossary:write` | 用語エントリの作成・更新 |
-| `glossary:admin` | 用語集設定の管理 |
+権限スコープ、メンバーアクセス、およびリソースレベルチェックについては[認可](/docs/reference/apis/authorization)を参照してください。
 
-## 認証モデル
+## ディスカバリエンドポイント
 
-Glossia は強制します **2 つの層** REST API および MCP サーバーに対しては：
+Glossia はクライアントが自動的にエンドポイントを発見できるように、標準的なウェルノウン URL でメタデータを公開しています。
 
-1. **スコープチェック**: アクセストークンには必要な `object:action` スコープを含める必要があります。”
-2. **リソースレベルポリシー**: 特定のリソースに対して現在のユーザーは認証済みであり、 `Glossia.Policy`.
+### OAuth 認証サーバーメタデータ（RFC 8414）
 
-スコープは *最大* トークンの機能。ポリシーシステムは適用する *実際の* 特定のリソースに対する権限。
+```
+GET /.well-known/oauth-authorization-server
+```
 
-### ロール
+発行元、エンドポイント、サポートスコープ、グラントタイプ、およびコードチャレンジメソッドを返します。
 
-| ロール | 説明 |
-|------|-------------|
-| `self` | 自分のリソースにアクセスするユーザー |
-| `organization_member` | リソースを所有する組織のメンバー |
-| `organization_admin` | リソースを所有する組織の管理者 |
-| `public_account` | アカウントは公開（読み取り専用） |
+### 保護されたリソースメタデータ（RFC 9728）
 
-### ロールの権限
+```
+GET /.well-known/oauth-protected-resource
+```
 
-| スコープ | 自分 | 組織メンバー | 組織管理者 | 公開アカウント |
-|-------|------|----------------------|--------------------|----------------|
-| `user:read` | はい | はい | | |
-| `user:write` | はい | | | |
-| `account:read` | | はい | はい | はい |
-| `organization:read` | | はい | はい | |
-| `organization:write` | | | はい | |
-| `organization:delete` | | | はい | |
-| `organization:admin` | | | はい | |
-| `members:read` | | はい | はい | |
-| `members:write` | | | はい | |
-| `project:read` | | はい | はい | はい |
-| `project:write` | | | はい | |
-| `project:admin` | | | はい | |
-| `project:delete` | | | はい | |
-| `voice:read` | | はい | はい | はい |
-| `voice:write` | | | はい | |
-| `voice:admin` | | | はい | |
-| `glossary:read` | | はい | はい | |
-| `glossary:write` | | | はい | |
-| `glossary:admin` | | | はい | |
-
-## 発見エンドポイント
-
-Glossia は、標準的な規定の URL でメタデータを公開し、クライアントが自動的にエンドポイントを検出できるようにします。
-
-### OAuth 認証サーバーメタデータ (RFC 8414)
-
-    GET /.well-known/oauth-authorization-server
-
-発行元、エンドポイント、サポートされるスコープ、グラントタイプ、コードチャレンジ方法を返します。
-
-### 保護されたリソースメタデータ (RFC 9728)
-
-    GET /.well-known/oauth-protected-resource
-
-リソース識別子、認証サーバー、サポートされるスコープ、ベアラー方法を返します。
+リソース ID、認証サーバー、サポートスコープ、およびベアーマメソッドを返します。
 
 ## レート制限
 
-OAuth エンドポイントは IP アドレスごとにレート制限がかかります：
+登録はクライアントアドレスに制限されます。トークン、破棄、および内部リクエストはクライアントアドレスとクライアント識別子の両方に制限されます：
 
 | エンドポイント | 制限 |
 |----------|-------|
-| `POST /oauth/register` | 1 分あたり 5 リクエスト |
-| `POST /oauth/token` | 1 分あたり 30 リクエスト |
-| `POST /oauth/revoke` | 30 リクエスト/分 |
-| `POST /oauth/introspect` | 30 リクエスト/分 |
+| `POST /oauth/register` | 分あたり 5 回 |
+| `POST /oauth/token` | 分あたり 30 回 |
+| `POST /oauth/revoke` | 分あたり 30 回 |
+| `POST /oauth/introspect` | 分あたり 30 回 |
 
-レート制限された場合、サーバーは HTTP 429（要求过多）を返します。
+レート制限が適用された場合、サーバーは HTTP 429（リクエストが多すぎます）を返します。

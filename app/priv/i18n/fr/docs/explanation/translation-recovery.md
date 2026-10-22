@@ -1,61 +1,41 @@
 %{
-  title: "Récupération des traductions",
+  title: "Récupération de la traduction",
   summary:
-    "Comment Glossia récupère après la limitation du fournisseur et les traductions interrompues.",
-  category: "explication",
+    "Comment Glossia maintient le Markdown intact et se remet des ralentissements du fournisseur et des traductions interrompues.",
+  category: "Explication",
+  section: "translation",
   order: 8
 }
 ---
-Glossia valide le contenu traduit avant sa publication. Le rétablissement conserve
-cette exigence : une nouvelle tentative doit toujours préserver la structure source et nécessaires
-marqueurs, et chaque fichier assemblé passe ses commandes de validation configurées.
 
-## Traduction du catalogue
+Glossia valide le contenu traduit avant de le publier. La récupération préserve cette exigence : un réessai doit toujours préserver la structure de la source et les marqueurs de remplacement requis, et chaque fichier assemblé passe ses commandes de validation configurées.
 
-Les catalogues Gettext sont convertis en chaînes avant traduction. Les requêtes contiennent au
-plus de huit chaînes, avec un objectif de lot de 8 000 octets. Une seule chaîne plus longue
-reste intacte. Le modèle renvoie un tableau avec le même nombre de chaînes dans le
-même ordre. Glossia vérifie les variables d'interpolation et rejette les traductions vides.
+## Traduction Markdown
 
-Les en-têtes sont construits en code en utilisant les règles de pluriel de la locale cible. Message source
-les identifiants, les commentaires et la structure du catalogue proviennent de la source analysée. Si un
-lot renvoyant du contenu malformé, Glossia le réessaie une fois, puis le divise en
-lots plus petits. Les lots voisins ayant réussi n'ont pas besoin d'être traduits à nouveau.
+Glossia ne re-rend jamais un document Markdown traduit. Il analyse la source uniquement pour trouver son corps de texte : paragraphes, titres, éléments de liste, cellules de tableau, les attributs visibles des composants et de l'HTML (`title`, `details`, `alt`, `label`, `description`, `summary`, `placeholder`, `aria-label`, `caption`) et le texte d'un élément HTML `<summary>`. Chaque traduction est réécrite dans les moindres octets occupés par la source, afin que le code, les destinations de liens, les composants, les alertes GitHub, les ancres explicites de titre telles que `{#install}`, les marqueurs de liste et les lignes vides restent identiques byte pour byte.
 
-## Limitation de débit du fournisseur
+Chaque paragraphe ou titre est traduit dans son intégralité. La mise en forme en ligne devient des balises numérotées : `<gN>...</gN>` autour des mots liens ou mis en relief, et `<gN/>` pour le contenu qui doit rester inchangé, comme le code en ligne ou un composant. Le modèle peut déplacer les balises pour suivre l'ordre des mots du langage cible, mais doit conserver chaque balise exactement une fois. Chaque demande transporte également le document source environnant et les traductions les plus récentes du même fichier, pour référence.
 
-Les travailleurs utilisant le même identifiant et le même modèle partagent l'accès aux requêtes via la
-base de données, y compris les travailleurs sur différentes réplications d'application. Une limite de débit
-La réponse étend leur délai de pause partagé et augmente l'espacement entre les nouvelles requêtes.
-Un trafic réussi réduit progressivement cet intervalle après une minute sans limitation de débit.
-Les requêtes déjà en cours sont autorisées à se terminer.
+Une unité qui perd ou invente une balise est envoyée à nouvelle, avec la raison, jusqu'à trois fois. Les unités validées sont conservées. Après assemblage, Glossia analyse le résultat et compare sa structure avec la source. Une traduction qui se transformerait en titre, liste ou mise en évidence par elle-même voit son corps de texte échappé, ce qui ne nécessite aucun appel de modèle supplémentaire.
 
-Les indices de réessai du fournisseur sont des délais minimums. Des échecs répétés augmentent également le
-délai de repli, jusqu'à un délai de base de 30 secondes plus une variation ; un indicateur de fournisseur plus long prend
-la priorité, plafonnée à cinq minutes. Celle de l'Ensemble `x-ratelimit-reset` l'en-tête est
-reconnu aux côtés de `retry-after`.
+## Traduction des catalogues
 
-Après huit tentatives de requêtes infructueuses, l'exécution du dépôt arrête de démarrer de nouveaux
-fichiers. Une reprise différée hérite de la branche de traduction et reprend son
-travail inachevé. La tentative précédente reste visible dans l'historique des sessions, liée
-via la reprise. Les délais augmentent d'une minute à cinq minutes, avec
-un maximum de six reprises automatiques. Les sessions actives plus récentes ont la priorité, et
-les sessions annulées ne sont jamais réactivées. Les échecs de validation seuls ne planifient pas
-la récupération du fournisseur.
+Les catalogues Gettext sont analysés en chaînes de caractères avant la traduction. Les demandes transportent au plus huit chaînes, avec un objectif de lot de 8 000 octets. Une chaîne plus grande reste inchangée. Le modèle retourne un tableau avec le même nombre de chaînes dans le même ordre. Glossia vérifie les variables d'interpolation et rejette les traductions vides.
+
+Les en-têtes sont construits en code en utilisant les règles de pluriel de la zone cible. Les identifiants de message source, commentaires et structure du catalogue proviennent de la source analysée. Si un lot renvoie du contenu malformé, Glossia le réessaye une fois, puis le divise en lots plus petits. Les lots voisins réussis n'ont pas besoin d'être traduits à nouveau.
+
+## Limitation du fournisseur
+
+Glossia coordonne les demandes de traduction utilisant la même authentification et le même modèle. Une réponse de limitation de débit étend leur délai de refroidissement partagé et augmente l'écart entre les nouvelles demandes. Le trafic réussi réduit progressivement cet écart après une minute sans limitation. Les demandes déjà en cours sont autorisées à se terminer.
+
+Les indices de réessai du fournisseur sont des délais minimums. Les échecs répétés augmentent également le délai d'attente, jusqu'à un délai de base de 30 secondes plus le jitter ; un indice de fournisseur plus long prend le dessus, plafonné à cinq minutes. L'en-tête `x-ratelimit-reset` de Together est reconnu aux côtés de `retry-after`.
+
+Après huit tentatives de demande infructueuses, l'exécution du dépôt arrête le lancement de nouveaux fichiers. Une continuation retardée hérite de la branche de traduction et reprend son travail inachevé. La tentative précédente reste visible dans l'historique de la session, liée par la continuation. Les délais augmentent d'une minute à cinq minutes, avec au maximum six continuations automatiques. Les sessions actives plus récentes ont la priorité, et les sessions annulées ne sont jamais réactivées. Les échecs de validation seuls ne programment pas la récupération du fournisseur.
 
 ## Progression durable
 
-Les fichiers terminés et leurs fichiers de verrouillage sont publiés dans la branche de traduction comme
-avant. Dans les fichiers inachevés, les segments validés localement et les lots de récupération
-sont également sauvegardés dans la base de données pendant sept jours. Ces points de contrôle survivent à un travailleur
-processus en cours d'arrêt. Ils sont limités au compte, au projet, à l'entrée du document,
-à l'identifiant de connexion effectif et au modèle, au contexte, et au segment ou à la tentative de réparation.
+Les fichiers terminés et leurs fichiers de verrouillage sont publiés sur la branche de traduction par lots : un commit pour chaque 25 fichiers, ou chaque 15 minutes, et un commit final à la fin de l'exécution. Chaque push exécute les vérifications de pull request du dépôt, donc le groupement empêche un grand exécution de lancer une vérification par fichier. Un projet a une seule demande de pull request de traduction : un nouveau commit sur la branche par défaut continue celle qui est ouverte et ne traduit que ce qui a changé depuis. Une fois cette pull request fusionnée ou fermée, la prochaine exécution démarre une nouvelle. Dans les fichiers inachevés, les segments validés localement et les lots de récupération sont également sauvegardés dans la base de données pour sept jours. Ces points de contrôle survivent à l'arrêt d'un processus de travail. Ils sont limités au compte, au projet, à l'entrée du document, à l'authentification crédence et modèle effectif, au contexte, et au segment ou à la tentative de correction.
 
-Une exécution reprise peut réutiliser un segment uniquement lorsque ses entrées correspondent toujours. Elle
-valide à nouveau le document final assemblé. Les réponses du modèle rejetées ne sont pas
-des points de contrôle. Un échec de validation au niveau du document déclenche une tentative de réparation séparée
-parce que le validateur peut ne pas identifier un segment unique responsable.
+Une exécution reprise peut réutiliser un segment uniquement lorsque ses entrées correspondent toujours. Elle valide toujours à nouveau le document assemblé final. Les réponses de modèle rejetées ne sont pas des points de contrôle. Un échec de validation au niveau du document déclenche une tentative de réparation séparée car le validateur peut ne pas identifier un seul segment responsable.
 
-Les points de contrôle expirés et les enregistrements de cadence fournisseurs inactifs sont supprimés par le
-travailleur de récupération de sessions planifiées. Ce sont des enregistrements opérationnels ; les utilisateurs ne
-doivent pas les ajouter à leur dépôt ou les configurer dans `L10N.md`.
+Les points de contrôle périmés et les enregistrements de rythme du fournisseur inactifs sont supprimés par le processus de travail de récupération de session planifié. Ce sont des enregistrements opérationnels ; les utilisateurs n'ont pas besoin de les ajouter à leur dépôt ou de les configurer dans `L10N.md`.
