@@ -1,33 +1,33 @@
 %{
-  title: "Projekt-Einrichtung wiederholen",
-  summary: "Ein Projekt wiederherstellen, nachdem die Einrichtung einen Fehler gemeldet hat.",
-  category: "Anleitungen",
+  title: "Projekt-Einrichtung erneut versuchen",
+  summary: "Projekt nach fehlgeschlagener Einrichtung wiederherstellen.",
+  category: "Anleitung",
+  section: "translation",
   order: 4
 }
 ---
-Verwenden Sie **die Einrichtung erneut versuchen** nach Behebung der Ursache, die die Projekt-Einrichtung zum Scheitern führte.
 
-## 1\. Den Fehler lesen
+Wenn die automatisierte Einrichtung fehlschlägt, wirft Glossia das vorläufige Projekt weg, sodass das Repository erneut ausgewählt werden kann. Ein Fehlerhinweis kann im Einrichtungsprozess angezeigt werden, aber das fehlgeschlagene Projekt und sein Fortschrittsverlauf werden nicht beibehalten.
 
-Öffnen Sie die Projektübersicht. Die Einrichtung-Fortschrittskarte zeigt den Fehler und die neueste Einrichtungstätigkeit.
+## 1. Den Fehler lesen
 
-Häufige Ursachen sind:
+Lesen Sie den Fehlerhinweis, bevor Sie den Einrichtungsprozess verlassen. Zu den häufigen Ursachen gehören:
 
 - Das Konto hat kein konfiguriertes Modell.
-- Der Anbieter-Schlüssel fehlt oder ist ungültig.
-- Die Glossia GitHub App kann auf das Repository nicht zugreifen.
+- Der Anbieter-Schlüssel fehlt oder ist nicht mehr gültig.
+- Die Glossia GitHub-App kann auf das Repository nicht zugreifen.
 - Das Repository konnte nicht vorbereitet oder geprüft werden.
 
-## 2\. Voraussetzung beheben
+## 2. Die Voraussetzung beheben
 
-Für Modellprobleme öffnen **Einstellungen** und **Modelle**. Für Probleme beim Repository-Zugriff aktualisieren Sie die Glossia GitHub App-Installation in GitHub und gewähren Sie ihr den Zugriff auf das Repository.
+Für Probleme mit dem Modell öffnen Sie **Einstellungen → Modelle**. Bei Problemen mit dem Zugriff auf das Repository aktualisieren Sie die Glossia GitHub-App-Installation in GitHub und gewähren Sie ihr Zugriff auf das Repository.
 
-## 3\. Wiederholen
+## 3. Einrichtung erneut starten
 
-Zurück zur Projektübersicht und auswählen **Einrichtung wiederholen**.
+Öffnen Sie **Projekte → Neues Projekt**, wählen Sie das Repository aus, wählen Sie **Automatisierte Einrichtung** und wählen Sie zudem erneut die Zielsprachen aus. Folgen Sie dem neuen Einrichtungsversuch, bis er abgeschlossen ist.
 
-Die Karte kehrt zu **Ausstehend**, dann **Laufend**und zeigt neue Aktivitäten an, während die Arbeit fortschreitet. Der Neustart ist nur verfügbar, solange das Projekt im **Fehlgeschlagen** Zustand, der verhindert, dass zwei Einrichtungsversuche gleichzeitig ausgeführt werden.
+Wenn ein fehlgeschlagenes Projekt noch sichtbar ist und **Einrichtung erneut durchführen** anbietet, startet diese Aktion einen weiteren Versuchsstart. Verlassen Sie sich nicht darauf, dass er weiterhin verfügbar bleibt: Fehlgeschlagene vorläufige Projekte werden während der Bereinigung entfernt.
 
-## 4\. Überprüfung der Fertigstellung
+## 4. Abschluss überprüfen
 
-Wenn der Zustand wechselt auf **Abgeschlossen**, überprüfen Sie den resultierenden Pull-Request in GitHub. Wenn er erneut fehlschlägt, verwenden Sie die neue Aktivität in der Karte statt des vorherigen Versuchs, um die nächste Aktion zu identifizieren.
+Wenn die Einrichtung abgeschlossen ist, prüfen Sie den resultingen Pull-Request in GitHub. Siehe [Projekt einrichten](/docs/reference/project-setup) für den Lebenszyklus und das Bereinigungsverhalten.

@@ -1,15 +1,16 @@
 {
-  "hash": "9077defabe4891f2d7a281954d1cfc2f227f99da04bb51ef98825ec2dd47b317",
+  "baseline_schema_version": 1,
+  "hash": "671b41e28e16d71ce243eb9eb484da48115140cab2af477e0f9701e1ee4a2e86",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "40bc8d7ce2d7b472cec60bb1ca3d3ee9b391ec1104060f252f885ed24116cec9",
+          "hash": "318a0745468c227b1fe81525b9e7dbe07c70c52b3fbd2ac31e0e44415cd42bc3",
           "kind": "source",
           "label": "app/priv/docs/how-to/login-with-glossia.md",
           "metadata": {
-            "content_hash": "f22e64de886ece498839ae173eebfa5480c5a54e9bb04ff797afda28e54e3f52"
+            "content_hash": "d5147a91e45ff3c3606d6d66250480f09ca08ebf995797648590c0282641fa28"
           }
         },
         {
@@ -37,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "5e584d392a51ea04924e62e93c53a3610184048673a2f9d4f11ef89486aee5a1",
+              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "f8e3c3cd03819b2ea9c7cd61c771a54a7c869158ab618e3ac6c195542e04491f"
+                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
               }
             },
             {
@@ -83,34 +84,39 @@
               }
             }
           ],
-          "hash": "a3e700043e63e82f15bd59d19e17464f6de184edcd1c687fe67944e7b03e3d45",
+          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "9077defabe4891f2d7a281954d1cfc2f227f99da04bb51ef98825ec2dd47b317",
+      "hash": "671b41e28e16d71ce243eb9eb484da48115140cab2af477e0f9701e1ee4a2e86",
       "kind": "translation_input",
       "label": "app/priv/docs/how-to/login-with-glossia.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "04a79670bf3ceea45e01c4d602a00f3aac0d8c72786fb48bab04b89e912f1d59",
+  "output_hash": "d3241e544a3213b6d88b38860cb14a36ca3986e2a350a6946cd9e1120b8ac2fb",
   "output_path": "app/priv/i18n/ko/docs/how-to/login-with-glossia.md",
+  "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
-    "selector_version": 2,
-    "terminology": {
+    "glossary": {
+      "applied": [],
       "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "glossary_version": null
+      "shadowed": [],
+      "version": null
     },
+    "selector_version": 2,
     "voice": {
       "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
       "version": null
     }
   },
+  "source_commit_sha": "8c946ab2f6b10f009391d70fc5133dad149ab8a2",
   "source_path": "app/priv/docs/how-to/login-with-glossia.md",
-  "translated_at": "2026-09-12T09:40:26.272707Z"
+  "translated_at": "2026-10-21T17:12:13.913443Z",
+  "translation_session_id": "01a15f5f-f115-757e-9113-1d0e7d250066"
 }

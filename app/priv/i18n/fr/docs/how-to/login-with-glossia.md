@@ -2,31 +2,33 @@
   title: "Se connecter avec Glossia",
   summary:
     "Permettez aux utilisateurs de se connecter à votre application avec leur compte Glossia via OAuth 2.1.",
-  category: "tutoriel",
+  category: "Guide pratique",
+  section: "platform",
   order: 2
 }
 ---
-Cet guide vous accompagne dans l'ajout de "Connexion avec Glossia" à votre application. À la fin, vos utilisateurs pourront se connecter avec leur compte Glossia et votre application disposera d'un jeton d'accès pour appeler l'API Glossia à leur place.
+
+Ce guide vous accompagne dans l'ajout de "Connexion avec Glossia" à votre application. À la fin, vos utilisateurs pourront se connecter avec leur compte Glossia et votre application disposera d'un jeton d'accès pour appeler l'API Glossia en leur nom.
 
 Glossia utilise **OAuth 2.1 avec PKCE** (Proof Key for Code Exchange). PKCE est requis pour tous les clients, y compris les applications côté serveur.
 
-## 1\. Enregistrez votre application OAuth
+## 1. Enregister votre application OAuth
 
-Vous avez deux options pour enregistrer votre application :
+Vous avez deux options pour enregister votre application :
 
-### Option A : Via le tableau de bord (recommandé)
+### Option A : Par le tableau de bord (recommandé)
 
-1. Connectez-vous à Glossia et allez dans votre tableau de bord de compte.
-2. Ouvrez la **API** section dans la barre latérale et cliquez sur **Applications OAuth**.
+1. Connectez-vous à Glossia et allez vers votre tableau de bord de compte.
+2. Ouvrez la section **API** depuis la barre latérale et cliquez sur **Applications OAuth**.
 3. Cliquez sur **Nouvelle application**.
-4. Remplissez l'application **nom** et **URL de rappel** (également appelée URI de redirection).
-5. Cliquez **Créer une application**.
+4. Remplissez le nom de l'application **name** et l'URL de rappel **callback URL** (aussi appelée URI de redirection).
+5. Cliquez sur **Créer l'application**.
 
-Après la création, notez le **Client ID** et **Client secret**. Le secret n'est affiché qu'une seule fois, stockez-le donc en toute sécurité.
+Après la création, notez le **Client ID** et le **Client secret**. Le secret n'apparaît qu'une seule fois, stockez-le donc en sécurité.
 
 ### Option B : Enregistrement dynamique du client
 
-Envoyez une `POST` requête à `/oauth/register`:
+Envoyez une `POST` requête à `/oauth/register` :
 
 ```bash
 curl -X POST https://glossia.ai/oauth/register \
@@ -38,11 +40,11 @@ curl -X POST https://glossia.ai/oauth/register \
   }'
 ```
 
-La réponse comprend `client_id` et `client_secret`.
+La réponse inclut `client_id` et `client_secret`.
 
-## 2\. Générer un défi de code PKCE
+## 2. Générer un défi PKCE
 
-Avant de rediriger l'utilisateur, générez un vérificateur de code PKCE et un défi :
+Avant de rediriger l'utilisateur, générez un code vérificateur PKCE et un défi :
 
 ```javascript
 function generateCodeVerifier() {
@@ -69,40 +71,44 @@ const codeChallenge = await generateCodeChallenge(codeVerifier);
 // Store codeVerifier in your session -- you will need it in step 4
 ```
 
-## 3\. Rediriger l'utilisateur vers Glossia
+## 3. Rediriger l'utilisateur vers Glossia
 
-Construire l'URL d'autorisation et rediriger le navigateur de l'utilisateur :
+Construisez l'URL d'autorisation et redirigez le navigateur de l'utilisateur :
 
-    https://glossia.ai/oauth/authorize?
-      response_type=code
-      &client_id=YOUR_CLIENT_ID
-      &redirect_uri=https://myapp.com/auth/callback
-      &code_challenge=YOUR_CODE_CHALLENGE
-      &code_challenge_method=S256
-      &scope=user:read+project:read
-      &state=RANDOM_STATE_VALUE
+```
+https://glossia.ai/oauth/authorize?
+  response_type=code
+  &client_id=YOUR_CLIENT_ID
+  &redirect_uri=https://myapp.com/auth/callback
+  &code_challenge=YOUR_CODE_CHALLENGE
+  &code_challenge_method=S256
+  &scope=user:read+project:read
+  &state=RANDOM_STATE_VALUE
+```
 
 **Paramètres :**
 
-| Paramètre | Requis | Description |
+| Paramètre | Obligatoire | Description |
 |-----------|----------|-------------|
 | `response_type` | Oui | Toujours `code` |
-| `client_id` | Oui | L'identifiant client de votre application |
-| `redirect_uri` | Oui | Doit correspondre à une URL de rappel enregistrée |
-| `code_challenge` | Oui | Le défi de code PKCE (S256) |
-| `code_challenge_method` | Oui | Toujours | `S256` |
-| `scope` | Non | Liste de séparée par des [portées](/docs/reference/apis/authentication). Par défaut, l'accès minimal est appliqué si elles sont omises |
-| `state` | Recommandé | Une chaîne aléatoire pour empêcher les attaques CSRF. Vérifiez qu'elle correspond lorsque l'utilisateur revient |
+| `client_id` | Votre client ID d'application | Oui |
+| `redirect_uri` | Doit correspondre à une URL de callback enregister | Oui |
+| `code_challenge` | Le défi PKCE (S256) | Oui |
+| `code_challenge_method` | Oui | Toujours `S256` |
+| `scope` | Non | Liste [scopes](/docs/reference/apis/authorization) séparée par des espaces. Aucun périmètre d'action n'est accordé s'il est omis |
+| `state` | Une chaîne aléatoire pour prévenir les attaques CSRF. Vérifiez qu'elle correspond lorsque l'utilisateur revient | L'utilisateur verra un écran de consentement affichant le nom de votre application et les scopes demandés. Après leur approbation, Glossia redirige vers votre URL de callback avec un code d'autorisation. |
 
-L'utilisateur verra un écran de consentement affichant le nom de votre application et les portées demandées. Après leur approbation, Glossia redirige l'utilisateur vers votre URL de rappel avec un code d'autorisation.
+4\. Échanger le code contre des jetons
 
-## 4\. Échangez le code contre des jetons
+## 4. Échanger le code contre des jetons
 
-Lorsque l'utilisateur est redirigé vers votre URL de rappel, l'URL contiendra un `code` Paramètre:
+Premièrement, vérifiez que `code` correspond à ce que vous avez envoyé à l'étape 3. Ensuite, échangez le code contre des jetons :
 
-    https://myapp.com/auth/callback?code=AUTHORIZATION_CODE&state=RANDOM_STATE_VALUE
+```
+https://myapp.com/auth/callback?code=AUTHORIZATION_CODE&state=RANDOM_STATE_VALUE
+```
 
-Vérifiez d'abord que `state` correspond à ce que vous avez envoyé à l'étape 3. Ensuite, échangez le code contre des jetons :
+D'abord, vérifier que `state` correspond à ce qui a été envoyé dans l'étape 3. Ensuite, échanger le code contre des jetons :
 
 ```bash
 curl -X POST https://glossia.ai/oauth/token \
@@ -126,22 +132,22 @@ La réponse :
 }
 ```
 
-Stockez les deux jetons en toute sécurité. Le jeton d'accès est utilisé pour les requêtes API. Le jeton de rafraîchissement permet d'obtenir un nouveau jeton d'accès lorsque le jeton actuel expire.
+Stockez les deux jetons en sécurité. Le jeton d'accès est utilisé pour les requêtes API. Le jeton de renouvellement est utilisé pour obtenir un nouveau jeton d'accès lorsque le jeton actuel expire.
 
-## 5\. Appeler l'API au nom de l'utilisateur
+## 5. Appeler l'API au nom de l'utilisateur
 
-Utilisez le jeton d'accès pour effectuer des requêtes API authentifiées :
+Utilisez le jeton d'accès pour créer des requêtes API authentifiées :
 
 ```bash
 curl -H "Authorization: Bearer eyJhbGciOiJSUzI1..." \
   https://glossia.ai/api/projects
 ```
 
-Les portées du jeton limitent les points de terminaison auxquels vous pouvez accéder. L'autorisation au niveau des ressources s'applique toujours -- par exemple, un jeton avec `project:read` ne peut lire que les projets auxquels l'utilisateur a accès.
+Les périmètres du jeton déterminent quelles terminaisons vous pouvez accéder. L'autorisation au niveau des ressources s'applique toujours -- par exemple, un jeton avec `project:read` ne peut lire que les projets auxquels l'utilisateur a accès.
 
-## 6\. Rafraîchir le jeton
+## 6. Renouveler le jeton
 
-Lorsque le jeton d'accès expire, utilisez le jeton de rafraîchissement pour obtenir un nouveau jeton sans obliger l'utilisateur à repasser dans le flux de consentement :
+Lorsque le jeton d'accès expire, utilisez le jeton de renouvellement pour en obtenir un nouveau sans passer l'utilisateur à nouveau par le flux de consentement :
 
 ```bash
 curl -X POST https://glossia.ai/oauth/token \
@@ -152,9 +158,9 @@ curl -X POST https://glossia.ai/oauth/token \
   -d "client_secret=YOUR_CLIENT_SECRET"
 ```
 
-## 7\. Révoquer un jeton
+## 7. Révoquer un jeton
 
-Lorsqu'un utilisateur déconnecte votre application ou que vous n'avez plus besoin de l'accès, révoquez le jeton :
+Lorsqu'un utilisateur désconnecte votre application ou que vous n'avez plus besoin d'accès, révoquez le jeton :
 
 ```bash
 curl -X POST https://glossia.ai/oauth/revoke \
@@ -164,48 +170,50 @@ curl -X POST https://glossia.ai/oauth/revoke \
   -d "client_secret=YOUR_CLIENT_SECRET"
 ```
 
-## Choix des portées
+## Choisir les périmètres
 
-Demandez uniquement les portées dont votre application a besoin. Voici quelques combinaisons courantes :
+Demander uniquement les périmètres dont votre application a besoin. Voici quelques combinaisons courantes :
 
-| Cas d'usage | Portées |
+| Cas d'utilisation | Périmètres |
 |----------|--------|
-| Lecture du profil utilisateur | `user:read` |
+| Lire le profil utilisateur | `user:read` |
 | Lire les projets et le contenu | `user:read project:read voice:read` |
 | Gérer les projets | `user:read project:read project:write` |
-| Accès complet à l'organisation | `user:read organization:read organization:write members:read members:write project:read project:write` |
+| Gérer les ressources de l'organisation | `user:read organization:read organization:write members:read members:write project:read project:write` |
 
-Voir la [référence des portées complètes](/docs/reference/apis/authentication) pour toutes les portées disponibles.
+Voir la [référence des périmètres](/docs/reference/apis/authorization) pour tous les périmètres disponibles.
 
-## Endpoints de découverte
+## Points de terminaison de découverte
 
-Votre application peut découvrir automatiquement les endpoints OAuth de Glossia en récupérant les métadonnées du serveur :
+Votre application peut découvrir automatiquement les points de terminaison OAuth de Glossia en récupérant les métadonnées du serveur :
 
 ```bash
 curl https://glossia.ai/.well-known/oauth-authorization-server
 ```
 
-Ceci renvoie un document JSON avec le `authorization_endpoint`, `token_endpoint`, `revocation_endpoint`, et autres détails. L'utilisation de la découverte rend votre intégration résiliente aux changements d'endpoints.
+Ceci renvoie un document JSON contenant `authorization_endpoint`, `token_endpoint`, `revocation_endpoint` et d'autres détails. L'utilisation de la découverte rend votre intégration résiliente aux changements de terminaisons.
 
 ## Gestion des erreurs
 
 ### Erreurs d'autorisation
 
-Si l'utilisateur refuse le consentement ou si quelque chose va mal lors de l'autorisation, Glossia redirige vers votre URL de rappel avec un `error` paramètre:
+Si l'utilisateur refuse le consentement ou si quelque chose se passe mal pendant l'autorisation, Glossia redirige vers votre URL de rappel avec un paramètre `error` :
 
-    https://myapp.com/auth/callback?error=access_denied&state=RANDOM_STATE_VALUE
+```
+https://myapp.com/auth/callback?error=access_denied&state=RANDOM_STATE_VALUE
+```
 
-Codes d'erreur courants:
+Codes d'erreur courants :
 
 | Erreur | Signification |
 |-------|---------|
-| `access_denied` | L'utilisateur a refusé la demande d'autorisation |
-| `invalid_request` | La requête manque d'un paramètre requis |
-| `invalid_scope` | Un ou plusieurs portées demandées ne sont pas valides |
+| `access_denied` | L'utilisateur a rejeté la demande d'autorisation |
+| `invalid_request` | La requête manque d'un paramètre obligatoire |
+| `invalid_scope` | Un ou plusieurs périmètres demandés sont invalides |
 
 ### Erreurs de jeton
 
-Le point de terminaison de jeton renvoie HTTP 400 avec un corps JSON d'erreur :
+Le point de terminaison du jeton renvoie un code HTTP 400 avec un corps d'erreur JSON :
 
 ```json
 {
@@ -216,16 +224,16 @@ Le point de terminaison de jeton renvoie HTTP 400 avec un corps JSON d'erreur :
 
 ### Limites de débit
 
-Les points de terminaison OAuth sont soumis à des limites de débit par adresse IP. Si vous atteignez la limite, vous recevrez HTTP 429. Voir le [référence de limitation du débit](/docs/reference/apis/authentication) pour plus de détails.
+Les points de terminaison OAuth sont limités en débit par IP. Si vous atteignez la limite, vous recevrez un HTTP 429. Consultez la [référence de limitation du débit](/docs/reference/apis/authentication) pour plus de détails.
 
 ## Liste de contrôle de sécurité
 
-Avant de passer en production, vérifiez que votre implémentation suit ces pratiques :
+Avant le déploiement en production, vérifiez que votre implémentation suit ces pratiques :
 
-- Utilisez toujours HTTPS pour les URLs de callback en production
-- Validez le `state` paramètre du callback pour prévenir les attaques CSRF
-- Stockez les jetons chiffrés au repos
-- N'exposez jamais de jetons dans du JavaScript côté client ou les URLs du navigateur
-- Utilisez l'ensemble minimum de portées nécessaires
-- Gérez l'expiration des jetons de manière élégante avec des jetons de rafraîchissement
-- Révoquez les jetons lorsque les utilisateurs se déconnectent ou suppriment leur compte
+- Utilisez toujours HTTPS pour les URL de rappel en production
+- Validez le `state` paramètre sur le rappel pour prévenir les attaques CSRF
+- Stockez les jetons cryptés au repos
+- Ne jamais exposer des jetons dans le JavaScript côté client ou les URL du navigateur
+- Utilisez l'ensemble minimal de périmètres nécessaires.
+- Gérez l'expiration des jetons proprement avec les jetons de renouvellement.
+- Révoquez les jetons lorsque les utilisateurs se désconnectent ou suppriment leur compte.
