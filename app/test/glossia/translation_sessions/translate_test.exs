@@ -862,6 +862,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert updated.status == "failed"
 
     assert updated.error == "Translation failed for 1 file. Review the file errors and retry."
+    assert updated.failure_kind == "translation_items_failed"
 
     assert updated.completed_at
   end

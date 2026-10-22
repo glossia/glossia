@@ -1410,6 +1410,15 @@ defmodule Glossia.Seeds do
     backfill_seeded_translation_progress!(project)
     ensure_translation_dashboard_history!(project, user)
     ensure_translation_pagination_history!(project, user)
+
+    # Demo execution provenance is separate from the content SHA. Keep existing
+    # local seeds current without overwriting any real recorded engine version.
+    demo_image = "ghcr.io/glossia/glossia@sha256:" <> String.duplicate("a", 64)
+
+    from(s in TranslationSession,
+      where: s.project_id == ^project.id and not is_nil(s.started_at) and is_nil(s.engine_image)
+    )
+    |> Repo.update_all(set: [engine_image: demo_image])
   end
 
   defp seed_translation_sessions!(%Project{} = project, %User{} = user) do

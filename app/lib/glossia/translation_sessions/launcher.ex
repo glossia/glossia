@@ -24,6 +24,7 @@ defmodule Glossia.TranslationSessions.Launcher do
 
   alias Glossia.Kubernetes
   alias Glossia.TranslationSessions
+  alias Glossia.TranslationSessions.EngineRelease
 
   @job_name_prefix "glossia-translate"
   @container_name "translate"
@@ -60,6 +61,7 @@ defmodule Glossia.TranslationSessions.Launcher do
   defp launch_job(session_id) do
     with {:ok, namespace} <- Kubernetes.namespace(),
          {:ok, pod} <- Kubernetes.self_pod(),
+         :ok <- release_ready(session_id),
          {:ok, manifest} <- build_manifest(session_id, pod) do
       case Kubernetes.create_job(namespace, manifest) do
         {:ok, _job} ->
@@ -79,7 +81,40 @@ defmodule Glossia.TranslationSessions.Launcher do
           fail(session_id, reason)
       end
     else
+      :not_ready -> {:snooze, 30}
+      :not_active -> :ok
       {:error, reason} -> fail(session_id, reason)
+    end
+  end
+
+  # Recovery jobs can be picked up by any replica. Do not let an old replica
+  # spend a release continuation on the same engine while a rollout is pending.
+  defp release_ready(session_id) do
+    case TranslationSessions.get_session(session_id) do
+      %{status: status} when status not in ["pending", "running"] ->
+        :not_active
+
+      %{engine_retry_count: count} = session when count > 0 ->
+        case EngineRelease.ready_image() do
+          {:ok, image} ->
+            if image in session.previous_engine_images,
+              do: {:error, :engine_already_attempted},
+              else: :ok
+
+          :not_ready ->
+            if DateTime.diff(DateTime.utc_now(), session.inserted_at) >= 15 * 60,
+              do: {:error, :engine_rollout_timeout},
+              else: :not_ready
+
+          {:error, reason} ->
+            {:error, {:engine_release_unavailable, reason}}
+        end
+
+      nil ->
+        :not_active
+
+      _ ->
+        :ok
     end
   end
 
@@ -163,7 +198,7 @@ defmodule Glossia.TranslationSessions.Launcher do
       "image" => Map.fetch!(container, "image"),
       # The image's own entrypoint is kept so the release boots the same way
       # it does everywhere else; only the role is different, and that is env.
-      "env" => job_env(session_id, Map.get(container, "env", []))
+      "env" => job_env(session_id, Map.get(container, "env", []), Map.fetch!(container, "image"))
     }
     |> maybe_put("imagePullPolicy", Map.get(container, "imagePullPolicy"))
     |> maybe_put("envFrom", Map.get(container, "envFrom"))
@@ -174,8 +209,9 @@ defmodule Glossia.TranslationSessions.Launcher do
   # the database URL, the distribution cookie and the downward-API POD_IP
   # that RELEASE_NODE interpolates. Order matters for that interpolation, so
   # entries are replaced in place rather than appended.
-  defp job_env(session_id, env) do
+  defp job_env(session_id, env, image) do
     overrides = [
+      %{"name" => "GLOSSIA_ENGINE_IMAGE", "value" => image},
       %{"name" => "GLOSSIA_TRANSLATION_JOB", "value" => "1"},
       %{"name" => "GLOSSIA_TRANSLATION_SESSION_ID", "value" => to_string(session_id)},
       # No HTTP server, no readiness probe, nothing to serve. The supervision

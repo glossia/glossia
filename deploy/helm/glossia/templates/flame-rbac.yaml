@@ -15,6 +15,12 @@ rules:
   - apiGroups: [""]
     resources: ["pods/exec", "pods/log"]
     verbs: ["create", "get"]
+  # Release recovery only reads this application's rollout status. It cannot
+  # inspect other Deployments or change which release Kubernetes deploys.
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: [{{ include "glossia.fullname" . | quote }}]
+    verbs: ["get"]
   # Translation sessions run as Jobs that deliberately have no owner, so a
   # rolling update cannot garbage-collect one mid-translation. The app creates
   # them, reads them back, and deletes them when a session is cancelled.

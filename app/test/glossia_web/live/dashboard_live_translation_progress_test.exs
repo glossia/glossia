@@ -7,6 +7,32 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
   alias Glossia.TestHelpers
   alias Glossia.TranslationSessions
 
+  test "shows the executing engine digest separately from the repository commit", %{conn: conn} do
+    user = TestHelpers.create_user("engine-provenance@test.com", "engine-provenance")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{handle: "engine", name: "Engine"})
+
+    image = "ghcr.io/glossia/glossia@sha256:" <> String.duplicate("b", 64)
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "completed",
+        commit_sha: String.duplicate("a", 40),
+        engine_image: image
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    assert has_element?(view, "#translation-engine-image", "sha256:bbbbbbbbbbbb")
+    assert html =~ image
+    assert html =~ "aaaaaaa"
+    assert html =~ "Translation engine"
+  end
+
   test "a running translation session can be cancelled" do
     user = TestHelpers.create_user("cancel-translation@test.com", "cancel-translation")
 

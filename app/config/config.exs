@@ -173,6 +173,7 @@ config :glossia, Oban,
      crontab: [
        {"*/10 * * * *", Glossia.Projects.SetupPullRequestSyncWorker},
        {"*/5 * * * *", Glossia.TranslationSessions.SessionRecoveryWorker},
+       {"*/5 * * * *", Glossia.TranslationSessions.EngineRecoveryWorker},
        {"0 3 * * *", Glossia.OrganizationDomainVerificationWorker}
      ]}
   ]

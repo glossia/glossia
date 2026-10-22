@@ -18,7 +18,9 @@ defmodule Glossia.TranslationSessions.ProviderRecoveryTest do
         commit_sha: "source",
         publication_branch: "glossia/translate/source",
         publication_commit_sha: "checkpoint",
-        target_languages: ["es"]
+        target_languages: ["es"],
+        engine_retry_count: 2,
+        previous_engine_images: ["old-engine"]
       })
 
     %{session: session}
@@ -29,6 +31,8 @@ defmodule Glossia.TranslationSessions.ProviderRecoveryTest do
       assert {:ok, continuation} = ProviderRecovery.schedule(session)
       assert continuation.status == "pending"
       assert continuation.provider_retry_count == 1
+      assert continuation.engine_retry_count == 2
+      assert continuation.previous_engine_images == ["old-engine"]
       assert continuation.continued_from_session_id == session.id
       assert continuation.publication_branch == session.publication_branch
       assert continuation.publication_commit_sha == "checkpoint"

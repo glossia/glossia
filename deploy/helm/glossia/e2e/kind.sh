@@ -151,6 +151,23 @@ glossia_e2e_assert_deployment() {
     "$(glossia_e2e_kubectl -n "${GLOSSIA_E2E_NAMESPACE}" get deployment "${GLOSSIA_E2E_RESOURCE_NAME}" -o jsonpath='{.spec.template.metadata.labels.app\.kubernetes\.io/component}')" \
     "deployment pod component label" || return 1
 
+  glossia_e2e_assert_equals "${GLOSSIA_E2E_RESOURCE_NAME}" \
+    "$(glossia_e2e_deployment_env_value GLOSSIA_ENGINE_DEPLOYMENT)" \
+    "engine deployment identity" || return 1
+
+  glossia_e2e_assert_equals \
+    "$(glossia_e2e_kubectl -n "${GLOSSIA_E2E_NAMESPACE}" get deployment "${GLOSSIA_E2E_RESOURCE_NAME}" -o jsonpath='{.spec.template.spec.containers[?(@.name=="web")].image}')" \
+    "$(glossia_e2e_deployment_env_value GLOSSIA_ENGINE_IMAGE)" \
+    "engine image identity" || return 1
+
+  glossia_e2e_assert_equals "${GLOSSIA_E2E_RESOURCE_NAME}" \
+    "$(glossia_e2e_kubectl -n "${GLOSSIA_E2E_NAMESPACE}" get role "${GLOSSIA_E2E_RESOURCE_NAME}-managed-runner" -o jsonpath='{.rules[?(@.resources[0]=="deployments")].resourceNames[0]}')" \
+    "rollout RBAC deployment name" || return 1
+
+  glossia_e2e_assert_equals "get" \
+    "$(glossia_e2e_kubectl -n "${GLOSSIA_E2E_NAMESPACE}" get role "${GLOSSIA_E2E_RESOURCE_NAME}-managed-runner" -o jsonpath='{.rules[?(@.resources[0]=="deployments")].verbs[*]}')" \
+    "read-only rollout RBAC" || return 1
+
   echo "deployment ok"
 }
 

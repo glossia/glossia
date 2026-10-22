@@ -4,8 +4,8 @@ defmodule Glossia.Kubernetes do
 
   Ported from `Glossia.Kubernetes` on the earlier tree. Only what
   `Glossia.TranslationSessions.Launcher` needs to schedule a
-  detached translation Job: read the pod we are running in, and create,
-  read, and delete Jobs. Credentials are the projected service account
+  detached translation Job: read our pod and Deployment rollout status, and
+  create, read, and delete Jobs. Credentials are the projected service account
   token, the namespace, and the cluster CA — everything the pod already
   has, nothing to configure.
   """
@@ -31,6 +31,11 @@ defmodule Glossia.Kubernetes do
          {:ok, name} <- pod_name() do
       get(path(["api", "v1", "namespaces", namespace, "pods", name]))
     end
+  end
+
+  @doc "Reads a Deployment, including its rollout status."
+  def get_deployment(namespace, name) do
+    get(path(["apis", "apps", "v1", "namespaces", namespace, "deployments", name]))
   end
 
   @doc "Creates a Job in `namespace`."

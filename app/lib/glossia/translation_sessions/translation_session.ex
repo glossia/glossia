@@ -14,6 +14,10 @@ defmodule Glossia.TranslationSessions.TranslationSession do
 
   schema "translation_sessions" do
     field :provider_retry_count, :integer, default: 0
+    field :engine_retry_count, :integer, default: 0
+    field :engine_image, :string
+    field :previous_engine_images, {:array, :string}, default: []
+    field :failure_kind, :string
     field :commit_sha, :string
     field :commit_message, :string
     field :status, :string, default: "pending"
@@ -43,6 +47,7 @@ defmodule Glossia.TranslationSessions.TranslationSession do
     |> cast(attrs, [
       :commit_sha,
       :commit_message,
+      :engine_image,
       :status,
       :outcome,
       :translated_content_count,

@@ -1,14 +1,12 @@
-# Glossia Enterprise Helm chart
+# Glossia Helm chart
 
-Helm chart for the enterprise build of [Glossia](https://glossia.ai). Deploys
-the `ghcr.io/glossia/enterprise` image and wires up the managed FLAME runner
-pool + detached translation-Job launcher that live in this repository. Bundles
+Helm chart for [Glossia](https://glossia.ai). Deploys the
+`ghcr.io/glossia/glossia` image and wires up the managed FLAME runner
+pool and detached translation-Job launcher that live in this repository. Bundles
 a Postgres cluster (CloudNativePG) and a ClickHouse cluster (official
 ClickHouse operator) alongside the web app; each datastore can be disabled if
 you prefer to bring your own.
 
-For the community deployment shape without FLAME/scale-out, use the OSS chart
-in [`glossia/deploy/helm/glossia`](https://github.com/glossia/glossia/tree/main/deploy/helm/glossia).
 
 ## Prerequisites
 
@@ -98,16 +96,28 @@ install means the cluster is broken, whatever the UI looks like.
 
 ## Translations
 
-The local dev/test path runs every translation in the web process that received
-the request. A session lives and dies with its host pod: a deploy, a crash, a
-node drain or an eviction ends the translation, and a member has to resubmit
-the session. That's the trade-off for a chart that doesn't need runner pods,
-service accounts, RBAC rules, or a Job controller.
+Each translation runs in a detached Kubernetes Job without an owner reference
+to the web replica. It inherits the scheduling replica's exact image,
+environment, and pull secrets, and survives web rollouts. Existing jobs remain
+pinned; publishing or deploying a new image does not change code in flight.
 
-Long-lived, deploy-surviving translations are provided by the enterprise build
-through the `Glossia.Runners` and `Glossia.TranslationSessions.Launcher` seams
-(see `app/lib/glossia/runners.ex` and `.../launcher.ex`). No configuration in
-this chart wires that up.
+The chart supplies `GLOSSIA_ENGINE_IMAGE` and `GLOSSIA_ENGINE_DEPLOYMENT` from
+its own image reference and Deployment name. Sessions record their executing
+image separately from the repository commit. Pin `image.digest` to enable
+release-aware recovery; mutable tags cannot identify a release reliably.
+
+After a fully available rollout, a scheduled worker may continue a project's
+latest eligible failure only if it was queued before the rollout completed,
+ran on a different engine digest, and failed afterward within six hours. Recovery reuses the publication branch,
+is limited to three release continuations, never repeats an attempted image,
+and does not restart successful or active jobs. Provider, publication, source,
+and interrupted-run failures are excluded. Queued release continuations wait
+at most 15 minutes during subsequent rollouts; Kubernetes API failures produce
+an explicit launch error. The managed-runner
+Role grants read-only `get` access to this Deployment, not to other Deployments.
+
+The local dev/test fallback runs translations inline and does not schedule
+release recovery without Kubernetes release identity.
 
 ### Local end-to-end test
 

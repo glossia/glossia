@@ -56,7 +56,9 @@ defmodule Glossia.TranslationSessions.ProviderRecovery do
             :publication_branch,
             :publication_commit_sha,
             :pull_request_url,
-            :pull_request_number
+            :pull_request_number,
+            :engine_retry_count,
+            :previous_engine_images
           ])
 
         continuation =

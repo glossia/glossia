@@ -715,7 +715,10 @@ defmodule Glossia.TranslationSessions.Translate do
     error_msg = humanize_error(reason)
     failure_metadata = failure_metadata(reason)
 
-    case TranslationSessions.finish_session(session, "failed", error: error_msg) do
+    case TranslationSessions.finish_session(session, "failed",
+           error: error_msg,
+           failure_kind: failure_metadata["failure_kind"]
+         ) do
       {:ok, finished_session} ->
         refresh_pull_request_description(finished_session)
 
@@ -950,6 +953,17 @@ defmodule Glossia.TranslationSessions.Translate do
 
   defp humanize_error({:runner_exit, _reason}),
     do: "Translation stopped unexpectedly in the isolated runner. Please retry."
+
+  defp humanize_error({:translation_job_launch_failed, :engine_rollout_timeout}),
+    do:
+      "Translation recovery could not start because the engine rollout did not complete in time."
+
+  defp humanize_error({:translation_job_launch_failed, :engine_already_attempted}),
+    do: "Translation recovery was stopped because the deployed engine was already attempted."
+
+  defp humanize_error({:translation_job_launch_failed, {:engine_release_unavailable, _reason}}),
+    do:
+      "Translation recovery could not verify the deployed engine. Check the Deployment configuration and Kubernetes API permissions."
 
   defp humanize_error({:translation_job_launch_failed, _reason}),
     do: "Could not start the translation runner. Please retry."

@@ -40,6 +40,11 @@ float_env = fn name, default ->
   end
 end
 
+# The engine release is independent of the repository commit being translated.
+config :glossia,
+  engine_image: System.get_env("GLOSSIA_ENGINE_IMAGE"),
+  engine_deployment: System.get_env("GLOSSIA_ENGINE_DEPLOYMENT")
+
 # Detached translation Job settings. Each translation session runs in its
 # own Job pod scheduled by `Glossia.TranslationSessions.Launcher`.
 config :glossia, :translation_job,

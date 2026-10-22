@@ -7,7 +7,8 @@ defmodule Glossia.TranslationSessions.TranslateWorker do
   `TranslationSessions.Translate.run/1`. `max_attempts: 1` still applies:
   a translation that already started is not something this worker should
   start again, and the launcher writes its own status so a partial run is
-  visible without being retried.
+  visible without being retried. A release-recovery session may snooze before
+  launch while its Deployment is rolling out; no translation has started then.
   """
 
   use Oban.Worker,
@@ -17,7 +18,9 @@ defmodule Glossia.TranslationSessions.TranslateWorker do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"session_id" => session_id}}) do
-    Glossia.TranslationSessions.Launcher.launch(session_id)
-    :ok
+    case Glossia.TranslationSessions.Launcher.launch(session_id) do
+      {:snooze, _seconds} = result -> result
+      _result -> :ok
+    end
   end
 end

@@ -500,7 +500,10 @@ defmodule Glossia.TranslationSessions do
   end
 
   @doc false
-  def start_session(%TranslationSession{id: session_id}) do
+  def start_session(
+        %TranslationSession{id: session_id},
+        engine_image \\ Glossia.TranslationSessions.EngineRelease.image()
+      ) do
     now = DateTime.utc_now()
 
     query =
@@ -513,6 +516,8 @@ defmodule Glossia.TranslationSessions do
             translated_content_count: 0,
             content_hit_count: 0,
             started_at: fragment("COALESCE(?, ?)", s.started_at, ^now),
+            engine_image: fragment("COALESCE(?, ?)", s.engine_image, ^engine_image),
+            failure_kind: nil,
             completed_at: nil,
             error: nil,
             summary: nil,
@@ -555,6 +560,7 @@ defmodule Glossia.TranslationSessions do
           %{
             status: status,
             outcome: "failed",
+            failure_kind: Keyword.get(opts, :failure_kind),
             translated_content_count: counts.translated,
             content_hit_count: counts.content_hits,
             completed_at: now,

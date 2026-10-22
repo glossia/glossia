@@ -8294,6 +8294,13 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp translation_session_page_description(_session), do: gettext("Translation session details")
 
+  defp translation_engine_label(image) do
+    case Regex.run(~r/@(sha256:)([a-f0-9]{64})\z/, image) do
+      [_, algorithm, digest] -> algorithm <> String.slice(digest, 0, 12)
+      _ -> image
+    end
+  end
+
   defp translation_session_in_flight?(%{status: status}), do: status in ["pending", "running"]
 
   defp session_detail_page(assigns) do
@@ -8376,6 +8383,25 @@ defmodule GlossiaWeb.DashboardLive do
               >
                 <div data-part="title">{gettext("Content")}</div>
                 <span data-part="label">{translation_session_content_label(@session)}</span>
+              </div>
+              <div data-part="metadata">
+                <div data-part="title">{gettext("Translation engine")}</div>
+                <span :if={is_nil(@session.engine_image)} data-part="label">
+                  {gettext("Not recorded")}
+                </span>
+                <.tooltip
+                  :if={@session.engine_image}
+                  id="translation-engine-image"
+                  title={gettext("Translation engine")}
+                  description={@session.engine_image}
+                  size="large"
+                >
+                  <:trigger :let={attrs}>
+                    <span {attrs} data-part="label">
+                      {translation_engine_label(@session.engine_image)}
+                    </span>
+                  </:trigger>
+                </.tooltip>
               </div>
               <div :if={@session.pull_request_url} data-part="metadata">
                 <div data-part="title">{gettext("Pull request")}</div>

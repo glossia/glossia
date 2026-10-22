@@ -67,6 +67,45 @@ at most six automatic continuations. Newer active sessions take precedence, and
 cancelled sessions are never revived. Validation failures alone do not schedule
 provider recovery.
 
+## Recovery after an engine release
+
+A session has two independent versions: the repository commit being translated
+and the translation engine image executing it. In Kubernetes, each job pins the
+exact image digest of the web replica that scheduled it. Jobs survive web
+rollouts and never switch code halfway through a translation. A job scheduled
+just before a rollout can therefore finish on the previous engine even after
+the web application has updated. The session details show the engine digest;
+older sessions without this provenance display “Not recorded.”
+
+Every five minutes, Glossia checks whether its Deployment has fully rolled out.
+Only a worker from that healthy release can schedule engine recovery. If a
+project's latest session was queued before that rollout completed, ran on an
+older recorded engine digest, and failed afterward within the last six hours,
+Glossia can create a continuation on the current release. Using queue time also
+covers jobs that wait for capacity and only boot after the rollout. A different image digest alone does not trigger retries
+of ordinary failures after unrelated deployments. Completed files and the open
+translation pull request carry over; only unfinished work is translated again.
+Queued release continuations wait while a rollout is in progress, for at most
+15 minutes. Kubernetes API or permission failures stop the launch with an
+explicit error rather than being mistaken for an ongoing rollout.
+
+Recovery is deliberately narrow: the session must have ended with a recorded
+item-validation failure, and every failed item in its latest attempt must report
+a Markdown structure, preserved-content, or Markdown unit failure. Interrupted
+or partially cancelled attempts do not qualify. Provider errors, exhausted
+credit, rejected credentials, publication failures, source-read errors, external
+validation command failures, and unknown causes are not retried by a deployment.
+Successful, active, cancelled, superseded, and unversioned sessions are also left
+alone. A newer session always wins, even if the user cancelled it.
+
+A session gets at most one continuation on a different engine release, with at
+most three release continuations in a lineage. If the new engine still fails,
+it is not retried again on that same image, including after a rollback. The
+lineage retains its previously attempted engine digests, and the launcher checks
+them again before creating a queued job. Existing provider recovery limits
+are preserved across release continuations. Mutable image tags and deployments
+without a configured release identity do not enable automatic engine recovery.
+
 ## Durable progress
 
 Completed files and their lockfiles are published to the translation branch in
