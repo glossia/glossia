@@ -30,7 +30,7 @@ El identificador expresa la intención del repositorio. Un administrador puede a
 
 Glossia utiliza un modelo **generativo** configurado para la traducción de cada documento. Añadir varios modelos no crea un conjunto, una cadena de respaldo o un nivel de calidad automático. El autor del repositorio elige su propósito a través de identificadores estables como `translation-default`, `long-form` o `japanese-specialist`.
 
-La selección sigue la jerarquía de contexto para el documento y el idioma objetivo:
+La selección sigue la jerarquía de contexto para el documento y la localización objetivo:
 
 1. El archivo `L10N/<locale>.md` más cercano que declara `model` gana para esa localización.
 2. Por otro lado, el archivo `L10N.md` más cercano que declara `model` gana para su directorio.
