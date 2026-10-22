@@ -1,0 +1,40 @@
+[tools]
+"github:tuist/once" = "0.68.2"
+rust = "1.96.0"
+java = "temurin-21"
+gradle = "8.13.0"
+
+[hooks]
+postinstall = "true"
+
+[env]
+ONCE_CACHE_PROVIDER = "local"
+
+[tasks."prepare:rust"]
+run = "cargo vendor --quiet --locked .once/vendor > /dev/null"
+
+[tasks.check]
+depends = ["prepare:rust"]
+run = ["once query validate-workspace", "cargo fmt --all -- --check", "cargo clippy --locked --workspace --all-targets -- -D warnings", "once test GlossiaCoreTests"]
+
+[tasks."build:android"]
+depends = ["prepare:rust"]
+run = '''
+set -eu
+: "${ANDROID_NDK_HOME:?Set ANDROID_NDK_HOME to NDK 27.3.13750724}"
+host=linux-x86_64
+if [ "$(uname -s)" = Darwin ]; then host=darwin-x86_64; fi
+tools="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/$host/bin"
+mkdir -p .once/android-tools
+ln -sf "$tools/aarch64-linux-android26-clang" .once/android-tools/aarch64-linux-android-clang
+export PATH="$PWD/.once/android-tools:$tools:$PATH"
+once build GlossiaAndroid
+'''
+
+[tasks."build:ios"]
+depends = ["prepare:rust"]
+run = "once build GlossiaIOS"
+
+[tasks."build:ios-device"]
+depends = ["prepare:rust"]
+run = "once build GlossiaIOSDevice"

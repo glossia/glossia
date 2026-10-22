@@ -1,0 +1,4 @@
+module GlossiaCoreFFI {
+    header "glossia_core.h"
+    export *
+}

@@ -1,0 +1,6 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/overview" android:icon="@drawable/ic_overview" android:title="Overview" />
+    <item android:id="@+id/voice" android:icon="@drawable/ic_voice" android:title="Voice" />
+    <item android:id="@+id/glossary" android:icon="@drawable/ic_glossary" android:title="Glossary" />
+    <item android:id="@+id/settings" android:icon="@drawable/ic_settings" android:title="Settings" />
+</menu>
