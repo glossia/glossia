@@ -1,31 +1,33 @@
 %{
   title: "Warum Lokalisierungsanalysen",
   summary:
-    "Wie gesammelte Signale in Lokalisierungsentscheidungen übersetzt werden und warum die Gap-Metrik Bedeutung hat.",
+    "Wie die gesammelten Signale zu Lokalisierungsentscheidungen führen und warum die Gap-Metrik wichtig ist.",
   category: "Erklärung",
+  section: "analytics",
   order: 2
 }
 ---
-Die Wahl der nächsten Übersetzungssprache ist ein Wagnis: sie kostet Zeit und Geld, und der Nutzen hängt von der Nachfrage ab, die Sie normalerweise nicht sehen können. Lokalisierungsanalysen machen diese Nachfrage sichtbar.
 
-## Die Entscheidung, nicht das Dashboard.
+Welche Sprache als Nächstes übersetzt wird, ist eine Wette: es kostet Zeit und Geld, und der Ertrag hängt von der Nachfrage ab, die man normalerweise nicht sieht. Lokalisierungsanalytik macht diese Nachfrage sichtbar.
 
-Der Zweck der Datensammlung hier ist spezifisch und überlegt: um die Frage zu beantworten "Sollten wir in Sprache X lokalisieren?" Die Signale sind gewählt, um diese Frage zu beantworten, nicht als allzwecktaugliche Analytik-Suite.
+## Die Entscheidung, nicht das Dashboard
+
+Der Zweck der Datensammlung hier ist eingegrenzt und gezielt: die Frage, ob wir in die Sprache X lokalisieren sollen. Die Signale sind so gewählt, dass sie diese Frage beantworten, nicht eine universell einsetzbare Analytik-Suite bilden.
 
 Drei Faktoren steuern die Entscheidung:
 
-1. **Nachfrage.** Wie viele Besucher wünschen sich diese Sprache? Browser-Sprachen und Land zeigen Ihnen, wo das Interesse liegt.
-2. **Die Lücke.** Wird diese Nachfrage bereits bedient? Der Vergleich der bevorzugten Sprachen mit den Zielsprachen Ihres Projekts zeigt den Anteil des Traffics, der auf eine Barriere stößt.
-3. **Wert.** Zahlt sich Lokalisierung aus? Die Engagement-Lücke nach Sprache, die Seiten, auf die der nicht abgedeckte Traffic landet, und die Herkunft dieses Traffics zeigen, ob eine neue Sprache konvertiert.
+1. **Nachfrage.** Wie viele Besucher wünschen sich diese Sprache? Browser-Sprachen und das Land verraten dir, wo das Interesse liegt.
+2. **Die Lücke.** Wird diese Nachfrage bereits bedient? Der Vergleich der bevorzugten Sprachen gegen die Ziel-sprachen Ihres Projekts, die Sprachseite und die beworbenen Übersetzungen zeigt den Anteil des Verkehrs, der auf eine Wand stößt.
+3. **Wert.** Zahlt sich Lokalisierung aus? Das Engagement durch die lokale Lücke, die Seiten, auf die der unterversorgte Verkehr aufmerksam wird, und woher dieser Verkehr stammt, zeigen an, ob eine neue Lokale funktioniert.
 
-## Warum die Lücke in der Ingestion-Zeit berechnet wird
+## Warum die Lücke zum Zeitpunkt der Datenerfassung berechnet wird
 
-`served_locale` und `has_locale_gap` werden pro Event gespeichert, berechnet gemessen an Ihren Zielsprachen, wie sie zum Zeitpunkt des Besuchs waren. Dies bedeutet, dass historische Daten das Potenzial widerspiegeln, das Sie damals hatten, keine Neuberechnung gegen heutige Ziele. Wenn Sie Portugiesisch nächsten Monat hinzufügen, schrumpft die Lücke vom letzten Monat nicht retroaktiv; Sie erhalten ein ehrliches Bild davon, wie viel Nachfrage ungedeckt blieb.
+`served_locale` speichert die tatsächliche Seitensprache, die in `<html lang>` deklariert wurde, nicht die Sprache, die wir einem Besucher unterstellen. `has_locale_gap` vergleicht Browser-Präferenzen gegen Ihre Projektziele, die Seitensprache und Übersetzungen, die über `hreflang`-Links beworben werden. Beide werden pro Ereignis gespeichert, so wie sie zum Zeitpunkt des Besuchs waren. Das bedeutet, historische Daten spiegeln die Chance wider, die Sie damals sahen, nicht eine Neuberechnung gegen heutige Ziele. Wenn Sie nächsten Monat Portugiesisch hinzufügen, schrumpft die Lücke des letzten Monats nicht retroaktiv; Sie behalten einen ehrlichen Rekord über die Menge der unbedienten Nachfrage.
 
-## Warum ohne Cookies, insbesondere
+## Warum cookieless, insbesondere
 
-Der Instinkt, wenn Sie "eindeutige Besucher" wollen, ist, ein Cookie zu setzen oder den Browser zu fingerprinten. Beides erstellt langzeitstabile Identifikatoren, und Fingerprinting ist unter den meisten Datenschutzbestimmungen schwieriger zu löschen als ein Cookie. Beides ist hier nicht erforderlich.
+Die Neigung für "unique visitors" besteht darin, ein Cookie zu setzen oder den Browser zu fempaschenen. Beide geben langlebige Identifikatoren, und Fingerprinting ist, unter den meisten Datenschutzregimen, schwieriger zu löschen als ein Cookie. Hier ist keines davon nötig.
 
-Eindeutige Besucher für einen Tag erfordern lediglich einen stabilen Identifikator. *innerhalb des Tages*. Ein Hash der IP und User-Agent, der täglich rotiert und pro Projekt eingeschränkt ist, liefert genaue tägliche und wöchentliche Eindeutigkeiten und macht das Verknüpfen eines Besuchers über Tage oder Websites hinweg unmöglich. Sie verzichten auf die langfristige Verfolgung von Wiederbesuchern, was genau die Fähigkeit ist, die ein Datenschutzrisiko schafft und für die Sie sonst ein Einwilligungs-Banner benötigen würden, um rechtlich zu operieren.
+Einzigartige Besucher für einen Tag erfordern nur einen Identifier, der *innerhalb des Tages* stabil ist. Ein Hash von IP und User-Agent, täglich rotiert und pro Projekt begrenzt, unterstützt die täglichen Besucherzahlen, macht es aber unmöglich, Besucher über Tage oder über Websites hinweg zu verknüpfen. Dies bietet keine langfristige Nachverfolgung von wiederkehrenden Besuchern.
 
-Der Kompromiss ist bewusst: Lokalisierungsanalysen sollten etwas sein, das Sie überall an jeden Besucher bereitstellen können, ohne rechtliche Hürden.
+Dieses Design begrenzt die von Analytik beibehobenen Identifikatoren. Es klärt nicht, ob eine bestimmte Website eine Zustimmung erfordert; das hängt davon ab, wie die Website Analytik verwendet und welche Regeln für sie gelten.

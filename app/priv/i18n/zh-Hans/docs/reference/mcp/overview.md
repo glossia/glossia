@@ -1,43 +1,38 @@
 %{
-  title: "概览",
-  summary: "通过 Model Context Protocol 将代码代理连接到您的 Glossia 项目。",
+  title: "概述",
+  summary: "通过模型上下文协议将编码代理连接到您的 Glossia 项目。",
   category: "参考",
   subcategory: "mcp",
   order: 1
 }
 ---
-Glossia 提供一个 [模型上下文协议](https://modelcontextprotocol.io) (MCP) 服务器，使编码代理能够与您的本地化项目进行交互。该服务器实现了 OAuth 2.1 与 PKCE 及动态客户端注册 ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591))，因此任何兼容 MCP 的客户端均可进行身份验证，无需手动设置凭据。
+
+Glossia 提供一个 [模型上下文协议](https://modelcontextprotocol.io) (MCP) 服务器，让编程代理与您的本地化项目交互。该服务器实现了带有 PKCE 和动态客户端注册 ( [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591) ) 的 OAuth 2.1，因此任何兼容 MCP 的客户端都可以在无需手动设置凭据的情况下进行身份验证。
 
 ## MCP 服务器提供的功能
 
-连接后，编码代理可以：
+连接后，编程代理可以列出账户和项目，创建项目，管理组织成员和邀请，读取或更新语音和词汇表设置，并在其权限范围内管理账户模型和令牌。
 
-- 查询您所有项目的翻译状态
-- 触发翻译和修订
-- 检查配置和内容条目
-- 访问项目上下文以获取更智能的代码建议
+服务器当前未提供启动翻译或修订的工具，或检查文件级别的翻译状态。请查看 [工具参考](/docs/reference/mcp) 以了解可用工具。
 
 ## 服务器 URL
 
-| 环境 | URL |
-|---|---|
-| 生产 | `https://glossia.ai/mcp` |
-| 本地开发 | `http://localhost:4050/mcp` |
+连接到 Glossia 的托管服务 `https://glossia.ai/mcp`。Glossia 运行并维护此端点；您只需在您的编码代理中配置连接。
 
-## 认证流程
+## 身份验证流程
 
-MCP 服务器使用带有 PKCE 的标准 OAuth 2.1 授权码流程。您无需手动创建 OAuth 客户端。流程如下：
+MCP 服务器使用带有 PKCE 的标准 OAuth 2.1 授权码流程。您不需要手动创建 OAuth 客户端。流程如下：
 
-1. 代理通过此方式发现您的服务器 `/.well-known/oauth-authorization-server`
-2. 代理作为 OAuth 客户端通过动态注册端点注册自身
-3. 代理打开您的浏览器以进行登录和授权同意
-4. 在您批准后，代理会接收访问令牌并将其附加到所有 MCP 请求中
+1. 代理通过 `https://glossia.ai/.well-known/oauth-authorization-server` 发现 Glossia。
+2. 通过动态注册端点将自己注册为 OAuth 客户端
+3. 为您的登录和同意打开浏览器
+4. 在您批准后，代理接收访问令牌并将其附加到所有 MCP 请求
 
 ## 将 Glossia 添加到编程代理
 
 ### OpenAI Codex
 
-将服务器添加到您的 Codex 配置文件位置 `~/.codex/config.toml`:
+遵循 [Codex 连接指南](https://developers.openai.com/codex/mcp)，将服务器添加到您的 Codex 配置文件 `~/.codex/config.toml`：
 
 ```toml
 [mcp_servers.glossia]
@@ -50,7 +45,7 @@ url = "https://glossia.ai/mcp"
 codex mcp login glossia
 ```
 
-您的浏览器将打开以进行身份验证。批准后，Codex 会在本地存储令牌并用于后续会话。
+您的浏览器将打开进行身份验证。批准后，Codex 将令牌本地存储并在后续会话中使用。
 
 验证连接：
 
@@ -58,49 +53,35 @@ codex mcp login glossia
 codex mcp list
 ```
 
-本地开发时，替换 URL：
-
-```toml
-[mcp_servers.glossia-local]
-url = "http://localhost:4050/mcp"
-```
-
 ### Claude Code
 
-将服务器添加到您的 Claude Code MCP 设置（`.claude/settings.json` 或全局设置文件）：
+使用 [Claude Code 连接指南](https://code.claude.com/docs/en/mcp) 中记录的命令添加托管服务器：
 
-```json
-{
-  "mcpServers": {
-    "glossia": {
-      "url": "https://glossia.ai/mcp",
-      "transport": "streamable-http"
-    }
-  }
-}
+```bash
+claude mcp add --transport http glossia https://glossia.ai/mcp
 ```
 
-首次连接时，Claude Code 将自动处理 OAuth 流程。
+在 Claude Code 中运行 `/mcp`，并遵循浏览器身份验证流程。
 
 ### 其他 MCP 客户端
 
-任何支持以下 [MCP 授权规范](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization) 均可使用。关键要求如下：
+客户端必须支持由 Glossia 实现的 [模型上下文协议授权流程](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)。连接需要：
 
 - **传输**：流式 HTTP
-- **发现**：客户端必须支持 OAuth 2.0 受保护资源元数据 ([RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728))
-- **注册**：动态客户端注册 ([RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591)) 或 客户端 ID 元数据文档
-- **认证流程**: 使用 PKCE (S256) 的授权码
+- **发现**：客户端必须支持 OAuth 2.0 保护资源元数据 ( [RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728) )
+- **注册**：动态客户端注册 ( [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591) )
+- **授权流程**：带 PKCE (S256) 的授权码
 
-将客户端指向您的 Glossia MCP 服务器 URL，并让它自动处理发现和注册。
+将客户端指向 `https://glossia.ai/mcp`，并让其自动处理发现和注册。
 
 ## 发现端点
 
-服务器发布两个元数据文档，MCP 客户端使用它们来启动 OAuth 流程：
+服务器发布两个元数据文档，MCP 客户端使用这些文档启动 OAuth 流程：
 
 | 端点 | 描述 |
 |---|---|
 | `/.well-known/oauth-authorization-server` | 授权服务器元数据（端点、支持的授权类型、PKCE 方法） |
-| `/.well-known/oauth-protected-resource` | 受保护资源元数据（范围、授权服务器） |
+| `/.well-known/oauth-protected-resource` | 保护资源元数据（范围、授权服务器） |
 
 ## 速率限制
 
@@ -108,27 +89,27 @@ OAuth 端点实施速率限制以防止滥用：
 
 | 端点 | 限制 |
 |---|---|
-| `POST /oauth/register` | 5 每分钟请求 |
-| `POST /oauth/token` | 30 每分钟请求 |
-| `POST /oauth/introspect` | 30 每分钟请求 |
+| `POST /oauth/register` | 每分钟 5 次请求 |
+| `POST /oauth/token` | 每分钟 30 次请求 |
+| `POST /oauth/introspect` | 每分钟 30 次请求 |
 | `POST /oauth/revoke` | 每分钟 30 次请求 |
 
-当速率限制被超过时，服务器返回 HTTP 429 及一个 `Retry-After` 标头。
+当超过速率限制时，服务器返回 HTTP 429 及 `Retry-After` 标头。
 
-## 故障排除
+## 故障排查
 
-### 注册失败，错误为 "invalid\_client\_metadata"
+### 注册失败并显示 "invalid_client_metadata"
 
-动态注册端点仅接受特定 `token_endpoint_auth_method` 值。公开客户端（大多数编码代理）应发送 `"none"`, Glossia 会自动处理，通过回退到默认身份验证方法并强制执行 PKCE。
+动态注册端点仅接受特定的 `token_endpoint_auth_method` 值。公共客户端（大多数编码代理）应发送 `"none"`，Glossia 会自动处理，通过回退到带有 PKCE 强制执行的默认身份验证方法。
 
-### "OAuth 回调无效" 审批后
+### "无效的 OAuth 回传"批准后
 
-确保您的 Glossia 服务器正在运行，且可在您配置的 URL 处访问。回调发生在代码代理临时打开的本地端口上。防火墙或 VPN 有时会阻止此通信。
+确认您的编码代理可以访问 `https://glossia.ai`。回传发生在您的计算机上被代理临时打开的本地端口上。Glossia 仍托管；此本地监听器属于您的代理。防火墙或虚拟专用网络有时会阻止回传。
 
 ### 令牌交换失败
 
-请检查 `code_challenge_methods_supported` 字段是否存在于授权服务器元数据中。服务器必须支持 S256 协议以确保 PKCE 正常工作。Glossia 默认已包含此支持。
+请检查授权服务器元数据中是否存在 `code_challenge_methods_supported` 字段。服务器必须声明支持 PKCE 的 S256 以正常工作。Glossia 默认包含此项。
 
-### 代理无法连接服务器
+### 代理无法访问服务器
 
-进行本地开发时，请确保 Phoenix 服务器正在运行（`mix phx.server`），并监听预期的端口（默认：4050）。MCP 端点必须可被代理进程访问。
+请检查配置的端点是否为 `https://glossia.ai/mcp`，且您的网络允许编码代理访问该端点。如果托管服务仍然不可用，请联系 Glossia 支持。
