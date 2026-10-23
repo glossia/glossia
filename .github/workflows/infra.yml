@@ -172,6 +172,8 @@ jobs:
             --values infra/helm/observability/values-compact-hetzner.yaml \
             >/tmp/observability-compact-rendered.yaml
 
+          mise exec -- ruby infra/helm/platform/test/client_ip_test.rb
+
           validate_chart tailscale-apiserver-proxy-production infra/helm/tailscale-apiserver-proxy tailscale \
             --values infra/helm/tailscale-apiserver-proxy/values-production.yaml
 

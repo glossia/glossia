@@ -2,10 +2,10 @@
 # This chart is installed once per cluster, not per app release.
 #
 # Install:
-#   helm dependency update ops/infra/helm/platform
-#   helm upgrade --install platform ops/infra/helm/platform \
+#   helm dependency update infra/helm/platform
+#   helm upgrade --install platform infra/helm/platform \
 #     -n platform --create-namespace \
-#     -f ops/infra/helm/platform/values-hetzner.yaml
+#     -f infra/helm/platform/values-hetzner.yaml
 #
 # The Cloudflare API token is synchronized from Infisical by External Secrets
 # Operator after the platform controllers are installed.
@@ -114,12 +114,10 @@ ingress-nginx:
       # provision a plain public LB with its own defaults — works everywhere,
       # but without provider-native features like PROXY protocol.
       annotations: {}
-    # X-Forwarded-For from upstream proxies (Cloudflare, Hetzner LB) is
-    # the canonical client-IP source. PROXY protocol is OFF by default
-    # because Cloudflare's free/Pro plans don't pass it through; orange-
-    # cloud proxying breaks if ingress-nginx insists on it. Re-enable
-    # via a provider overlay only when the LB path is end-to-end PROXY-
-    # protocol-aware AND the front edge (Cloudflare) is gray-cloud.
+    # Preserve forwarded headers from upstream HTTP proxies such as Cloudflare.
+    # A TCP load balancer cannot add HTTP headers inside a TLS connection:
+    # provider overlays must pair PROXY protocol on the LB and nginx to preserve
+    # the connecting IP. Keep the generic chart independent of that capability.
     config:
       use-forwarded-headers: "true"
       compute-full-forwarded-for: "true"
