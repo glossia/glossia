@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "0c7154023b1a7b818a2c80e7e6f7e5951b2d24ff802952cde780450c485c54a0",
+  "hash": "989c0af2a9c52502890003884228f798eeb71b5792ee39c2c80d5169d3b7753c",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "7c7f5cd329465f56bb5b80c3c695a0330410e6f1cdd7fe5cc0dcac87a9457d31",
+          "hash": "8fa9f3045c0d6bf487e9cf570f41857e946008d2b01134670df1c47be9a50216",
           "kind": "source",
           "label": "app/priv/docs/explanation/language-memory-and-translation-memory.md",
           "metadata": {
-            "content_hash": "662678086eb950d409c06ca67ebe2cfd9fb20f540ece67f25dde0ee74b26bb61"
+            "content_hash": "59b64f4fa0434650f2fb03716a7389ac04cb1721a14b138620263b06d32b50dd"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "0c7154023b1a7b818a2c80e7e6f7e5951b2d24ff802952cde780450c485c54a0",
+      "hash": "989c0af2a9c52502890003884228f798eeb71b5792ee39c2c80d5169d3b7753c",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/language-memory-and-translation-memory.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "7caa90acffb24750cfdb6dd829613a9c089d1a931f6e136b9a22de2e6270c959",
+  "output_hash": "c2f028f8126079e7d9d10f5e96e0ae295eaff9c45ed2dfebca4c9f3097372b96",
   "output_path": "app/priv/i18n/ja/docs/explanation/language-memory-and-translation-memory.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "4b77452a9ba312dea7a18611a5f1888bd50c233d",
   "source_path": "app/priv/docs/explanation/language-memory-and-translation-memory.md",
-  "translated_at": "2026-10-20T07:42:06.703913Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-23T09:06:23.680682Z",
+  "translation_session_id": "01a167f8-3075-7b15-b4d2-bdb3638edb55"
 }
