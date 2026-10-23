@@ -130,6 +130,13 @@ If a need is not covered by Noora, add a new component to `noora` upstream rathe
 
 Every data table follows the established Tuist table pattern: a debounced search field, the Noora filter dropdown, active-filter controls, and sortable column headers. Keep search, filter, sort column, and sort direction in the URL so a table view is shareable and survives navigation. Use `<.table>` column `patch` and `sort_order` attributes for sorting rather than bespoke header controls.
 
+### Empty states
+
+- Follow Tuist's empty-state pattern: use `<Noora.Table.table_empty_state>` with an `icon`, `title`, and contextual `subtitle`. Put it in the table's `<:empty_state>` slot instead of leaving only column headers or rendering a bare message.
+- Keep resource cards visible when empty. Explain whether results are still pending, everything is already up to date, or the session finished without output. Replace the empty state when data arrives.
+- **Noora 0.86 scopes empty-state styles to a `.noora-table` ancestor.** Outside a table (for example, an empty activity card), apply that styling scope to the containing `<Noora.Card.card_section>` only while empty. Preserve the card's background with a route-scoped override using `--noora-surface-background-primary`; the table scope otherwise gives it a table-header background. See `session_detail_page/1` and `app/assets/css/routes/translation-session.css`.
+- Verify empty states in a real browser, including screenshots. Markup assertions alone do not catch missing CSS scope: check centered layout, icon treatment, typography, and background, as well as the transition to populated content.
+
 ### Three-tier token architecture
 
 Tokens are CSS custom properties defined in `:root`. They are organized in three tiers:
