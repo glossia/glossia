@@ -2265,11 +2265,6 @@ msgstr "语言"
 msgid "No discussions found."
 msgstr "未找到讨论。"
 
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "No events recorded yet."
-msgstr "尚未记录任何事件。"
-
 #: lib/glossia_web/live/admin_live.ex
 #, elixir-autogen, elixir-format
 msgid "Reopen discussion"
@@ -5540,3 +5535,38 @@ msgstr "未记录"
 #, elixir-autogen, elixir-format
 msgid "Translation engine"
 msgstr "翻译引擎"
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "All files are up to date. No translations were needed."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Files will appear here when translation starts."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "No activity recorded"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "No translated files"
+msgstr "暂无翻译"
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Session activity will appear here as the translation runs."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "This session did not produce any translated files."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "This session has no recorded activity."
+msgstr ""
