@@ -20,10 +20,13 @@ defmodule GlossiaWeb.LegalControllerTest do
     refute response =~ "commercial or competing hosted services"
   end
 
-  test "localized terms fall back to the current O'Saasy policy", %{conn: conn} do
+  test "localized terms serve the current O'Saasy policy", %{conn: conn} do
     response = conn |> get(~p"/es/terms") |> html_response(200)
+    version = Glossia.Legal.latest_version!("terms", "es")
 
-    assert response =~ "directly compete with the original licensor"
+    assert version.date == Glossia.Legal.latest_version!("terms").date
+    assert response =~ version.body
+    assert response =~ ~s(href="https://github.com/glossia/glossia/blob/main/LICENSE.md")
     assert response |> LazyHTML.from_document() |> LazyHTML.text() =~ "Licencia O'Saasy"
     refute response =~ "MPL-2.0"
   end
