@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "c8a67af1e6f9ea3c96d9e2945e2370a7265705f1c6b66f6171870e63b59d979a",
+  "hash": "f4f81c9ba3dc48a120c430f471975d9b8d08b434478fe2d107facefe8d925906",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "155f6b001c0d0a3f64b81cf06bfb2f9d212037bedf2a57c64939b2cd7d2d66ff",
+          "hash": "18fd9d3af8dd40215d128553d37ac1db56429dbc5b4342c5f35fd064c2fee56c",
           "kind": "source",
           "label": "app/priv/docs/explanation/glossia-vs-lokalise.md",
           "metadata": {
-            "content_hash": "b362e595eb6f06f4c38eea52f2677e405cb6bf0f5dc9eaf4fdbd58f589e66338"
+            "content_hash": "42b2740535cab5f56e03fff38336d045da9fae1373bfb6568f51293b39f53ecd"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "c8a67af1e6f9ea3c96d9e2945e2370a7265705f1c6b66f6171870e63b59d979a",
+      "hash": "f4f81c9ba3dc48a120c430f471975d9b8d08b434478fe2d107facefe8d925906",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/glossia-vs-lokalise.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "69354221674dba00be7ccff420c745e9ebc99baf2cfdc714d73f5ea1a61c8c36",
+  "output_hash": "50877133958fc33977afcd61dbfbcaabaa0a83466e7831886815f308af027f24",
   "output_path": "app/priv/i18n/es/docs/explanation/glossia-vs-lokalise.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "332b69d61da7d2affecc133ed0cd7a65ade91864",
   "source_path": "app/priv/docs/explanation/glossia-vs-lokalise.md",
-  "translated_at": "2026-10-20T07:41:36.638467Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-23T08:47:45.850815Z",
+  "translation_session_id": "01a167e9-49d0-77fd-9489-eccf6b1bb080"
 }

@@ -1,46 +1,47 @@
 %{
   title: "Glossia frente a Crowdin",
   summary:
-    "Elige Glossia para mantener la localización en Git, traer tus propios tokens del modelo y validar con las comprobaciones de tu repositorio.",
+    "Elige Glossia para mantener la localización en Git, llevar tus propios tokens de modelo y validar con las comprobaciones de tu repositorio.",
   category: "explicación",
+  markdown_only: true,
   section: "translation",
   order: 20
 }
 ---
 
-**Elige Glossia cuando la localización necesita avanzar a la velocidad de su entrega de software.** Su repositorio ya define cómo se revisan, validan y envían los cambios. Glossia integra la labor lingüística en ese ciclo en lugar de convertir el centro de funcionamiento de su proceso en un espacio de trabajo de traducción separado.
+**Elige Glossia cuando la localización necesite moverse a la velocidad de la entrega de tu software.** Tu repositorio ya define cómo se revisan, validan y se despliegan los cambios. Glossia integra el trabajo de idioma en ese ciclo en lugar de convertir un espacio de trabajo de traducción independiente en el centro de tu proceso.
 
-[Crowdin](https://crowdin.com/) proporciona gestión colaborativa de traducción, flujos de trabajo de revisión, memorias de traducción e integraciones de repositorio. La ventaja de Glossia para un equipo de software es la combinación de contenido propiedad del repositorio, fuente inspeccionable, sus propias credenciales del modelo y validación que comprende el proyecto real.
+[Crowdin](https://crowdin.com/) proporciona la gestión colaborativa de traducción, flujos de trabajo de revisión, memorias de traducción e integraciones de repositorio. La ventaja de Glossia para un equipo de software es la combinación de contenido propiedad del repositorio, fuente inspectable, tus propias credenciales de modelo y validación que comprende el proyecto real.
 
-## ¿Por qué elegir Glossia
+## ¿Por qué elegir Glossia?
 
-| Su prioridad | La ventaja de Glossia |
+| Tu prioridad | La ventaja de Glossia |
 |---|---|
-| Entregar continuamente | Las ejecuciones de traducción siguen los cambios en la fuente y devuelven actualizaciones de repositorio revisables. El contenido no necesita un proceso de publicación independiente. |
-| Mantenga el control de la implementación | La aplicación pública, la CLI y el código de despliegue pueden revisarse, modificarse y autoalojarse bajo los términos de la licencia. |
-| Trae tus propios tokens | Configure modelos admitidos con sus propios tokens de API del proveedor. Los archivos del repositorio apuntan a manejos de modelo estables, no a secretos. |
-| Reutilice las comprobaciones que confía | Ejecuta un comando de validación de repositorio contra el candidato en su ruta real de destino antes de aceptarlo. |
-| Mantenga su contenido | Los archivos fuente, los resultados traducidos, la configuración e historial de solicitudes de extracción permanecen en su repositorio. |
+| Entrega continuamente | Las ejecuciones de traducción siguen los cambios del origen y devuelven actualizaciones del repositorio revisables. El contenido no necesita un proceso de lanzamiento independiente sin relación. |
+| Mantén el control de la implementación | La aplicación pública, la CLI y el código de despliegue pueden inspeccionarse, modificarse y auto-alojarse bajo los términos de licencia. |
+| Lleva tus propios tokens | Configura modelos compatibles con tus propios tokens de API del proveedor. Los archivos del repositorio hacen referencia a manejadores de modelo estables, no a secretos. |
+| Reutiliza los controles que confías | Ejecuta un comando de validación del repositorio contra el candidato en su ruta de destino real antes de aceptarlo. |
+| Mantén el contenido tuyo | Los archivos del origen, las salidas traducidas, la configuración y el historial de solicitudes de extracción permanecen en tu repositorio. |
 
-## Localización que mantiene el ritmo de los commits
+## Localización que se mantiene al día con los commits
 
-Glossia funciona desde las instrucciones versionadas de `L10N.md` y detecta qué contenido necesita actualizarse. Las entradas sin cambios no necesitan traducirse de nuevo. Un proyecto mantiene una solicitud de extracción de traducción abierta y publica el progreso en lotes, reduciendo solicitudes de extracción innecesarias y ejecuciones de CI repetidas a medida que evoluciona la fuente.
+Glossia funciona a partir de instrucciones versionadas `L10N.md` y detecta qué contenido necesita actualización. Las entradas sin cambios no necesitan ser traducidas nuevamente. Un proyecto mantiene una solicitud de extracción de traducción abierta y publica el progreso por lotes, reduciendo solicitudes de extracción innecesarias y ejecuciones repetidas de CI a medida que el origen evoluciona.
 
-El resultado es un flujo de trabajo lingüístico diseñado alrededor de los mismos pequeños cambios revisables que su equipo ya envía. Continuo no significa sin revisión: los revisores aún deciden qué es seguro fusionar.
+El resultado es un flujo de trabajo de idioma diseñado alrededor de los mismos pequeños cambios revisables que tu equipo ya entrega. Continuo no significa sin revisión: los revisores aún deciden qué es seguro fusionar.
 
-Crowdin también integra soporte para integraciones con Git y automatización. La razón para elegir Glossia no es que Crowdin no pueda conectarse a un repositorio; el motivo es que la entrega del repositorio es la base del flujo de trabajo de Glossia, no solo un límite de integración.
+Crowdin también soporta integraciones de Git y automatización. La razón para elegir Glossia no es que Crowdin no pueda conectarse a un repositorio; es que la entrega del repositorio es la base del flujo de trabajo de Glossia, no solo un límite de integración.
 
-## Sus tokens, sus elecciones de modelo
+## Tus tokens, tus elecciones de modelo
 
-No debería tener que reconstruir la configuración del repositorio para rotar un token del proveedor o cambiar el modelo detrás de un flujo de trabajo de traducción. Glossia guarda credenciales en la configuración de la cuenta y expone manejos estables al repositorio. Diferentes áreas de contenido o localizaciones objetivo pueden seleccionar modelos configurados diferentes.
+No debes tener que volver a construir la configuración del repositorio para rotar un token del proveedor o cambiar el modelo detrás de un flujo de trabajo de traducción. Glossia almacena las credenciales en la configuración de la cuenta y expone identificaciones estables al repositorio. Diferentes áreas de contenido o idiomas destino pueden seleccionar diferentes modelos configurados.
 
-Vea [Configurar un proveedor de modelo](/docs/how-to/configure-a-model-provider).
+Esto da a tu equipo control sobre las relaciones de proveedor soportadas y las elecciones de modelo que usa. Consulta [Configurar un proveedor de modelo](/docs/how-to/configure-a-model-provider).
 
-## Valide el resultado como parte de su producto
+## Valida la salida como parte de tu producto
 
-Una traducción puede leerse bien y aún así romper una compilación de documentación, un componente, un marcador de posición o un analizador de aplicaciones. Glossia le permite reutilizar una comprobación de repositorio en lugar de detenerse en la evaluación de un editor del texto.
+Una traducción puede redactarse bien y aún así romper un build de documentación, un componente, un marcador de posición o un analizador de aplicación. Glossia te permite reutilizar una verificación del repositorio en lugar de detenerte en una evaluación del editor del texto.
 
-Si su repositorio ya proporciona un script de validación de documentación, refiérase directamente a él:
+Si tu repositorio ya proporciona un script de validación de documentación, menciona directamente:
 
 ```yaml
 validation:
@@ -48,14 +49,14 @@ validation:
   - --strict
 ```
 
-El validador recibe al candidato en su ruta de destino real, devuelve un estado no cero en caso de error y corre dentro del presupuesto de reintento configurado. Sus dependencias deben estar disponibles en el entorno de validación. Consulte [L10N.md](/docs/reference/l10n-md) para el contrato.
+El validador recibe al candidato en su ruta de destino real, devuelve un estado no nulo en caso de error y se ejecuta dentro del presupuesto de reintento configurado. Sus dependencias deben estar disponibles en el entorno de validación. Ver [L10N.md](/docs/reference/l10n-md) para el contrato.
 
-## Fuente pública, sin entregar el repositorio
+## Fuente pública, sin ceder el repositorio
 
-Puede inspeccionar cómo funcionan los planes de Glossia, maneja credenciales, preserva Markdown y valida un resultado. Los archivos traducidos existentes permanecen publicables a través del pipeline de su repositorio incluso si el servicio lingüístico no está disponible.
+Puedes inspeccionar cómo funcionan los planes de Glossia, manejan las credenciales, preservan Markdown y validan un resultado. Los archivos traducidos existentes permanecen publicables a través del pipeline de tu repositorio incluso si el servicio de idioma no está disponible.
 
-Glossia está disponible bajo fuente con la [licencia O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md), que permite el autoalojamiento pero restringe los servicios alojados competidores. No es una licencia de código abierto sin restricciones.
+Glossia está disponible bajo la licencia Source-available de la [O'Saasy license](https://github.com/glossia/glossia/blob/main/LICENSE.md), lo cual permite el autoalojamiento pero restringe los servicios competidores alojados. No es una licencia de código abierto sin restricciones.
 
-Crowdin aún puede ser apropiado para un programa centrado en la coordinación de contribuyentes y un editor de traducción dedicado. Para un equipo de software cuya prioridad es **contenido propiedad de Git, validación existente y localización que sigue la entrega**, Glossia está diseñado para ese trabajo.
+Crowdin aún puede ser adecuado para un programa centrado en la coordinación de colaboradores y un editor de traducción dedicado. Para un equipo de software cuya prioridad es **el contenido propiedad de Git, la validación existente y la localización que sigue la entrega**, Glossia está diseñado para ese trabajo.
 
-Esta comparación no afirma que Crowdin carezca de automatización ni de toda forma de integración del proveedor, ni que Glossia migre automáticamente sus memorias e historial. Consulte [Documentación de Crowdin](https://support.crowdin.com/) para las capacidades actuales.
+Esta comparación no afirma que Crowdin carezca de automatización o de toda forma de integración del proveedor, o que Glossia migre automáticamente sus memorias e historial. Consulta [Crowdin's documentation](https://support.crowdin.com/) para las capacidades actuales.

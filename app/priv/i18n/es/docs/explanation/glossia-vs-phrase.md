@@ -1,53 +1,54 @@
 %{
   title: "Glossia vs Phrase",
   summary:
-    "Elige un flujo de trabajo nativo del repositorio con fuente pública, tus propios tokens del modelo y verificaciones de entrega reutilizables.",
+    "Elige un flujo de trabajo de lenguaje nativo del repositorio con fuente pública, tus propios tokens de modelo y comprobaciones de entrega reutilizables.",
   category: "explicación",
+  markdown_only: true,
   section: "translation",
   order: 22
 }
 ---
 
-**Elige Glossia cuando quieras que el trabajo lingüístico siga el sistema de entrega de tu producto, en lugar de crear un proceso paralelo de gestión de traducciones alrededor de él.** Mantén el contenido en Git, elige modelos admitidos usando tus propias credenciales y valida los resultados con las comprobaciones a las que tu repositorio ya confía.
+**Elija Glossia cuando desee que el trabajo lingüístico siga el sistema de entrega de su producto, en lugar de construir un proceso paralelo de gestión de traducción a su alrededores.** Mantenga el contenido en Git, elija modelos admitidos utilizando sus propias credenciales y valide los resultados con las comprobaciones que su repositorio ya confía.
 
-[Phrase](https://phrase.com/) ofrece una Suite de localización, incluido Phrase Strings y Phrase TMS para diferentes necesidades de localización de software y traducción gestionada. Glossia adopta un enfoque centrado: ofrece a los equipos de software un sistema operativo de idioma que se ajusta a su ciclo existente de revisión y entrega.
+[Phrase](https://phrase.com/) ofrece una suite de localización, incluidas Phrase Strings y Phrase TMS para diferentes necesidades de localización de software y de traducción gestionada. Glossia toma un enfoque enfocado: ofrece a los equipos de software un sistema operativo de idioma que se adapta a su bucle existente de revisión y entrega.
 
-## ## ¿Por qué elegir Glossia
+## ¿Por qué elegir Glossia
 
-| Tu prioridad | La ventaja de Glossia |
+| Su prioridad | La ventaja de Glossia |
 |---|---|
-| Entrega cambios de idioma con software | Los cambios del repositorio impulsan la localización y las salidas regresan como cambios revisables. |
-| Inspecciona y controla el procesamiento | El código fuente público expone la aplicación e implementación de despliegue, con modificación y autoalojamiento permitidos según los términos de la licencia. |
-| Trae tus propios tokens | Configura tus propias credenciales de proveedor de modelos admitidos; selecciona modelos a través de manejadores de cuenta en la configuración del repositorio. |
-| Reutiliza los pipelines de validación | Ejecuta comprobaciones nativas del repositorio en candidatos de traducción en lugar de tratar la aprobación lingüística como prueba de que un archivo se compilará. |
-| Conserva una propiedad duradera | Los archivos publicados, la configuración y el historial de solicitudes de extracción permanecen con el repositorio. |
+| Integrar cambios lingüísticos con el software | Los cambios del repositorio impulsan la localización, y los resultados regresan como cambios susceptibles de revisión. |
+| Revise y tome el control del procesamiento | El código fuente público expone la implementación de la aplicación y del despliegue, con modificación y autoalojamiento permitidos bajo los términos de la licencia. |
+| Utilice sus propios tokens | Configure sus propias credenciales de proveedor de modelos admitidos; seleccione modelos a través de los manejadores de cuenta en la configuración del repositorio. |
+| Reutilice los pipelines de validación | Ejecuta comprobaciones nativas del repositorio en los candidatos de traducción en lugar de considerar la aprobación lingüística como prueba de que un archivo se construirá. |
+| Mantenga una propiedad duradera | Los archivos publicados, la configuración y el historial de solicitudes de extracción permanecen con el repositorio. |
 
-## ## Incoporap la localización en la entrega continua
+## Integre la localización como parte de la entrega continua
 
-La detección de cambios de Glossia evita repetir el trabajo de traducción para entradas sin cambios. Su flujo de trabajo del repositorio mantiene una solicitud de extracción de traducción abierta por proyecto y publica el progreso por lotes, de modo que un repositorio fuente de cambios frecuentes no necesita un nuevo proceso de traducción para cada cambio pequeño.
+La detección de cambios de Glossia evita repetir el trabajo de traducción para entradas sin cambios. Su flujo de trabajo del repositorio mantiene un solicitud de extracción de traducción abierta por proyecto y publica el progreso en lotes, por lo que un repositorio de origen de rápida evolución no necesita un nuevo proceso de traducción para cada pequeño cambio.
 
-El objetivo no es una carrera a la producción sin revisión. Es hacer que el trabajo lingüístico sea continuamente revisable y entregable a través del pipeline que tu equipo ya utiliza.
+El objetivo no es una carrera sin revisión hacia la producción. Se trata de hacer que el trabajo lingüístico sea continuamente revisable y entregable a través del pipeline que ya utiliza su equipo.
 
-Phrase también ofrece APIs, integraciones y automatización. La ventaja que enfatiza Glossia es la alineación arquitectónica: el repositorio permanece como la autoridad de contenido y el límite de entrega, en lugar de ser solo un lugar para sincronizar los resultados de otro espacio de trabajo.
+Phrase también ofrece API, integraciones y automatización. La ventaja que resalta Glossia es la alineación arquitectónica: el repositorio permanece como la autoridad de contenido y el límite de entrega, en lugar de ser solo un lugar para sincronizar los resultados de otro espacio de trabajo.
 
-## Mantén la elección de modelo y las credenciales bajo tu control
+## Mantenga la elección del modelo y las credenciales bajo su control
 
-Glossia acepta tus propios tokens de API de proveedor para modelos admitidos. Las credenciales permanecen en la configuración de la cuenta; los repositorios seleccionan manejadores estables. Un equipo puede rotar un token o cambiar el modelo detrás de un manejador sin reescribir sus instrucciones del repositorio.
+Glossia acepta sus propios tokens de API del proveedor para los modelos admitidos. Las credenciales se mantienen en la configuración de la cuenta; los repositorios seleccionan manejadores estables. Un equipo puede rotar un token o cambiar el modelo detrás de un manejador sin reescribir sus instrucciones del repositorio.
 
-Diferentes ámbitos de contenido y lenguajes objetivo pueden usar modelos configurados diferentes. Los modelos de decisión opcionales pueden evaluar traducciones completas y solicitar correcciones, mientras que los humanos permanecen responsables del juicio lingüístico. Consulta los [Modelos de cuenta](./account-models) para el comportamiento y los límites actuales.
+Diferentes alcances de contenido y idiomas objetivo pueden usar diferentes modelos configurados. Los modelos de decisión opcionales pueden evaluar traducciones completas y solicitar correcciones, mientras que los humanos permanecen responsables del juicio lingüístico. Vea [Modelos de cuenta](./account-models) para el comportamiento actual y los límites.
 
-## ## Tu repositorio ya sabe lo que significa el contenido válido
+## Su repositorio ya sabe qué significa el contenido válido
 
-La visión de un sistema de gestión de traducción sobre una cadena no es necesariamente la visión de la aplicación sobre un archivo. Un repositorio puede tener su propio analizador, compilador, reglas de componente, construcción de documentación y comprobaciones de marcador de posición.
+La vista de un sistema de gestión de traducción de una cadena no es necesariamente la vista de la aplicación de un archivo. Un repositorio puede tener su propio analizador, compilador, reglas de componente, construcción de documentación y comprobaciones de marcadores.
 
-Glossia puede reutilizar esas comprobaciones mediante `L10N.md` comandos de validación. Escribe temporalmente al candidato a su ruta de destino real para validación y lo acepta solo después de que se cumplan las comprobaciones requeridas. El comando y sus dependencias deben estar disponibles en el entorno de ejecución.
+Glossia puede reutilizar esas comprobaciones a través de `L10N.md` comandos de validación. Escribe el candidato temporalmente en su ruta de destino real para la validación y solo lo acepta después de que las comprobaciones requeridas pasen. El comando y sus dependencias deben estar disponibles en el entorno de ejecución.
 
-Esto permite al equipo extender su límite de calidad existente en lugar de mantener una definición separada de "válido" exclusivamente dentro de un espacio de trabajo de traducción. Consulta [L10N.md](/docs/reference/l10n-md).
+Esto permite al equipo extender su límite de calidad existente en lugar de mantener una definición separada de "válido" exclusivamente dentro de un espacio de trabajo de traducción. Vea [L10N.md](/docs/reference/l10n-md).
 
-## ## Implementación pública, no una caja negra
+## Implementación pública, no una caja negra
 
-La aplicación de Glossia, CLI, SDK y fuentes de despliegue son públicas. Puedes inspeccionar cómo se maneja el contenido y modificar o autoalojar la implementación bajo el [licencia O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md). La licencia limita los servicios alojados competidores y no es una licencia de código abierto sin restricciones.
+Las aplicaciones, CLI, SDK y fuentes de implementación de Glossia son públicas. Puede inspeccionar cómo se maneja el contenido y modificar o autoalojar la implementación bajo la [O'Saasy license](https://github.com/glossia/glossia/blob/main/LICENSE.md). La licencia restringe los servicios alojados competidores y no es una licencia de código abierto sin restricciones.
 
-Un conjunto de traducción más amplio puede tener sentido para operaciones de traducción especializadas y coordinación compleja. Si tu prioridad es **hacer coincidir la velocidad de entrega de software con tus propios tokens y comprobaciones del repositorio**, Glossia está diseñado para mantener ese flujo de trabajo directo.
+Una suite de traducción más amplia puede tener sentido para operaciones especializadas de traducción y coordinación compleja. Si su prioridad es **adaptar la velocidad de entrega de software con sus propios tokens y las comprobaciones del repositorio**, Glossia está diseñado para mantener ese flujo de trabajo directo.
 
-Mover un programa de traducción establecido aún requiere un plan para sus memorias, terminología e historial. Esta página no promete un importador automático de Phrase o una paridad completa del conjunto, ni afirma que Phrase carezca de todas las integraciones equivalentes. Consulta la [documentación de Phrase](https://support.phrase.com/) para las capacidades actuales del producto específico.
+Mover un programa establecido de traducción aún requiere un plan para sus memorias, terminología e historial. Esta página no promete un importador de Phrase automático ni paridad completa de la suite, ni afirma que Phrase falte todas las integraciones equivalentes. Consulte [documentación de Phrase](https://support.phrase.com/) para las capacidades actuales del producto específico.
