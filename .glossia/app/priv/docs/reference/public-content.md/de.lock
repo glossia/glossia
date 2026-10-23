@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "b33d063e5f86f85d2e10aa797543401c3d0547b66dba06b91bf6174c38d10237",
+  "hash": "023127832d74027d6a268f532c28aef5a53dd7035d3bb18c5cbd5b839c9c62fd",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "45017a5820f76265e99ba2338a9a6ff5752bfb20338a412cbdb9dea722e62480",
+          "hash": "c8385d21e57fa0bd5831219b3788f1bf63e7f1616d3b2dc5fc44ef6a0105c2e3",
           "kind": "source",
           "label": "app/priv/docs/reference/public-content.md",
           "metadata": {
-            "content_hash": "2c4e0951a26a32b3e0dbfa38e5b3edf5dfa628c4acdc550914c10bd984a2bdb4"
+            "content_hash": "19ed4d2d8d449ab73725a13934743d00ecd311d256c529130c4112d6ad096688"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "b33d063e5f86f85d2e10aa797543401c3d0547b66dba06b91bf6174c38d10237",
+      "hash": "023127832d74027d6a268f532c28aef5a53dd7035d3bb18c5cbd5b839c9c62fd",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/public-content.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "677b129087615d132a09b63fc0b0f5841ec36121974a7718e878ee08b59c8530",
+  "output_hash": "e027933bc56be6711eef630e33baff50c8350dd3c341e7da51f9b467fe6fb40b",
   "output_path": "app/priv/i18n/de/docs/reference/public-content.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "4b77452a9ba312dea7a18611a5f1888bd50c233d",
   "source_path": "app/priv/docs/reference/public-content.md",
-  "translated_at": "2026-10-20T07:47:43.390105Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-23T09:13:42.090650Z",
+  "translation_session_id": "01a167f8-3075-7b15-b4d2-bdb3638edb55"
 }

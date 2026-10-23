@@ -5546,34 +5546,34 @@ msgstr "Moteur de traduction"
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "All files are up to date. No translations were needed."
-msgstr ""
+msgstr "Tous les fichiers sont à jour. Aucune traduction n'était nécessaire."
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Files will appear here when translation starts."
-msgstr ""
+msgstr "Les fichiers apparaîtront ici lorsque la traduction commencera."
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "No activity recorded"
-msgstr ""
+msgstr "Aucune activité enregistrée"
 
 #: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "No translated files"
-msgstr "Pas de traductions"
+msgstr "Aucun fichier traduit"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Session activity will appear here as the translation runs."
-msgstr ""
+msgstr "L'activité de session apparaîtra ici pendant que la traduction se déroule."
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "This session did not produce any translated files."
-msgstr ""
+msgstr "Cette session n'a produit aucun fichier traduit."
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "This session has no recorded activity."
-msgstr ""
+msgstr "Cette session n'a pas d'activité enregistrée."
