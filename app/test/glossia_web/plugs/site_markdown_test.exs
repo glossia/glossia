@@ -32,6 +32,24 @@ defmodule GlossiaWeb.Plugs.SiteMarkdownTest do
     end
   end
 
+  test "Markdown-only comparisons use their Markdown URL as the canonical URL" do
+    for locale <- I18n.locales(), page <- Docs.markdown_only_pages(locale) do
+      path = I18n.localize_path(locale, Docs.path_for(page))
+      markdown_path = PublicContent.markdown_path(path)
+      canonical = GlossiaWeb.Endpoint.url() |> URI.merge(markdown_path) |> URI.to_string()
+      explicit = conn(:get, markdown_path) |> SiteMarkdown.call([])
+
+      negotiated =
+        conn(:get, path) |> put_req_header("accept", "text/markdown") |> SiteMarkdown.call([])
+
+      assert explicit.status == 200
+      assert explicit.resp_body =~ page.raw_markdown
+      assert negotiated.resp_body == explicit.resp_body
+      assert hd(get_resp_header(explicit, "link")) =~ ~s(<#{canonical}>; rel="canonical")
+      refute (conn(:get, path) |> SiteMarkdown.call([])).halted
+    end
+  end
+
   test "negotiates Markdown before browser language redirects" do
     conn =
       conn(:get, "/docs/tutorials/getting-started")

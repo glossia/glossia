@@ -34,8 +34,6 @@ La guía de voz y la terminología ayudan tanto a humanos como a agentes a escri
 
 Las memorias de traducción siguen siendo útiles para las traducciones establecidas y el contenido repetitivo. El objetivo no es descartarlas. El objetivo es evitar hacer el formato de memoria o el flujo de edición de un proveedor el único lugar donde el conocimiento lingüístico de una empresa pueda residir.
 
-Consulte [Memoria lingüística y memoria de traducción](./language-memory-and-translation-memory).
-
 ## La mejora es un ciclo
 
 El modelo de refinamiento progresivo de Glossia utiliza hashes de contenido para evitar trabajo redundante, ejecuta validación alrededor de transformaciones y expone fallos para que una ejecución pueda recuperarse. Las correcciones humanas pueden informar la siguiente iteración en lugar de desaparecer en una generación aislada.
@@ -45,8 +43,6 @@ El análisis de localización proporciona otra entrada: comprender los idiomas y
 ## ¿A quién le sirve?
 
 Glossia es especialmente relevante cuando desarrolladores, lingüistas y equipos de producto desean colaborar en contenido gestionado por repositorio y publicarlo de forma continua. No es un reclamo de que cada organización deba abandonar su TMS existente. Un equipo cuyo requisito central sea un editor basado en navegador maduro, la coordinación con una agencia de traducción o una memoria grande y establecida podría preferir otro flujo.
-
-Las comparaciones de [Crowdin](./glossia-vs-crowdin), [Lokalise](./glossia-vs-lokalise), [Phrase](./glossia-vs-phrase) y [Weblate](./glossia-vs-weblate) explican esos compromisos.
 
 ## Implementación inspeccionable
 

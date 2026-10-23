@@ -33,8 +33,6 @@ Voice guidance and terminology help both humans and agents write consistently. T
 
 Translation memories remain useful for established translations and repetitive content. The point is not to discard them. The point is to avoid making one vendor's memory format or editing workflow the only place where a company's language knowledge can live.
 
-See [Language memory and translation memory](./language-memory-and-translation-memory).
-
 ## Improvement is a loop
 
 Glossia's progressive-refinement model uses content hashes to avoid redundant work, runs validation around transformations, and exposes failures so a run can recover. Human corrections can inform the next iteration rather than disappearing into an isolated generation.
@@ -44,8 +42,6 @@ Localization analytics provides another input: understanding the languages and p
 ## Who this fits
 
 Glossia is especially relevant when developers, linguists, and product teams want to collaborate on repository-managed content and release it continuously. It is not a claim that every organization should abandon its existing TMS. A team whose central requirement is a mature browser-based editor, translation-agency coordination, or a large established memory may prefer another workflow.
-
-The [Crowdin](./glossia-vs-crowdin), [Lokalise](./glossia-vs-lokalise), [Phrase](./glossia-vs-phrase), and [Weblate](./glossia-vs-weblate) comparisons explain those tradeoffs.
 
 ## Inspectable implementation
 

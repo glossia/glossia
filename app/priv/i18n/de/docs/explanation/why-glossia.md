@@ -34,8 +34,6 @@ Stimme-Richtlinien und Terminologie helfen sowohl Menschen als auch Agenten, kon
 
 Übersetzungsspeicher bleiben für etablierte Übersetzungen und wiederkehrenden Inhalt nützlich. Es geht nicht darum, sie wegzuwerfen. Es geht darum, eines beliebigen Herstellers Speicherformat oder Bearbeitungsablauf als einzigen Ort zu vermeiden, an dem Sprachwissen eines Unternehmens leben kann.
 
-Siehe [Sprachspeicher und Translationsspeicher](./language-memory-and-translation-memory).
-
 ## Verbesserung ist ein Zyklus
 
 Das schrittweise-Verfeinerungs-Modell von Glossia verwendet Inhalts-Hashes, um überflüssige Arbeit zu vermeiden, führt Validierung um Transformationen herum durch und offenbart Fehler, damit ein Lauf von selbst wiederhergestellt werden kann. Menschliche Korrekturen können die nächste Iteration informieren, statt in eine isolierte Generierung zu verschwinden.
@@ -45,8 +43,6 @@ Lokalisierungsanalytik liefert eine weitere Eingabe: das Verstehen der Sprachen 
 ## Für wen passt das
 
 Glossia ist besonders relevant, wenn Entwickler, Linguisten und Produktteams Lust auf Zusammenarbeit an repository-verwalteten Inhalten haben und es kontinuierlich verfügbar machen. Es ist nicht eine Behauptung, dass jede Organisation ihren bestehenden TMS zugunsten verschrotten sollte. Ein Team, dessen zentrales Erfordernis ein ausgereifter browserbasierter Editor, Übersetzungs-Agentur-Koordination oder ein großer etablierter Speicher sein muss, kann einen anderen Workflow bevorzugen.
-
-Die [Crowdin](./glossia-vs-crowdin), [Lokalise](./glossia-vs-lokalise), [Phrase](./glossia-vs-phrase) und [Weblate](./glossia-vs-weblate)-Vergleiche erklären diese Abwägungen.
 
 ## Überprüfbare Implementierung
 

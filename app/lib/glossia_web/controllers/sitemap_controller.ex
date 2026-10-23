@@ -1,7 +1,7 @@
 defmodule GlossiaWeb.SitemapController do
   use GlossiaWeb, :controller
 
-  alias Glossia.{Blog, Changelog, Docs, Features, I18n, Legal}
+  alias Glossia.{Blog, Changelog, Docs, Features, I18n, Legal, PublicContent}
 
   def show(conn, _params) do
     base_url = GlossiaWeb.Endpoint.url()
@@ -18,6 +18,9 @@ defmodule GlossiaWeb.SitemapController do
         Enum.map(Blog.all_posts(), &%{path: ~p"/blog/#{&1.slug}", lastmod: &1.date}) ++
         Enum.map(Features.all_pages(), &%{path: ~p"/features/#{&1.slug}"}) ++
         Enum.map(Docs.all_pages(), &%{path: Docs.path_for(&1)}) ++
+        Enum.map(Docs.markdown_only_pages(), fn page ->
+          %{path: PublicContent.markdown_path(Docs.path_for(page))}
+        end) ++
         Enum.map(~w(terms privacy cookies), fn document ->
           path =
             case document do

@@ -12,7 +12,10 @@ defmodule GlossiaWeb.RobotsController do
         content_paths =
           Enum.flat_map(PublicContent.documents(locale), fn {path, _markdown} ->
             path = I18n.localize_path(locale, path)
-            [path, PublicContent.markdown_path(path)]
+
+            if PublicContent.markdown_only?(path),
+              do: [PublicContent.markdown_path(path)],
+              else: [path, PublicContent.markdown_path(path)]
           end)
 
         feed_paths =

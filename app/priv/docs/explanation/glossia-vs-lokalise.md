@@ -2,6 +2,7 @@
   title: "Glossia vs Lokalise",
   summary: "Keep product localization in your delivery pipeline, with public source, your own model tokens, and native validation.",
   category: "explanation",
+  markdown_only: true,
   section: "translation",
   order: 21
 }

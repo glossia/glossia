@@ -3,7 +3,7 @@ defmodule GlossiaWeb.PageControllerTest do
 
   alias Glossia.{Docs, I18n, TestHelpers}
 
-  @comparison_slugs ~w(glossia-vs-crowdin glossia-vs-lokalise glossia-vs-phrase glossia-vs-weblate)
+  @comparison_slugs ~w(glossia-vs-crowdin glossia-vs-lokalise glossia-vs-phrase glossia-vs-weblate language-memory-and-translation-memory)
 
   test "GET / renders the public homepage for guests", %{conn: conn} do
     conn = get(conn, ~p"/")
@@ -177,18 +177,39 @@ defmodule GlossiaWeb.PageControllerTest do
     end
   end
 
-  test "Markdown and documentation navigation expose comparisons without FAQ links", %{conn: conn} do
-    markdown = conn |> get(~p"/index.md") |> response(200)
-    docs = conn |> get(~p"/docs/explanation") |> html_response(200)
-    robots = conn |> get(~p"/robots.txt") |> response(200)
+  test "comparisons stay crawlable as Markdown without appearing in documentation", %{conn: conn} do
+    for locale <- I18n.locales() do
+      docs = conn |> get(I18n.localize_path(locale, ~p"/docs/explanation")) |> html_response(200)
+      index = conn |> get(I18n.localize_path(locale, ~p"/docs.md")) |> response(200)
 
+      why =
+        conn
+        |> get(I18n.localize_path(locale, ~p"/docs/explanation/why-glossia"))
+        |> html_response(200)
+
+      search = conn |> get(~p"/docs/search.json?#{[locale: locale]}") |> json_response(200)
+
+      robots = conn |> get(~p"/robots.txt") |> response(200)
+
+      for slug <- @comparison_slugs do
+        html_path = I18n.localize_path(locale, ~p"/docs/explanation/#{slug}")
+        markdown_path = I18n.localize_path(locale, ~p"/docs/explanation/#{slug <> ".md"}")
+        markdown = conn |> get(markdown_path) |> response(200)
+
+        assert markdown =~ "# "
+        refute docs =~ slug
+        refute index =~ slug
+        refute why =~ slug
+        refute Enum.any?(search, &(&1["slug"] == slug))
+        refute robots_allowed?(robots, html_path)
+        assert robots_allowed?(robots, markdown_path)
+      end
+    end
+  end
+
+  test "comparison HTML pages are no longer part of the documentation", %{conn: conn} do
     for slug <- @comparison_slugs do
-      html_path = ~p"/docs/explanation/#{slug}"
-      markdown_path = ~p"/docs/explanation/#{slug <> ".md"}"
-      assert markdown =~ "](#{markdown_path})"
-      assert docs =~ ~s(href="#{html_path}")
-      assert robots_allowed?(robots, html_path)
-      assert robots_allowed?(robots, markdown_path)
+      assert_error_sent 404, fn -> get(conn, ~p"/docs/explanation/#{slug}") end
     end
   end
 
@@ -204,6 +225,13 @@ defmodule GlossiaWeb.PageControllerTest do
       assert body =~ "Source: #{source}\n", "missing documentation: #{page.id}"
     end
 
+    for page <- Docs.markdown_only_pages() do
+      path = Docs.path_for(page) |> Glossia.PublicContent.markdown_path()
+      source = GlossiaWeb.Endpoint.url() |> URI.merge(path) |> URI.to_string()
+      assert body =~ "Source: #{source}\n"
+      assert body =~ page.raw_markdown
+    end
+
     assert get_resp_header(conn, "content-type") == ["text/plain; charset=utf-8"]
     refute String.starts_with?(body, "<!DOCTYPE")
     assert get_resp_header(conn, "etag") != []
@@ -216,12 +244,14 @@ defmodule GlossiaWeb.PageControllerTest do
     assert get_resp_header(auth, "x-robots-tag") == ["noindex, nofollow"]
   end
 
-  test "sitemap contains comparisons and no fragment URLs", %{conn: conn} do
+  test "sitemap points to Markdown-only comparisons rather than removed HTML pages", %{conn: conn} do
     body = conn |> get(~p"/sitemap.xml") |> response(200)
 
     for slug <- @comparison_slugs do
       path = ~p"/docs/explanation/#{slug}"
-      assert body =~ "#{path}</loc>"
+      markdown_path = ~p"/docs/explanation/#{slug <> ".md"}"
+      assert body =~ "#{markdown_path}</loc>"
+      refute body =~ "#{path}</loc>"
     end
 
     refute body =~ "/changelog#"
