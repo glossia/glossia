@@ -9,6 +9,10 @@
     gap: var(--space-4);
   }
 
+  & [data-part="session-events-section"].noora-table {
+    background: var(--noora-surface-background-primary);
+  }
+
   & [data-part="status-row"] {
     display: flex;
     align-items: center;

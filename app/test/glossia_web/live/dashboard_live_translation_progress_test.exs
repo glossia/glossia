@@ -49,7 +49,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
         live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
 
       files_empty = "[data-part='translation-files-card'] .noora-table-empty-state"
-      activity_empty = "[data-part='session-events-card'] .noora-table-empty-state"
+      activity_empty = "[data-part='session-events-section'].noora-table .noora-table-empty-state"
 
       assert has_element?(view, files_empty <> " [data-part='icon'] svg")
       assert has_element?(view, files_empty <> " [data-part='title']", "No translated files")
@@ -122,7 +122,10 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     {:ok, view, _html} =
       live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
 
-    assert has_element?(view, "[data-part='session-events-card'] .noora-table-empty-state")
+    assert has_element?(
+             view,
+             "[data-part='session-events-section'].noora-table .noora-table-empty-state"
+           )
 
     send(
       view.pid,
@@ -131,6 +134,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(view, "[data-part='event-feed']", "Checking files")
     refute has_element?(view, "[data-part='session-events-card'] .noora-table-empty-state")
+    refute has_element?(view, "[data-part='session-events-section'].noora-table")
   end
 
   test "a running translation session can be cancelled" do

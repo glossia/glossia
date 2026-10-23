@@ -8461,7 +8461,11 @@ defmodule GlossiaWeb.DashboardLive do
         title={gettext("Activity")}
         icon="history"
       >
-        <Noora.Card.card_section data-part="session-events-section">
+        <%!-- Noora scopes table_empty_state styles to a .noora-table ancestor. --%>
+        <Noora.Card.card_section
+          data-part="session-events-section"
+          class={if @session_events == [], do: "noora-table", else: ""}
+        >
           <%= if @session_events != [] do %>
             <div class="session-event-feed" data-part="event-feed">
               <%= for event <- @session_events do %>
