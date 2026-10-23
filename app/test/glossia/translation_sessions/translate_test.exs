@@ -1,5 +1,6 @@
 defmodule Glossia.TranslationSessions.TranslateTest do
   use Glossia.DataCase, async: true
+  use GlossiaWeb, :verified_routes
   use Mimic
 
   import ExUnit.CaptureLog
@@ -291,10 +292,16 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert updated.pull_request_url == "https://github.com/glossia/demo/pull/3"
   end
 
-  test "describes the translation work in the pull request and keeps it current" do
+  test "describes translation work and keeps it current without a running web endpoint" do
     {user, project} = project_with_installation("summary-translate@test.com", "summary")
     session = session_for(user, project)
     test_pid = self()
+    base_uri = URI.parse(GlossiaWeb.Endpoint.url())
+
+    # Detached translation Jobs have no endpoint supervisor or warmed URL/path
+    # state. Reject both helpers so the normal web test tree cannot hide that.
+    Mimic.reject(&GlossiaWeb.Endpoint.url/0)
+    Mimic.reject(&GlossiaWeb.Endpoint.path/1)
 
     changes = [
       %{path: "docs/i18n/es/guide.md", status: "added", content: "# Hola mundo\n"},
@@ -389,6 +396,12 @@ defmodule Glossia.TranslationSessions.TranslateTest do
 
     assert body =~ "| Tuist | Tuist | 1 |"
     assert body =~ "## Reviewing this pull request"
+
+    assert body =~
+             url(base_uri, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    assert body =~
+             url(base_uri, ~p"/#{user.account.handle}/#{project.handle}/-/translations")
   end
 
   test "updates the branch behind a recorded pull request when publication is retried" do

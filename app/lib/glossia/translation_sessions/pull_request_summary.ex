@@ -22,6 +22,7 @@ defmodule Glossia.TranslationSessions.PullRequestSummary do
   alias Glossia.TranslationSessions
   alias Glossia.TranslationSessions.Progress
   alias Glossia.TranslationSessions.TranslationSession
+  alias GlossiaWeb.PublicURL
 
   # GitHub rejects pull request bodies over 65,536 characters.
   @max_body_length 60_000
@@ -34,13 +35,17 @@ defmodule Glossia.TranslationSessions.PullRequestSummary do
     session = Repo.preload(session, project: :account)
     runs = runs(session)
     since = runs |> Enum.map(&(&1.started_at || &1.inserted_at)) |> Enum.min(DateTime)
+    base_uri = PublicURL.base_uri()
 
     render(%{
       repository: session.project.github_repo_full_name,
       branch: session.publication_branch,
       default_branch: session.project.github_repo_default_branch || "main",
       translations_url:
-        absolute(~p"/#{session.project.account.handle}/#{session.project.handle}/-/translations"),
+        url(
+          base_uri,
+          ~p"/#{session.project.account.handle}/#{session.project.handle}/-/translations"
+        ),
       runs:
         Enum.map(runs, fn run ->
           run
@@ -48,7 +53,8 @@ defmodule Glossia.TranslationSessions.PullRequestSummary do
           |> Map.put(:progress, TranslationSessions.session_progress(run.id))
           |> Map.put(
             :url,
-            absolute(
+            url(
+              base_uri,
               ~p"/#{session.project.account.handle}/#{session.project.handle}/-/sessions/#{run.id}"
             )
           )
@@ -69,8 +75,6 @@ defmodule Glossia.TranslationSessions.PullRequestSummary do
   end
 
   defp runs(session), do: [session]
-
-  defp absolute(path), do: GlossiaWeb.Endpoint.url() |> URI.merge(path) |> URI.to_string()
 
   @doc """
   Renders the description from already loaded data:

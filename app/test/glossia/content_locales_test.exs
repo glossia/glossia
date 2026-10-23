@@ -50,7 +50,8 @@ defmodule Glossia.ContentLocalesTest do
       version = Legal.latest_version!(document, locale)
 
       assert version.date == ~D[2026-10-12]
-      assert version.body =~ "O'Saasy License"
+      # The license name is invariant, but "License" itself is translated.
+      assert version.body =~ "O'Saasy"
       refute version.body =~ "MPL-2.0"
     end
   end
@@ -62,8 +63,8 @@ defmodule Glossia.ContentLocalesTest do
     assert version.body =~ "may not use it to offer"
   end
 
-  test "a section with no translations yet keeps serving English" do
-    assert Changelog.all_entries("ja") == Changelog.all_entries()
+  test "an unknown changelog locale falls back to English" do
+    assert Changelog.all_entries("unknown") == Changelog.all_entries()
   end
 
   test "translated docs retain their source routing identifiers" do
