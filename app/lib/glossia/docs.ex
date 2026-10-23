@@ -15,7 +15,8 @@ defmodule Glossia.Docs.Page do
     :toc,
     :raw_markdown,
     :markdown,
-    :kind
+    :kind,
+    markdown_only: false
   ]
 
   def build(filename, attrs, body) do
@@ -140,15 +141,14 @@ defmodule Glossia.Docs do
 
   @content_pages Enum.sort_by(@content_pages, & &1.order)
 
-  # `section` is a routing identifier like `category`: translated pages take it
-  # from their English original so a localized or missing value never regroups
-  # the sidebar.
-  @english_sections Map.new(@content_pages, &{&1.id, &1.section})
+  # Translations inherit navigation and publication metadata from English so
+  # missing or localized frontmatter cannot regroup or expose hidden pages.
+  @english_metadata Map.new(@content_pages, &{&1.id, Map.take(&1, [:section, :markdown_only])})
 
   @content_pages_by_locale Map.new(@content_pages_by_locale, fn {locale, pages} ->
                              {locale,
                               pages
-                              |> Enum.map(&%{&1 | section: Map.get(@english_sections, &1.id)})
+                              |> Enum.map(&struct!(&1, Map.fetch!(@english_metadata, &1.id)))
                               |> Enum.sort_by(& &1.order)}
                            end)
 
@@ -400,7 +400,13 @@ defmodule Glossia.Docs do
     end)
   end
 
-  defp pages(locale), do: Map.get(@pages_by_locale, locale, @pages)
+  def markdown_only_pages(locale \\ Glossia.I18n.default_locale()) do
+    Enum.filter(Map.get(@pages_by_locale, locale, @pages), & &1.markdown_only)
+  end
+
+  defp pages(locale) do
+    Enum.reject(Map.get(@pages_by_locale, locale, @pages), & &1.markdown_only)
+  end
 
   # The Diataxis labels live in code rather than in content, so they go through
   # Gettext instead of through the translated markdown.

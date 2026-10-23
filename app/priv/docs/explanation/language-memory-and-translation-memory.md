@@ -2,6 +2,7 @@
   title: "Language memory and translation memory",
   summary: "How voice and terminology complement reviewed translations without tying delivery to a proprietary memory.",
   category: "explanation",
+  markdown_only: true,
   section: "translation",
   order: 4
 }

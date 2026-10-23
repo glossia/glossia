@@ -34,9 +34,11 @@ The URL chooses the Markdown content's language. `Accept-Language` does not redi
 ## Discovery
 
 - `/robots.txt` defaults to disallowing crawling and opts in the finite published HTML and Markdown inventory, localized feeds, rendering assets under `/assets/`, `/fonts/`, and `/images/`, the favicon, and public marketing previews under `/og/marketing/`. Account preview images under `/og/app/` remain disallowed. It is guidance for cooperative crawlers, not an authorization mechanism.
-- `/sitemap.xml` lists canonical public HTML content with locale alternates. Changelog fragments are not separate URLs.
+- `/sitemap.xml` lists canonical public content with locale alternates, including Markdown URLs for Markdown-only pages. Changelog fragments are not separate URLs.
 - `/llms.txt` introduces Glossia and links to public documentation, feature guides, and recent writing, including explicit Markdown links.
-- `/llms-full.txt` exports the homepage overview and complete documentation inventory in one text document containing Markdown.
+- `/llms-full.txt` exports the homepage overview, documentation, and Markdown-only comparison content in one text document containing Markdown.
+
+Comparison content is published as Markdown only. It stays out of HTML documentation, navigation, search, and documentation indexes, but agents can discover it through `/llms.txt` and the sitemap. Its canonical URL ends in `.md`; the former HTML URL also responds to `Accept: text/markdown`, but no longer renders a browser page.
 
 Authentication, account dashboards, APIs, and other application responses are marked `noindex, nofollow`. Published successful content is marked `index, follow`; errors remain nonindexable. Discovery text files (`/robots.txt`, `/llms.txt`, and `/llms-full.txt`) use `noindex, follow`: readers can fetch them and follow their links, but search engines should index the canonical pages rather than a duplicate documentation dump.
 

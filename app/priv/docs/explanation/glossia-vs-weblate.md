@@ -2,6 +2,7 @@
   title: "Glossia vs Weblate",
   summary: "Choose Glossia for model-driven language work that follows repository delivery and reuses your existing validation.",
   category: "explanation",
+  markdown_only: true,
   section: "translation",
   order: 23
 }

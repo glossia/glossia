@@ -11,6 +11,24 @@ defmodule Glossia.DocsTest do
     Enum.map(group.pages, & &1.slug) ++ Enum.map(group.subcategories, & &1.key)
   end
 
+  test "Markdown-only pages stay outside the documentation inventory in every locale" do
+    for locale <- Glossia.I18n.locales() do
+      pages = Docs.markdown_only_pages(locale)
+      assert length(pages) == 5
+
+      for page <- pages do
+        assert page.markdown_only
+        refute Enum.any?(Docs.all_pages(locale), &(&1.id == page.id))
+        refute Enum.any?(Docs.category_items(page.category, locale), &(&1.id == page.id))
+        refute Enum.any?(Docs.search_index(locale), &(&1.slug == page.slug))
+
+        assert_raise Glossia.Docs.NotFoundError, fn ->
+          Docs.get_page!(page.category, page.subcategory, page.slug, locale)
+        end
+      end
+    end
+  end
+
   describe "navigation/1" do
     test "groups pages under their frontmatter section, in section order" do
       explanation = category("explanation")

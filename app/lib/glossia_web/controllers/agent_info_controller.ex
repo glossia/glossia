@@ -8,8 +8,8 @@ defmodule GlossiaWeb.AgentInfoController do
     base_url = GlossiaWeb.Endpoint.url()
     locale = I18n.default_locale()
 
-    {comparisons, documentation} =
-      Enum.split_with(Docs.all_pages(locale), &String.starts_with?(&1.slug, "glossia-vs-"))
+    documentation = Docs.all_pages(locale)
+    comparisons = Docs.markdown_only_pages(locale)
 
     content =
       [
@@ -75,9 +75,10 @@ defmodule GlossiaWeb.AgentInfoController do
       [
         "# Glossia documentation\n",
         Map.fetch!(pages, ~p"/")
-        | Enum.map(Docs.all_pages(), fn page ->
+        | Enum.map(Docs.all_pages() ++ Docs.markdown_only_pages(), fn page ->
             path = Docs.path_for(page)
-            source = GlossiaWeb.Endpoint.url() |> URI.merge(path) |> URI.to_string()
+            source_path = if page.markdown_only, do: PublicContent.markdown_path(path), else: path
+            source = GlossiaWeb.Endpoint.url() |> URI.merge(source_path) |> URI.to_string()
             "Source: #{source}\n\n#{Map.fetch!(pages, path)}"
           end)
       ]

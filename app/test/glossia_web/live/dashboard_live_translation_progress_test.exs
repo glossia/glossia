@@ -33,6 +33,110 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     assert html =~ "Translation engine"
   end
 
+  test "sessions without progress use Noora empty states inside both cards", %{conn: conn} do
+    user = TestHelpers.create_user("translation-empty-state@test.com", "translation-empty-state")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{handle: "empty-state", name: "Empty state"})
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    for status <- ["pending", "running", "completed", "failed", "cancelled"] do
+      {:ok, session} =
+        TranslationSessions.create_session(user.account, project, %{status: status})
+
+      {:ok, view, _html} =
+        live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+      files_empty = "[data-part='translation-files-card'] .noora-table-empty-state"
+      activity_empty = "[data-part='session-events-section'].noora-table .noora-table-empty-state"
+
+      assert has_element?(view, files_empty <> " [data-part='icon'] svg")
+      assert has_element?(view, files_empty <> " [data-part='title']", "No translated files")
+      assert has_element?(view, activity_empty <> " [data-part='icon'] svg")
+      assert has_element?(view, activity_empty <> " [data-part='title']", "No activity recorded")
+
+      if status in ["pending", "running"] do
+        assert has_element?(view, files_empty, "Files will appear here when translation starts.")
+
+        assert has_element?(
+                 view,
+                 activity_empty,
+                 "Session activity will appear here as the translation runs."
+               )
+      else
+        assert has_element?(
+                 view,
+                 files_empty,
+                 "This session did not produce any translated files."
+               )
+
+        assert has_element?(view, activity_empty, "This session has no recorded activity.")
+      end
+
+      refute has_element?(view, "#translation-progress-summary")
+      refute has_element?(view, ".dash-empty-state")
+    end
+  end
+
+  test "a content-hit session without a progress snapshot explains why there are no files", %{
+    conn: conn
+  } do
+    user = TestHelpers.create_user("translation-content-hit@test.com", "translation-content-hit")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{handle: "content-hit", name: "Content hit"})
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "completed",
+        outcome: "content_hit",
+        content_hit_count: 371
+      })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    assert has_element?(
+             view,
+             "#translation-progress-items .noora-table-empty-state",
+             "All files are up to date. No translations were needed."
+           )
+
+    refute has_element?(view, "#translation-progress-items-body tr[id]")
+  end
+
+  test "activity replaces its empty state when an event arrives", %{conn: conn} do
+    user = TestHelpers.create_user("translation-activity@test.com", "translation-activity")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{handle: "activity", name: "Activity"})
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{status: "running"})
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    assert has_element?(
+             view,
+             "[data-part='session-events-section'].noora-table .noora-table-empty-state"
+           )
+
+    send(
+      view.pid,
+      {:translation_session_event, %{event_type: "message", content: "Checking files"}}
+    )
+
+    assert has_element?(view, "[data-part='event-feed']", "Checking files")
+    refute has_element?(view, "[data-part='session-events-card'] .noora-table-empty-state")
+    refute has_element?(view, "[data-part='session-events-section'].noora-table")
+  end
+
   test "a running translation session can be cancelled" do
     user = TestHelpers.create_user("cancel-translation@test.com", "cancel-translation")
 
@@ -594,7 +698,13 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     {:ok, view, _html} =
       live(conn, "/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
 
-    assert has_element?(view, ".dash-empty-state", "No events recorded yet.")
+    assert has_element?(
+             view,
+             "[data-part='session-events-card'] .noora-table-empty-state",
+             "No activity recorded"
+           )
+
+    assert has_element?(view, "#translation-progress-items .noora-table-empty-state")
 
     TranslationSessions.broadcast_session_event(session, %{type: "plan", total: 1})
 
@@ -631,6 +741,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     refute has_element?(view, "#translation-progress-summary-checking")
     assert has_element?(view, "#translation-progress-summary-running", "1 in progress")
     assert has_element?(view, "#translation-progress-item-0")
+    refute has_element?(view, "#translation-progress-items .noora-table-empty-state")
 
     refute has_element?(view, "#translation-progress-item-0 a[data-part='path']")
 
@@ -886,8 +997,15 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     {:ok, _session} = TranslationSessions.update_session_status(session, "running")
 
-    refute has_element?(view, "#translation-progress")
-    assert has_element?(view, ".dash-empty-state", "No events recorded yet.")
+    refute has_element?(view, "#translation-progress-item-0")
+    refute has_element?(view, "#translation-progress-failures")
+    assert has_element?(view, "#translation-progress-items .noora-table-empty-state")
+
+    assert has_element?(
+             view,
+             "[data-part='session-events-card'] .noora-table-empty-state",
+             "No activity recorded"
+           )
   end
 
   test "provider failures have a shared action and a safe error on every file", %{conn: conn} do
@@ -1270,10 +1388,25 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "No translations needed"
            )
 
+    assert has_element?(
+             view,
+             "#translation-progress-items .noora-table-empty-state",
+             "All files are up to date. No translations were needed."
+           )
+
     # "No translations needed" and "231 up to date" say the same thing.
     refute has_element?(view, "#translation-progress-summary-skipped")
     refute has_element?(view, "#translation-progress-summary-running")
     refute has_element?(view, "#translation-progress-summary-checking")
+
+    {:ok, reconnected_view, _html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    assert has_element?(
+             reconnected_view,
+             "#translation-progress-items .noora-table-empty-state",
+             "All files are up to date. No translations were needed."
+           )
   end
 
   test "a viewer who joins mid-run sees translation progress, not a stuck check", %{conn: conn} do

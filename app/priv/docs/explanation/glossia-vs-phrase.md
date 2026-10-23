@@ -2,6 +2,7 @@
   title: "Glossia vs Phrase",
   summary: "Choose a repository-native language workflow with public source, your own model tokens, and reusable delivery checks.",
   category: "explanation",
+  markdown_only: true,
   section: "translation",
   order: 22
 }

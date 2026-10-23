@@ -16,6 +16,11 @@ defmodule Glossia.PublicContent.Builder do
         {Docs.path_for(page), render(page.title, page.summary, body)}
       end)
 
+    markdown_only =
+      Enum.map(Docs.markdown_only_pages(locale), fn page ->
+        {Docs.path_for(page), render(page.title, page.summary, page.raw_markdown)}
+      end)
+
     features =
       Enum.map(feature_pages, fn page ->
         {path(%URI{}, ~p"/features/#{page.slug}"),
@@ -80,6 +85,7 @@ defmodule Glossia.PublicContent.Builder do
 
     Map.new(
       docs ++
+        markdown_only ++
         features ++
         blog ++
         legal ++
@@ -151,7 +157,14 @@ defmodule Glossia.PublicContent do
                 )}
              end)
 
+  @markdown_only_paths MapSet.new(Docs.markdown_only_pages(), &Docs.path_for/1)
+
   def documents(locale \\ I18n.default_locale()), do: Map.fetch!(@documents, locale)
+
+  def markdown_only?(path) do
+    {_locale, path} = I18n.split_path(path)
+    MapSet.member?(@markdown_only_paths, path)
+  end
 
   def get(path) do
     {locale, path} = I18n.split_path(path)

@@ -2,6 +2,7 @@
   title: "Glossia vs Crowdin",
   summary: "Choose Glossia to keep localization in Git, bring your own model tokens, and validate with your repository's checks.",
   category: "explanation",
+  markdown_only: true,
   section: "translation",
   order: 20
 }

@@ -8440,44 +8440,51 @@ defmodule GlossiaWeb.DashboardLive do
       </Noora.Card.card>
 
       <Noora.Card.card
-        :if={@translation_progress_summary.total > 0}
         data-part="translation-files-card"
         title={gettext("Translated files")}
         icon="file_text"
       >
-        <:actions>
+        <:actions :if={@translation_progress_summary.total > 0}>
           <.translation_progress_summary_row summary={@translation_progress_summary} />
         </:actions>
         <Noora.Card.card_section data-part="translation-files-section">
           <.translation_progress_panel
             items={@translation_progress_items}
-            summary={@translation_progress_summary}
             failures={@translation_progress_failures}
+            empty_subtitle={translation_files_empty_subtitle(@session, @translation_progress_summary)}
           />
         </Noora.Card.card_section>
       </Noora.Card.card>
 
-      <%= if @session_events != [] do %>
-        <Noora.Card.card
-          data-part="session-events-card"
-          title={gettext("Activity")}
-          icon="history"
+      <Noora.Card.card
+        data-part="session-events-card"
+        title={gettext("Activity")}
+        icon="history"
+      >
+        <%!-- Noora scopes table_empty_state styles to a .noora-table ancestor. --%>
+        <Noora.Card.card_section
+          data-part="session-events-section"
+          class={if @session_events == [], do: "noora-table", else: ""}
         >
-          <Noora.Card.card_section data-part="session-events-section">
+          <%= if @session_events != [] do %>
             <div class="session-event-feed" data-part="event-feed">
               <%= for event <- @session_events do %>
                 <.session_event_item event={event} project={@project} />
               <% end %>
             </div>
-          </Noora.Card.card_section>
-        </Noora.Card.card>
-      <% else %>
-        <%= if @translation_progress_items == [] and @translation_progress_summary.total == 0 do %>
-          <div class="dash-empty-state">
-            <p>{gettext("No events recorded yet.")}</p>
-          </div>
-        <% end %>
-      <% end %>
+          <% else %>
+            <Noora.Table.table_empty_state
+              icon="history"
+              title={gettext("No activity recorded")}
+              subtitle={
+                if translation_session_in_flight?(@session),
+                  do: gettext("Session activity will appear here as the translation runs."),
+                  else: gettext("This session has no recorded activity.")
+              }
+            />
+          <% end %>
+        </Noora.Card.card_section>
+      </Noora.Card.card>
     </div>
     """
   end
@@ -8559,93 +8566,112 @@ defmodule GlossiaWeb.DashboardLive do
     summary |> Map.get(:glossary, %{}) |> Map.get(:shadowed_ids, []) |> length()
   end
 
+  defp translation_files_empty_subtitle(session, summary) do
+    cond do
+      session.outcome == "content_hit" or
+          translation_progress_summary_state(summary) == :up_to_date ->
+        gettext("All files are up to date. No translations were needed.")
+
+      translation_session_in_flight?(session) ->
+        gettext("Files will appear here when translation starts.")
+
+      true ->
+        gettext("This session did not produce any translated files.")
+    end
+  end
+
   attr(:items, :list, required: true)
-  attr(:summary, :map, required: true)
   attr(:failures, :list, required: true)
+  attr(:empty_subtitle, :string, required: true)
 
   defp translation_progress_panel(assigns) do
     ~H"""
-    <%= if @summary.total > 0 do %>
-      <div id="translation-progress" class="translation-progress">
-        <div
-          :if={@failures != []}
-          id="translation-progress-failures"
-          data-part="failures"
-          role="status"
+    <div id="translation-progress" class="translation-progress">
+      <div
+        :if={@failures != []}
+        id="translation-progress-failures"
+        data-part="failures"
+        role="status"
+      >
+        <Noora.Alert.alert
+          :for={failure <- @failures}
+          id={failure.dom_id}
+          data-part="failure-summary"
+          data-kind={failure.kind}
+          type="secondary"
+          status="error"
+          size="large"
+          title={failure.title}
         >
-          <Noora.Alert.alert
-            :for={failure <- @failures}
-            id={failure.dom_id}
-            data-part="failure-summary"
-            data-kind={failure.kind}
-            type="secondary"
-            status="error"
-            size="large"
-            title={failure.title}
-          >
-            <p data-part="failure-description">{failure.description}</p>
-            <p data-part="failure-count">
-              {ngettext(
-                "%{count} file was affected.",
-                "%{count} files were affected.",
-                failure.count,
-                count: failure.count
-              )}
-            </p>
-            <:action :if={failure.action_url}>
-              <Noora.Button.button
-                data-part="failure-action"
-                href={failure.action_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                label={failure.action_label}
-                variant="secondary"
-                size="small"
-              />
-            </:action>
-          </Noora.Alert.alert>
-        </div>
-        <Noora.Table.table
-          id="translation-progress-items"
-          rows={@items}
-          row_key={fn item -> "translation-progress-item-#{item.index}" end}
-          row_expandable={&translation_item_expandable?/1}
-          expand_label={gettext("Show translation details")}
-        >
-          <:col :let={item} label={gettext("File")}>
-            <div data-part="file-cell">
-              <a
-                :if={item.file_url}
-                data-part="path"
-                href={item.file_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Noora.Table.text_cell label={item.output_path} />
-              </a>
-              <div :if={is_nil(item.file_url)} data-part="path">
-                <Noora.Table.text_cell label={item.output_path} />
-              </div>
-            </div>
-          </:col>
-          <:col :let={item} label={gettext("Language")}>
-            <Noora.Table.tag_cell label={item.locale} />
-          </:col>
-          <:col :let={item} label={gettext("Status")}>
-            <Noora.Table.status_badge_cell
-              status={translation_item_noora_status(item.status)}
-              label={translation_item_status_label(item.status)}
+          <p data-part="failure-description">{failure.description}</p>
+          <p data-part="failure-count">
+            {ngettext(
+              "%{count} file was affected.",
+              "%{count} files were affected.",
+              failure.count,
+              count: failure.count
+            )}
+          </p>
+          <:action :if={failure.action_url}>
+            <Noora.Button.button
+              data-part="failure-action"
+              href={failure.action_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              label={failure.action_label}
+              variant="secondary"
+              size="small"
             />
-          </:col>
-          <:col :let={item} label={gettext("Progress")}>
-            <.translation_progress_metadata item={item} />
-          </:col>
-          <:expanded_content :let={item}>
-            <.translation_progress_item_details item={item} />
-          </:expanded_content>
-        </Noora.Table.table>
+          </:action>
+        </Noora.Alert.alert>
       </div>
-    <% end %>
+      <Noora.Table.table
+        id="translation-progress-items"
+        rows={@items}
+        row_key={fn item -> "translation-progress-item-#{item.index}" end}
+        row_expandable={&translation_item_expandable?/1}
+        expand_label={gettext("Show translation details")}
+      >
+        <:col :let={item} label={gettext("File")}>
+          <div data-part="file-cell">
+            <a
+              :if={item.file_url}
+              data-part="path"
+              href={item.file_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Noora.Table.text_cell label={item.output_path} />
+            </a>
+            <div :if={is_nil(item.file_url)} data-part="path">
+              <Noora.Table.text_cell label={item.output_path} />
+            </div>
+          </div>
+        </:col>
+        <:col :let={item} label={gettext("Language")}>
+          <Noora.Table.tag_cell label={item.locale} />
+        </:col>
+        <:col :let={item} label={gettext("Status")}>
+          <Noora.Table.status_badge_cell
+            status={translation_item_noora_status(item.status)}
+            label={translation_item_status_label(item.status)}
+          />
+        </:col>
+        <:col :let={item} label={gettext("Progress")}>
+          <.translation_progress_metadata item={item} />
+        </:col>
+        <:expanded_content :let={item}>
+          <.translation_progress_item_details item={item} />
+        </:expanded_content>
+        <:empty_state>
+          <Noora.Table.table_empty_state
+            icon="file_text"
+            title={gettext("No translated files")}
+            subtitle={@empty_subtitle}
+          />
+        </:empty_state>
+      </Noora.Table.table>
+    </div>
     """
   end
 

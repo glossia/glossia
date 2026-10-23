@@ -44,9 +44,11 @@ defmodule GlossiaWeb.Plugs.SiteMarkdown do
         conn
 
       markdown ->
+        markdown_only? = PublicContent.markdown_only?(canonical_path)
         canonical_path = I18n.localize_path(locale, canonical_path)
-        canonical_url = GlossiaWeb.Endpoint.url() |> URI.merge(canonical_path) |> URI.to_string()
         markdown_url = PublicContent.markdown_path(canonical_path)
+        canonical_path = if markdown_only?, do: markdown_url, else: canonical_path
+        canonical_url = GlossiaWeb.Endpoint.url() |> URI.merge(canonical_path) |> URI.to_string()
 
         conn =
           register_before_send(conn, fn conn ->
