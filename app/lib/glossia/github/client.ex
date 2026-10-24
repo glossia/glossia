@@ -106,6 +106,23 @@ defmodule Glossia.Github.Client do
     api_post(url, params, access_token)
   end
 
+  def list_pull_requests(full_name, access_token, opts \\ []) do
+    api_url = github_api_url(opts)
+
+    query =
+      %{
+        state: Keyword.get(opts, :state, "open"),
+        per_page: Keyword.get(opts, :per_page, 100),
+        page: Keyword.get(opts, :page, 1)
+      }
+      |> then(fn query ->
+        if base = Keyword.get(opts, :base), do: Map.put(query, :base, base), else: query
+      end)
+      |> URI.encode_query()
+
+    api_get("#{api_url}/repos/#{full_name}/pulls?#{query}", access_token)
+  end
+
   def update_pull_request(full_name, number, params, access_token, opts \\ []) do
     api_url = github_api_url(opts)
     api_patch("#{api_url}/repos/#{full_name}/pulls/#{number}", params, access_token)
