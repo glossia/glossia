@@ -4,7 +4,7 @@ defmodule Glossia.MixProject do
   def project do
     [
       app: :glossia,
-      version: "0.1.0",
+      version: System.get_env("GLOSSIA_VERSION", "0.1.0"),
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       test_paths: test_paths(),

@@ -14,6 +14,11 @@ enterprise code. The separately published `main-enterprise` image includes
 when you intend to run that edition. Glossia's own production deployment uses
 the enterprise tag; the public chart defaults remain core.
 
+For versioned releases, pin `image.tag` to `X.Y.Z-community` or
+`X.Y.Z-enterprise`. Each `app-vX.Y.Z` release publishes both editions from the
+same tested commit. `main-community` aliases the default `main` tag; unsuffixed
+version tags are also community-only. See [Application releases](../../../.github/RELEASING.md).
+
 ## Prerequisites
 
 The chart consumes operators rather than installing them. Your cluster
@@ -39,7 +44,7 @@ needs whichever of these match the components you enable:
 ```bash
 helm install glossia ./deploy/helm/glossia \
   --namespace glossia --create-namespace \
-  --set image.tag=v1.2.3 \
+  --set image.tag=1.2.3-community \
   --set ingress.enabled=true \
   --set ingress.hosts[0].host=glossia.example.com
 ```

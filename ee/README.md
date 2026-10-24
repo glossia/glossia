@@ -31,7 +31,9 @@ mix format --check-formatted
 
 Use separate build paths when switching editions so compiled enterprise modules cannot remain in a core build. The edition is selected at build time, not by changing an environment variable on an already compiled release. Enterprise test discovery uses a small `ee/test/test_helper.exs` shim that loads `app/test/test_helper.exs` for shared setup.
 
-The default published `ghcr.io/glossia/glossia:main` image and Helm chart use the Apache-2.0 core. The separately published `:main-enterprise` image includes enterprise code and requires the enterprise agreement for production use. Glossia's own production HelmRelease explicitly selects that enterprise tag.
+The default published `ghcr.io/glossia/glossia:main` image and Helm chart use the Apache-2.0 core (community edition), also tagged `:main-community`. The separately published `:main-enterprise` image includes enterprise code and requires the enterprise agreement for production use. Glossia's own production HelmRelease explicitly selects that enterprise tag.
+
+Versioned app releases publish both `:X.Y.Z-community` and `:X.Y.Z-enterprise` from the same tested commit, with shared git-cliff release notes under an `app-vX.Y.Z` tag. See [Application releases](../.github/RELEASING.md) for stable tags and publication behavior.
 
 To build enterprise code explicitly, use these named Docker contexts:
 

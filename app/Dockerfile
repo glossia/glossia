@@ -68,6 +68,8 @@ RUN mix local.hex --force && \
 ENV MIX_ENV="prod"
 ARG GLOSSIA_EDITION
 ENV GLOSSIA_EDITION=${GLOSSIA_EDITION}
+ARG GLOSSIA_VERSION=0.1.0
+ENV GLOSSIA_VERSION=${GLOSSIA_VERSION}
 # mdex_native's precompiled variant selector falls back to `legacy_cpu_lumis`
 # on CPUs that miss any of avx/fma, and that variant is not always published
 # as a precompiled artifact — the without-Lumis binary is what actually gets

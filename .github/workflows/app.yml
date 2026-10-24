@@ -17,6 +17,10 @@ on:
       - "mise.toml"
       - ".github/workflows/app.yml"
       - ".github/workflows/deploy.yml"
+      - "sdk/web/**"
+      - "LICENSE.md"
+      - "LICENSE-APACHE"
+      - ".github/scripts/*app*.sh"
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
@@ -30,6 +34,10 @@ on:
       - "mise.toml"
       - ".github/workflows/app.yml"
       - ".github/workflows/deploy.yml"
+      - "sdk/web/**"
+      - "LICENSE.md"
+      - "LICENSE-APACHE"
+      - ".github/scripts/*app*.sh"
 
 permissions:
   contents: read

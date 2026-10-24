@@ -5,13 +5,13 @@ const { test } = require('node:test');
 const root = new URL('../../', `file://${__filename}`);
 const read = path => readFileSync(new URL(path, root), 'utf8');
 
-test('publication distinguishes core defaults from explicitly tagged enterprise images', () => {
+test('publication distinguishes community and enterprise builds and licenses', () => {
   const workflow = read('.github/workflows/deploy.yml');
-  assert.match(workflow, /edition: core\s+suffix: ""\s+licenses: Apache-2\.0/);
-  assert.match(workflow, /edition: enterprise\s+suffix: -enterprise/);
+  assert.match(workflow, /edition: core\s+flavor: community\s+licenses: Apache-2\.0/);
+  assert.match(workflow, /edition: enterprise\s+flavor: enterprise\s+licenses: Apache-2\.0 AND LicenseRef-Glossia-Enterprise/);
   assert.ok(workflow.includes('GLOSSIA_EDITION=${{ matrix.edition }}'));
-  assert.ok(workflow.includes(':main${{ matrix.suffix }}'));
-  assert.ok(workflow.includes('group: publish-production-image-${{ matrix.edition }}'));
+  assert.ok(workflow.includes('tags: ${{ steps.tags.outputs.tags }}'));
+  assert.match(workflow, /group: release-app-main\s+cancel-in-progress: false/);
 });
 
 test('the public chart defaults to core while production explicitly selects enterprise', () => {

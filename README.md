@@ -21,3 +21,15 @@ there; this checkout does not yet implement audit persistence or an audit UI.
 Core is the default build. See [ee/README.md](ee/README.md) for enterprise build
 instructions and [CONTRIBUTING.md](CONTRIBUTING.md) for contributions. A CLA is
 required only for contributions to `ee/`, not the open-source core.
+
+## Application images and releases
+
+Merges to `main` publish separate community and enterprise images after both
+editions pass their application checks. App releases use `app-vX.Y.Z` tags and
+publish `ghcr.io/glossia/glossia:X.Y.Z-community` and
+`ghcr.io/glossia/glossia:X.Y.Z-enterprise`, with generated release notes.
+`main-community` and `main-enterprise` track checked main builds; unsuffixed
+`main` remains a community-only compatibility alias.
+
+See [Application releases](.github/RELEASING.md) for versioning, image tags,
+licensing, and retry behavior.
