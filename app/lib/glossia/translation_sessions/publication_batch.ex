@@ -6,10 +6,11 @@ defmodule Glossia.TranslationSessions.PublicationBatch do
   checks. Publishing each file as it is validated meant a 150-file run pushed
   150 times and exhausted the repository's CI runners. A batch collects the
   changes of completed files and publishes them as one commit once it holds
-  `:max_files` files or `:max_interval_ms` has passed since the last push, so
-  a long run still shows progress without flooding CI. `flush/1` publishes
-  whatever remains when the run ends, successfully or not, so no validated
-  translation is lost.
+  `:max_files` files or `:max_interval_ms` has passed since the last push.
+  These are batching thresholds, not permission to bypass the project-wide
+  push budget. A publisher returning `{:wait, ms}` keeps collecting files
+  until the shared budget admits a push. `flush/1` waits outside the batch
+  process for that budget rather than bypassing it at the end of a run.
 
   A failed push keeps the changes pending; the next push, or the final flush,
   retries them.
@@ -44,7 +45,8 @@ defmodule Glossia.TranslationSessions.PublicationBatch do
       max_interval_ms: option(opts, config, :max_interval_ms, @default_max_interval_ms),
       pending: %{},
       pending_files: 0,
-      last_published_at: System.monotonic_time(:millisecond)
+      last_published_at: System.monotonic_time(:millisecond),
+      next_attempt_at: nil
     }
 
     callers = [self() | Process.get(:"$callers", [])]
@@ -80,25 +82,48 @@ defmodule Glossia.TranslationSessions.PublicationBatch do
     )
   end
 
-  @doc "Publishes every pending change. Returns `:ok` or the publication error."
+  @doc "Publishes pending changes, waiting for the shared push budget if needed."
   def flush(batch) do
-    Agent.get_and_update(
-      batch,
-      fn state ->
-        state = publish(state)
-        result = if state.pending == %{}, do: :ok, else: {:error, state.last_error}
-        {result, state}
-      end,
-      @call_timeout_ms
-    )
+    result =
+      Agent.get_and_update(
+        batch,
+        fn state ->
+          state = publish(state)
+
+          result =
+            cond do
+              state.pending == %{} -> :ok
+              state.next_attempt_at -> {:wait, state.next_attempt_at}
+              true -> {:error, state.last_error}
+            end
+
+          {result, state}
+        end,
+        @call_timeout_ms
+      )
+
+    case result do
+      {:wait, next_attempt_at} ->
+        # Recheck regularly so cancellation and heartbeats still work during a
+        # long cooldown, without holding an Agent call or database transaction.
+        remaining_ms = max(next_attempt_at - System.monotonic_time(:millisecond), 1)
+        Process.sleep(min(remaining_ms, 30_000))
+        flush(batch)
+
+      result ->
+        result
+    end
   end
 
   @doc "Stops the batch process."
   def stop(batch), do: Agent.stop(batch)
 
   defp due?(state) do
-    state.pending_files >= state.max_files or
-      System.monotonic_time(:millisecond) - state.last_published_at >= state.max_interval_ms
+    now = System.monotonic_time(:millisecond)
+
+    (is_nil(state.next_attempt_at) or now >= state.next_attempt_at) and
+      (state.pending_files >= state.max_files or
+         now - state.last_published_at >= state.max_interval_ms)
   end
 
   defp publish(%{pending: pending} = state) when pending == %{}, do: state
@@ -112,9 +137,13 @@ defmodule Glossia.TranslationSessions.PublicationBatch do
           state
           | pending: %{},
             pending_files: 0,
-            last_published_at: System.monotonic_time(:millisecond)
+            last_published_at: System.monotonic_time(:millisecond),
+            next_attempt_at: nil
         }
         |> Map.delete(:last_error)
+
+      {:wait, ms} ->
+        %{state | next_attempt_at: System.monotonic_time(:millisecond) + ms}
 
       {:error, reason} ->
         Logger.warning("Could not publish a batch of translations, keeping it for the next push",
@@ -123,7 +152,7 @@ defmodule Glossia.TranslationSessions.PublicationBatch do
           files: state.pending_files
         )
 
-        Map.put(state, :last_error, reason)
+        state |> Map.put(:last_error, reason) |> Map.put(:next_attempt_at, nil)
     end
   end
 
@@ -133,6 +162,7 @@ defmodule Glossia.TranslationSessions.PublicationBatch do
     _error -> {:error, :publication_callback_failed}
   end
 
+  defp normalize({:wait, ms}) when is_integer(ms) and ms > 0, do: {:wait, ms}
   defp normalize(:ok), do: :ok
   defp normalize({:ok, _publication}), do: :ok
   defp normalize({:error, _reason} = error), do: error

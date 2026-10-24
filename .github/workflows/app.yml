@@ -32,6 +32,12 @@ on:
 permissions:
   contents: read
 
+env:
+  # GitHub release redirects exceed :httpc's header limit on current OTP.
+  # Use mise's Rust toolchain for all NIFs until rustler_precompiled ships
+  # https://github.com/philss/rustler_precompiled/pull/113.
+  RUSTLER_PRECOMPILED_FORCE_BUILD_ALL: "true"
+
 # Both PR checks and post-merge checks use hosted runners. Image publication
 # waits for the post-merge checks, so an unavailable self-hosted runner would
 # otherwise leave production on an old image even after a fix has merged.
@@ -52,6 +58,10 @@ jobs:
           cache: true
       - name: Install tools
         run: mise install
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libcap-ng-dev
       - name: Install dependencies
         run: mix deps.get
       - name: Compile (warnings as errors)
@@ -103,6 +113,10 @@ jobs:
           cache: true
       - name: Install tools
         run: mise install
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libcap-ng-dev
       - name: Install dependencies
         run: mix deps.get
       - name: Wait for ClickHouse
@@ -148,6 +162,10 @@ jobs:
           cache: true
       - name: Install tools
         run: mise install
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libcap-ng-dev
       - name: Install dependencies
         run: mix deps.get
       - name: Format check (Quokka + Phoenix formatter)

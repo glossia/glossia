@@ -8,11 +8,15 @@ defmodule Glossia.TranslationSessions.Translate do
   pod accepted the webhook. Outside a cluster it runs in the calling process.
   """
 
+  import Ecto.Query
+
   require Logger
 
-  alias Glossia.{Events, Ingestion, TranslationSessions}
+  alias Glossia.{Events, Ingestion, Repo, TranslationSessions}
+  alias Glossia.Accounts.Project
   alias Glossia.Translations.Failure
   alias Glossia.TranslationSessions.PublicationBatch
+  alias Glossia.TranslationSessions.PublicationPacing
   alias Glossia.TranslationSessions.PullRequestSummary
   alias Glossia.TranslationSessions.TranslationSession
 
@@ -148,6 +152,10 @@ defmodule Glossia.TranslationSessions.Translate do
           synchronize_continued_branch(session, project, refreshed_token, false)
         end
 
+      {:wait, ms} ->
+        wait_for_publication(session.id, ms)
+        synchronize_continued_branch(session, project, token, retry_on_unauthorized?)
+
       {:error, _reason} = error ->
         error
     end
@@ -174,14 +182,14 @@ defmodule Glossia.TranslationSessions.Translate do
         previous_session = TranslationSessions.get_session(session.continued_from_session_id)
 
         case compare_source_history(previous_session, session, project, token) do
-          {:ok, status} when status in ["ahead", "identical"] ->
+          {:ok, "identical"} ->
+            {:ok, session}
+
+          {:ok, "ahead"} ->
             merge_source_commit(session, project, token)
 
           {:ok, status} when status in ["behind", "diverged"] ->
-            reset_publication(session)
-
-          {:error, {:api_error, status, _body}} when status in [404, 409, 422] ->
-            reset_publication(session)
+            {:error, :translation_source_history_changed}
 
           {:error, _reason} = error ->
             error
@@ -261,6 +269,12 @@ defmodule Glossia.TranslationSessions.Translate do
       commit_message: "Merge #{session.commit_sha} before continuing translations"
     }
 
+    PublicationPacing.run(project.id, fn ->
+      merge_source_commit(session, project, token, params)
+    end)
+  end
+
+  defp merge_source_commit(session, project, token, params) do
     case Glossia.Github.Client.merge_branch(project.github_repo_full_name, params, token) do
       {:ok, response} ->
         with {:ok, branch_commit_sha} <-
@@ -272,9 +286,8 @@ defmodule Glossia.TranslationSessions.Translate do
           {:ok, updated_session}
         end
 
-      {:error, {:api_error, status, _body}} when status in [404, 409, 422] ->
-        reset_publication(session)
-
+      # An open PR must not be abandoned just because its branch conflicts
+      # with the source. Fail visibly rather than opening a second PR.
       {:error, _reason} = error ->
         error
     end
@@ -367,7 +380,8 @@ defmodule Glossia.TranslationSessions.Translate do
   @doc false
   def publish_changes(
         %{session_id: session_id},
-        %{changes: changes}
+        %{changes: changes},
+        opts \\ []
       )
       when is_list(changes) do
     session =
@@ -385,9 +399,26 @@ defmodule Glossia.TranslationSessions.Translate do
              {:error, :translation_cancelled}
            end
          end) do
-      {:aborted, reason} -> {:error, {:publication_lock_aborted, reason}}
-      result -> result
+      {:aborted, reason} ->
+        {:error, {:publication_lock_aborted, reason}}
+
+      {:wait, ms} ->
+        if Keyword.get(opts, :wait, true) do
+          wait_for_publication(session_id, ms)
+          publish_changes(%{session_id: session_id}, %{changes: changes}, opts)
+        else
+          TranslationSessions.heartbeat_session(session_id)
+          {:wait, ms}
+        end
+
+      result ->
+        result
     end
+  end
+
+  defp wait_for_publication(session_id, ms) do
+    TranslationSessions.heartbeat_session(session_id)
+    Process.sleep(min(ms, 30_000))
   end
 
   # Item workers run concurrently and hand their validated files to a batch,
@@ -400,7 +431,7 @@ defmodule Glossia.TranslationSessions.Translate do
               clone_token != "" do
     {:ok, batch} =
       PublicationBatch.start_link(fn changes ->
-        publish_changes(%{session_id: session.id}, %{changes: changes})
+        publish_changes(%{session_id: session.id}, %{changes: changes}, wait: false)
       end)
 
     batch
@@ -413,35 +444,51 @@ defmodule Glossia.TranslationSessions.Translate do
 
   @doc false
   def serialize_project_publication(project_id, callback) do
-    # `:global.trans/2` expects `{resource, requester}`. Keeping the project in
-    # the resource and the process as requester serializes local and distributed
-    # commits across a handoff while allowing independent projects to publish at
-    # the same time.
-    :global.trans({{__MODULE__, :project_publication, project_id}, self()}, callback)
+    # Detached runners need not be connected to the same Erlang cluster.
+    # Keep the project locked through GitHub's ref/PR updates AND persistence,
+    # so supersession cannot inherit stale publication metadata mid-push.
+    case Repo.transaction(
+           fn ->
+             Repo.one!(
+               from(p in Project, where: p.id == ^project_id, lock: "FOR UPDATE"),
+               timeout: :timer.minutes(10)
+             )
+
+             callback.()
+           end,
+           timeout: :timer.minutes(10)
+         ) do
+      {:ok, result} -> result
+      {:error, reason} -> {:aborted, reason}
+    end
   end
 
   defp publish_changes_with_token(session, changes, retry_on_unauthorized?) do
     installation = session.project.github_installation
 
-    with {:ok, token} <-
-           Glossia.Github.App.installation_token(installation.github_installation_id) do
-      case do_publish_changes(session, session.project, token, changes) do
-        # GitHub rejected a token we believed was live, so it either expired
-        # between the cache handing it over and the request landing, or it was
-        # revoked. Drop it and mint a new one before failing the run, since
-        # giving up here discards every translation the run has produced.
-        {:error, {:api_error, 401, _body}} when retry_on_unauthorized? ->
-          Logger.warning("GitHub rejected an installation token, minting a new one",
-            translation_session_id: session.id,
-            github_installation_id: installation.github_installation_id
-          )
+    result =
+      PublicationPacing.run(session.project_id, fn ->
+        with {:ok, token} <-
+               Glossia.Github.App.installation_token(installation.github_installation_id) do
+          do_publish_changes(session, session.project, token, changes)
+        end
+      end)
 
-          Glossia.Github.InstallationTokens.invalidate(installation.github_installation_id)
-          publish_changes_with_token(session, changes, false)
+    case result do
+      {:error, {:api_error, 401, _body}} when retry_on_unauthorized? ->
+        Logger.warning("GitHub rejected an installation token, minting a new one",
+          translation_session_id: session.id,
+          github_installation_id: installation.github_installation_id
+        )
 
-        result ->
-          result
-      end
+        Glossia.Github.InstallationTokens.invalidate(installation.github_installation_id)
+
+        # The first attempt may already have advanced the ref before a later
+        # API call rejected the token. A retry consumes another paced slot.
+        publish_changes_with_token(session, changes, false)
+
+      result ->
+        result
     end
   end
 
@@ -450,7 +497,8 @@ defmodule Glossia.TranslationSessions.Translate do
     default_branch = project.github_repo_default_branch || "main"
     commit_message = translation_commit_message(session)
 
-    with branch_name = session.publication_branch || translation_branch_name(session),
+    with {:ok, session} <- recover_open_publication(session, project, token),
+         branch_name = session.publication_branch || translation_branch_name(session),
          {:ok, parent_commit_sha} <-
            base_commit_sha(full_name, default_branch, session, token),
          {:ok, parent_commit} <-
@@ -505,6 +553,75 @@ defmodule Glossia.TranslationSessions.Translate do
     else
       nil -> {:error, :invalid_github_response}
       other -> other
+    end
+  end
+
+  # GitHub can accept a PR just before the runner dies or its database
+  # transaction fails. Recover that publication before creating a new one,
+  # rather than relying solely on metadata from a previous session.
+  defp recover_open_publication(%{pull_request_url: url} = session, _project, _token)
+       when is_binary(url) and url != "",
+       do: {:ok, session}
+
+  defp recover_open_publication(session, project, token) do
+    with {:ok, pull_request} <- find_open_translation_pull_request(project, token, 1) do
+      case pull_request do
+        nil ->
+          {:ok, session}
+
+        %{
+          "head" => %{"ref" => branch, "sha" => sha},
+          "html_url" => url,
+          "number" => number
+        }
+        when is_binary(branch) and is_binary(sha) and is_binary(url) and is_integer(number) ->
+          TranslationSessions.update_session_publication(session, %{
+            publication_branch: branch,
+            publication_commit_sha: sha,
+            pull_request_url: url,
+            pull_request_number: number
+          })
+
+        _ ->
+          {:error, :invalid_github_response}
+      end
+    end
+  end
+
+  defp find_open_translation_pull_request(project, token, page) do
+    app_slug = Application.get_env(:glossia, Glossia.Github.App, [])[:app_slug] || "glossia"
+    bot_login = "#{app_slug}[bot]"
+
+    case Glossia.Github.Client.list_pull_requests(project.github_repo_full_name, token,
+           base: project.github_repo_default_branch || "main",
+           page: page,
+           per_page: 100
+         ) do
+      {:ok, pull_requests} when is_list(pull_requests) ->
+        existing =
+          Enum.find(pull_requests, fn pr ->
+            get_in(pr, ["user", "login"]) == bot_login and
+              get_in(pr, ["head", "repo", "full_name"]) == project.github_repo_full_name and
+              is_binary(get_in(pr, ["head", "ref"])) and
+              String.starts_with?(get_in(pr, ["head", "ref"]), @translation_branch_prefix <> "-")
+          end)
+
+        cond do
+          existing ->
+            {:ok, existing}
+
+          length(pull_requests) == 100 ->
+            find_open_translation_pull_request(project, token, page + 1)
+
+          true ->
+            {:ok, nil}
+        end
+
+      {:ok, _} ->
+        {:error, :invalid_github_response}
+
+      {:error, _} = error ->
+        error
     end
   end
 
