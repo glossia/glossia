@@ -1,36 +1,37 @@
 %{
-  title: "Memória de linguagem e memória de tradução",
+  title: "Memória de idioma e memória de tradução",
   summary:
     "Como a voz e a terminologia complementam as traduções revisadas sem vincular a entrega a uma memória proprietária.",
   category: "explicação",
+  markdown_only: true,
   section: "translation",
   order: 4
 }
 ---
 
-Uma memória de tradução geralmente registra segmentos de origem-alvo previamente traduzidos. Um segmento de origem correspondente ou similar pode reutilizar trabalho anterior. Isso é valioso para material repetitivo e para preservar traduções revisadas.
+Uma memória de tradução geralmente grava segmentos fonte-alvo previamente traduzidos. Um segmento de fonte correspondente ou semelhante pode reutilizar trabalhos anteriores. Isso é valioso para material repetitivo e para preservar traduções revisadas.
 
-A memória de linguagem do Glossia atende a outra necessidade: os princípios que fazem o novo texto soar como da organização, mesmo que a frase jamais tenha aparecido antes.
+A memória linguística do Glossia atende a outra necessidade: os princípios que fazem novas escritas soarem como da organização, mesmo quando a frase nunca apareceu antes.
 
-## Lembrando da saída versus lembrar a intenção
+## Lembrar a saída versus lembrar a intenção
 
-Uma tradução revisada responde: "Como traduzimos isso antes?" A orientação de voz e o glossário respondem perguntas como:
+Uma tradução revisada responde, "Como traduzimos isso antes?" Orientação de voz e um glossário respondem perguntas tais como:
 
 - Quais termos de produto devem permanecer inalterados?
-- Que terminologia devemos usar consistentemente?
+- Quais terminologias devemos usar consistentemente?
 - Que tom se adequa a este público?
-- Quais decisões de linguagem um agente deve respeitar ao redigir novo material?
+- Quais decisões de idioma um agente deve respeitar ao esboçar novo material?
 
-Essas entradas podem ajudar na localização e na criação de conteúdo na língua fonte. Elas não se limitam à recuperação de um segmento alvo correspondente.
+Essas entradas podem ajudar com localização e com criação de conteúdo na língua fonte. Elas não se limitam à recuperação de um segmento de alvo correspondente.
 
 ## Ferramentas complementares
 
-As memórias de tradução e a orientação linguística solucionam problemas sobrepostos, porém distintos. Uma equipe pode se beneficiar de ambas. O Glossia não promete que o texto gerado por modelo pode substituir todo segmento revisado, nem que o prompting garanta a correção linguística.
+Memórias de tradução e orientações linguísticas resolvem problemas sobrepostos, mas distintos. Uma equipe pode se beneficiar de ambas. O Glossia não promete que texto gerado pelo modelo substitua cada segmento revisado, ou que o prompting garanta a correção linguística.
 
-A escolha arquitetural importante não é tornar uma memória proprietária o único órgão de autoridade para a linguagem da empresa. Conteúdo de propriedade do repositório, contexto reutilizável, histórico de versões e revisão todos contribuem para um processo que a equipe pode entender e manter.
+A escolha arquitetural importante não é fazer da memória proprietária a única autoridade para a linguagem da empresa. Conteúdo de propriedade do repositório, contexto reutilizável, histórico de versões e revisão contribuem todos para um processo que a equipe pode entender e manter.
 
 ## O contexto ainda precisa de revisão
 
-A orientação pode ser incompleta ou contraditória. Um termo pode ter diferentes significados em produtos diferentes. As pessoas continuam responsáveis por decidir se o resultado é preciso e apropriado; a validação pode detectar falhas estruturais, mas não pode provar que cada frase está correta.
+Orientação pode estar incompleta ou contraditória. Um termo pode ter significados diferentes em diferentes produtos. Os humanos permanecem responsáveis por decidir se o resultado é preciso e apropriado; validação pode identificar falhas estruturais, mas não consegue provar que cada frase está correta.
 
-Leia [Por que Glossia](./why-glossia) para o modelo mais amplo e [Localização contínua](./continuous-localization) para o seu relacionamento com a entrega.
+Leia [Por que Glossia](./why-glossia) para o modelo mais amplo e [Localização contínua](./continuous-localization) para a sua relação com a entrega.

@@ -1,51 +1,52 @@
 %{
   title: "Glossia contre Weblate",
   summary:
-    "Choisissez Glossia pour des travaux linguistiques pilotés par les modèles qui respectent les livraisons de dépôt et réutilisent votre validation existante.",
+    "Choisissez Glossia pour des travaux linguistiques pilotés par modèle qui suivent le flux de livraison du dépôt et réutilisent votre validation existante.",
   category: "explication",
+  markdown_only: true,
   section: "translation",
   order: 23
 }
 ---
 
-**Choisissez Glossia lorsque vous souhaitez que l'automatisation linguistique fonctionne comme le reste de votre livraison de logiciels :** instructions sous contrôle de version, vos propres jetons de modèle, les vérifications natives du dépôt et les pull requests pour examen.
+**Choisissez Glossia lorsque vous souhaitez que l'automatisation linguistique fonctionne comme le reste de votre chaîne de livraison logicielle :** directives sous contrôle source, vos propres jetons de modèle, vérifications natives du dépôt et des pull requests pour revue.
 
-[Weblate](https://weblate.org/) est un système de localisation open-source avec une interface de traduction web, une intégration contrôle-de-version et des options auto-hébergement. Le code public et l'intégration Git ne sont pas exclusifs à Glossia. La raison de choisir Glossia est sa combinaison de livraison centrée sur le dépôt, de transformations pilotées par le modèle et de contexte linguistique réutilisable à la fois pour les humains et les agents.
+[Weblate](https://weblate.org/) est un système de localisation open source avec une interface web de traduction, une intégration au contrôle de version et des options d'auto-hébergement. Le code public et l'intégration Git ne sont pas exclusifs à Glossia. Le motif pour choisir Glossia réside dans sa combinaison de livraison centrée sur le dépôt, de transformations pilotées par le modèle et de contexte linguistique réutilisable tant pour les humains que pour les agents.
 
 ## Pourquoi choisir Glossia
 
-| Votre priorité | Avantage de Glossia |
+| Votre priorité | L'avantage de Glossia |
 |---|---|
-| Gardez l'examen dans le flux de travail du produit | Examinez le résultat réel sous contrôle de version à travers les modifications du dépôt et les pull requests. |
-| Suivez un référentiel source en évolution rapide | La détection de changement et la publication en lots soutiennent une boucle de localisation continue sans re-traduire à chaque fois des entrées inchangées. |
-| Apportez vos propres jetons de modèle | Configurez les modèles pris en charge avec des identifiants de fournisseur à portée compte et sélectionnez-les avec des identifiants possédés par le dépôt. |
-| Réutiliser la validation native | Exécutez la commande de validation native du dépôt sur un candidat à son véritable chemin cible. |
-| Réutiliser le contexte au-delà de la traduction | La voix et la terminologie partagées peuvent orienter le nouveau contenu et les intégrations agents via les interfaces MCP et REST. |
+| Maintenir la révision dans le flux de travail du produit | Examiner la sortie réelle sous contrôle source à travers les modifications du dépôt et les pull requests. |
+| Correspondre à un dépôt source en évolution rapide | La détection de changements et la publication par lots soutiennent un cycle de localisation continu sans traduire à nouveau les entrées inchangées. |
+| Apportez vos propres jetons de modèle | Configurez les modèles pris en charge avec des identifiants de fournisseur à portée du compte et sélectionnez-les avec des gestionnaires appartenant au dépôt. |
+| Réutiliser la validation native | Exécutez la commande de validation native du dépôt sur un candidat à sa véritable destination. |
+| Réutiliser le contexte au-delà de la traduction | La voix partagée et la terminologie peuvent orienter le nouveau contenu et les intégrations d'agents via les interfaces MCP et REST. |
 
-## Gardez le dépôt comme surface de révision
+## Maintenir le dépôt comme surface de révision
 
-Glossia est conçu pour une équipe qui utilise déjà Git pour décider ce qui est prêt à être livré. Sa configuration de localisation réside à côté du contenu, et ses sorties proposées peuvent être examinées par le même processus que le changement du produit.
+Glossia est conçu pour une équipe qui utilise déjà Git pour décider ce qui est prêt à être déployé. La configuration de localisation réside à côté du contenu, et ses sorties proposées peuvent être révisées via le même processus que le changement de produit.
 
-Weblate s'intègre également au contrôle de version. Son interface web de traduction est peut-être exactement ce dont une communauté de contributeurs a besoin. L'accent de Glossia est différent : préserver la frontière de révision du dépôt et amener l'automatisation linguistique à celle-ci, plutôt que de faire d'une autre interface d'édition le centre du travail de l'équipe.
+Weblate s'intègre également au contrôle de version. Son interface de traduction basée sur le navigateur peut être exactement ce dont une communauté de contributeurs a besoin. L'accent de Glossia est différent : préserver la frontière de révision du dépôt et apporter l'automatisation linguistique, plutôt que de faire d'une autre interface d'édition le centre des travaux de l'équipe.
 
-## Apportez vos propres jetons et expliciterez vos choix de modèle
+## Apportez vos propres jetons et clarifiez les choix de modèle
 
-Glossia utilise des modèles pris en charge configurés avec vos jetons API de fournisseur. La configuration du dépôt fait référence à des identifiants de modèle stables ; les secrets restent dans les paramètres du compte. Vous pouvez sélectionner différents modèles configurés selon l'étendue de contenu ou la cible locale et renouveler les identifiants sans modifier chaque dépôt.
+Glossia utilise des modèles pris en charge configurés avec vos jetons API de fournisseur. La configuration du dépôt fait référence à des gestionnaires de modèle stables ; les secrets restent dans les paramètres du compte. Vous pouvez sélectionner différents modèles configurés par portée de contenu ou locale cible et renouveler les identifiants sans modifier chaque dépôt.
 
-Cela donne à votre équipe un emplacement explicite pour choisir les modèles qui génèrent son contenu. Elle ne promet pas qu'un jeton ou modèle donné soit pris en charge, ni que la génération élimine le besoin de révision humaine. Consultez [Configurer un fournisseur de modèle](/docs/how-to/configure-a-model-provider)
+Cela donne à votre équipe un lieu explicite pour choisir les modèles qui produisent son contenu. Elle ne garantit pas qu'un jeton ou un modèle est pris en charge, ni que la génération élimine le besoin de contrôle humain. Consultez [Configurer un fournisseur de modèle](/docs/how-to/configure-a-model-provider).
 
-## Réutiliser les vérifications qui définissent un changement livrable
+## Réutiliser les contrôles qui définissent un changement de livraison
 
-Les vérifications structurelles intégrées de Glossia ne constituent qu'une partie de la frontière qualité. Par `L10N.md`, il peut exécuter le script de validation natif du dépôt, son analyseur, son compilateur ou sa vérification de documentation sur le candidat à son véritable chemin cible.
+Les vérifications structurelles intégrées à Glossia ne constituent qu'une partie de la frontière de qualité. À travers `L10N.md`,
 
-Ceci est utile lorsque le contenu traduit inclut plus que des chaînes simples : des formats spécifiques à l'application, des composants Markdown, des métadonnées structurées et des contraintes que le projet sait déjà vérifier. La validation et la récupération restent connectées aux fichiers effectifs que votre pipeline publie.
+Utile lorsque le contenu traduit inclut plus que des chaînes simples : formats spécifiques à l'application, composants Markdown, métadonnées structurées et contraintes que le projet sait déjà vérifier. Validation et récupération restent connectées aux fichiers que votre pipeline publiera.
 
-L'environnement d'exécution nécessite toujours les dépendances du validateur, et la validation structurelle n'établit pas la précision linguistique. Consultez [L10N.md](/docs/reference/l10n-md) et [Récupération de traduction](./translation-recovery)
+L'environnement d'exécution nécessite toujours les dépendances du validateur et la validation structurelle n'établit pas l'exactitude linguistique. Consultez [L10N.md](/docs/reference/l10n-md) et [Récupération des traductions](./translation-recovery).
 
-## Le code source public est une base, pas la comparaison entière
+## Une source publique est une base, pas une comparaison totale
 
-L'implémentation de Glossia est publique et peut être examinée, modifiée et auto-hébergée sous [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md). La licence restreint les services d'hébergement concurrents ; elle n'est pas la même que la licence open-source basée sur la GPL de Weblate.
+L'implémentation de Glossia est publique et peut être examinée, modifiée et auto-hébergée sous [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md). La licence limite les services hébergés concurrents ; elle n'est pas la même que la licence open-source basée sur la GPL de Weblate.
 
-Si une licence open-source sans restriction et une interface web de traduction établie sont vos critères primaires, Weblate mérite considération. Si l'objectif est **vos propres identifiants de modèle, les vérifications de dépôt existantes et un travail linguistique qui suit la livraison de logiciels**, Glossia rassemble ces choix dans un système d'exploitation linguistique.
+Si la licence open-source non restrictive et une interface web de traduction établies sont vos principaux critères, Weblate mérite d'être considéré. Si l'objectif est **vos propres identifiants de modèle, les vérifications existantes du dépôt et les travaux linguistiques qui suivent la livraison de logiciels**, Glossia rassemble ces choix dans un système d'exploitation linguistique.
 
-Cette comparaison ne prétend pas que Weblate manque d'automatisation, de fonctionnalités de validation ou d'intégrations de fournisseur, et ne promet pas de migration automatique ou de parité fonctionnelle. Consultez [la documentation Weblate](https://docs.weblate.org/) pour les capacités actuelles.
+Cette comparaison ne prétend pas que Weblate manque d'automatisation, de fonctionnalités de validation ou d'intégrations de fournisseur, et ne promet pas de migration automatique ou de parité fonctionnelle. Consultez [la documentation de Weblate](https://docs.weblate.org/) pour les capacités actuelles.

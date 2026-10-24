@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "5edf891fe354e1c5b36b2863553b480ff66a8d0e454cb007eb343080d869cc04",
+  "hash": "e11cdac126792aad54a795d6bf4d623a47e51e9412921dcc71a98246f9280c38",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "011c8486e99ad2d517079d3488fb0d59eb004f06b2dbb250e66d244974f6ed5e",
+          "hash": "0f54822b9da9896b261b465b542d328644f6082b8444a12307f5d535fc5c0b91",
           "kind": "source",
           "label": "app/priv/docs/explanation/glossia-vs-weblate.md",
           "metadata": {
-            "content_hash": "1e4a9c71d9290506f72297a78ef559dc2e6dfc480db523e716aff1ad12e4030a"
+            "content_hash": "54fa2b631ae9c0f329ee1aa1d51e7280fc73c7dfd6b16c53bd6938c82bff5156"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "5edf891fe354e1c5b36b2863553b480ff66a8d0e454cb007eb343080d869cc04",
+      "hash": "e11cdac126792aad54a795d6bf4d623a47e51e9412921dcc71a98246f9280c38",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/glossia-vs-weblate.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "251952c144f89d1ce89549998aba0ed52173f94dc69c2ab77607352c932437bb",
+  "output_hash": "92922723bddec1944626ae8cf4ccab2dcea4978942058c9d3156dda5b771d137",
   "output_path": "app/priv/i18n/zh-Hans/docs/explanation/glossia-vs-weblate.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "4b77452a9ba312dea7a18611a5f1888bd50c233d",
   "source_path": "app/priv/docs/explanation/glossia-vs-weblate.md",
-  "translated_at": "2026-10-20T07:42:06.556131Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-23T09:03:32.567748Z",
+  "translation_session_id": "01a167f8-3075-7b15-b4d2-bdb3638edb55"
 }

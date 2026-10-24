@@ -5539,34 +5539,34 @@ msgstr "翻译引擎"
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "All files are up to date. No translations were needed."
-msgstr ""
+msgstr "所有文件均为最新，无需翻译。"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Files will appear here when translation starts."
-msgstr ""
+msgstr "翻译开始后，文件将显示在此处。"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "No activity recorded"
-msgstr ""
+msgstr "暂无活动记录"
 
 #: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "No translated files"
-msgstr "暂无翻译"
+msgstr "无已翻译文件"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Session activity will appear here as the translation runs."
-msgstr ""
+msgstr "翻译进行时，会话活动将显示在此处。"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "This session did not produce any translated files."
-msgstr ""
+msgstr "本次会话未生成任何翻译文件。"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "This session has no recorded activity."
-msgstr ""
+msgstr "本次会话暂无活动记录。"
