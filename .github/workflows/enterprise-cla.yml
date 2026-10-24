@@ -91,6 +91,9 @@ jobs:
                 throw new Error(`Commit ${commit.sha} impersonates an exempt bot outside that bot's own pull request.`);
               }
               const webFlow = commit.committer?.id === 19864447 && commit.committer?.login === 'web-flow';
+              if (webFlow && commit.author.id !== pr.user.id) {
+                throw new Error(`Commit ${commit.sha} uses web-flow with an author other than the pull request opener.`);
+              }
               if (commit.author.id !== commit.committer?.id && !webFlow) {
                 throw new Error(`Commit ${commit.sha} has different author and committer identities. Resolve attribution before signing.`);
               }
@@ -98,7 +101,9 @@ jobs:
 
             // The copyright owner needs no inbound grant to their own work.
             // The verified-signature guard above prevents email impersonation.
-            if (commits.every(commit => commit.author.id === 663605)) {
+            if (pr.user.id === 663605 && commits.every(commit =>
+              commit.author.id === 663605 && commit.committer?.id === 663605
+            )) {
               core.setOutput('required', 'false');
               core.info('Verified project-owner contributions need no inbound CLA.');
               return;

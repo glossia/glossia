@@ -286,12 +286,42 @@ test('a bot exemption requires a verified commit in that bot own PR', async () =
 });
 
 test('verified owner-only contributions require no inbound grant or finalized agreement', async () => {
-  const f = fixture([{ filename: 'ee/audit.ex' }]);
+  const f = fixture([{ filename: 'ee/audit.ex' }], { user: { id: 663605 } });
   f.commits[0].author = { id: 663605, login: 'pepicrft' };
   f.commits[0].committer = f.commits[0].author;
   f.github.rest.repos.getContent = async () => { throw new Error('must not read a CLA for owner-only work'); };
   await f.execute();
   assert.equal(f.output.required, 'false');
+});
+
+test('web-flow cannot impersonate the owner in another account PR', async () => {
+  const f = fixture([{ filename: 'ee/audit.ex' }]);
+  f.commits[0].author = { id: 663605, login: 'pepicrft' };
+  f.commits[0].committer = { id: 19864447, login: 'web-flow' };
+  await assert.rejects(f.execute, /author other than the pull request opener/);
+});
+
+test('web-flow cannot impersonate an existing signer in another account PR', async () => {
+  const f = fixture([{ filename: 'ee/audit.ex' }]);
+  f.commits[0].author = { id: 2, login: 'previous-signer' };
+  f.commits[0].committer = { id: 19864447, login: 'web-flow' };
+  await assert.rejects(f.execute, /author other than the pull request opener/);
+});
+
+test('owner exemption requires the owner to open the pull request', async () => {
+  const f = fixture([{ filename: 'ee/audit.ex' }]);
+  f.commits[0].author = { id: 663605, login: 'pepicrft' };
+  f.commits[0].committer = f.commits[0].author;
+  await f.execute();
+  assert.equal(f.output.required, 'true');
+});
+
+test('a web-flow committer does not qualify for the owner-only exemption', async () => {
+  const f = fixture([{ filename: 'ee/audit.ex' }], { user: { id: 663605 } });
+  f.commits[0].author = { id: 663605, login: 'pepicrft' };
+  f.commits[0].committer = { id: 19864447, login: 'web-flow' };
+  await f.execute();
+  assert.equal(f.output.required, 'true');
 });
 
 test('an unsigned commit cannot impersonate the exempt owner', async () => {
