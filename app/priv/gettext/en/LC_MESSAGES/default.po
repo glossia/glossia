@@ -4649,11 +4649,6 @@ msgstr ""
 msgid "This revision does not contain glossary entries."
 msgstr ""
 
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format, fuzzy
-msgid "Translated output"
-msgstr ""
-
 #: lib/glossia_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Voices, glossary, audience profiles, and style rules live on the platform. They are shared across every project in your organization and versioned so nothing gets lost."
@@ -5575,4 +5570,9 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "This session has no recorded activity."
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Translated output preview"
 msgstr ""
