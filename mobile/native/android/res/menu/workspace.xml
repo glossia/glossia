@@ -1,0 +1,4 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/choose_workspace" android:title="Choose workspace" android:icon="@drawable/ic_workspace" app:iconTint="?attr/colorOnSurfaceVariant" app:showAsAction="always" />
+    <item android:id="@+id/refresh" android:title="Refresh" app:showAsAction="never" />
+</menu>

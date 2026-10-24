@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application android:name=".GlossiaApplication" android:label="Glossia" android:icon="@drawable/glossia_mark"
+        android:theme="@style/GlossiaTheme" android:allowBackup="false" android:supportsRtl="true"
+        android:usesCleartextTraffic="false" android:enableOnBackInvokedCallback="true">
+        <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" /><category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="glossia" android:host="oauth" android:path="/callback" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

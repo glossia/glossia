@@ -1,0 +1,166 @@
+[workspace]
+include = ["once.toml"]
+exclude = ["**/Cargo.toml"]
+
+[modules]
+paths = ["modules/*.star"]
+
+[infrastructure.cache]
+provider = "local"
+
+[[target]]
+name = "GlossiaDependencies"
+kind = "cargo_dependencies"
+[target.attrs]
+manifest = "Cargo.toml"
+lockfile = "Cargo.lock"
+vendor_dir = ".once/vendor"
+resolver_inputs = ["Cargo.toml", "Cargo.lock", "core/Cargo.toml"]
+
+[[target]]
+name = "GlossiaAndroidDependencies"
+kind = "cargo_dependencies"
+[target.attrs]
+manifest = "Cargo.toml"
+lockfile = "Cargo.lock"
+vendor_dir = ".once/vendor"
+target = "aarch64-linux-android"
+build_script_tools = ["aarch64-linux-android-clang", "clang", "llvm-ar"]
+resolver_inputs = ["Cargo.toml", "Cargo.lock", "core/Cargo.toml"]
+
+[[target]]
+name = "GlossiaIOSDependencies"
+kind = "cargo_dependencies"
+[target.attrs]
+manifest = "Cargo.toml"
+lockfile = "Cargo.lock"
+vendor_dir = ".once/vendor"
+target = "aarch64-apple-ios-sim"
+resolver_inputs = ["Cargo.toml", "Cargo.lock", "core/Cargo.toml"]
+
+[[target]]
+name = "GlossiaDeviceDependencies"
+kind = "cargo_dependencies"
+[target.attrs]
+manifest = "Cargo.toml"
+lockfile = "Cargo.lock"
+vendor_dir = ".once/vendor"
+target = "aarch64-apple-ios"
+resolver_inputs = ["Cargo.toml", "Cargo.lock", "core/Cargo.toml"]
+
+[[target]]
+name = "GlossiaCoreTests"
+kind = "rust_test"
+srcs = ["core/src/**/*.rs"]
+deps = ["./GlossiaDependencies"]
+[target.attrs]
+crate_name = "glossia_core"
+crate_root = "core/src/lib.rs"
+cargo_package = "glossia-core"
+edition = "2024"
+rustc_flags = ["-Dwarnings"]
+
+[[target]]
+name = "GlossiaCoreAndroid"
+kind = "rust_library"
+srcs = ["core/src/**/*.rs"]
+deps = ["./GlossiaAndroidDependencies"]
+[target.attrs]
+crate_name = "glossia_core"
+crate_root = "core/src/lib.rs"
+cargo_package = "glossia-core"
+edition = "2024"
+target = "aarch64-linux-android"
+crate_type = "cdylib"
+android_abi = "arm64-v8a"
+android_api = 26
+linker_flags = ["-Wl,-z,max-page-size=16384", "-Wl,-z,common-page-size=16384"]
+
+[[target]]
+name = "GlossiaCoreIOS"
+kind = "rust_library"
+srcs = ["core/src/**/*.rs"]
+deps = ["./GlossiaIOSDependencies"]
+[target.attrs]
+crate_name = "glossia_core"
+crate_root = "core/src/lib.rs"
+cargo_package = "glossia-core"
+edition = "2024"
+target = "aarch64-apple-ios-sim"
+crate_type = "staticlib"
+
+[[target]]
+name = "GlossiaCoreDevice"
+kind = "rust_library"
+srcs = ["core/src/**/*.rs"]
+deps = ["./GlossiaDeviceDependencies"]
+[target.attrs]
+crate_name = "glossia_core"
+crate_root = "core/src/lib.rs"
+cargo_package = "glossia-core"
+edition = "2024"
+target = "aarch64-apple-ios"
+crate_type = "staticlib"
+
+[[target]]
+name = "GlossiaCoreFFI"
+kind = "apple_system_module"
+[target.attrs]
+modulemap = "core/include/module.modulemap"
+headers = ["core/include/glossia_core.h"]
+header_dirs = ["core/include"]
+
+[[target]]
+name = "GlossiaAndroid"
+kind = "glossia_android_application"
+srcs = ["android/src/**/*.kt", "android/res/**/*", "android/AndroidManifest.xml", "android/*.gradle.kts", "android/gradle.properties", "android/gradle.lockfile"]
+deps = ["./GlossiaCoreAndroid"]
+
+[[target]]
+name = "GlossiaSimulatorSDK"
+kind = "glossia_apple_sdk"
+[target.attrs]
+sdk = "iphonesimulator"
+
+[[target]]
+name = "GlossiaDeviceSDK"
+kind = "glossia_apple_sdk"
+[target.attrs]
+sdk = "iphoneos"
+
+[[target]]
+name = "GlossiaIOS"
+kind = "apple_application"
+srcs = ["ios/Sources/**/*.swift"]
+deps = ["./GlossiaCoreIOS", "./GlossiaCoreFFI", "./GlossiaSimulatorSDK"]
+[target.attrs]
+platform = "ios"
+sdk_frameworks = ["AuthenticationServices", "Security"]
+bundle_id = "ai.glossia.mobile"
+product_name = "Glossia"
+asset_catalogs = ["ios/Resources/Assets.xcassets"]
+app_icon = "AppIcon"
+resources = ["android/res/raw/third_party_notices.txt"]
+minimum_os = "17.0"
+sdk_variant = "simulator"
+families = ["iphone", "ipad"]
+info_plist = "ios/Info.plist"
+entitlements = "ios/Simulator.entitlements"
+
+[[target]]
+name = "GlossiaIOSDevice"
+kind = "apple_application"
+srcs = ["ios/Sources/**/*.swift"]
+deps = ["./GlossiaCoreDevice", "./GlossiaCoreFFI", "./GlossiaDeviceSDK"]
+[target.attrs]
+platform = "ios"
+sdk_frameworks = ["AuthenticationServices", "Security"]
+bundle_id = "ai.glossia.mobile"
+product_name = "Glossia"
+asset_catalogs = ["ios/Resources/Assets.xcassets"]
+app_icon = "AppIcon"
+resources = ["android/res/raw/third_party_notices.txt"]
+minimum_os = "17.0"
+sdk_variant = "device"
+families = ["iphone", "ipad"]
+info_plist = "ios/Info.plist"

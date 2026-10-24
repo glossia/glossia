@@ -1,0 +1,6 @@
+/.once/
+/target/
+/delivery/
+android/.gradle/
+*.keystore
+*.ipa

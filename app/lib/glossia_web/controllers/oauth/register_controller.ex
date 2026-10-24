@@ -25,28 +25,41 @@ defmodule GlossiaWeb.OAuth.RegisterController do
 
   @impl Boruta.Openid.DynamicRegistrationApplication
   def client_registered(conn, %Boruta.Oauth.Client{} = client) do
+    public? = not client.confidential and client.token_endpoint_auth_methods == []
+
     body = %{
       client_id: client.id,
-      client_secret: client.secret,
       redirect_uris: client.redirect_uris,
       grant_types: client.supported_grant_types,
       token_endpoint_auth_method:
-        case client.token_endpoint_auth_methods do
-          [method | _] -> method
-          _ -> "client_secret_basic"
+        if public? do
+          "none"
+        else
+          List.first(client.token_endpoint_auth_methods) || "client_secret_basic"
         end
     }
+
+    body = if public?, do: body, else: Map.put(body, :client_secret, client.secret)
 
     conn
     |> put_status(:created)
     |> json(body)
   end
 
-  # Boruta doesn't support "none" as an auth method. Public clients (like Codex)
-  # send "none" per RFC 7591. We drop it so Boruta uses its default methods,
-  # which is fine since PKCE enforces proof-of-possession anyway.
-  defp normalize_auth_method(%{token_endpoint_auth_method: "none"} = params),
-    do: Map.delete(params, :token_endpoint_auth_method)
+  # Boruta 2.x represents public clients with flags rather than the RFC 7591
+  # "none" method. Never give a public registration client_credentials grants.
+  defp normalize_auth_method(%{token_endpoint_auth_method: "none"} = params) do
+    params
+    |> Map.delete(:token_endpoint_auth_method)
+    |> Map.merge(%{
+      confidential: false,
+      token_endpoint_auth_methods: [],
+      supported_grant_types: ["authorization_code", "refresh_token", "revoke"],
+      authorize_scope: true,
+      public_refresh_token: true,
+      public_revoke: true
+    })
+  end
 
   defp normalize_auth_method(params), do: params
 
