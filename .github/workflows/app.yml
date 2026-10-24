@@ -58,6 +58,10 @@ jobs:
           cache: true
       - name: Install tools
         run: mise install
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libcap-ng-dev
       - name: Install dependencies
         run: mix deps.get
       - name: Compile (warnings as errors)
@@ -109,6 +113,10 @@ jobs:
           cache: true
       - name: Install tools
         run: mise install
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libcap-ng-dev
       - name: Install dependencies
         run: mix deps.get
       - name: Wait for ClickHouse
@@ -154,6 +162,10 @@ jobs:
           cache: true
       - name: Install tools
         run: mise install
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libcap-ng-dev
       - name: Install dependencies
         run: mix deps.get
       - name: Format check (Quokka + Phoenix formatter)
