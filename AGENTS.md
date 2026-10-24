@@ -248,15 +248,23 @@ Everything lives in a single repository:
 
 ## Continuous deployment
 
-Every push to `main` builds and publishes the production Docker image via
-`.github/workflows/deploy.yml`, tagging `ghcr.io/glossia/glossia:main` and
-the SHA. Flux, running in the mgmt cluster, watches that tag through the
+Relevant pushes to `main` run the `App` checks for community and enterprise.
+After both editions pass, `.github/workflows/deploy.yml` publishes separate
+images to `ghcr.io/glossia/glossia`: `main-community` (also `main`) and
+`main-enterprise`, plus commit tags. App versions are calculated with
+`app/cliff.toml`; `app-vX.Y.Z` GitHub Releases are created only after both
+`X.Y.Z-community` and `X.Y.Z-enterprise` images publish. The pipeline serializes
+version detection through release creation and pins tags to the tested commit.
+See `.github/RELEASING.md` for tag aliases and retry behavior.
+
+Flux, running in the mgmt cluster, watches `main-enterprise` through the
 `ImageRepository`/`ImagePolicy`/`ImageUpdateAutomation` triple under
 `infra/k8s/mgmt/flux/glossia-image-automation.yaml`; a new SHA is committed
 back to `infra/k8s/workload-apps/glossia-production/glossia-helmrelease.yaml`
 and the HelmRelease reconciles the workload cluster.
 
-There is no downstream wrapper repository, no enterprise/OSS split, and no
-bump-PR indirection. A merge to `main` lands in production after one CI
-build plus one Flux tick.
+There is no downstream wrapper repository or bump-PR indirection. The
+Apache-2.0 community core and commercially licensed `ee/` live in this same
+repository. A relevant merge to `main` lands in production after its checks,
+image builds, and a Flux tick.
 

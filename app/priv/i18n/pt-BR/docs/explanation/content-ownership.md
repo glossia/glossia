@@ -26,7 +26,7 @@ Isso não torna as memórias de tradução baseadas em segmentos obsoletas. As e
 
 A capacidade de inspecionar e modificar a implementação ajuda as equipes a entender como seu conteúdo é processado. Isso não significa que todas as dependências operacionais desaparecem. Uma instância do Glossia implantada ainda precisa de bancos de dados, acesso ao provedor de modelos para fluxos de trabalho relevantes, credenciais e infraestrutura. O contexto de idioma gerenciado pelo painel também precisa de um plano de migração explícito se uma equipe mudar os sistemas.
 
-A licença atual O'Saasy restringe serviços hospedados concorrentes. A disponibilidade de fonte pública não é a mesma coisa que uma licença de código aberto sem restrições nem uma garantia de que um serviço substituto possa ser operado sob qualquer modelo de negócios. Veja a [licença](https://github.com/glossia/glossia/blob/main/LICENSE.md) do repositório.
+O Glossia segue um modelo open core. O núcleo utiliza [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), que permite uso comercial, modificação, distribuição, auto-hospedagem e serviços hospedados concorrentes conforme seus termos. O código em `ee/` é visível, mas não é código aberto. Ele possui uma [licença Enterprise](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) separada e seu uso em produção exige um acordo comercial por escrito.
 
 ## Um teste útil de portabilidade
 

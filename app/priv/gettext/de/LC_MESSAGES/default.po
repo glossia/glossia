@@ -3973,11 +3973,6 @@ msgstr "L10N.md-Dateien liegen neben Ihrem Inhalt. Sie enthalten Anweisungen, To
 msgid "No documentation matched that search."
 msgstr "Keine Dokumentation wurde zu dieser Suche gefunden."
 
-#: lib/glossia_web/components/layouts/app.html.heex
-#, elixir-autogen, elixir-format
-msgid "O'Saasy License"
-msgstr "O'Saasy-Lizenz"
-
 #: lib/glossia_web/components/layouts/docs.html.heex
 #, elixir-autogen, elixir-format
 msgid "Page navigation"
@@ -5577,3 +5572,8 @@ msgstr "Diese Sitzung hat keine übersetzten Dateien erzeugt."
 #, elixir-autogen, elixir-format
 msgid "This session has no recorded activity."
 msgstr "Diese Sitzung hat keine protokollierte Aktivität."
+
+#: lib/glossia_web/components/layouts/app.html.heex
+#, elixir-autogen, elixir-format
+msgid "Apache-2.0 core + Enterprise License"
+msgstr ""

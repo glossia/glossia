@@ -48,4 +48,4 @@ Glossia ist besonders relevant, wenn Entwickler, Linguisten und Produktteams dar
 
 Glossias Code ist öffentlich verfügbar, einschließlich der Phoenix-Anwendung, des Rust CLI, des Web SDK und der Bereitstellungsinfrastruktur. Dies macht die Mechanik der Spracharbeit überprüfbar anstatt eine Black Box.
 
-Das Repository verwendet derzeit die [O'Saasy Lizenz](https://github.com/glossia/glossia/blob/main/LICENSE.md), die Nutzung und Modifikation erlaubt, aber konkurrierende gehostete Dienste einschränkt. Öffentliche Quellverfügbarkeit und Lizenzfreiheiten sind unterschiedlich; lesen Sie die Lizenz, bevor Sie eine Dienstleistung weiterverteilen oder betreiben.
+Glossia folgt einem Open-Core-Modell. Der Kern steht unter [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), die kommerzielle Nutzung, Änderungen, Weitergabe, Self-Hosting und konkurrierende gehostete Dienste gemäß ihren Bedingungen erlaubt. Der Code unter `ee/` ist einsehbar, aber nicht Open Source. Er unterliegt einer separaten [Enterprise-Lizenz](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md); der Produktionseinsatz erfordert eine schriftliche kommerzielle Vereinbarung.

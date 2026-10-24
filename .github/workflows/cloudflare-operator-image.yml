@@ -89,7 +89,7 @@ jobs:
           push: true
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.licenses=LicenseRef-O-Saasy
+            org.opencontainers.image.licenses=Apache-2.0
           tags: ${{ steps.tags.outputs.tags }}
           cache-from: type=gha,scope=cloudflare-operator
           cache-to: type=gha,mode=max,scope=cloudflare-operator

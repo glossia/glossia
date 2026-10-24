@@ -46,7 +46,7 @@ Glossia 는 `L10N.md` verification validation commands 를 통해 해당 검사�
 
 ## 공개 구현, 블랙박스 아님
 
-Glossia 의 애플리케이션, CLI, SDK 및 배포 소스가 공개되어 있습니다. 콘텐츠를 어떻게 처리되는지 실행하며, [O'Saasy license](https://github.com/glossia/glossia/blob/main/LICENSE.md) 를 따라 수정하거나 자체 호스팅할 수 있습니다. 이 라이선스는 경쟁 호스팅 서비스를 제한하며 무제한 오픈소스 라이선스가 아닙니다.
+Glossia의 애플리케이션, CLI, SDK 및 인프라 소스는 공개되어 있습니다. 코어에는 [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE)이 적용되며, 해당 조건에 따라 상업적 이용, 수정, 배포, 자체 호스팅 및 경쟁 호스팅 서비스를 제공할 수 있습니다. `ee/`의 코드에는 별도의 [Enterprise 라이선스](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md)가 적용되며 프로덕션 사용에는 서면 상업 계약이 필요합니다.
 
 보다 광범위한 번역 수단은 특수 번역 운영 및 복잡한 조정에 적합할 수 있습니다.your priority 는 **matching software-delivery speed with your own tokens and repository checks** 에 맞춰 소프트웨어 배포 속도와 자신의 토큰 및 저장소 검사를 일치시키는 것인 Glossia 는 해당 워크플로를 직접적으로 유지하도록 설계되었습니다.
 

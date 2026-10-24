@@ -4,9 +4,10 @@ defmodule Glossia.MixProject do
   def project do
     [
       app: :glossia,
-      version: "0.1.0",
+      version: System.get_env("GLOSSIA_VERSION", "0.1.0"),
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
+      test_paths: test_paths(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
@@ -47,8 +48,18 @@ defmodule Glossia.MixProject do
   end
 
   # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_), do: ["lib"]
+  defp elixirc_paths(:test), do: ["lib", "test/support"] ++ enterprise_paths("lib")
+  defp elixirc_paths(_), do: ["lib"] ++ enterprise_paths("lib")
+
+  defp test_paths, do: ["test"] ++ enterprise_paths("test")
+
+  defp enterprise_paths(directory) do
+    case System.get_env("GLOSSIA_EDITION", "core") do
+      "core" -> []
+      "enterprise" -> [Path.expand("../ee/#{directory}", __DIR__)]
+      edition -> raise "Unknown GLOSSIA_EDITION: #{inspect(edition)}; expected core or enterprise"
+    end
+  end
 
   # Specifies your project dependencies.
   #

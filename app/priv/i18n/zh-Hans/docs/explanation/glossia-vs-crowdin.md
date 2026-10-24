@@ -54,7 +54,7 @@ validation:
 
 您可以检查 Glossia 计划的工作方式、处理凭据、保留 Markdown 并验证结果。即使语言服务不可用，现有翻译文件仍可通过仓库管道发布。
 
-Glossia 根据 [O'Saasy 许可证](https://github.com/glossia/glossia/blob/main/LICENSE.md) 提供源码，允许自托管但限制竞争性托管服务。它不是非限制性的开源许可证。
+Glossia 采用开放核心模式。核心代码使用 [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE)，根据其条款允许商业使用、修改、分发、自托管以及提供竞争性托管服务。`ee/` 中的代码可供查看，但并非开源；它适用单独的 [Enterprise 许可证](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md)，生产使用需要签订书面商业协议。
 
 Crowdin 仍然适用于以贡献者协调和专用翻译编辑器为中心的项目。对于将优先级设为 **Git 拥有的内容、现有验证和与交付同步的本地化** 的软件团队，Glossia 专为该工作设计。
 

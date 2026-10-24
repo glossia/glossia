@@ -63,7 +63,7 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/glossia/glossia
             org.opencontainers.image.description=Glossia internal operations platform
-            org.opencontainers.image.licenses=LicenseRef-O-Saasy
+            org.opencontainers.image.licenses=Apache-2.0
 
       - name: Bump chart image tag for Flux
         env:

@@ -3968,11 +3968,6 @@ msgstr "L10N.md 文件与你的内容并存。它们承载指令、语气指导�
 msgid "No documentation matched that search."
 msgstr "无文档匹配该搜索。"
 
-#: lib/glossia_web/components/layouts/app.html.heex
-#, elixir-autogen, elixir-format
-msgid "O'Saasy License"
-msgstr "O'Saasy 许可证"
-
 #: lib/glossia_web/components/layouts/docs.html.heex
 #, elixir-autogen, elixir-format
 msgid "Page navigation"
@@ -5570,3 +5565,8 @@ msgstr "本次会话未生成任何翻译文件。"
 #, elixir-autogen, elixir-format
 msgid "This session has no recorded activity."
 msgstr "本次会话暂无活动记录。"
+
+#: lib/glossia_web/components/layouts/app.html.heex
+#, elixir-autogen, elixir-format
+msgid "Apache-2.0 core + Enterprise License"
+msgstr ""

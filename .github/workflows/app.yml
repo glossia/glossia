@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "app/**"
+      - "ee/**"
       # Translation checkpoints are content and lockfile updates. Building and
       # deploying the application for each one restarts the model gateway while
       # the same translation session is still using it.
@@ -16,11 +17,16 @@ on:
       - "mise.toml"
       - ".github/workflows/app.yml"
       - ".github/workflows/deploy.yml"
+      - "sdk/web/**"
+      - "LICENSE.md"
+      - "LICENSE-APACHE"
+      - ".github/scripts/*app*.sh"
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "app/**"
+      - "ee/**"
       - "!app/priv/i18n/**"
       - "!app/priv/gettext/*/LC_MESSAGES/**"
       - "cli/**"
@@ -28,9 +34,21 @@ on:
       - "mise.toml"
       - ".github/workflows/app.yml"
       - ".github/workflows/deploy.yml"
+      - "sdk/web/**"
+      - "LICENSE.md"
+      - "LICENSE-APACHE"
+      - ".github/scripts/*app*.sh"
 
 permissions:
   contents: read
+
+# Avoid precompiled-NIF downloads through Erlang's HTTP client: GitHub release
+# redirects can exceed its header limit. Match the source builds in Dockerfile.
+env:
+  LUMIS_BUILD: "true"
+  MDEX_NATIVE_BUILD: "true"
+  CONDUKT_BASHKIT_BUILD: "true"
+  CONDUKT_MICROSANDBOX_BUILD: "true"
 
 # Both PR checks and post-merge checks use hosted runners. Image publication
 # waits for the post-merge checks, so an unavailable self-hosted runner would
@@ -38,7 +56,12 @@ permissions:
 jobs:
   build:
     if: github.event.pull_request.draft != true
-    name: Build
+    name: ${{ matrix.edition == 'core' && 'Build' || 'Build (enterprise)' }}
+    strategy:
+      matrix:
+        edition: [core, enterprise]
+    env:
+      GLOSSIA_EDITION: ${{ matrix.edition }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -52,6 +75,10 @@ jobs:
           cache: true
       - name: Install tools
         run: mise install
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libcap-ng-dev
       - name: Install dependencies
         run: mix deps.get
       - name: Compile (warnings as errors)
@@ -67,7 +94,10 @@ jobs:
 
   test:
     if: github.event.pull_request.draft != true
-    name: Test
+    name: ${{ matrix.edition == 'core' && 'Test' || 'Test (enterprise)' }}
+    strategy:
+      matrix:
+        edition: [core, enterprise]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
@@ -92,6 +122,7 @@ jobs:
           - 8123:8123
     env:
       MIX_ENV: test
+      GLOSSIA_EDITION: ${{ matrix.edition }}
     defaults:
       run:
         working-directory: app
@@ -103,6 +134,10 @@ jobs:
           cache: true
       - name: Install tools
         run: mise install
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libcap-ng-dev
       - name: Install dependencies
         run: mix deps.get
       - name: Wait for ClickHouse
@@ -148,6 +183,10 @@ jobs:
           cache: true
       - name: Install tools
         run: mise install
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libcap-ng-dev
       - name: Install dependencies
         run: mix deps.get
       - name: Format check (Quokka + Phoenix formatter)

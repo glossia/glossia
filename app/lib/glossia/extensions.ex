@@ -11,6 +11,13 @@ defmodule Glossia.Extensions do
     Application.get_env(:glossia, :event_handler, Glossia.Events.NoopHandler)
   end
 
+  def audit_children do
+    case Application.get_env(:glossia, :audit_extension) do
+      nil -> []
+      extension -> extension.children()
+    end
+  end
+
   def policy_extension do
     Application.get_env(:glossia, :policy_extension)
   end

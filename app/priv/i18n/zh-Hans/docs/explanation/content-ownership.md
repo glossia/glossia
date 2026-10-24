@@ -25,7 +25,7 @@ Glossia 的仓库工作流将已发布源文件和翻译文件保存在 Git 中�
 
 能够检查和修改实现有助于团队理解其内容的处理方式。这并不意味着所有运营依赖都会消失。已部署的 Glossia 实例仍然需要数据库、相关工作流的模型提供服务访问权限、凭证和基础设施。如果团队更换系统，仪表板管理的语言上下文也需要明确的迁移计划。
 
-当前的 O'Saasy 许可证限制竞争性托管服务。公开源码的可用性并不等同于无限制的开源码许可证，也不能保证替代服务能在任何商业模式下运行。请参阅仓库的 [许可证](https://github.com/glossia/glossia/blob/main/LICENSE.md)。
+Glossia 采用开放核心模式。核心代码使用 [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE)，根据其条款允许商业使用、修改、分发、自托管以及提供竞争性托管服务。`ee/` 中的代码可供查看，但并非开源；它适用单独的 [Enterprise 许可证](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md)，生产使用需要签订书面商业协议。
 
 ## 有用的可移植性测试
 

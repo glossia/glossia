@@ -49,4 +49,4 @@ Derived on the server (never stored raw): a daily-rotated visitor id, country fr
 
 ## License
 
-Source-available under the [O'Saasy License](https://github.com/glossia/glossia/blob/main/LICENSE.md). Use, modification, distribution, selling copies, and self-hosting are permitted under its terms. Directly competing hosted or managed services where the software's functionality is the service's primary value are prohibited. The npm package includes the license text and SDK source files. Source code is also available in the [Glossia repository](https://github.com/glossia/glossia/tree/main/sdk/web).
+Open source under [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE). Commercial use, modification, distribution, self-hosting, and hosted services are permitted under its terms. The SDK contains no enterprise code. The npm package includes the complete Apache-2.0 license text and SDK source files. Source code is also available in the [Glossia repository](https://github.com/glossia/glossia/tree/main/sdk/web).
