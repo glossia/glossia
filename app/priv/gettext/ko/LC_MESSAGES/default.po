@@ -3968,11 +3968,6 @@ msgstr "L10N.md 파일은 콘텐츠 옆에 위치합니다. 지시사항, 톤 �
 msgid "No documentation matched that search."
 msgstr "검색된 문서가 없습니다."
 
-#: lib/glossia_web/components/layouts/app.html.heex
-#, elixir-autogen, elixir-format
-msgid "O'Saasy License"
-msgstr "O'Saasy 라이선스"
-
 #: lib/glossia_web/components/layouts/docs.html.heex
 #, elixir-autogen, elixir-format
 msgid "Page navigation"
@@ -5570,3 +5565,8 @@ msgstr "이 세션은 번역된 파일을 생성하지 않았습니다."
 #, elixir-autogen, elixir-format
 msgid "This session has no recorded activity."
 msgstr "이 세션은 기록된 활동이 없습니다."
+
+#: lib/glossia_web/components/layouts/app.html.heex
+#, elixir-autogen, elixir-format
+msgid "Apache-2.0 core + Enterprise License"
+msgstr ""

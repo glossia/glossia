@@ -45,7 +45,7 @@ Die Ausführungsumgebung benötigt immer noch Abhängigkeiten des Validators, un
 
 ## Öffentlicher Quellcode ist eine Vorgabe, nicht der gesamte Vergleich
 
-Die Implementierung von Glossia ist öffentlich und kann unter [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md) inspiziert, modifiziert und selbst gehostet werden. Die Lizenz schränkt konkurrierende gehostete Dienste ein; sie ist nicht dasselbe wie Weblates GPL-basierte Open-Source-Lizenz.
+Glossias Kern steht unter [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), die kommerzielle Nutzung, Änderungen, Weitergabe, Self-Hosting und konkurrierende gehostete Dienste gemäß ihren Bedingungen erlaubt. Der Code unter `ee/` unterliegt einer separaten [Enterprise-Lizenz](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md); der Produktionseinsatz erfordert eine schriftliche kommerzielle Vereinbarung. Dieses Open-Core-Modell unterscheidet sich von Weblates GPL-basierter Lizenzierung.
 
 Wenn urheberrechtlich unbeschränkte Open-Source-Lizenzierung und eine etablierte Web-Übersetzungsoberfläche Ihre Hauptkriterien sind, verdient Weblate Berücksichtigung. Wenn das Ziel ist **die eigenen Modellkreditenzen, bestehende Repository-Prüfungen und Spracharbeit, die der Softwarebereitstellung folgt**, bringt Glossia diese Entscheidungen in einem language OS zusammen.
 

@@ -46,7 +46,7 @@ This lets the team extend its existing quality boundary rather than maintain a s
 
 ## Public implementation, not a black box
 
-Glossia's application, CLI, SDK, and deployment sources are public. You can inspect how content is handled and modify or self-host the implementation under the [O'Saasy license](https://github.com/glossia/glossia/blob/main/LICENSE.md). The license restricts competing hosted services and is not an unrestricted open-source license.
+Glossia のアプリケーション、CLI、SDK、インフラのソースは公開されています。コアは [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) に基づき、その条件の下で商用利用、変更、配布、セルフホスティング、競合するホスト型サービスの提供が可能です。`ee/` のコードには別の [Enterprise ライセンス](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) が適用され、本番環境での利用には書面による商用契約が必要です。
 
 A broader translation suite can make sense for specialist translation operations and complex coordination. If your priority is **独自のトークンとリポジトリチェックによるソフトウェア配信速度の同期**, Glossia is designed to keep that workflow direct.
 

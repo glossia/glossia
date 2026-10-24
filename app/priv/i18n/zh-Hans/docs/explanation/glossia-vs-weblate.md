@@ -44,7 +44,7 @@ Glossia 内置的结构化检查仅是质量边界的一部分。通过 `L10N.md
 
 ## 公开源代码是基准，而非全部对比
 
-Glossia 的实现是公开的，可基于 [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md) 进行审查、修改和自托管。许可证限制竞争托管服务；它与基于 GPL 的 Weblate 开源许可证不同。
+Glossia 的核心代码使用 [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE)，根据其条款允许商业使用、修改、分发、自托管以及提供竞争性托管服务。`ee/` 中的代码适用单独的 [Enterprise 许可证](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md)，生产使用需要签订书面商业协议。这种开放核心模式与 Weblate 基于 GPL 的许可模式不同。
 
 如果不受限制的开源许可和现成的网络翻译界面是您的主要标准，那么 Weblate 值得考虑。如果目标是 **您自己的模型凭据、现有的仓库检查以及跟随软件交付的语言工作**，Glossia 将这些选择整合在一个语言操作系统中。
 

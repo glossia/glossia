@@ -26,7 +26,7 @@ Das macht segmentbasierte Übersetzungsspeicher nicht obsolet. Teams können wer
 
 Die Möglichkeit, die Implementierung zu prüfen und zu modifizieren, hilft Teams, zu verstehen, wie ihre Inhalte verarbeitet werden. Das bedeutet nicht, dass jede operative Abhängigkeit verschwindet. Eine bereitgestellte Glossia-Instanz benötigt weiterhin Datenbanken, Zugriff auf Modellanbieter für relevante Workflows, Zugangsdaten und Infrastruktur. Auch der dashboard-gesteuerte Sprachkontext benötigt einen expliziten Migrationsplan, falls ein Team Systemwechsel vornimmt.
 
-Die aktuelle O'Saasy-Lizenz schränkt konkurrierende gehostete Dienste ein. Die Verfügbarkeit von öffentlichem Quellcode ist nicht dasselbe wie eine uneingeschränkte Open-Source-Lizenz oder eine Garantie, dass ein Ersatzdienst unter jedem Geschäftsmodell betrieben werden kann. Sehen Sie sich die Repository-Lizenz [Lizenz](https://github.com/glossia/glossia/blob/main/LICENSE.md) an.
+Glossia folgt einem Open-Core-Modell. Der Kern steht unter [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), die kommerzielle Nutzung, Änderungen, Weitergabe, Self-Hosting und konkurrierende gehostete Dienste gemäß ihren Bedingungen erlaubt. Der Code unter `ee/` ist einsehbar, aber nicht Open Source. Er unterliegt einer separaten [Enterprise-Lizenz](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md); der Produktionseinsatz erfordert eine schriftliche kommerzielle Vereinbarung.
 
 ## Ein nützlicher Portabilitätstest
 

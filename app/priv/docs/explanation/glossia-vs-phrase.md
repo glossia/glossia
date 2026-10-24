@@ -46,7 +46,7 @@ This lets the team extend its existing quality boundary rather than maintain a s
 
 ## Public implementation, not a black box
 
-Glossia's application, CLI, SDK, and deployment sources are public. You can inspect how content is handled and modify or self-host the implementation under the [O'Saasy license](https://github.com/glossia/glossia/blob/main/LICENSE.md). The license restricts competing hosted services and is not an unrestricted open-source license.
+Glossia's application, CLI, SDK, and deployment sources are public. The core is open source under [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), which permits modification, distribution, self-hosting, and competing hosted services. Enterprise code under `ee/` has a separate [license](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) requiring a written commercial agreement for production use.
 
 A broader translation suite can make sense for specialist translation operations and complex coordination. If your priority is **matching software-delivery speed with your own tokens and repository checks**, Glossia is designed to keep that workflow direct.
 

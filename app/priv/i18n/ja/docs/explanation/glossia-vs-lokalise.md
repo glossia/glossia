@@ -46,7 +46,7 @@ Glossia により、ご自身のプロバイダー API トークンを使用し�
 
 ## 公開ソースとリポジトリ所有の出力
 
-Glossia の実装は [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md) ライセンスの下で検証、修正、およびセルフホスティングのために利用可能です。そのライセンスは競合するホストされたサービス制限し、無制限のオープンソースライセンスではありません。
+Glossia はオープンコアモデルを採用しています。コアは [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) に基づき、その条件の下で商用利用、変更、配布、セルフホスティング、競合するホスト型サービスの提供が可能です。`ee/` のコードは閲覧できますが、オープンソースではありません。別の [Enterprise ライセンス](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) が適用され、本番環境での利用には書面による商用契約が必要です。
 
 日々の配信においてより重要なのは、あなたの翻訳出力は Git に残ります。既に所有する既存のファイルを公開するため、別の製品で編集セッションを行う必要はありません。
 
