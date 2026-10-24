@@ -111,6 +111,9 @@ pomeriumAccessIngress:
     external-dns.alpha.kubernetes.io/hostname: access.glossia.ai
     ingress.pomerium.io/allow_websockets: "true"
     ingress.pomerium.io/pass_identity_headers: "true"
+    # This authenticated route does not supply nginx's canonical X-Real-IP.
+    # Strip caller-supplied IP metadata before it reaches a private app peer.
+    ingress.pomerium.io/remove_request_headers: '["X-Real-IP", "CF-Connecting-IP", "CF-IPCountry"]'
     ingress.pomerium.io/policy: |
       allow:
         and:

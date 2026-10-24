@@ -660,6 +660,10 @@ if config_env() == :prod and not runner_child? do
       do: Glossia.Analytics.Geolocation.Maxmind,
       else: Glossia.Analytics.Geolocation.Ipapi
 
+  config :glossia, GlossiaWeb.ClientIP,
+    trust_cloudflare_header:
+      System.get_env("GLOSSIA_TRUST_CLOUDFLARE_CLIENT_IP_HEADER") in ~w(true 1)
+
   config :glossia, Glossia.Analytics,
     enabled: System.get_env("GLOSSIA_ANALYTICS_ENABLED") not in ~w(false 0),
     identity_secret: analytics_secret,

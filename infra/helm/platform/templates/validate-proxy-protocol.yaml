@@ -1,0 +1,11 @@
+{{- /* Hetzner's sender and nginx's receiver must agree, in both directions. */ -}}
+{{- $ingress := index .Values "ingress-nginx" -}}
+{{- $annotations := $ingress.controller.service.annotations | default dict -}}
+{{- $annotation := "load-balancer.hetzner.cloud/uses-proxyprotocol" -}}
+{{- if and $ingress.enabled (hasKey $annotations $annotation) -}}
+  {{- $sender := index $annotations $annotation | toString -}}
+  {{- $receiver := index $ingress.controller.config "use-proxy-protocol" | default "false" | toString -}}
+  {{- if ne $sender $receiver -}}
+    {{- fail "Hetzner load-balancer.hetzner.cloud/uses-proxyprotocol and ingress-nginx.controller.config.use-proxy-protocol must match; see infra/helm/platform/README.md for the cutover procedure" -}}
+  {{- end -}}
+{{- end -}}
