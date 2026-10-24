@@ -50,4 +50,6 @@ jobs:
           version: 2026.9.2
           cache: true
           install_args: git-cliff
-      - run: node --test .github/tests/*.test.cjs
+      # Fixtures run outside this checkout, where mise shims cannot discover
+      # mise.toml. Resolve the binary on PATH before changing directories.
+      - run: mise exec git-cliff -- node --test .github/tests/*.test.cjs
