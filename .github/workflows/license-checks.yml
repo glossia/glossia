@@ -1,0 +1,40 @@
+name: License checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/enterprise-cla.yml'
+      - '.github/workflows/license-checks.yml'
+      - '.github/tests/**'
+      - 'CLA.md'
+      - 'ee/LICENSE.md'
+      - 'app/Dockerfile'
+      - '.github/workflows/deploy.yml'
+      - 'deploy/helm/glossia/**'
+      - 'infra/k8s/mgmt/flux/glossia-image-automation.yaml'
+      - 'infra/k8s/workload-apps/glossia-production/glossia-helmrelease.yaml'
+  pull_request:
+    paths:
+      - '.github/workflows/enterprise-cla.yml'
+      - '.github/workflows/license-checks.yml'
+      - '.github/tests/**'
+      - 'CLA.md'
+      - 'ee/LICENSE.md'
+      - 'app/Dockerfile'
+      - '.github/workflows/deploy.yml'
+      - 'deploy/helm/glossia/**'
+      - 'infra/k8s/mgmt/flux/glossia-image-automation.yaml'
+      - 'infra/k8s/workload-apps/glossia-production/glossia-helmrelease.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  cla-workflow-tests:
+    name: CLA workflow tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - run: node --test .github/tests/*.test.cjs

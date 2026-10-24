@@ -1,0 +1,192 @@
+name: Enterprise CLA
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+concurrency:
+  group: enterprise-cla-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  enterprise-cla:
+    name: Enterprise CLA
+    if: >-
+      github.event_name == 'pull_request_target' ||
+      (github.event.issue.pull_request &&
+       (github.event.comment.body == 'recheck' ||
+        github.event.comment.body == 'I have read the Glossia Enterprise CLA, Version 2, and I hereby sign it for my contributions to ee/.'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+      statuses: write
+    steps:
+      # This is a privileged workflow. Do not check out PR code, use local
+      # actions from the PR, or interpolate contributor text into scripts.
+      - name: Check enterprise paths
+        id: scope
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pull_number = context.payload.pull_request?.number ?? context.issue.number;
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number });
+            if (context.payload.pull_request && pr.head.sha !== context.payload.pull_request.head.sha) {
+              throw new Error('The pull request head changed. Run the check for the current revision.');
+            }
+            if (pr.state !== 'open') {
+              core.setOutput('required', 'false');
+              return;
+            }
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner, repo, pull_number, per_page: 100
+            });
+            // GitHub caps listFiles at 3,000. Never silently approve an
+            // incomplete diff, and check both sides of a rename.
+            if (files.length !== pr.changed_files) {
+              throw new Error('Cannot inspect the complete diff. Split this pull request.');
+            }
+            const { data: current } = await github.rest.pulls.get({ owner, repo, pull_number });
+            if (current.head.sha !== pr.head.sha) {
+              throw new Error('The pull request head changed while inspecting the diff. Retry the check.');
+            }
+            const required = files.some(file =>
+              [file.filename, file.previous_filename].some(path => path?.startsWith('ee/'))
+            );
+            core.setOutput('required', String(required));
+            if (!required) {
+              core.info('No enterprise changes; no CLA required.');
+              return;
+            }
+            // The pinned CLA Assistant release reads only the first 100 commits.
+            if (pr.commits > 100) {
+              throw new Error('Enterprise CLA verification supports at most 100 commits. Split this pull request.');
+            }
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner, repo, pull_number, per_page: 100
+            });
+            if (commits.length !== pr.commits || commits.at(-1)?.sha !== pr.head.sha) {
+              throw new Error('Cannot inspect the complete commit list at the pull request head. Retry the check.');
+            }
+            // Upstream falls back to the committer for unlinked authors and
+            // deduplicates by name. Do not allow either to hide an unsigned author.
+            for (const commit of commits) {
+              // Git author emails alone do not authenticate an account. Require
+              // GitHub-verified commit signatures before trusting linked IDs.
+              if (commit.commit?.verification?.verified !== true) {
+                throw new Error(`Commit ${commit.sha} lacks a verified signature. Sign the commit before enterprise verification.`);
+              }
+              if (!commit.author?.id) {
+                throw new Error(`Commit ${commit.sha} has an unlinked author. Link the author account before signing.`);
+              }
+              if ([41898282, 49699333].includes(commit.author.id) && pr.user.id !== commit.author.id) {
+                throw new Error(`Commit ${commit.sha} impersonates an exempt bot outside that bot's own pull request.`);
+              }
+              const webFlow = commit.committer?.id === 19864447 && commit.committer?.login === 'web-flow';
+              if (commit.author.id !== commit.committer?.id && !webFlow) {
+                throw new Error(`Commit ${commit.sha} has different author and committer identities. Resolve attribution before signing.`);
+              }
+            }
+
+            // The copyright owner needs no inbound grant to their own work.
+            // The verified-signature guard above prevents email impersonation.
+            if (commits.every(commit => commit.author.id === 663605)) {
+              core.setOutput('required', 'false');
+              core.info('Verified project-owner contributions need no inbound CLA.');
+              return;
+            }
+
+            const statement = 'I have read the Glossia Enterprise CLA, Version 2, and I hereby sign it for my contributions to ee/.';
+            const { data: repository } = await github.rest.repos.get({ owner, repo });
+            const { data: base } = await github.rest.git.getRef({
+              owner, repo, ref: `heads/${repository.default_branch}`
+            });
+            const { data: document } = await github.rest.repos.getContent({
+              owner, repo, path: 'CLA.md', ref: base.object.sha
+            });
+            const text = Buffer.from(document.content, 'base64').toString('utf8');
+            if (!/^Version 2,/m.test(text) || /draft pending legal review/i.test(text)) {
+              throw new Error('Enterprise CLA Version 2 must complete legal review before collecting signatures.');
+            }
+            const agreement = {
+              version: 2,
+              sha: document.sha,
+              url: `https://github.com/${owner}/${repo}/blob/${base.object.sha}/CLA.md`,
+              statement,
+              text
+            };
+
+            // Keep signatures away from protected main and untrusted PR heads.
+            // Creation is idempotent, including concurrent first-time signers.
+            try {
+              await github.rest.git.getRef({ owner, repo, ref: 'heads/cla-signatures' });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              try {
+                await github.rest.git.createRef({
+                  owner, repo, ref: 'refs/heads/cla-signatures', sha: base.object.sha
+                });
+              } catch (creationError) {
+                if (creationError.status !== 422) throw creationError;
+                await github.rest.git.getRef({ owner, repo, ref: 'heads/cla-signatures' });
+              }
+            }
+
+            // v2.6.1 compares a missing-file HTTP status with the string "404".
+            // Initialize its JSON shape ourselves, including the exact agreement.
+            const storage = { owner, repo, path: 'signatures/v2/cla.json' };
+            let record;
+            try {
+              const { data } = await github.rest.repos.getContent({ ...storage, ref: 'cla-signatures' });
+              record = JSON.parse(Buffer.from(data.content, 'base64').toString('utf8'));
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              record = { agreement, signedContributors: [] };
+              try {
+                await github.rest.repos.createOrUpdateFileContents({
+                  ...storage,
+                  branch: 'cla-signatures',
+                  message: 'chore: initialize enterprise CLA v2 signatures',
+                  content: Buffer.from(JSON.stringify(record, null, 2)).toString('base64')
+                });
+              } catch (creationError) {
+                if (![409, 422].includes(creationError.status)) throw creationError;
+                const { data } = await github.rest.repos.getContent({ ...storage, ref: 'cla-signatures' });
+                record = JSON.parse(Buffer.from(data.content, 'base64').toString('utf8'));
+              }
+            }
+            if (record.agreement?.sha !== agreement.sha || record.agreement?.version !== 2 ||
+                record.agreement?.statement !== statement || record.agreement?.text !== text) {
+              throw new Error('The CLA changed without a new signature version. Bump the agreement version and storage path.');
+            }
+            core.setOutput('document-url', record.agreement.url);
+
+      - name: Collect and verify enterprise signatures
+        if: steps.scope.outputs.required == 'true'
+        uses: contributor-assistant/github-action@ca4a40a7d1004f18d9960b404b97e5f30a505a08 # v2.6.1 (archived upstream)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          path-to-signatures: signatures/v2/cla.json
+          path-to-document: ${{ steps.scope.outputs.document-url }}
+          branch: cla-signatures
+          allowlist: 'pepicrft,dependabot[bot],github-actions[bot]'
+          custom-pr-sign-comment: I have read the Glossia Enterprise CLA, Version 2, and I hereby sign it for my contributions to ee/.
+          custom-notsigned-prcomment: >-
+            This pull request changes ee/. Please read the
+            [Glossia Enterprise CLA](${{ steps.scope.outputs.document-url }}).
+            It covers only enterprise contributions, not Apache-2.0 core contributions.
+            Signing records your GitHub identity, timestamps, and comment details publicly,
+            alongside the exact agreement and signing statement,
+            in signatures/v2/cla.json on this repository's cla-signatures branch.
+          create-file-commit-message: 'chore: initialize enterprise CLA v2 signatures'
+          signed-commit-message: 'chore: record enterprise CLA v2 signature for $contributorName'
+          lock-pullrequest-aftermerge: 'false'
