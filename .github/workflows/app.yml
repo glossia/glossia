@@ -47,6 +47,8 @@ permissions:
 env:
   LUMIS_BUILD: "true"
   MDEX_NATIVE_BUILD: "true"
+  CONDUKT_BASHKIT_BUILD: "true"
+  CONDUKT_MICROSANDBOX_BUILD: "true"
 
 # Both PR checks and post-merge checks use hosted runners. Image publication
 # waits for the post-merge checks, so an unavailable self-hosted runner would
