@@ -11,7 +11,16 @@ on:
 
 jobs:
   publish:
-    name: Publish Image
+    name: Publish Image (${{ matrix.edition }})
+    strategy:
+      matrix:
+        include:
+          - edition: core
+            suffix: ""
+            licenses: Apache-2.0
+          - edition: enterprise
+            suffix: -enterprise
+            licenses: Apache-2.0 AND LicenseRef-Glossia-Enterprise
     # workflow_run is privileged even when the triggering run came from a PR.
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
@@ -24,7 +33,7 @@ jobs:
       contents: read
       packages: write
     concurrency:
-      group: publish-production-image
+      group: publish-production-image-${{ matrix.edition }}
       cancel-in-progress: false
     steps:
       - name: Checkout
@@ -47,11 +56,15 @@ jobs:
           build-contexts: |
             cli=./cli
             sdk=./sdk
+            ee=./ee
+            licensing=.
+          build-args: |
+            GLOSSIA_EDITION=${{ matrix.edition }}
           push: true
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.licenses=LicenseRef-O-Saasy
+            org.opencontainers.image.licenses=${{ matrix.licenses }}
           tags: |
-            ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}
-            ghcr.io/${{ github.repository }}:main
-            ghcr.io/${{ github.repository }}:main-${{ github.run_number }}-${{ github.event.workflow_run.head_sha }}
+            ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}${{ matrix.suffix }}
+            ghcr.io/${{ github.repository }}:main${{ matrix.suffix }}
+            ghcr.io/${{ github.repository }}:main-${{ github.run_number }}-${{ github.event.workflow_run.head_sha }}${{ matrix.suffix }}

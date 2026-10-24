@@ -19,6 +19,18 @@ ARG DEBIAN_VERSION=bookworm-20260202-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
+ARG GLOSSIA_EDITION=core
+
+# BuildKit prunes the unselected source stage. A core build does not resolve
+# the ee context and needs no enterprise files or enterprise license.
+FROM ${RUNNER_IMAGE} AS source-core
+RUN mkdir -p /ee /enterprise-licenses
+
+FROM source-core AS source-enterprise
+COPY --from=ee . /ee
+COPY --from=ee LICENSE.md /enterprise-licenses/
+
+FROM source-${GLOSSIA_EDITION} AS edition-source
 
 FROM rust:1-bookworm AS cli_builder
 
@@ -54,6 +66,8 @@ RUN mix local.hex --force && \
 
 # set build ENV
 ENV MIX_ENV="prod"
+ARG GLOSSIA_EDITION
+ENV GLOSSIA_EDITION=${GLOSSIA_EDITION}
 # mdex_native's precompiled variant selector falls back to `legacy_cpu_lumis`
 # on CPUs that miss any of avx/fma, and that variant is not always published
 # as a precompiled artifact — the without-Lumis binary is what actually gets
@@ -79,6 +93,7 @@ RUN mix deps.compile
 COPY priv priv
 
 COPY lib lib
+COPY --from=edition-source /ee /ee
 
 # Credo checks are development-only and depend on Credo, which is excluded
 # from production dependencies.
@@ -142,6 +157,8 @@ ENV MIX_ENV="prod"
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/glossia ./
 COPY --from=cli_builder /cli/target/release/glossia /usr/local/bin/glossia
+COPY --from=licensing LICENSE.md LICENSE-APACHE /app/licenses/
+COPY --from=edition-source /enterprise-licenses /app/licenses/enterprise/
 
 USER nobody
 

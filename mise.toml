@@ -42,7 +42,7 @@ description = "Build the local Glossia release image and load it into Microsandb
 run = """
 set -eu
 image="glossia-local:${GLOSSIA_DEV_INSTANCE:-dev}"
-docker build --build-context cli=./cli -f app/Dockerfile -t "$image" app
+docker build --build-context cli=./cli --build-context sdk=./sdk --build-context ee=./ee --build-context licensing=. --build-arg GLOSSIA_EDITION=enterprise -f app/Dockerfile -t "$image" app
 docker save "$image" | msb image load --tag "$image"
 """
 

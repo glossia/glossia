@@ -7,6 +7,12 @@ a Postgres cluster (CloudNativePG) and a ClickHouse cluster (official
 ClickHouse operator) alongside the web app; each datastore can be disabled if
 you prefer to bring your own.
 
+The default `image.tag: main` selects the Apache-2.0 core image, with no
+enterprise code. The separately published `main-enterprise` image includes
+`ee/` and requires a written commercial agreement for production use under the
+[Enterprise License](../../../ee/LICENSE.md). Set `image.tag` explicitly only
+when you intend to run that edition. Glossia's own production deployment uses
+the enterprise tag; the public chart defaults remain core.
 
 ## Prerequisites
 

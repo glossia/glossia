@@ -11,7 +11,9 @@
       files: %{
         included: [
           "lib/",
-          "test/"
+          "test/",
+          "../ee/lib/",
+          "../ee/test/"
         ],
         excluded: [
           ~r"/_build/",

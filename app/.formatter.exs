@@ -18,5 +18,10 @@
       :tests
     ]
   ],
-  inputs: ["*.{heex,ex,exs}", "{config,lib,test}/**/*.{heex,ex,exs}", "priv/*/seeds.exs"]
+  inputs: [
+    "*.{heex,ex,exs}",
+    "{config,lib,test}/**/*.{heex,ex,exs}",
+    "../ee/{lib,test}/**/*.{heex,ex,exs}",
+    "priv/*/seeds.exs"
+  ]
 ]

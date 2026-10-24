@@ -81,11 +81,6 @@ defmodule Glossia.Application do
             {Hermes.Server.Supervisor, :start_link,
              [Glossia.Admin.MCP.Server, [transport: :streamable_http]]}
         },
-        {Ingestion.Buffer,
-         [name: Ingestion.EventBuffer] ++
-           (Ingestion.Event.buffer_opts()
-            |> Map.take([:insert_sql, :insert_opts, :header])
-            |> Map.to_list())},
         Supervisor.child_spec(
           {Ingestion.Buffer,
            [name: Ingestion.TranslationSessionEventBuffer, flush_interval_ms: 1_000] ++
@@ -120,6 +115,7 @@ defmodule Glossia.Application do
         Glossia.Sandbox.Reaper,
         Glossia.Projects.SetupRecovery
       ] ++
+        Glossia.Extensions.audit_children() ++
         [
           Glossia.Runners.pool_child_spec(),
           GlossiaWeb.Endpoint
@@ -161,11 +157,6 @@ defmodule Glossia.Application do
       {Phoenix.PubSub, name: Glossia.PubSub},
       FunWithFlags.Supervisor,
       Glossia.RateLimiter,
-      {Ingestion.Buffer,
-       [name: Ingestion.EventBuffer] ++
-         (Ingestion.Event.buffer_opts()
-          |> Map.take([:insert_sql, :insert_opts, :header])
-          |> Map.to_list())},
       Supervisor.child_spec(
         {Ingestion.Buffer,
          [name: Ingestion.TranslationSessionEventBuffer, flush_interval_ms: 1_000] ++
@@ -174,10 +165,13 @@ defmodule Glossia.Application do
             |> Map.to_list())},
         id: Ingestion.TranslationSessionEventBuffer
       ),
-      Glossia.Github.InstallationTokens,
-      # Last, so the translation only starts once everything it depends on is up.
-      Glossia.TranslationSessions.Job
-    ]
+      Glossia.Github.InstallationTokens
+    ] ++
+      Glossia.Extensions.audit_children() ++
+      [
+        # Last, so the translation only starts once everything it depends on is up.
+        Glossia.TranslationSessions.Job
+      ]
   end
 
   defp internal_babel_endpoint_children do
