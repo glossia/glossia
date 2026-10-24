@@ -52,6 +52,12 @@ These are computed at ingestion and stored server-side. The raw IP and User-Agen
 | `served_locale`   | Page language | Normalized `sl`, or empty (shown as Not reported) if it was not collected. |
 | `has_locale_gap`  | Computed      | `1` when none of the visitor's preferred languages match the project targets, advertised translations (`al`), or page language (`sl`). Missing preferences do not count as a gap. |
 
+### Client IP resolution
+
+For requests from a private ingress peer, Glossia uses nginx's overwritten `X-Real-IP` header, not the caller-controlled first entry in `X-Forwarded-For`. Direct public connections use the socket address. On Hetzner, both the load balancer and nginx must enable PROXY protocol so nginx receives the visitor address instead of the load balancer address. Other reverse proxies must also overwrite `X-Real-IP` using an authenticated source, not an unrestricted inbound `X-Forwarded-For` header. The generic chart's forwarded-header policy alone does not guarantee this. Private peers are trusted infrastructure, so restrict direct pod access.
+
+`GLOSSIA_TRUST_CLOUDFLARE_CLIENT_IP_HEADER=true` allows `CF-Connecting-IP` to override the canonical address for requests from a private ingress peer. It is **disabled by default**, independently of country-header trust. Enable it only after the edge authenticates Cloudflare or strips forged headers on requests bypassing Cloudflare. DNS-only deployments should leave it disabled. This address also keys IP rate limits and the daily visitor hash.
+
 ### Country resolution
 
 `GLOSSIA_TRUST_CLOUDFLARE_COUNTRY_HEADER=true` enables the `CF-IPCountry` fast path. It is **disabled by default**. Enable it only after the origin authenticates Cloudflare, rejects requests that bypass Cloudflare, or the ingress strips untrusted copies of the header. Cloudflare's IP Geolocation setting must also be enabled for the zone. `CF-Connecting-IP`, `CF-Ray`, and nginx's `use-forwarded-headers` do not authenticate a request on their own.
