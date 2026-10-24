@@ -33,9 +33,10 @@ permissions:
   contents: read
 
 env:
-  # Match the release image: build Lumis with the Rust toolchain installed by
-  # mise instead of relying on its precompiled GitHub release download.
+  # Match the release image: build the Markdown native libraries with the Rust
+  # toolchain installed by mise instead of downloading GitHub release binaries.
   LUMIS_BUILD: "true"
+  MDEX_NATIVE_BUILD: "true"
 
 # Both PR checks and post-merge checks use hosted runners. Image publication
 # waits for the post-merge checks, so an unavailable self-hosted runner would
