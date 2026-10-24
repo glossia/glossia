@@ -42,6 +42,12 @@ on:
 permissions:
   contents: read
 
+# Avoid precompiled-NIF downloads through Erlang's HTTP client: GitHub release
+# redirects can exceed its header limit. Match the source builds in Dockerfile.
+env:
+  LUMIS_BUILD: "true"
+  MDEX_NATIVE_BUILD: "true"
+
 # Both PR checks and post-merge checks use hosted runners. Image publication
 # waits for the post-merge checks, so an unavailable self-hosted runner would
 # otherwise leave production on an old image even after a fix has merged.
