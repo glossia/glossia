@@ -4650,11 +4650,6 @@ msgstr "Suggérer des modifications du glossaire"
 msgid "This revision does not contain glossary entries."
 msgstr "Cette révision ne contient pas d'entrées de glossaire."
 
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "Translated output"
-msgstr "Sortie traduite"
-
 #: lib/glossia_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Voices, glossary, audience profiles, and style rules live on the platform. They are shared across every project in your organization and versioned so nothing gets lost."
@@ -5567,3 +5562,8 @@ msgstr "Cette session n'a produit aucun fichier traduit."
 #, elixir-autogen, elixir-format
 msgid "This session has no recorded activity."
 msgstr "Cette session n'a pas d'activité enregistrée."
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Translated output preview"
+msgstr "Sortie traduite"

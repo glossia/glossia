@@ -660,7 +660,11 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "app/priv/i18n/de/example.md"
            )
 
-    assert has_element?(reconnected_view, "#translation-progress-item-0-completed-output")
+    assert has_element?(
+             reconnected_view,
+             "#translation-progress-item-0-completed-output [data-part='output-title']",
+             "Translated output preview"
+           )
 
     assert has_element?(
              reconnected_view,
@@ -855,7 +859,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     assert has_element?(
              view,
              "#translation-progress-item-0 + #translation-progress-item-0-expanded [data-part='completed-output'] [data-part='output-title']",
-             "Translated output"
+             "Translated output preview"
            )
 
     assert has_element?(

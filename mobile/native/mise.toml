@@ -31,6 +31,10 @@ export PATH="$PWD/.once/android-tools:$tools:$PATH"
 once build GlossiaAndroid
 '''
 
+[tasks."test:android"]
+depends = ["build:android"]
+run = "gradle -p android testDebugUnitTest testReleaseUnitTest lintDebug -x stageNative --console=plain"
+
 [tasks."build:ios"]
 depends = ["prepare:rust"]
 run = "once build GlossiaIOS"
@@ -38,3 +42,15 @@ run = "once build GlossiaIOS"
 [tasks."build:ios-device"]
 depends = ["prepare:rust"]
 run = "once build GlossiaIOSDevice"
+
+[tasks."test:ios"]
+depends = ["prepare:rust"]
+run = "once test GlossiaIOSTests"
+
+[tasks."preview:ios"]
+depends = ["prepare:rust"]
+run = "once build GlossiaIOSPreview"
+
+[tasks."test:ios-ui"]
+depends = ["prepare:rust"]
+run = "once test GlossiaIOSUITests"

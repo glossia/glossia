@@ -203,6 +203,29 @@ defmodule Glossia.Seeds do
     # Translation sessions for the "blog" project to exercise the activity timeline
     if blog_project, do: ensure_translation_sessions!(blog_project, dev)
 
+    # Private companion history, intentionally unanswered rather than pretending
+    # that seed data came from a model. No inference jobs run from the seeds.
+    if blog_project do
+      ensure_toki_conversation!(
+        blog_project,
+        dev,
+        "Which blog translations should I review first?"
+      )
+
+      ensure_toki_conversation!(blog_project, alex, "How can I prioritize the next blog locale?")
+
+      source = Repo.get_by(TranslationSession, project_id: blog_project.id, commit_sha: "a1b2c3d")
+
+      if source do
+        ensure_toki_conversation!(
+          blog_project,
+          dev,
+          "Explain the Spanish and French run from its session summary.",
+          source.id
+        )
+      end
+    end
+
     # A local git remote that stands in for the blog project's GitHub repo, so the
     # full clone → translate → PR flow can run end-to-end locally (dev only).
     seed_local_remote!("dev-user/blog",
@@ -986,6 +1009,36 @@ defmodule Glossia.Seeds do
       catch
         _, _ -> IO.puts("Skipping seed project logo: object storage is unavailable.")
       end
+    end
+  end
+
+  defp ensure_toki_conversation!(%Project{} = project, %User{} = user, content, origin_id \\ nil) do
+    title = String.slice(content, 0, 80)
+
+    conversation =
+      Repo.get_by(Glossia.Toki.Conversation,
+        user_id: user.id,
+        project_id: project.id,
+        title: title
+      ) ||
+        Repo.insert!(%Glossia.Toki.Conversation{
+          user_id: user.id,
+          project_id: project.id,
+          translation_session_id: origin_id,
+          title: title,
+          status: "failed",
+          error: "provider_unavailable"
+        })
+
+    unless Repo.exists?(
+             from m in Glossia.Toki.Message, where: m.conversation_id == ^conversation.id
+           ) do
+      Repo.insert!(%Glossia.Toki.Message{
+        conversation_id: conversation.id,
+        role: "user",
+        content: content,
+        status: "failed"
+      })
     end
   end
 

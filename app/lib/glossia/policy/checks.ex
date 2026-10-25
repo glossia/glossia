@@ -92,4 +92,21 @@ defmodule Glossia.Policy.Checks do
   """
   def public_account(_subject, %Account{visibility: "public"}), do: true
   def public_account(_, _), do: false
+
+  def toki_owner_read(user, conversation), do: toki_owner(:toki_read, user, conversation)
+  def toki_owner_write(user, conversation), do: toki_owner(:toki_write, user, conversation)
+
+  defp toki_owner(
+         action,
+         %User{id: user_id} = user,
+         %Glossia.Toki.Conversation{user_id: user_id} = conversation
+       ) do
+    project = Glossia.Projects.get_project_by_id(conversation.project_id)
+
+    not is_nil(project) and
+      Glossia.Authz.authorize?(action, user, project.account) and
+      Glossia.Authz.authorize?(:project_read, user, project.account)
+  end
+
+  defp toki_owner(_, _, _), do: false
 end

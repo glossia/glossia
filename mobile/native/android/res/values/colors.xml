@@ -1,4 +1,13 @@
 <resources>
     <color name="glossia_primary">#6d3cc4</color>
     <color name="glossia_on_primary">#ffffff</color>
+    <color name="glossia_background">#faf8f5</color>
+    <color name="glossia_subtle">#f2efe9</color>
+    <color name="glossia_surface">#ffffff</color>
+    <color name="glossia_border">#e4e0d9</color>
+    <color name="glossia_text">#1c1917</color>
+    <color name="glossia_muted">#5c564e</color>
+    <color name="glossia_accent_soft">#eee7f7</color>
+    <color name="glossia_login_panel">#bfffffff</color>
+    <color name="glossia_atmosphere">#686d3cc4</color>
 </resources>

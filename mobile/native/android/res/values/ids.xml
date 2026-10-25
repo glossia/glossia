@@ -1,0 +1,5 @@
+<resources>
+    <item name="appearance_binding" type="id" />
+    <item name="appearance_primary" type="id" />
+    <item name="appearance_surface" type="id" />
+</resources>

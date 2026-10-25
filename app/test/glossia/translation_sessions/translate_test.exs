@@ -21,6 +21,10 @@ defmodule Glossia.TranslationSessions.TranslateTest do
   # The pull request description is refreshed whenever a run publishes or
   # ends. Tests that care assert on it; the rest must never reach GitHub.
   setup do
+    Mimic.stub(Glossia.Github.Client, :list_pull_requests, fn _repository, _token, _opts ->
+      {:ok, []}
+    end)
+
     Mimic.stub(Glossia.Github.Client, :update_pull_request, fn _repository,
                                                                _number,
                                                                _params,
@@ -404,66 +408,112 @@ defmodule Glossia.TranslationSessions.TranslateTest do
              url(base_uri, ~p"/#{user.account.handle}/#{project.handle}/-/translations")
   end
 
-  test "updates the branch behind a recorded pull request when publication is retried" do
-    {user, project} = project_with_installation("reused-translate@test.com", "reused")
-    session = session_for(user, project)
+  for recorded? <- [true, false] do
+    @publication_recorded recorded?
 
-    {:ok, session} =
-      TranslationSessions.update_session_publication(session, %{
-        publication_branch: "glossia/translate-abc123456789",
-        publication_commit_sha: "translation-commit-sha",
-        pull_request_url: "https://github.com/glossia/demo/pull/2",
-        pull_request_number: 2
-      })
+    test "reuses an existing PR when its publication metadata is recorded: #{recorded?}" do
+      {user, project} = project_with_installation("reused-translate@test.com", "reused")
+      session = session_for(user, project)
 
-    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+      session =
+        if @publication_recorded do
+          {:ok, session} =
+            TranslationSessions.update_session_publication(session, %{
+              publication_branch: "glossia/translate-abc123456789",
+              publication_commit_sha: "translation-commit-sha",
+              pull_request_url: "https://github.com/glossia/demo/pull/2",
+              pull_request_number: 2
+            })
 
-    Mimic.expect(Glossia.Github.Client, :get_commit, fn "glossia/demo",
-                                                        "translation-commit-sha",
-                                                        "github-token" ->
-      {:ok, %{"tree" => %{"sha" => "previous-tree-sha"}}}
-    end)
+          session
+        else
+          expect(Glossia.Github.Client, :list_pull_requests, 2, fn "glossia/demo",
+                                                                   "github-token",
+                                                                   opts ->
+            assert opts[:base] == "main"
 
-    Mimic.expect(Glossia.Github.Client, :create_blob, fn "glossia/demo",
-                                                         %{content: _content, encoding: "base64"},
-                                                         "github-token" ->
-      {:ok, %{"sha" => "blob-sha"}}
-    end)
+            if opts[:page] == 1 do
+              {:ok, List.duplicate(%{"user" => %{"login" => "someone-else"}}, 100)}
+            else
+              assert opts[:page] == 2
 
-    Mimic.expect(Glossia.Github.Client, :create_tree, fn "glossia/demo",
-                                                         %{base_tree: "previous-tree-sha"},
-                                                         "github-token" ->
-      {:ok, %{"sha" => "updated-tree-sha"}}
-    end)
+              {:ok,
+               [
+                 %{"user" => %{"login" => "someone-else"}, "head" => %{"ref" => "feature"}},
+                 %{
+                   "user" => %{"login" => "glossia[bot]"},
+                   "head" => %{
+                     "ref" => "glossia/translate-abc123456789",
+                     "sha" => "translation-commit-sha",
+                     "repo" => %{"full_name" => "glossia/demo"}
+                   },
+                   "html_url" => "https://github.com/glossia/demo/pull/2",
+                   "number" => 2
+                 }
+               ]}
+            end
+          end)
 
-    Mimic.expect(Glossia.Github.Client, :create_commit, fn "glossia/demo",
-                                                           %{parents: ["translation-commit-sha"]},
+          session
+        end
+
+      Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+      Mimic.expect(Glossia.Github.Client, :get_commit, fn "glossia/demo",
+                                                          "translation-commit-sha",
+                                                          "github-token" ->
+        {:ok, %{"tree" => %{"sha" => "previous-tree-sha"}}}
+      end)
+
+      Mimic.expect(Glossia.Github.Client, :create_blob, fn "glossia/demo",
+                                                           %{
+                                                             content: _content,
+                                                             encoding: "base64"
+                                                           },
                                                            "github-token" ->
-      {:ok, %{"sha" => "updated-translation-commit-sha"}}
-    end)
+        {:ok, %{"sha" => "blob-sha"}}
+      end)
 
-    Mimic.expect(Glossia.Github.Client, :update_ref, fn "glossia/demo",
-                                                        "heads/glossia/translate-abc123456789",
-                                                        "updated-translation-commit-sha",
-                                                        "github-token" ->
-      {:ok, %{}}
-    end)
+      Mimic.expect(Glossia.Github.Client, :create_tree, fn "glossia/demo",
+                                                           %{base_tree: "previous-tree-sha"},
+                                                           "github-token" ->
+        {:ok, %{"sha" => "updated-tree-sha"}}
+      end)
 
-    Mimic.reject(&Glossia.Github.Client.create_pull_request/3)
+      Mimic.expect(Glossia.Github.Client, :create_commit, fn "glossia/demo",
+                                                             %{
+                                                               parents: ["translation-commit-sha"]
+                                                             },
+                                                             "github-token" ->
+        {:ok, %{"sha" => "updated-translation-commit-sha"}}
+      end)
 
-    assert {:ok, publication} =
-             Translate.publish_changes(
-               %{session_id: session.id},
-               %{
-                 changes: [%{path: "docs/i18n/es/guide.md", status: "added", content: "# Hola\n"}]
-               }
-             )
+      Mimic.expect(Glossia.Github.Client, :update_ref, fn "glossia/demo",
+                                                          "heads/glossia/translate-abc123456789",
+                                                          "updated-translation-commit-sha",
+                                                          "github-token" ->
+        {:ok, %{}}
+      end)
 
-    assert publication.ref == "glossia/translate-abc123456789"
-    assert publication.pull_request_url == "https://github.com/glossia/demo/pull/2"
+      Mimic.reject(&Glossia.Github.Client.create_pull_request/3)
 
-    updated = Repo.get!(TranslationSession, session.id)
-    assert updated.publication_commit_sha == "updated-translation-commit-sha"
+      assert {:ok, publication} =
+               Translate.publish_changes(
+                 %{session_id: session.id},
+                 %{
+                   changes: [
+                     %{path: "docs/i18n/es/guide.md", status: "added", content: "# Hola\n"}
+                   ]
+                 }
+               )
+
+      assert publication.ref == "glossia/translate-abc123456789"
+      assert publication.pull_request_url == "https://github.com/glossia/demo/pull/2"
+
+      updated = Repo.get!(TranslationSession, session.id)
+      assert updated.publication_commit_sha == "updated-translation-commit-sha"
+      assert updated.pull_request_number == 2
+    end
   end
 
   test "does not run a cancelled translation session" do
@@ -721,7 +771,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert updated.status == "completed"
   end
 
-  test "starts a fresh publication when the default branch history was rewritten" do
+  test "preserves the publication and fails when the default branch history was rewritten" do
     {user, project} =
       project_with_installation("translate-diverged@test.com", "translate-diverged")
 
@@ -748,22 +798,92 @@ defmodule Glossia.TranslationSessions.TranslateTest do
 
     Mimic.reject(&Glossia.Github.Client.merge_branch/3)
 
-    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
-                                                            _account,
-                                                            repository,
-                                                            _locales,
-                                                            _opts ->
-      send(self(), {:fresh_repository, repository})
-      {:ok, []}
-    end)
+    Mimic.reject(&Glossia.Translations.RepositoryRun.run/5)
+    Mimic.reject(&Glossia.Github.Client.create_pull_request/3)
 
-    assert :ok = Translate.run(session.id)
-    assert_received {:fresh_repository, %{publication_branch: nil}}
+    assert {:error, :translation_source_history_changed} = Translate.run(session.id)
 
     updated = Repo.get!(TranslationSession, session.id)
-    assert is_nil(updated.publication_branch)
-    assert is_nil(updated.publication_commit_sha)
-    assert updated.status == "completed"
+    assert updated.publication_branch == "glossia/translate-abc123456789"
+    assert updated.publication_commit_sha == "checkpoint-commit"
+    assert updated.status == "failed"
+  end
+
+  test "an open PR with a merge conflict is not replaced by a second PR" do
+    {user, project} =
+      project_with_installation("translate-conflict@test.com", "translate-conflict")
+
+    previous_session = session_for(user, project)
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        commit_sha: "next-source",
+        source_language: "en",
+        target_languages: ["es"],
+        continued_from_session_id: previous_session.id,
+        publication_branch: "glossia/translate-abc123456789",
+        publication_commit_sha: "checkpoint-commit",
+        pull_request_url: "https://github.com/glossia/demo/pull/2",
+        pull_request_number: 2
+      })
+
+    stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    stub(Glossia.Github.Client, :get_pull_request, fn _, 2, _ ->
+      {:ok, %{"state" => "open"}}
+    end)
+
+    stub(Glossia.Github.Client, :compare_commits, fn _, _, _, _ ->
+      {:ok, %{"status" => "ahead"}}
+    end)
+
+    expect(Glossia.Github.Client, :merge_branch, fn _, _, _ ->
+      {:error, {:api_error, 409, %{"message" => "Merge conflict"}}}
+    end)
+
+    reject(&Glossia.Github.Client.create_pull_request/3)
+    reject(&Glossia.Translations.RepositoryRun.run/5)
+
+    assert {:error, {:api_error, 409, _}} = Translate.run(session.id)
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.pull_request_number == 2
+    assert updated.publication_branch == session.publication_branch
+    assert updated.status == "failed"
+  end
+
+  test "publication defers before any GitHub calls when the shared budget is exhausted" do
+    {user, project} =
+      project_with_installation("translate-paced@test.com", "translate-paced")
+
+    session = session_for(user, project)
+
+    project
+    |> Ecto.Changeset.change(translation_last_pushed_at: DateTime.add(DateTime.utc_now(), 60))
+    |> Repo.update!()
+
+    reject(&Glossia.Github.App.installation_token/1)
+    reject(&Glossia.Github.Client.create_branch/4)
+    reject(&Glossia.Github.Client.update_ref/4)
+    reject(&Glossia.Github.Client.create_pull_request/3)
+
+    assert {:wait, ms} =
+             Translate.publish_changes(
+               %{session_id: session.id},
+               %{changes: [%{path: "es.md", status: "added", content: "Hola"}]},
+               wait: false
+             )
+
+    assert ms > 0
+    assert is_nil(Repo.get!(TranslationSession, session.id).publication_branch)
+
+    {:ok, _} = TranslationSessions.update_session_status(session, "cancelled")
+
+    assert {:error, :translation_cancelled} =
+             Translate.publish_changes(
+               %{session_id: session.id},
+               %{changes: [%{path: "es.md", status: "added", content: "Hola"}]},
+               wait: false
+             )
   end
 
   for {outcome, response} <- [

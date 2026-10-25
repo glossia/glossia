@@ -50,6 +50,66 @@ defmodule Glossia.TranslationSessions.PublicationBatchTest do
     assert_received {:published, ["es/a.md", "ja/a.md"]}
   end
 
+  test "keeps collecting files during a cooldown and flush respects the same budget" do
+    test_pid = self()
+    {:ok, gate} = Agent.start_link(fn -> :waiting end)
+
+    {:ok, batch} =
+      PublicationBatch.start_link(
+        fn changes ->
+          send(test_pid, :publication_attempt)
+
+          case Agent.get(gate, & &1) do
+            :waiting ->
+              {:wait, 100}
+
+            :ready ->
+              send(test_pid, {:published, changes})
+              :ok
+          end
+        end,
+        max_files: 1
+      )
+
+    assert :ok = PublicationBatch.add(batch, [change("es/a.md")])
+    assert_received :publication_attempt
+    refute_received {:published, _}
+
+    assert :ok = PublicationBatch.add(batch, [change("es/b.md")])
+    refute_received :publication_attempt
+
+    task = Task.async(fn -> PublicationBatch.flush(batch) end)
+    assert_receive :publication_attempt
+    refute_received {:published, _}
+    assert Task.yield(task, 10) == nil
+
+    Agent.update(gate, fn _ -> :ready end)
+    assert :ok = Task.await(task)
+    assert_received {:published, [%{path: "es/a.md"}, %{path: "es/b.md"}]}
+    assert :ok = PublicationBatch.flush(batch)
+    refute_received {:published, _}
+  end
+
+  test "a final flush reports cancellation rather than bypassing a cooldown" do
+    {:ok, gate} = Agent.start_link(fn -> :waiting end)
+
+    {:ok, batch} =
+      PublicationBatch.start_link(
+        fn _changes ->
+          case Agent.get(gate, & &1) do
+            :waiting -> {:wait, 60_000}
+            :cancelled -> {:error, :translation_cancelled}
+          end
+        end,
+        max_files: 1
+      )
+
+    assert :ok = PublicationBatch.add(batch, [change("es/a.md")])
+    Agent.update(gate, fn _ -> :cancelled end)
+
+    assert {:error, :translation_cancelled} = PublicationBatch.flush(batch)
+  end
+
   test "does not log private publisher errors and keeps their files pending" do
     log =
       ExUnit.CaptureLog.capture_log(fn ->

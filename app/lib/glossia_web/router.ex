@@ -220,11 +220,12 @@ defmodule GlossiaWeb.Router do
     post "/device/confirm", DeviceController, :confirm
   end
 
-  # OpenAPI spec
+  # Public, instance-wide API metadata. No user or project data.
   scope "/api", GlossiaWeb do
     pipe_through :api
 
     get "/openapi.json", OpenApiController, :show
+    get "/native/themes", NativeThemesController, :index
   end
 
   # MCP auth discovery (RFC 8414, RFC 9728)
@@ -314,6 +315,7 @@ defmodule GlossiaWeb.Router do
       GlossiaWeb.Plugs.OtelAttributes
     ]
 
+    get "/me", MeApiController, :show
     get "/accounts", AccountApiController, :index
 
     get "/organizations", OrganizationApiController, :index
@@ -347,6 +349,15 @@ defmodule GlossiaWeb.Router do
 
     get "/:handle/projects", ProjectApiController, :index
     post "/:handle/projects", ProjectApiController, :create
+
+    get "/:handle/projects/:project/translations", ProjectActivityApiController, :translations
+    get "/:handle/projects/:project/translations/:id", ProjectActivityApiController, :translation
+    get "/:handle/projects/:project/analytics", ProjectActivityApiController, :analytics
+    get "/:handle/projects/:project/toki/conversations", TokiApiController, :index
+    post "/:handle/projects/:project/toki/conversations", TokiApiController, :create
+    get "/:handle/projects/:project/toki/conversations/:id", TokiApiController, :show
+    post "/:handle/projects/:project/toki/conversations/:id/messages", TokiApiController, :message
+
     get "/:handle/voice", VoiceApiController, :show
     post "/:handle/voice", VoiceApiController, :create
     get "/:handle/voice/history", VoiceApiController, :history

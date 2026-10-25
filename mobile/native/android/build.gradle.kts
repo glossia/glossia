@@ -26,6 +26,15 @@ android {
         res.setSrcDirs(listOf("res"))
         jniLibs.srcDir(layout.buildDirectory.dir("jniLibs"))
     }
+    // Fixtures and fake transports are JVM-test-only, never part of an APK.
+    sourceSets["test"].java.setSrcDirs(listOf("test"))
+    testOptions.unitTests.isIncludeAndroidResources = true
+    testOptions.unitTests.all {
+        it.systemProperty("artifacts", providers.gradleProperty("androidScreenshotDirectory")
+            .getOrElse(layout.buildDirectory.dir("screenshots").get().asFile.absolutePath))
+        it.systemProperty("robolectric.dependency.repo.url", "https://repo.maven.apache.org/maven2")
+        it.testLogging { events("passed", "failed") }
+    }
     signingConfigs.getByName("debug") {
         System.getenv("ANDROID_DEBUG_KEYSTORE")?.let { storeFile = file(it) }
     }
@@ -40,6 +49,8 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.core:core-ktx:1.15.0")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
 }
 
 dependencyLocking { lockAllConfigurations() }

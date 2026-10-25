@@ -8777,7 +8777,7 @@ defmodule GlossiaWeb.DashboardLive do
             id={"translation-progress-item-#{@item.index}-completed-output"}
             data-part="completed-output"
           >
-            <p data-part="output-title">{gettext("Translated output")}</p>
+            <p data-part="output-title">{gettext("Translated output preview")}</p>
             <pre data-part="stream">{String.slice(@item.text, 0, 2000)}</pre>
           </div>
         <% true -> %>

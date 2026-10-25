@@ -22,8 +22,10 @@
   /* Colors: Violet (muted, editorial) */
   --color-violet-50: rgba(109, 60, 196, 0.07);
   --color-violet-100: rgba(109, 60, 196, 0.13);
+  --color-violet-200: #d0bcff;
   --color-violet-500: #6d3cc4;
   --color-violet-600: #5b2dab;
+  --color-violet-900: #381e72;
 
   /* Colors: Amber */
   --color-amber-50: rgba(245, 158, 11, 0.1);
@@ -160,6 +162,17 @@
   --color-warning-mid: rgba(245, 158, 11, 0.2);
   --color-border: var(--color-stone-200);
   --color-border-strong: var(--color-stone-300);
+
+  /* Native dark appearance. Does not change the web color scheme. */
+  --color-native-dark-bg: var(--color-stone-900);
+  --color-native-dark-surface: var(--color-stone-800);
+  --color-native-dark-subtle: var(--color-stone-800);
+  --color-native-dark-text: var(--color-stone-50);
+  --color-native-dark-text-secondary: var(--color-stone-300);
+  --color-native-dark-border: var(--color-stone-700);
+  --color-native-dark-accent: var(--color-violet-200);
+  --color-native-dark-on-accent: var(--color-violet-900);
+  --color-native-dark-tint: var(--color-native-dark-accent);
 
   /* Typography */
   --font-body: var(--font-family-serif);
