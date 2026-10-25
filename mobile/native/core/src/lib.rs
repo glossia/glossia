@@ -2,6 +2,8 @@ mod analytics;
 pub mod bridge;
 mod navigation;
 mod profile;
+mod push;
+mod reviews;
 mod themes;
 mod toki;
 mod translation_live;
@@ -230,7 +232,7 @@ fn begin_using(
         ("redirect_uri", REDIRECT_URI),
         (
             "scope",
-            "organization:read project:read voice:read glossary:read user:read translation:read analytics:read toki:read toki:write",
+            "organization:read project:read voice:read glossary:read user:read user:write translation:read translation:write analytics:read toki:read toki:write",
         ),
         ("state", &pending.state),
         (

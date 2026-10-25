@@ -4,15 +4,16 @@ use std::cell::RefCell;
 use std::collections::VecDeque;
 
 mod navigation;
+mod reviews;
 
-struct NetworkFixture {
-    responses: RefCell<VecDeque<Result<Value>>>,
-    requests: RefCell<Vec<(Url, Value)>>,
-    methods: RefCell<Vec<&'static str>>,
+pub(crate) struct NetworkFixture {
+    pub(crate) responses: RefCell<VecDeque<Result<Value>>>,
+    pub(crate) requests: RefCell<Vec<(Url, Value)>>,
+    pub(crate) methods: RefCell<Vec<&'static str>>,
 }
 
 impl NetworkFixture {
-    fn new(responses: Vec<Value>) -> Self {
+    pub(crate) fn new(responses: Vec<Value>) -> Self {
         Self {
             responses: RefCell::new(responses.into_iter().map(Ok).collect()),
             requests: RefCell::new(vec![]),
@@ -26,11 +27,22 @@ impl Transport for NetworkFixture {
         self.methods.borrow_mut().push(match &body {
             Body::Get | Body::Public { .. } | Body::Api(_) => "GET",
             Body::Json(_) | Body::Form(_) | Body::ApiJson(_, _) => "POST",
+            Body::ApiPut(_, _) => "PUT",
+            Body::Push { method, .. } => {
+                if *method == reqwest::Method::PUT {
+                    "PUT"
+                } else {
+                    "DELETE"
+                }
+            }
         });
         let body = match body {
             Body::Get | Body::Public { .. } => Value::Null,
             Body::Api(token) => json!({"bearer": token}),
-            Body::ApiJson(token, value) => json!({"bearer": token, "json": value}),
+            Body::ApiJson(token, value) | Body::ApiPut(token, value) => {
+                json!({"bearer": token, "json": value})
+            }
+            Body::Push { token, payload, .. } => json!({"bearer": token, "json": payload}),
             Body::Json(value) => value,
             Body::Form(pairs) => pairs
                 .into_iter()
@@ -57,7 +69,7 @@ fn registration() -> Registration {
     }
 }
 
-fn saved_session() -> Session {
+pub(crate) fn saved_session() -> Session {
     Session {
         registration: registration(),
         access_token: "access".into(),
@@ -94,7 +106,9 @@ fn dynamic_public_login_exchanges_pkce_code_and_rotates_refresh_token() {
             "voice:read",
             "glossary:read",
             "user:read",
+            "user:write",
             "translation:read",
+            "translation:write",
             "analytics:read",
             "toki:read",
             "toki:write"

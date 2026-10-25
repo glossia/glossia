@@ -62,7 +62,7 @@ defmodule GlossiaWeb.Api.TokiApiController do
     |> put_status(status)
     |> json(%{
       conversation: serialize_conversation(detail.conversation),
-      messages: Enum.map(detail.messages, &Map.take(&1, [:id, :role, :content, :inserted_at]))
+      messages: Enum.map(detail.messages, &serialize_message/1)
     })
   end
 
@@ -90,7 +90,7 @@ defmodule GlossiaWeb.Api.TokiApiController do
       case reason do
         :not_found -> :not_found
         :unauthorized -> :forbidden
-        reason when reason in [:conversation_busy, :id_conflict] -> :conflict
+        reason when reason in [:conversation_busy, :id_conflict, :goal_closed] -> :conflict
         reason when reason in [:rate_limited, :too_many_pending] -> :too_many_requests
         _ -> :unprocessable_entity
       end
@@ -102,5 +102,25 @@ defmodule GlossiaWeb.Api.TokiApiController do
 
   defp serialize_conversation(conversation),
     do:
-      Map.take(conversation, [:id, :title, :status, :updated_at, :error, :translation_session_id])
+      conversation
+      |> Map.take([:id, :title, :status, :updated_at, :error, :translation_session_id])
+      |> Map.put(
+        :linguistic_review,
+        if(conversation.linguistic_review,
+          do: Glossia.LinguisticReviews.serialize(conversation.linguistic_review)
+        )
+      )
+
+  defp serialize_message(message) do
+    author =
+      cond do
+        message.role == "assistant" -> "Toki"
+        message.user -> message.user.name || "Linguist"
+        true -> "Linguist"
+      end
+
+    message
+    |> Map.take([:id, :role, :content, :inserted_at, :user_id, :status, :reply_to_id])
+    |> Map.put(:author, author)
+  end
 end

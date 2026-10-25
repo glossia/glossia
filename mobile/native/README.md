@@ -64,8 +64,8 @@ selection and consent happen in the server's browser login, not in the app.
 OAuth endpoints must stay on the chosen server's origin. No client secret is
 embedded in either app.
 
-Requests use `user:read organization:read project:read voice:read glossary:read
-translation:read analytics:read toki:read toki:write`. The server must support
+Requests use `user:read user:write organization:read project:read voice:read glossary:read
+translation:read translation:write analytics:read toki:read toki:write`. The server must support
 these scopes and secretless public-client refresh. Deploying the mobile files
 alone does not update the server.
 
@@ -109,8 +109,66 @@ migration through your normal deployment procedure, configure an inference
 provider, and run the Toki Oban queue before expecting live replies. See the
 server's API reference and OpenAPI document for request and response schemas.
 
-Editing, offline sync, remote push delivery, store publishing, and production
+Editing, offline sync, store publishing, and production
 signing are not included. Native UI currently uses English copy.
+
+## Remote push opt-in
+
+Profile has an explicit, optional push-notification control. Permission denial,
+missing provider configuration, or an older server never blocks sign-in, reading,
+or sending. The shared core enrolls through bearer-authenticated
+`PUT /api/me/push-devices/{installation-uuid}` and idempotent `DELETE` on the same
+fixed route. The server requires a native OAuth-client-bound grant. Installation
+IDs and opt-in state live per HTTPS origin in Keychain/Keystore-encrypted storage.
+Rotation and foreground entry reconcile provider tokens and OS permission
+revocation. Sign-out clears opt-in before deleting credentials, performs best-effort
+server cleanup, and retains a disabled tombstone for the next authenticated retry.
+Late callbacks cannot enable a replacement session. New opt-ins use new UUIDs;
+the server must retain DELETE tombstones to reject late enrollment requests.
+
+Notification alerts are generic, never conversation titles, translations, prompts,
+or replies. The fixed data contract is `v: "1"`, `registration_id: installation-uuid`,
+and `url: glossia://navigate/...` for a translation-session or Toki-conversation UUID.
+Receipts must match the current encrypted registration and server. Taps use the
+existing typed navigation and authorization, including cold launch and draft
+protection. They cannot switch origins, start login, create a conversation, or
+perform a mutation. Android uses **data-only FCM**, never an FCM `notification`
+payload that the SDK could display without the app's checks.
+
+Android uses the official `com.google.firebase:firebase-messaging:24.1.0` SDK through
+Gradle/AGP, including its merged manifest and locked transitive dependencies. Before
+building a provider-enabled APK, supply the public identifiers for the
+`ai.glossia.mobile` Firebase Android app in your user-level `~/.gradle/gradle.properties`:
+
+```properties
+glossiaFirebaseApplicationId=1:PROJECT_NUMBER:android:APP_ID
+glossiaFirebaseProjectId=PROJECT_ID
+glossiaFirebaseSenderId=PROJECT_NUMBER
+glossiaFirebaseApiKey=PUBLIC_ANDROID_API_KEY
+```
+
+These are public project identifiers, not service-account credentials. Never embed
+private provider keys. Missing identifiers leave the build explicitly unavailable.
+FCM auto-init and analytics collection are off; obtaining the token requires opt-in.
+Real delivery requires Google Play services and the matching server FCM project.
+
+iOS simulator and unsigned-device builds intentionally have no APNs environment.
+Use an existing explicit app profile with Push Notifications enabled. After building
+the device bundle, before signing it through your existing distribution workflow:
+
+```sh
+bash ios/distribution/push.sh /path/to/app.mobileprovision \
+  .once/out/GlossiaIOSDevice/Glossia.app /tmp/glossia-push.entitlements
+# Sign the extension, then the app with that profile's identity and these entitlements.
+python3 -B ios/distribution/push_test.py
+```
+
+The preparation script validates the app identity and profile expiry, derives both
+`aps-environment` and the signed `GlossiaPushEnvironment` metadata from the decoded
+profile, and embeds the profile. Development maps to APNs sandbox; production maps
+to APNs production. The script does not create profiles, sign, publish, or provision
+providers. APNs/FCM credentials belong only on the server. Provider delivery and
+signed-device validation remain external requirements.
 
 ## Native work status and background limits
 
@@ -131,8 +189,9 @@ These clients observe Toki through authorized foreground requests. Their native
 status surfaces do not keep networking alive after the OS suspends the app.
 The iOS activity becomes stale and asks the user to open Glossia rather than
 claiming work is still running indefinitely. Reliable suspended-app completion
-updates require an additional authorized registration/outbox service and
-configured APNs ActivityKit / Android push providers; none are provisioned here.
+alerts use the optional remote-push registration above and require configured
+server providers. Remote push does not keep these foreground observers alive or
+update ActivityKit remotely; ActivityKit push remains outside this implementation.
 
 Translation subscriptions also close in the background. Rust owns the persistent
 socket, heartbeat, bounded latest-only complete snapshots, reconnection, and
@@ -201,6 +260,32 @@ The backend rechecks project and translation-read authorization before attaching
 source context. Provenance currently identifies a session and its summary, not
 individual source/target segments. It does not approve or publish voice/glossary
 changes; that review workflow remains separate.
+
+### Linguistic input inside translation detail
+
+Linguistic reviews load with the translation, not a separate tab. The native
+`translation_reviews` command accepts `action: "list"` and the session `id`, or
+`action: "answer"` with `id`, `review_id`, and `answer`. Rust owns the fixed
+`translations/:id/reviews` and `translations/:id/reviews/:review_id/answer` routes.
+Listing requires `translation:read`; answering requires `translation:write` and
+project authorization. Existing sign-ins need fresh consent for the new scope.
+
+Each review shows the question, exact source/translation excerpts, locale and
+paths. Answers contain 1–8000 characters. Optional reusable guidance has its own
+editable 1–8000-character rule and `context_scope` (`locale` or `project`); one-off
+answers omit both fields. The server chooses the nearest appropriate `L10N.md`
+or `L10N/<locale>.md`. Guidance is a reviewed diff in the normal translation PR,
+never a direct repository mutation. Stale and answered reviews are read-only.
+Unconfirmed writes require a review reload before an explicit retry, not an
+automatic replay. Drafts and pending writes protect navigation; obsolete project
+and session responses cannot restore their content.
+
+`awaiting_input` is not failure. File progress supports the same state and a
+summary count. The original run remains historical after its questions are
+answered. Once its runner releases and all questions are answered, the backend
+queues a new session. A review's optional `resumed_session_id`, including one
+exposed by a later reload, shows **Translation resumed** and opens that new
+translation using existing typed navigation. There is no extra deep-link route.
 
 This slice registers custom-scheme navigation, not verified HTTPS Universal Links
 or Android App Links. Those require hosted association documents and stable signed
@@ -309,6 +394,17 @@ The preview bundle supports `login`, `empty`, `toki`, `chat`, `thinking`, `faile
 `source-chat` launch arguments. `activity-queued`, `activity-running`,
 `activity-completed`, `activity-failed`, and `activity-stale` render Toki work states
 and exercise the real ActivityKit extension using isolated fixture conversations.
+`profile-push-enabled`, `profile-push-denied`, and `profile-push-unavailable` render
+the real Profile push controls with isolated storage, permissions, and provider responses.
+`review-open`, `review-answered`, `review-stale`, `review-denied`,
+`review-loading`, and `review-error` render the production translation detail with
+deterministic linguistic goal rows, opening the existing shared Toki thread.
+`goal-active`, `goal-editing`, `goal-resolved`, `goal-stale`, `goal-error`,
+`goal-permission`, `goal-denied`, and `goal-closed-draft` exercise production Toki
+models and views with authorized fake API responses. `goal-rtl`, `goal-hebrew`,
+and `goal-rtl-large` render mirrored Arabic/Hebrew content and accessibility text.
+The decision fixture includes independently edited reusable guidance; resolved
+goals expose the new resumed translation rather than restarting the historical run.
 Append `--link URL` to exercise the production navigation adapter against isolated
 fixture records; this option is not linked into the production app. To inspect
 a server catalog without authenticating, append
@@ -317,6 +413,61 @@ validator and appearance owner. This argument is not in the production bundle.
 A fixture capture does not verify a real browser sign-in or inference provider. Physical-device
 secure storage, browser handoff, production signing, and live-provider integration
 still need deployment/device validation.
+
+## Shared linguistic goals and input
+
+Translation detail links each goal to its server-created, project-shared Toki
+conversation. The nested `linguistic_review` on every thread read is authoritative.
+Ordinary Toki conversations remain private. Visible, foreground open goals poll
+even while idle or editing a resolution, without changing the reviewed reply UUID,
+discarding drafts, or automatically approving a teammate's newer reply. Closed
+goals retain unsaved decisions until explicitly discarded. An uncertain save must
+refresh authoritative state before an explicit retry. Resolution requires a
+completed assistant reply to the latest human message, not the opening question.
+
+The composer follows Atlas's final glass-pill layout (Tuist commit `9af36c01be`):
+iOS 26 uses regular glass, earlier iOS uses material, and transparency/contrast
+accessibility settings use an opaque surface. Android uses the native Material
+adaptation with 48 dp targets. Both mirror leading/trailing controls for RTL.
+On-device dictation returns editable text, never automatically sends, uses measured
+audio/RMS levels, and fences cancelled/late callbacks. Android requires API 31+
+and an installed on-device recognizer; iOS requires on-device speech support and
+microphone/speech permissions. Fixture waveforms test callback rendering only;
+they are not evidence of real device recording, recognition quality, or permissions.
+
+Choose Files imports local UTF-8 text into the editable draft, with strict decoding,
+a 16 KiB byte cap and the chat's 4,000-character combined limit. Binary, empty,
+oversized and image files are rejected without changing the draft. Photo Library
+is explicitly unavailable: the current API is text-only. Real image/document
+attachments require a separately specified authorized upload/storage/message API.
+Profile fluent-language tags are independent of app locale and never grant access.
+
+## Native localization
+
+Run `python3 -B tools/extract_localizations.py` on macOS after changing static UI
+copy. It updates standard English Apple `.strings` and Android XML resources;
+user/server questions, messages, names and paths remain verbatim. Static model
+errors are localized when created, and format templates preserve their arguments.
+Root `L10N.md` mappings cover both catalogs without restricting native languages to
+marketing locales. Once packages translated `.lproj/*.strings`; Gradle stages
+`locales/<BCP47>/android/strings.xml` into `values-b+…` resources before building.
+
+The scoped `L10N.md` validation command runs on Node 22 without Xcode, Android,
+Python or external packages in the translation sandbox. It validates candidate
+syntax, source keys and printf/bidi placeholders at their real output paths:
+
+```sh
+mise exec -- node --test tools/validate_localizations.test.mjs
+GLOSSIA_SOURCE_PATH=ios/Resources/en.lproj/Localizable.strings \
+GLOSSIA_TARGET_PATH=ios/Resources/en.lproj/Localizable.strings \
+mise exec -- node tools/validate_localizations.mjs
+```
+
+Model tests include temporary translated runtime resources for button/error copy
+and formatting arguments. `TokiInputTest` can also validate staged translated
+Android resources with `-PnativeLocalizationSentinel=true`; the temporary German
+sentinel catalog used for verification is not shipped. Android production-view
+renders can be directed with `-PandroidScreenshotDirectory=/absolute/path`.
 
 Tuist's MIT attribution is included in both app bundles through
 [`third_party_notices.txt`](android/res/raw/third_party_notices.txt).

@@ -14,9 +14,9 @@ private struct AnalyticsTraffic: Decodable {
 
     var intervalLabel: String {
         switch granularity {
-        case "hour": "Hourly totals · UTC"
-        case "month": "Monthly totals · UTC"
-        default: "Daily totals · UTC"
+        case "hour": String(localized: "Hourly totals · UTC")
+        case "month": String(localized: "Monthly totals · UTC")
+        default: String(localized: "Daily totals · UTC")
         }
     }
 

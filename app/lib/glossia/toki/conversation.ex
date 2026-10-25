@@ -1,5 +1,5 @@
 defmodule Glossia.Toki.Conversation do
-  @moduledoc "A private companion conversation owned by one user in one project."
+  @moduledoc "A private companion chat or a shared, project-scoped linguistic goal."
   use Glossia.Schema
   import Ecto.Changeset
 
@@ -15,6 +15,7 @@ defmodule Glossia.Toki.Conversation do
   schema "toki_conversations" do
     belongs_to :user, Glossia.Accounts.User
     belongs_to :project, Glossia.Accounts.Project
+    belongs_to :linguistic_review, Glossia.LinguisticReviews.Review
     # Retain the immutable reference even if its source is deleted. Every use
     # resolves and authorizes the source again; this is not an access grant.
     field :translation_session_id, Ecto.UUID

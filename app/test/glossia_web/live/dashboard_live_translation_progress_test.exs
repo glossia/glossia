@@ -7,6 +7,48 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
   alias Glossia.TestHelpers
   alias Glossia.TranslationSessions
 
+  test "waiting files show linguistic input rather than an active translation", %{conn: conn} do
+    user = TestHelpers.create_user("waiting-linguist@test.com", "waiting-linguist")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{handle: "release", name: "Release docs"})
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        status: "awaiting_input",
+        commit_message: "Clarify release-branch terminology",
+        source_language: "en",
+        target_languages: ["es"]
+      })
+
+    Enum.each(
+      [
+        %{type: "plan", seq: 1, total: 2},
+        %{type: "plan_assessed", seq: 2, total: 2, needs_translation: 2, up_to_date: 0},
+        %{
+          type: "item_awaiting_input",
+          seq: 3,
+          index: 0,
+          output_path: "es/releases.txt",
+          locale: "es"
+        },
+        %{type: "item_started", seq: 4, index: 1, output_path: "es/start.txt", locale: "es"},
+        %{type: "item_completed", seq: 5, index: 1, output_path: "es/start.txt", locale: "es"}
+      ],
+      &TranslationSessions.broadcast_session_event(session, &1)
+    )
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    assert has_element?(view, "#translation-progress-item-0", "Needs linguistic input")
+    assert has_element?(view, "#translation-progress-item-1", "Done")
+    refute has_element?(view, "#translation-progress-summary-running")
+    assert has_element?(view, "#cancel-translation-session")
+  end
+
   test "shows the executing engine digest separately from the repository commit", %{conn: conn} do
     user = TestHelpers.create_user("engine-provenance@test.com", "engine-provenance")
 

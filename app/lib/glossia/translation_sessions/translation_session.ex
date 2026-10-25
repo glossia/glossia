@@ -16,7 +16,7 @@ defmodule Glossia.TranslationSessions.TranslationSession do
     default_order: %{order_by: [:inserted_at, :id], order_directions: [:desc, :desc]}
   }
 
-  @statuses ~w(pending running completed failed cancelled)
+  @statuses ~w(pending running awaiting_input completed failed cancelled)
   @outcomes ~w(translated content_hit superseded cancelled failed)
 
   schema "translation_sessions" do

@@ -15,7 +15,7 @@ struct TokiLiveActivity: Widget {
                 TokiActivityMark(phase: phase(context)).frame(width: 44, height: 44)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(phase(context).label).font(.headline)
-                    Text(context.isStale ? "Status needs a fresh check" : "Private Toki conversation")
+                    Text(context.isStale ? String(localized: "Status needs a fresh check") : String(localized: "Toki conversation"))
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 8)
@@ -38,7 +38,7 @@ struct TokiLiveActivity: Widget {
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(phase(context).label).font(.headline)
-                        Text(context.isStale ? "Open Glossia to check the latest status" : "Open conversation")
+                        Text(context.isStale ? String(localized: "Open Glossia to check the latest status") : String(localized: "Open conversation"))
                             .font(.caption).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 8).padding(.bottom, 8)

@@ -22,7 +22,7 @@ struct TokiWorkStatusView: View {
                             mark(phase, at: animation.date)
                         }.frame(width: 44, height: 44)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(phase == .running ? "Toki is thinking…" : phase.label)
+                            Text(phase == .running ? String(localized: "Toki is thinking…") : phase.label)
                                 .font(.callout.weight(.medium)).foregroundStyle(tokens.ink)
                             if state.endedAt == nil || state.endedAt! > state.startedAt.addingTimeInterval(1) {
                                 Text(elapsed(at: timeline.date, stale: stale))
@@ -80,16 +80,17 @@ struct TokiWorkStatusView: View {
     private func elapsed(at date: Date, stale: Bool) -> String {
         let end = state.endedAt ?? min(date, state.observedAt.addingTimeInterval(60))
         let seconds = max(0, Int(end.timeIntervalSince(state.startedAt)))
-        return String(format: "%d:%02d", seconds / 60, seconds % 60) + (stale || state.phase == .disconnected ? " observed" : " since observed")
+        let clock = String(format: "%d:%02d", seconds / 60, seconds % 60)
+        return stale || state.phase == .disconnected ? String(localized: "\(clock) observed") : String(localized: "\(clock) since observed")
     }
 
     private func explanation(_ phase: TokiWorkPhase) -> String {
         switch phase {
-        case .queued: "Your message is queued. Toki hasn't started replying yet."
-        case .running: "Toki is preparing a reply. Time is measured from when Glossia first observed this work."
-        case .completed: "The server reports that Toki finished this reply."
-        case .failed: "Toki couldn't finish this reply. You can send a follow-up to try again."
-        case .disconnected: "The latest status isn't available. Work may still be running. Open Glossia and check again."
+        case .queued: String(localized: "Your message is queued. Toki hasn't started replying yet.")
+        case .running: String(localized: "Toki is preparing a reply. Time is measured from when Glossia first observed this work.")
+        case .completed: String(localized: "The server reports that Toki finished this reply.")
+        case .failed: String(localized: "Toki couldn't finish this reply. You can send a follow-up to try again.")
+        case .disconnected: String(localized: "The latest status isn't available. Work may still be running. Open Glossia and check again.")
         }
     }
 }

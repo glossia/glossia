@@ -53,7 +53,9 @@ defmodule GlossiaWeb.ProfileLive do
     assign(socket,
       page_title: gettext("Preferences"),
       breadcrumb_label: gettext("Preferences"),
-      selected_locale: user.locale || socket.assigns.locale
+      selected_locale: user.locale || socket.assigns.locale,
+      fluent_languages: Enum.join(user.fluent_languages || [], ", "),
+      fluency_error: nil
     )
   end
 
@@ -113,6 +115,34 @@ defmodule GlossiaWeb.ProfileLive do
     end
   end
 
+  def handle_event("validate_fluency", %{"fluency" => %{"languages" => languages}}, socket) do
+    {:noreply, assign(socket, fluent_languages: languages, fluency_error: nil)}
+  end
+
+  def handle_event("save_fluency", %{"fluency" => %{"languages" => languages}}, socket) do
+    tags = String.split(languages, ~r/[,\s]+/, trim: true)
+
+    case Glossia.Accounts.update_user_fluent_languages(socket.assigns.current_user, tags) do
+      {:ok, user} ->
+        {:noreply,
+         socket
+         |> assign(
+           current_user: user,
+           current_scope: Glossia.Accounts.Scope.for_user(user),
+           fluent_languages: Enum.join(user.fluent_languages, ", "),
+           fluency_error: nil
+         )
+         |> put_flash(:info, gettext("Fluent languages updated."))}
+
+      {:error, _changeset} ->
+        {:noreply,
+         assign(socket,
+           fluent_languages: languages,
+           fluency_error: gettext("Enter up to 50 supported language tags, separated by commas.")
+         )}
+    end
+  end
+
   def handle_event("save_locale", _params, socket) do
     case Glossia.Accounts.update_user_locale(
            socket.assigns.current_user,
@@ -151,7 +181,12 @@ defmodule GlossiaWeb.ProfileLive do
           gravatar_url={@gravatar_url}
         />
       <% :preferences -> %>
-        <.preferences_page selected_locale={@selected_locale} current_user={@current_user} />
+        <.preferences_page
+          selected_locale={@selected_locale}
+          current_user={@current_user}
+          fluent_languages={@fluent_languages}
+          fluency_error={@fluency_error}
+        />
       <% :connected_accounts -> %>
         <.connected_accounts_page identities={@identities} />
     <% end %>
@@ -403,6 +438,43 @@ defmodule GlossiaWeb.ProfileLive do
             visible={@selected_locale != @current_user.locale}
             cancel_path={~p"/-/settings/preferences"}
           />
+        </.form>
+
+        <.form
+          for={%{}}
+          id="fluent-languages-form"
+          class="voice-form"
+          phx-change="validate_fluency"
+          phx-submit="save_fluency"
+        >
+          <Noora.Card.card
+            class="noora-resource-card"
+            title={gettext("Fluent languages")}
+            icon="language"
+          >
+            <Noora.Card.card_section class="voice-card">
+              <div class="voice-card-fields">
+                <Noora.TextInput.text_input
+                  id="fluent-languages"
+                  name="fluency[languages]"
+                  value={@fluent_languages}
+                  label={gettext("Languages you can help with")}
+                  placeholder={gettext("For example: en, es-MX, zh-Hant")}
+                  hint={
+                    gettext(
+                      "Toki invites matching fluent teammates to shared translation discussions. This does not change your dashboard language. Leave empty to opt out."
+                    )
+                  }
+                  error={@fluency_error}
+                />
+                <Noora.Button.button
+                  label={gettext("Save fluent languages")}
+                  type="submit"
+                  variant="secondary"
+                />
+              </div>
+            </Noora.Card.card_section>
+          </Noora.Card.card>
         </.form>
       </div>
     </div>

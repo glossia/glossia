@@ -24,11 +24,11 @@ enum TokiWorkPhase: String, Codable, Hashable {
 
     var label: String {
         switch self {
-        case .queued: "Waiting for Toki"
-        case .running: "Toki is thinking"
-        case .completed: "Toki finished"
-        case .failed: "Toki couldn't finish"
-        case .disconnected: "Open Glossia to check Toki"
+        case .queued: String(localized: "Waiting for Toki")
+        case .running: String(localized: "Toki is thinking")
+        case .completed: String(localized: "Toki finished")
+        case .failed: String(localized: "Toki couldn't finish")
+        case .disconnected: String(localized: "Open Glossia to check Toki")
         }
     }
 }

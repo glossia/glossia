@@ -52,7 +52,8 @@ defmodule GlossiaWeb.Api.MobileApiTest do
              "id" => owner.id,
              "email" => owner.email,
              "name" => nil,
-             "handle" => owner.account.handle
+             "handle" => owner.account.handle,
+             "fluent_languages" => []
            }
 
     assert is_binary(body["server_version"])

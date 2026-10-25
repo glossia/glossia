@@ -3,7 +3,16 @@ defmodule Glossia.TokiTest do
   use Mimic
   use Oban.Testing, repo: Glossia.Repo
 
-  alias Glossia.{Authz, LLMModels, Projects, TestHelpers, Toki, TranslationSessions}
+  alias Glossia.{
+    Authz,
+    LinguisticReviews,
+    LLMModels,
+    Projects,
+    TestHelpers,
+    Toki,
+    TranslationSessions
+  }
+
   alias Glossia.Toki.{Agent, Conversation, Message, RecoveryWorker, ReplyWorker}
 
   setup do
@@ -158,10 +167,56 @@ defmodule Glossia.TokiTest do
              Agent.reply(user, project, messages, ["toki:write", "translation:read"])
   end
 
-  test "five pending turns across projects bound queued model work", context do
+  test "shared goals infer as the human actor with bounded context, and cancellation discards late replies",
+       c do
+    conversation = goal_conversation(c)
+    assert is_nil(conversation.user_id)
+    turn = Ecto.UUID.generate()
+    assert {:ok, _} = enqueue(c.user, c.project, conversation, turn)
+    [job] = all_enqueued(worker: ReplyWorker)
+
+    expect(Req, :request, fn request ->
+      [%{content: [%{text: prompt}]}, %{content: [%{text: transcript}]}] =
+        request.options.context.messages
+
+      assert List.last(JSON.decode!(transcript))["user_id"] == c.user.id
+      assert prompt =~ "Which branch meaning?"
+      assert prompt =~ "Create a branch before release."
+      assert prompt =~ "shared conversation"
+      assert prompt =~ "only explicit"
+      provider_response("Use the release-branch meaning; please approve the decision.")
+    end)
+
+    assert :ok = ReplyWorker.perform(job)
+
+    assert {:ok, %{messages: [_, %{user_id: author}, %{role: "assistant"}]}} =
+             Toki.get_conversation(c.user, c.project, conversation.id)
+
+    assert author == c.user.id
+
+    next = Ecto.UUID.generate()
+    assert {:ok, _} = enqueue(c.user, c.project, conversation, next)
+    [job | _] = all_enqueued(worker: ReplyWorker)
+
+    expect(Req, :request, fn _request ->
+      session = TranslationSessions.get_session!(conversation.translation_session_id)
+      assert {:ok, _} = TranslationSessions.cancel_session(session)
+      provider_response("This reply arrived after the goal became stale.")
+    end)
+
+    assert :ok = ReplyWorker.perform(job)
+    assert Repo.get!(Message, next).status == "failed"
+    refute Repo.exists?(from m in Message, where: m.reply_to_id == ^next)
+  end
+
+  test "five pending turns across private chats and shared goals bound queued model work",
+       context do
     %{user: user, project: project} = context
 
-    for _ <- 1..5 do
+    goal = goal_conversation(context)
+    assert {:ok, _} = enqueue(user, project, goal, Ecto.UUID.generate())
+
+    for _ <- 1..4 do
       {:ok, %{conversation: conversation}} =
         Toki.create_conversation(user, project, %{"id" => Ecto.UUID.generate()})
 
@@ -180,7 +235,7 @@ defmodule Glossia.TokiTest do
              enqueue(user, other_project, other, Ecto.UUID.generate())
 
     assert length(all_enqueued(worker: ReplyWorker)) == 5
-    assert Repo.aggregate(Message, :count) == 5
+    assert Repo.aggregate(from(m in Message, where: m.role == "user"), :count) == 5
   end
 
   test "hourly inference limit does not reject UUID replay or persist rejected input", context do
@@ -273,5 +328,25 @@ defmodule Glossia.TokiTest do
     Oban.Testing.with_testing_mode(:manual, fn ->
       Toki.send_message(user, project, conversation.id, %{"id" => id, "content" => "Hello Toki"})
     end)
+  end
+
+  defp goal_conversation(c) do
+    {:ok, session} =
+      TranslationSessions.create_session(c.user.account, c.project, %{status: "running"})
+
+    {:ok, review} =
+      LinguisticReviews.request(
+        session.id,
+        %{source_path: "en.md", output_path: "es.md", locale: "es", context_targets: %{}},
+        String.duplicate("a", 64),
+        %{
+          reason: "missing_context",
+          question: "Which branch meaning?",
+          source: "Create a branch before release.",
+          translation: "Crea una rama."
+        }
+      )
+
+    Repo.get_by!(Conversation, linguistic_review_id: review.id)
   end
 end

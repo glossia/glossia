@@ -229,7 +229,8 @@ class GlossiaAppearance internal constructor(context: Context,
                 return
             }
             is MaterialCardView -> {
-                view.radius = radius(context, "card_radius", 20); view.strokeColor = border
+                view.radius = if (view.getTag(R.id.appearance_surface) == "composer") context.dp(28).toFloat() else radius(context, "card_radius", 20)
+                view.strokeColor = border
                 view.setCardBackgroundColor(color(if (view.getTag(R.id.appearance_surface) == "subtle") R.color.glossia_subtle else R.color.glossia_surface))
             }
             is Chip -> {
@@ -252,7 +253,12 @@ class GlossiaAppearance internal constructor(context: Context,
                 val radius = radius(context, "button_radius", 20)
                 view.setBoxCornerRadii(radius, radius, radius, radius)
                 // Material owns the hint, helper, counter and error TextViews.
-                view.editText?.let { paint(it) }
+                view.editText?.let {
+                    paint(it)
+                    // Its background may be Material's outlined box drawable,
+                    // not an underline. Tinting it paints the entire input accent.
+                    it.backgroundTintList = null
+                }
                 return
             }
             is EditText -> {

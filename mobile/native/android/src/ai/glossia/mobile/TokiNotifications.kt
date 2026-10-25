@@ -39,8 +39,8 @@ internal class TokiNotifications(private val context: Context,
     }
 
     init {
-        manager.createNotificationChannel(NotificationChannel(CHANNEL, "Toki activity", NotificationManager.IMPORTANCE_LOW).apply {
-            description = "Last observed Toki work. Open Glossia to refresh when the app is not active."
+        manager.createNotificationChannel(NotificationChannel(CHANNEL, context.nativeText("Toki activity"), NotificationManager.IMPORTANCE_LOW).apply {
+            description = context.nativeText("Last observed Toki work. Open Glossia to refresh when the app is not active.").toString()
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             setShowBadge(false)
         })
@@ -107,22 +107,22 @@ internal class TokiNotifications(private val context: Context,
         val intent = Intent(context, MainActivity::class.java).setAction(Intent.ACTION_VIEW).setData(url.toUri())
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val pending = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        val description = if (active && !current) "Last known: ${text.lowercase()}. Open Glossia to refresh."
-            else if (entry.status == "completed") "Your response is ready. Open the conversation."
-            else if (entry.status == "failed") "Toki could not finish. Open the conversation."
-            else "Last observed: ${text.lowercase()}"
+        val description = if (active && !current) context.nativeFormat("Last known: %1\$s. Open Glossia to refresh.", context.nativeText(text))
+            else if (entry.status == "completed") context.nativeText("Your response is ready. Open the conversation.").toString()
+            else if (entry.status == "failed") context.nativeText("Toki could not finish. Open the conversation.").toString()
+            else context.nativeFormat("Last observed: %1\$s", context.nativeText(text))
         val elapsed = ((entry.endedAt ?: System.currentTimeMillis()) - entry.observedAt).coerceAtLeast(0) / 1000
         val clock = String.format(Locale.ROOT, "%d:%02d", elapsed / 60, elapsed % 60)
         // Even unlocked content is generic: no title, prompt, model output,
         // workspace name or error detail can leak onto a lockscreen.
         val public = Notification.Builder(context, CHANNEL).setSmallIcon(R.drawable.ic_toki)
-            .setContentTitle("Toki activity").setContentText("Open Glossia to view the latest status.")
+            .setContentTitle(context.nativeText("Toki activity")).setContentText(context.nativeText("Open Glossia to view the latest status."))
             .setVisibility(Notification.VISIBILITY_PUBLIC).setContentIntent(pending).build()
         val notification = Notification.Builder(context, CHANNEL).setSmallIcon(R.drawable.ic_toki)
             .setLargeIcon(mark(current)).setColor(color())
-            .setContentTitle("Toki · $text").setContentText(description)
+            .setContentTitle(context.nativeFormat("Toki · %1\$s", context.nativeText(text))).setContentText(description)
             .setStyle(Notification.BigTextStyle().bigText(description))
-            .setSubText(if (current) "Observed" else "Observed for $clock")
+            .setSubText(if (current) context.nativeText("Observed") else context.nativeFormat("Observed for %1\$s", clock))
             .setWhen(entry.observedAt).setShowWhen(current).setUsesChronometer(current)
             .setOnlyAlertOnce(true).setOngoing(active).setAutoCancel(!active)
             .setCategory(if (active) Notification.CATEGORY_PROGRESS else Notification.CATEGORY_STATUS)

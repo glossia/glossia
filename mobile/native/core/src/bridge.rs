@@ -36,6 +36,11 @@ enum Command {
         #[serde(default = "crate::analytics::default_days")]
         days: u32,
     },
+    FluentLanguages {
+        session: Session,
+        #[serde(flatten)]
+        input: crate::profile::FluentLanguages,
+    },
     Conversation {
         session: Session,
         selection: workspace::Selection,
@@ -46,6 +51,12 @@ enum Command {
         session: Session,
         selection: workspace::Selection,
         id: String,
+    },
+    TranslationReviews {
+        session: Session,
+        selection: workspace::Selection,
+        #[serde(flatten)]
+        action: crate::reviews::Action,
     },
     TranslationLive {
         #[serde(flatten)]
@@ -60,6 +71,11 @@ enum Command {
     },
     ValidateThemes {
         catalog: Value,
+    },
+    Push {
+        session: Session,
+        #[serde(flatten)]
+        action: crate::push::Action,
     },
     Destinations,
 }
@@ -116,17 +132,30 @@ pub(crate) fn execute_using(network: &impl Transport, input: &str) -> String {
                 } => {
                     return toki::conversation(network, &session, &selection, action);
                 }
+                Command::FluentLanguages { session, input } => {
+                    return crate::profile::save_languages(network, &session, input);
+                }
                 Command::Translation {
                     session,
                     selection,
                     id,
                 } => return crate::translations::show(network, &session, &selection, &id),
+                Command::TranslationReviews {
+                    session,
+                    selection,
+                    action,
+                } => {
+                    return crate::reviews::execute(network, &session, &selection, action);
+                }
                 Command::TranslationLive { action } => {
                     return crate::translation_live::execute(action);
                 }
                 Command::Navigation { action } => return navigation::execute(action),
                 Command::Themes { server } => return crate::themes::fetch(network, &server),
                 Command::ValidateThemes { catalog } => return crate::themes::validate(catalog),
+                Command::Push { session, action } => {
+                    return crate::push::execute(network, session, action);
+                }
                 Command::Destinations => {
                     return Ok(json!({"destinations": crate::navigation::DESTINATIONS}));
                 }

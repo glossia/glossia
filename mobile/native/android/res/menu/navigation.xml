@@ -1,6 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/toki" android:icon="@drawable/ic_toki" android:title="Toki" />
-    <item android:id="@+id/translations" android:icon="@drawable/ic_translations" android:title="Translations" />
-    <item android:id="@+id/analytics" android:icon="@drawable/ic_analytics" android:title="Analytics" />
-    <item android:id="@+id/profile" android:icon="@drawable/ic_profile" android:title="Profile" />
+    <item android:id="@+id/toki" android:icon="@drawable/ic_toki" android:title="@string/native_581e6ddfaa87c21c" />
+    <item android:id="@+id/translations" android:icon="@drawable/ic_translations" android:title="@string/native_266a41b90d4f831e" />
+    <item android:id="@+id/analytics" android:icon="@drawable/ic_analytics" android:title="@string/native_94c116ee118a7299" />
+    <item android:id="@+id/profile" android:icon="@drawable/ic_profile" android:title="@string/native_d696a35bdd1883da" />
 </menu>

@@ -43,7 +43,7 @@ struct GlossiaWorkspaceView: View {
                         set: { if !$0 { navigation.clearTarget("translations") } }
                     )) {
                         if let destination = navigation.targets["translations"], destination.screen == .translation {
-                            TranslationDetailView(destination: destination, request: request) {
+                            TranslationDetailView(destination: destination, request: request, openResumed: { open(.translation, id: $0) }, openReview: { open(.conversation, id: $0) }) {
                                 open(.newConversation, translationID: destination.id)
                             }.id(destination.id)
                         }
@@ -74,8 +74,8 @@ struct GlossiaWorkspaceView: View {
             Button { showingWorkspace = true } label: {
                 HStack(spacing: 8) {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(session.organization ?? "Workspace").font(.caption).foregroundStyle(tokens.muted)
-                        Text(session.selectedProject?["name"] as? String ?? session.project ?? "Choose project")
+                        Text(session.organization ?? String(localized: "Workspace")).font(.caption).foregroundStyle(tokens.muted)
+                        Text(session.selectedProject?["name"] as? String ?? session.project ?? String(localized: "Choose project"))
                             .font(.subheadline.weight(.medium)).lineLimit(1)
                     }
                     Image(systemName: "chevron.down").font(.caption)

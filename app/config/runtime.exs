@@ -84,6 +84,8 @@ config :glossia, :managed_runner,
 # extras in Finch's checkout queue until they time out.
 config :glossia, :http_pool_size, integer_env.("GLOSSIA_HTTP_POOL_SIZE", 50)
 
+config :glossia, Glossia.Push, Glossia.Push.Config.parse!(System.get_env())
+
 # Cloudflare Turnstile enforcement for the sign-up surface. Single
 # per-environment toggle; site + secret keys are projected from the
 # operator-materialized Secret in the workload cluster.

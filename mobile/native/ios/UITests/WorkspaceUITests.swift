@@ -206,7 +206,7 @@ final class WorkspaceUITests: XCTestCase {
         running.name = "ios-translation-progress-running"; running.lifetime = .keepAlways; add(running)
         XCTAssertTrue(app.staticTexts["3 of 3 files translated"].waitForExistence(timeout: 10))
         let status = app.descendants(matching: .any)["translation-status"].firstMatch
-        XCTAssertTrue(status.label.contains("completed") || (status.value as? String)?.contains("completed") == true)
+        XCTAssertTrue(status.label.contains("Completed") || (status.value as? String)?.contains("Completed") == true)
         XCTAssertFalse(app.staticTexts["Reconnecting to live progress…"].exists)
         let completed = XCTAttachment(screenshot: app.screenshot())
         completed.name = "ios-translation-progress-completed"; completed.lifetime = .keepAlways; add(completed)
@@ -224,6 +224,10 @@ final class WorkspaceUITests: XCTestCase {
         app.swipeUp()
         XCTAssertTrue(discuss.waitForExistence(timeout: 5))
         let disclosure = app.staticTexts["Start a private conversation linked to this translation. No changes are applied automatically."]
+        for _ in 0..<3 {
+            if disclosure.isHittable && disclosure.frame.maxY <= app.tabBars.firstMatch.frame.minY + 0.5 { break }
+            app.swipeUp()
+        }
         XCTAssertTrue(disclosure.isHittable)
         XCTAssertLessThanOrEqual(disclosure.frame.maxY, app.tabBars.firstMatch.frame.minY + 0.5)
         let detail = XCTAttachment(screenshot: app.screenshot())

@@ -6,6 +6,7 @@ defmodule Glossia.Toki.Message do
   schema "toki_messages" do
     belongs_to :conversation, Glossia.Toki.Conversation
     belongs_to :reply_to, __MODULE__
+    belongs_to :user, Glossia.Accounts.User
     field :role, :string
     field :content, :string
     field :status, :string

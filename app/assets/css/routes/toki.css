@@ -1,0 +1,108 @@
+#toki-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-7);
+  min-inline-size: var(--noora-spacing-0);
+  color: var(--noora-surface-label-primary);
+  font: var(--noora-font-body-medium);
+
+  & p, & h2 { margin: var(--noora-spacing-0); }
+  & h2 { font: var(--noora-font-weight-medium) var(--noora-font-heading-small); }
+  & p, & a, & span { overflow-wrap: anywhere; }
+  & a { color: var(--noora-icon-primary-label); }
+  & [data-part="muted"], & time { color: var(--noora-surface-label-secondary); }
+  /* Resolve prose direction from its content, not the surrounding layout:
+     untranslated English must keep trailing punctuation in an RTL dashboard. */
+  & p, & [data-part="muted"], & [data-part="title"], & [data-part="thread-copy"] > a,
+  & .noora-hint-text > span, & .noora-table-empty-state [data-part="subtitle"] {
+    unicode-bidi: plaintext;
+  }
+  /* Keep the hook mounted to restore a saved draft even on a closed goal,
+     without showing an empty recovery card after a successful approval. */
+  & #toki-approval[data-draft-empty] { display: none; }
+
+  & [data-part="thread"], & [data-part="pagination"], & [data-part="message-heading"],
+  & [data-part="participants"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--noora-spacing-4);
+  }
+  & [data-part="thread"] { justify-content: space-between; }
+  & [data-part="thread-copy"], & [data-part="goal-context"], & [data-part="approval"],
+  & [data-part="composer-section"], & #toki-resolution {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--noora-spacing-5);
+    min-inline-size: var(--noora-spacing-0);
+  }
+  & [data-part="thread-copy"] { gap: var(--noora-spacing-2); }
+  & [data-part="empty"].noora-table { background: var(--noora-surface-background-primary); }
+  & [data-part="excerpts"] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(var(--noora-spacing-0), 1fr));
+    gap: var(--noora-spacing-6);
+    margin-block-start: var(--noora-spacing-4);
+  }
+  & summary { cursor: pointer; }
+  & [data-part="excerpts"] p, & [data-part="message"] p, & [data-part="decision"] { white-space: pre-wrap; }
+  & [data-part="message"] { padding: var(--noora-spacing-6) var(--noora-spacing-7); }
+  & [data-part="message"][data-role="user"] { background: var(--noora-surface-background-secondary); }
+  & [data-part="message-heading"] { margin-block-end: var(--noora-spacing-3); }
+  & [data-part="message-heading"] time { font: var(--noora-font-body-small); }
+  & [data-part="decision"] {
+    border-inline-start: var(--noora-spacing-1) solid var(--noora-surface-border-primary);
+    padding-inline-start: var(--noora-spacing-4);
+  }
+
+  /* AtlasThreadComposer's rounded material surface, using Noora's field and
+     button rather than an imitation control. Unsupported media actions are
+     deliberately absent. Opaque surface remains the accessible fallback. */
+  & [data-part="composer"] {
+    display: flex;
+    align-items: end;
+    gap: var(--noora-spacing-4);
+    border-radius: var(--noora-radius-8);
+    box-shadow: var(--noora-border-light-default);
+    padding: var(--noora-spacing-5);
+    background: var(--noora-surface-background-secondary);
+    backdrop-filter: blur(var(--noora-spacing-4));
+  }
+  & [data-part="composer"] .noora-text-area { flex: 1; min-inline-size: var(--noora-spacing-0); }
+  & [data-part="composer"] .noora-button { flex-shrink: 0; }
+  & #toki-resolution > .noora-button, & #toki-guidance-scope { align-self: flex-start; }
+
+  @supports (backdrop-filter: blur(var(--noora-spacing-4))) {
+    & [data-part="composer"] { background: var(--noora-surface-overlay); }
+  }
+  @media (max-width: 768px) {
+    & [data-part="excerpts"] { grid-template-columns: minmax(var(--noora-spacing-0), 1fr); }
+    & [data-part="composer"] { flex-direction: column; align-items: stretch; }
+  }
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    & [data-part="composer"] { backdrop-filter: none; background: var(--noora-surface-background-primary); }
+  }
+}
+
+/* Keep a long account handle from colliding with the header controls on the
+   narrow conversation view, in either writing direction. */
+#noora-shell:has(#toki-page) {
+  @media (max-width: 768px) {
+    & .noora-shell__context .noora-breadcrumbs {
+      min-inline-size: var(--noora-spacing-0);
+      max-inline-size: 100%;
+    }
+    & .noora-shell__context .noora-breadcrumb:not(#organization-breadcrumb),
+    & .noora-shell__context [data-part="slash"],
+    & .noora-shell__context [data-part="arrow"],
+    & #organization-breadcrumb .noora-badge { display: none; }
+    & #organization-breadcrumb,
+    & #organization-breadcrumb > [data-part="link"] { min-inline-size: var(--noora-spacing-0); }
+    & #organization-breadcrumb > [data-part="link"] > [data-part="label"] {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}

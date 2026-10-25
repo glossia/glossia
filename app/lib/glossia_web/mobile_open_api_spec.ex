@@ -28,6 +28,45 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
       "/api/me" => %{
         "get" => operation("currentUser", "user:read", "MobileProfile", [], "200")
       },
+      "/api/me/fluent-languages" => %{
+        "put" =>
+          operation("updateFluentLanguages", "user:write", "MobileProfile", [], "200")
+          |> Map.put("requestBody", request_body("FluentLanguagesRequest"))
+          |> Map.put(
+            "description",
+            "Replace the authenticated user's fluent languages independently of the display language. Canonical CLDR-supported BCP47 tags, at most 50 submitted entries; duplicates collapse. An empty array clears fluency. Unrelated fields and invalid languages return 422."
+          )
+      },
+      "/api/me/push-devices/capabilities" => %{
+        "get" =>
+          operation("pushCapabilities", "user:read", "PushCapabilities", [], "200")
+          |> Map.put("security", [%{"oauth2" => []}])
+          |> Map.put(
+            "description",
+            "Configured providers for an authenticated native PKCE client."
+          )
+      },
+      "/api/me/push-devices/{installation_id}" => %{
+        "parameters" => [
+          %{"name" => "installation_id", "in" => "path", "required" => true, "schema" => uuid()}
+        ],
+        "put" =>
+          operation("registerPushDevice", "user:read", "PushRegistration", [], "200")
+          |> Map.put("security", [%{"oauth2" => []}])
+          |> Map.put("requestBody", request_body("PushDeviceRequest"))
+          |> Map.put(
+            "description",
+            "Opt-in registration bound to the current user and native PKCE OAuth client. Non-native credentials return 403. Retired IDs return 409; rotate the UUID. Missing provider returns 503. Responses are no-store."
+          )
+          |> put_in(["responses", "503"], %{"description" => "Provider unavailable"}),
+        "delete" =>
+          operation("unregisterPushDevice", "user:read", "PushDeletion", [], "200")
+          |> Map.put("security", [%{"oauth2" => []}])
+          |> Map.put(
+            "description",
+            "Idempotently retire this native installation, fencing delayed registrations. Available even when the provider is disabled."
+          )
+      },
       (project <> "/translations") => %{
         "parameters" => project_parameters(),
         "get" =>
@@ -46,6 +85,37 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
           |> Map.put(
             "description",
             "Exact project-scoped UUID lookup, independent of list pagination. Returns unchanged session metadata plus durable progress, per-file status and omitted_items. No raw output or reasoning. The same full projection is returned by translation:<UUID> joins and snapshot events on /native/socket/websocket?vsn=2.0.0. Malformed, missing and foreign-project IDs return 404."
+          )
+      },
+      (project <> "/translations/{id}/reviews") => %{
+        "parameters" => project_parameters() ++ [conversation_parameter()],
+        "get" =>
+          operation("translationReviews", "translation:read", "LinguisticReviews", [], "200")
+          |> Map.put(
+            "description",
+            "Shared source-bound goals, each linked to one collaborative Toki conversation. At most 500 reviews, open goals first, then oldest first. Refresh after resolving to reveal any remaining goals."
+          )
+      },
+      (project <> "/translations/{id}/reviews/{review_id}/answer") => %{
+        "parameters" =>
+          project_parameters() ++
+            [
+              conversation_parameter(),
+              %{"name" => "review_id", "in" => "path", "required" => true, "schema" => uuid()}
+            ],
+        "post" =>
+          operation(
+            "answerTranslationReview",
+            "translation:write",
+            "LinguisticReviewAnswer",
+            [],
+            "200"
+          )
+          |> Map.put("security", [%{"oauth2" => ~w(translation:read translation:write)}])
+          |> Map.put("requestBody", request_body("LinguisticReviewRequest"))
+          |> Map.put(
+            "description",
+            "Explicitly approve a goal decision, binding resolution_message_id to the latest completed assistant reply (not the opening question). Busy conversations return 409 conversation_busy; changed/latest non-assistant messages return 409 resolution_outdated. Exact replay is idempotent; a different decision or stale goal returns 409. Optional independently edited guidance proposes repository context through the translation PR. The server chooses the context path. The last resolution after runner release queues one continuation; resumed_session_id identifies it."
           )
       },
       (project <> "/analytics") => %{
@@ -72,7 +142,7 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
           )
           |> Map.put(
             "description",
-            "Private histories for the actor and project. Source-linked conversations require current translation:read scope and policy permission and a source still in the same project/account; otherwise they are omitted before pagination and counts."
+            "The actor's private histories plus shared project linguistic-goal conversations. Shared goals additionally require current Toki write policy permission. Source-linked conversations require current translation:read scope and policy permission and a source still in the same project/account; otherwise they are omitted before pagination and counts."
           ),
         "post" =>
           operation("createTokiConversation", "toki:write", "TokiDetail", [], "201")
@@ -101,7 +171,7 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
             "Atomically persist a user message and enqueue inference. Poll the conversation while queued/running. " <>
               "Replaying the same UUID and content never re-enqueues inference. Returns 200 for a settled replay. " <>
               "A UUID reused with different content or in another conversation returns 409. " <>
-              "All histories are private to the actor and project, including for administrators. " <>
+              "Ordinary histories remain private, including for administrators; linguistic-goal histories are shared and record the human author. Closed goals reject new messages with 409 goal_closed. " <>
               "Source-linked conversations additionally require current translation:read. Body fields cannot replace the persisted origin."
           )
           |> put_in(["responses", "200"], response("TokiDetail", "Settled replay"))
@@ -153,10 +223,79 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
               "id" => uuid(),
               "name" => nullable_string(),
               "email" => string(),
-              "handle" => string()
+              "handle" => string(),
+              "fluent_languages" => array(string()) |> Map.put("maxItems", 50)
             }),
           "server_version" => string()
         }),
+      "FluentLanguagesRequest" =>
+        object(%{"fluent_languages" => array(string()) |> Map.put("maxItems", 50)})
+        |> Map.put("additionalProperties", false),
+      "PushCapabilities" =>
+        object(%{"ios" => %{"type" => "boolean"}, "android" => %{"type" => "boolean"}}),
+      "PushRegistration" =>
+        object(%{
+          "registered" => %{"type" => "boolean", "const" => true},
+          "registration_id" => uuid()
+        }),
+      "PushDeletion" => object(%{"deleted" => %{"type" => "boolean", "const" => true}}),
+      "PushDeviceRequest" =>
+        object(%{
+          "platform" => %{"type" => "string", "enum" => ~w(ios android)},
+          "environment" => %{"type" => "string", "enum" => ~w(sandbox production)},
+          "token" => %{
+            "type" => "string",
+            "maxLength" => 4096,
+            "description" =>
+              "APNs hex token (32–512 even-length characters), or FCM printable non-space ASCII token (16–4096 characters). Android environment must be production."
+          }
+        })
+        |> Map.put("additionalProperties", false),
+      "LinguisticReviews" =>
+        object(%{"reviews" => array(ref("LinguisticReview")) |> Map.put("maxItems", 500)}),
+      "LinguisticReviewAnswer" => object(%{"review" => ref("LinguisticReview")}),
+      "LinguisticReview" =>
+        object(%{
+          "id" => uuid(),
+          "translation_session_id" => uuid(),
+          "status" => %{"type" => "string", "enum" => ~w(open answered stale)},
+          "source_path" => string(),
+          "output_path" => string(),
+          "locale" => string(),
+          "question" => string(),
+          "source_excerpt" => string(),
+          "translation_excerpt" => string(),
+          "answer" => nullable_string(),
+          "guidance" => nullable_string(),
+          "context_path" => nullable_string(),
+          "resumed_session_id" => nullable_uuid(),
+          "resolution_message_id" => nullable_uuid(),
+          "conversation_id" => nullable_uuid(),
+          "participants" => array(object(%{"id" => uuid(), "name" => nullable_string()})),
+          "inserted_at" => timestamp()
+        }),
+      "LinguisticReviewRequest" =>
+        object(%{
+          "resolution_message_id" => uuid(),
+          "answer" => %{
+            "type" => "string",
+            "minLength" => 1,
+            "maxLength" => 8000,
+            "description" => "Non-blank, at most 32,000 UTF-8 bytes."
+          },
+          "guidance" => %{
+            "type" => ["string", "null"],
+            "maxLength" => 8000,
+            "description" =>
+              "Optional reusable instructions explicitly edited by a human; at most 32,000 UTF-8 bytes."
+          },
+          "context_scope" => %{
+            "type" => "string",
+            "enum" => ~w(locale project),
+            "default" => "locale"
+          }
+        })
+        |> Map.put("required", ["answer", "resolution_message_id"]),
       "MobileTranslations" =>
         object(%{
           "sessions" => array(object(session_properties())),
@@ -192,6 +331,7 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
           "done" => integer(),
           "failed" => integer(),
           "cancelled" => integer(),
+          "awaiting_input" => integer(),
           "running" => integer(),
           "queued" => integer(),
           "glossary" =>
@@ -207,7 +347,10 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
           "index" => integer(),
           "output_path" => nullable_string(),
           "locale" => nullable_string(),
-          "status" => %{"type" => "string", "enum" => ~w(queued running done failed cancelled)},
+          "status" => %{
+            "type" => "string",
+            "enum" => ~w(queued running done failed cancelled awaiting_input)
+          },
           "turns" => integer(),
           "file_ref" => nullable_string()
         }),
@@ -262,6 +405,9 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
           "title" => string(),
           "status" => %{"type" => "string", "enum" => ~w(queued running completed failed)},
           "updated_at" => timestamp(),
+          "linguistic_review" => %{
+            "anyOf" => [ref("LinguisticReview"), %{"type" => "null"}]
+          },
           "error" =>
             Map.put(
               nullable_string(),
@@ -287,6 +433,10 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
                 "id" => uuid(),
                 "role" => %{"type" => "string", "enum" => ~w(user assistant)},
                 "content" => string(),
+                "status" => %{"type" => "string", "enum" => ~w(queued running completed failed)},
+                "user_id" => nullable_uuid(),
+                "reply_to_id" => nullable_uuid(),
+                "author" => string(),
                 "inserted_at" => timestamp()
               })
           }
@@ -347,7 +497,10 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
   defp session_properties do
     %{
       "id" => uuid(),
-      "status" => %{"type" => "string", "enum" => ~w(pending running completed failed cancelled)},
+      "status" => %{
+        "type" => "string",
+        "enum" => ~w(pending running completed failed cancelled awaiting_input)
+      },
       "commit_message" => nullable_string(),
       "source_language" => nullable_string(),
       "target_languages" => array(string()),

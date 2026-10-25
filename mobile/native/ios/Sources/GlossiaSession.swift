@@ -10,7 +10,7 @@ struct GlossiaFailure: LocalizedError {
     var errorDescription: String? { message }
 }
 
-private enum Keychain {
+enum Keychain {
     static func query(_ name: String) -> [CFString: Any] {
         [kSecClass: kSecClassGenericPassword, kSecAttrService: "ai.glossia.mobile.oauth", kSecAttrAccount: name]
     }
@@ -43,7 +43,7 @@ private enum Keychain {
     }
 
     private static func failure() -> GlossiaFailure {
-        GlossiaFailure(kind: "storage", message: "Could not access secure storage. Try again.")
+        GlossiaFailure(kind: "storage", message: String(localized: "Could not access secure storage. Try again."))
     }
 }
 
@@ -86,6 +86,7 @@ actor GlossiaRuntime {
         guard ticket == generation else { throw CancellationError() }
         do {
             if operation == "sign_out" || operation == "reset_sign_in" {
+                try Self.endPushSession()
                 if operation == "reset_sign_in" { try Keychain.delete("registration") }
                 try Keychain.delete("session")
                 generation += 1
@@ -96,7 +97,7 @@ actor GlossiaRuntime {
             }
             if authenticated || operation == "restore" {
                 guard let saved = try Keychain.load("session") else {
-                    throw GlossiaFailure(kind: "sign_in_required", message: "Sign in to Glossia.")
+                    throw GlossiaFailure(kind: "sign_in_required", message: String(localized: "Sign in to Glossia."))
                 }
                 let session = try Self.command(["operation": "restore", "session": JSONSerialization.jsonObject(with: saved)])
                 // Save refresh rotation before any following API request can fail.
@@ -139,14 +140,32 @@ actor GlossiaRuntime {
             guard ticket == generation else { throw CancellationError() }
             // A late 401 from an older token must not delete a newer rotation.
             if authenticated, let credential, credential != (try Keychain.load("session")) {
-                throw GlossiaFailure(kind: "retry", message: "Your session changed. Retry this request.")
+                throw GlossiaFailure(kind: "retry", message: String(localized: "Your session changed. Retry this request."))
             }
             if failure.kind == "rejected" || failure.kind == "sign_in_required" {
+                try Self.endPushSession()
                 try Keychain.delete("session")
                 if failure.kind == "rejected" { try Keychain.delete("registration") }
                 generation += 1
             }
             throw failure
+        }
+    }
+
+    private nonisolated static func endPushSession() throws {
+        guard let data = try Keychain.load("session"),
+              let session = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let registration = session["registration"] as? [String: Any],
+              let origin = registration["server"] as? String,
+              let saved = try GlossiaPushStore().disable(origin) else { return }
+        let payload = try JSONSerialization.data(withJSONObject: ["operation": "push", "action": "unregister",
+            "installation_id": saved.installationID, "session": session])
+        // Logout never waits for provider/server networking. Keep the tombstone
+        // even after success, so next sign-in reconciles before creating a new ID.
+        Task.detached {
+            if let input = try? JSONSerialization.jsonObject(with: payload) as? [String: Any] {
+                _ = try? command(input)
+            }
         }
     }
 
@@ -163,7 +182,7 @@ actor GlossiaRuntime {
         let input = String(decoding: try JSONSerialization.data(withJSONObject: request), as: UTF8.self)
         return try input.withCString { pointer in
             guard let output = glossia_core_execute(pointer) else {
-                throw GlossiaFailure(kind: "internal", message: "Could not complete the request.")
+                throw GlossiaFailure(kind: "internal", message: String(localized: "Could not complete the request."))
             }
             defer { glossia_core_free(output) }
             let result = try JSONSerialization.jsonObject(with: Data(String(cString: output).utf8)) as! [String: Any]
@@ -171,7 +190,7 @@ actor GlossiaRuntime {
                 throw GlossiaFailure(kind: failure["kind"] ?? "internal", message: failure["message"] ?? "Request failed.")
             }
             guard let value = result["ok"] as? [String: Any] else {
-                throw GlossiaFailure(kind: "invalid_response", message: "Glossia returned an invalid response.")
+                throw GlossiaFailure(kind: "invalid_response", message: String(localized: "Glossia returned an invalid response."))
             }
             return value
         }
@@ -192,12 +211,35 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
     @Published var tab = "toki"
 
     let navigation = GlossiaNavigation()
+    let push: GlossiaPushNotifications
     private let runtime = GlossiaRuntime()
     private var browser: ASWebAuthenticationSession?
     private var identity = UUID()
     var selection: [String: Any] { ["organization": organization as Any? ?? NSNull(), "project": project as Any? ?? NSNull()] }
     var projectContext: String { "\(identity)/\(organization ?? "")/\(project ?? "")" }
     var selectedProject: [String: Any]? { projects.first { $0["handle"] as? String == project } }
+
+    init(push: GlossiaPushNotifications? = nil) {
+        self.push = push ?? GlossiaPushNotifications()
+        super.init()
+    }
+
+    func configurePush() async {
+        guard server != nil else { await push.configure(origin: nil, request: nil); return }
+        let identity = identity
+        let request: GlossiaRequest = { [weak self] input in
+            guard let self, self.identity == identity, self.server != nil else { throw CancellationError() }
+            do {
+                let response = try await self.run(input, authenticated: true)
+                guard self.identity == identity, self.server != nil else { throw CancellationError() }
+                return response
+            } catch {
+                if self.identity == identity { self.reportCredentialFailure(error) }
+                throw error
+            }
+        }
+        await push.configure(origin: server, request: request)
+    }
 
     func request(_ value: [String: Any], context: String) async throws -> [String: Any] {
         let live = value["operation"] as? String == "translation_live"
@@ -268,7 +310,7 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
         do {
             let login = try await run(["operation": "begin", "server": address])
             guard let urlString = login["authorization_url"] as? String, let url = URL(string: urlString),
-                  let pending = login["pending"] else { throw GlossiaFailure(kind: "invalid_response", message: "Invalid sign-in response.") }
+                  let pending = login["pending"] else { throw GlossiaFailure(kind: "invalid_response", message: String(localized: "Invalid sign-in response.")) }
             guard let callback = try await authenticate(url) else { return }
             let session = try await run(["operation": "complete", "pending": pending, "callback": callback.absoluteString])
             guard identity == self.identity else { return }
@@ -355,11 +397,11 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
         let context = projectContext
         guard let origin = try? GlossiaDestination(screen: .profile, server: server).validated().server,
               destination.server == origin else {
-            navigation.reject("This link belongs to a different Glossia server. Sign in to that server and open the link again.")
+            navigation.reject(String(localized: "This link belongs to a different Glossia server. Sign in to that server and open the link again."))
             return
         }
         guard !navigation.hasProtectedWork else {
-            navigation.reject("Finish or discard your conversation draft before opening another destination.")
+            navigation.reject(String(localized: "Finish or discard your conversation draft before opening another destination."))
             return
         }
         do {
@@ -377,12 +419,12 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
                 guard selected?["organization"] as? String == destination.organization,
                       selected?["project"] as? String == destination.project,
                       options.contains(where: { $0["handle"] as? String == destination.project }) else {
-                    navigation.reject("This workspace is unavailable or you no longer have access to it.")
+                    navigation.reject(String(localized: "This workspace is unavailable or you no longer have access to it."))
                     return
                 }
                 // A draft may have appeared while workspace authorization was loading.
                 guard !navigation.hasProtectedWork else {
-                    navigation.reject("Finish or discard your conversation draft before opening another destination.")
+                    navigation.reject(String(localized: "Finish or discard your conversation draft before opening another destination."))
                     return
                 }
                 organizations = value["organizations"] as? [[String: Any]] ?? []
@@ -401,6 +443,7 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
 
     func signOut(resetRegistration: Bool = false) async {
         guard !busy else { return }
+        push.prepareForSessionEnd()
         navigation.reset()
         busy = true
         defer { busy = false }
@@ -422,6 +465,7 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
 
     private func reportCredentialFailure(_ error: Error) {
         if let failure = error as? GlossiaFailure, ["rejected", "sign_in_required"].contains(failure.kind) {
+            push.prepareForSessionEnd()
             identity = UUID(); server = nil
             navigation.reset()
             appearanceServer = "https://glossia.ai"
@@ -441,13 +485,13 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
                 if let error = error as? ASWebAuthenticationSessionError, error.code == .canceledLogin {
                     continuation.resume(returning: nil)
                 } else if error != nil {
-                    continuation.resume(throwing: GlossiaFailure(kind: "browser", message: "Could not open secure sign-in."))
+                    continuation.resume(throwing: GlossiaFailure(kind: "browser", message: String(localized: "Could not open secure sign-in.")))
                 } else { continuation.resume(returning: callback) }
             }
             session.presentationContextProvider = self
             session.prefersEphemeralWebBrowserSession = true
             browser = session
-            if !session.start() { continuation.resume(throwing: GlossiaFailure(kind: "browser", message: "Could not open secure sign-in.")) }
+            if !session.start() { continuation.resume(throwing: GlossiaFailure(kind: "browser", message: String(localized: "Could not open secure sign-in."))) }
         }
     }
 }

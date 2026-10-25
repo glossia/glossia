@@ -395,6 +395,8 @@ struct Summary {
     cancelled: u64,
     running: u64,
     queued: u64,
+    #[serde(default)]
+    awaiting_input: u64,
     glossary: Glossary,
 }
 
@@ -421,7 +423,7 @@ fn sanitize(value: Value, id: &str) -> Result<Value> {
     if snapshot.session.id != id
         || !matches!(
             snapshot.session.status.as_str(),
-            "pending" | "running" | "completed" | "failed" | "cancelled"
+            "pending" | "running" | "awaiting_input" | "completed" | "failed" | "cancelled"
         )
         || snapshot.progress.items.len() > 500
     {
@@ -432,7 +434,7 @@ fn sanitize(value: Value, id: &str) -> Result<Value> {
         if !indexes.insert(item.index)
             || !matches!(
                 item.status.as_str(),
-                "queued" | "running" | "done" | "failed" | "cancelled"
+                "queued" | "running" | "awaiting_input" | "done" | "failed" | "cancelled"
             )
         {
             return Err(invalid());

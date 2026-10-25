@@ -1,4 +1,12 @@
 #project-overview {
+  & [data-part="toki-goal"] {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: var(--noora-spacing-5);
+    overflow-wrap: anywhere;
+  }
+
   & [data-part="translation-overview"] {
     display: flex;
     flex-direction: column;

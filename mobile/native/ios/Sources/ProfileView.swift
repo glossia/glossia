@@ -15,21 +15,27 @@ struct ProfileView: View {
             if let error { GlossiaErrorView(message: error) { Task { await load() } } }
             if let user = value?["user"] as? [String: Any] {
                 Section {
-                    Label(user["name"] as? String ?? user["handle"] as? String ?? "Your profile", systemImage: "person.crop.circle.fill")
+                    Label(user["name"] as? String ?? user["handle"] as? String ?? String(localized: "Your profile"), systemImage: "person.crop.circle.fill")
                         .font(.headline)
                     LabeledContent("Email", value: user["email"] as? String ?? "")
                     LabeledContent("Handle", value: user["handle"] as? String ?? "")
                 }.listRowBackground(tokens.surface)
             }
+            GlossiaPushSettingsView(notifications: session.push)
+                .listRowBackground(tokens.surface)
+            Section("Linguistic reviews") {
+                NavigationLink("Fluent languages") { FluentLanguagesView(request: request) }
+                Text("Your fluency helps invite authorized people into one shared Toki goal. This is separate from the app language.").font(.caption)
+            }.listRowBackground(tokens.surface)
             Section("Connection") {
                 LabeledContent("Server", value: session.server ?? "").textSelection(.enabled)
-                LabeledContent("Server version", value: value?["server_version"] as? String ?? "Not available")
-                LabeledContent("Organization", value: session.organization ?? "None")
-                LabeledContent("Project", value: session.project ?? "None")
+                LabeledContent("Server version", value: value?["server_version"] as? String ?? String(localized: "Not available"))
+                LabeledContent("Organization", value: session.organization ?? String(localized: "None"))
+                LabeledContent("Project", value: session.project ?? String(localized: "None"))
             }.listRowBackground(tokens.surface)
             Section("Glossia") {
                 LabeledContent("App version", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
-                Text("Your credentials are protected by the iOS Keychain. Toki conversations are private to you and your selected project.")
+                Text("Your credentials are protected by the iOS Keychain. Ordinary Toki chats are private; linguistic goal conversations are shared with authorized project members.")
                     .font(.footnote).foregroundStyle(tokens.muted)
             }.listRowBackground(tokens.surface)
             Section {
