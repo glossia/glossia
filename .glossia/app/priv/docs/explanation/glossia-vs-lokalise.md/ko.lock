@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "bfcdb05e106373d46ea062864da5cb8da7a087c5e16639d192b46a68f9e7a299",
+  "hash": "ec7ed15ea81bed6f0f353445b0360f015ab7a03ec3f1c2f4101c76139c664483",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
+          "hash": "f80c234aa8b77bbb91f7d7d99698183dc8fe9113d9066582b99f7012a7f19e58",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "bfcdb05e106373d46ea062864da5cb8da7a087c5e16639d192b46a68f9e7a299",
+      "hash": "ec7ed15ea81bed6f0f353445b0360f015ab7a03ec3f1c2f4101c76139c664483",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/glossia-vs-lokalise.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "a9b3f35571fd5952b58599c1e218329573f6be3d565c9ab19e6ec959c5006874",
+  "output_hash": "1ffd9c060e40693b389d6dfe0486eca68dc1a9193602217b0770a3fed0caf407",
   "output_path": "app/priv/i18n/ko/docs/explanation/glossia-vs-lokalise.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "332b69d61da7d2affecc133ed0cd7a65ade91864",
+  "source_commit_sha": "4af8e3d7b56d9aa30ea1f330b414ee3a1ed1fec1",
   "source_path": "app/priv/docs/explanation/glossia-vs-lokalise.md",
-  "translated_at": "2026-10-23T08:48:03.352502Z",
-  "translation_session_id": "01a167e9-49d0-77fd-9489-eccf6b1bb080"
+  "translated_at": "2026-10-25T20:38:02.069614Z",
+  "translation_session_id": "01a174ad-9815-72eb-be16-f16f32338de0"
 }
