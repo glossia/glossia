@@ -1,24 +1,24 @@
 %{
-  title: "Instale analítica web",
+  title: "Instalar análises web",
   summary:
-    "Adicione o Glossia Web SDK ao seu site com uma linha de HTML ou via npm, e comece a coletar sinais de localização.",
-  category: "Tutorial",
+    "Adicione o SDK web da Glossia ao seu site com uma linha de HTML ou via npm e comece a coletar sinais de localização.",
+  category: "Como fazer",
   section: "analytics",
   order: 1
 }
 ---
 
-Este guia pressupõe que você tenha um projeto do Glossia com o domínio do site configurado nas configurações de análise do projeto. A coleta é identificada por esse domínio, portanto não há chave ou segredo a copiar.
+Este guia pressupõe que você tenha um projeto Glossia com seu domínio do site configurado nas configurações de análise do projeto. A coleta é identificada por aquele domínio, não havendo chave ou segredo para copiar.
 
-## Opção A: tag script
+## Opção A: tag de script
 
-Adicione este fragmento a todas as páginas, idealmente no `<head>`:
+Adicione este trecho a todas as páginas, idealmente no `<head>`:
 
 ```html
 <script defer data-domain="example.com" src="https://glossia.ai/assets/glossia-web.js"></script>
 ```
 
-O SDK é inicializado automaticamente, envia uma visualização de página ao carregar e registra visualizações de página subsequentes na navegação do lado do cliente em aplicativos de página única. O `data-domain` padrão é `window.location.hostname` quando omitido, então você pode omiti-lo em um site de domínio único. Para usar um ponto de extremidade de coleta personalizado, adicione `data-endpoint="https://collect.your-host.com"`.
+O SDK inicia automaticamente, envia uma visualização de página ao carregar e registra as visualizações de página subsequentes na navegação do cliente em aplicações de página única. O `data-domain` padrão é `window.location.hostname` quando omitido, então você pode removê-lo em um site de único domínio. Para usar um endpoint de coleta personalizado, adicione `data-endpoint="https://collect.your-host.com"`.
 
 Se seu site usa uma política de segurança de conteúdo, permita `https://glossia.ai` tanto em `script-src` (ou `script-src-elem` quando presente) quanto em `connect-src`. O script carrega de `/assets/glossia-web.js` e envia eventos para `/v1/collect` na mesma origem.
 
@@ -30,7 +30,7 @@ Instale o pacote:
 npm install @glossia/web
 ```
 
-Iniciliaze-o uma vez no ponto de entrada do seu aplicativo:
+Inicie-o uma vez no ponto de entrada da sua aplicação:
 
 ```ts
 import glossia from "@glossia/web";
@@ -38,46 +38,46 @@ import glossia from "@glossia/web";
 glossia.init({ endpoint: "https://glossia.ai/v1/collect" });
 ```
 
-Set the collection endpoint explicitly when using the package in your own bundle, since there is no hosted script address from which to infer it.
+Defina o endpoint de coleta explicitamente ao usar o pacote no seu próprio bundle, pois não há endereço de script hospedado a partir do qual inferi-lo.
 
-`domain` is inferred from `window.location.hostname` so the SDK records against the project registered for your site. Pass `{ domain: "example.com" }` to override, for example to send events from a staging origin to the same project as production.
+O `domain` é inferido a partir de `window.location.hostname` para que o SDK registre contra o projeto registrado para seu site. Passe `{ domain: "example.com" }` para sobrescrever, por exemplo, para enviar eventos de uma origem de teste para o mesmo projeto que a produção.
 
-To record a custom event, for example a signup:
+Para registrar um evento personalizado, por exemplo, um cadastro:
 
 ```ts
 glossia.track("signup");
 ```
 
-## Verify your domain
+## Verifique seu domínio
 
-In your project's **Analytics settings**, save your site domain. The **Verify domain ownership** card shows the exact record name and value for your project. Add a text record with your domain provider:
+Em suas **Configurações de análise** do projeto, salve o domínio do seu site. O cartão de **Verifique a propriedade do domínio** exibe o nome exato do registro e o valor para o seu projeto. Adicione um registro de texto com seu provedor de domínio:
 
-| Field | Value |
+| Campo | Valor |
 | --- | --- |
-| Type | `TXT` ([text record](https://www.cloudflare.com/learning/dns/dns-records/dns-txt-record/)) |
-| Name | `_glossia-verify.example.com` |
-| Value | `glossia-site-verification=YOUR_VERIFICATION_TOKEN` |
+| Tipo | `TXT` ([registro de texto](https://www.cloudflare.com/learning/dns/dns-records/dns-txt-record/)) |
+| Nome | `_glossia-verify.example.com` |
+| Valor | `glossia-site-verification=YOUR_VERIFICATION_TOKEN` |
 
-Use the domain and token shown in your settings. Some providers add the domain automatically; in that case enter only `_glossia-verify` as the name. After publishing the record, click **Verify domain**. Changes may take time to become available, so retry if the record is not found immediately.
+Use o domínio e o token mostrados nas suas configurações. Alguns provedores adicionam o domínio automaticamente; nesse caso, digite apenas `_glossia-verify` como o nome. Após publicar o registro, clique em **Verificar o domínio**. As alterações podem levar tempo para ficar disponíveis, então reinicie se o registro não for encontrado imediatamente.
 
-If you cannot edit your domain records, expand **Alternative: verify with a homepage meta tag**. Copy the generated tag into the `<head>` of your homepage and publish it:
+Se não puder editar seus registros de domínio, expanda **Alternativa: verificar com uma tag meta de página inicial**. Copie a tag gerada no `<head>` da sua página inicial e publique:
 
 ```html
 <meta name="glossia-site-verification" content="YOUR_VERIFICATION_TOKEN">
 ```
 
-Either method proves control over the configured domain. Glossia checks that domain's record or homepage, so copying the token onto another website does not verify ownership. The token is public proof, not a password.
+Ambos os métodos comprovam o controle sobre o domínio configurado. O Glossia verifica o registro ou a página inicial desse domínio, portanto copiar o token para outro site não valida a propriedade. O token é uma prova pública, não uma senha.
 
-Once the domain is verified, Glossia records events from your tracking snippet. The snippet alone does not verify ownership. Changing the configured domain requires verification again.
+Assim que o domínio for verificado, o Glossia registra eventos do seu trecho de rastreamento. O trecho sozinho não valida a propriedade. Alterar o domínio configurado requer verificação novamente.
 
-## Verify it works
+## Verifique se funciona
 
-1. Open your site in a browser.
-2. Open the network tab and confirm a `POST` request to `https://glossia.ai/v1/collect` returns `202 Accepted`.
-3. After collection and processing, the pageview appears under **Analytics** in your project's dashboard. Translation runs on the Overview page are separate from website traffic.
+1. Abra seu site em um navegador.
+2. Abra a aba de rede e confirme que uma requisição `POST` para `https://glossia.ai/v1/collect` retorna `202 Accepted`.
+3. Após a coleta e o processamento, a visualização de página aparece em **Análise** no painel do seu projeto. As traduções na página de Visão Geral são separadas do tráfego do site.
 
-A `202 Accepted` response confirms the request reached the collector. Unknown or unverified domains are also accepted but do not record events, so confirm the configured domain is verified in the project's analytics settings.
+Uma resposta `202 Accepted` confirma que a requisição chegou ao coletor. Domínios desconhecidos ou não verificados também são aceitos, mas não registram eventos, portanto confirme que o domínio configurado é verificado nas configurações de análise do projeto.
 
-## What is collected
+## O que é coletado
 
-The browser sends the page URL, referrer, `navigator.languages`, timezone, and screen width, plus a per-tab session id. The server adds the country (from GeoIP) and computes the localization gap against your project's target languages. No cookies are set and nothing is fingerprinted.
+O navegador envia a URL da página, o referrer, `navigator.languages`, o fuso horário e a largura da tela, além de um ID de sessão por aba. O servidor adiciona o país (via GeoIP) e calcula a lacuna de localização contra os idiomas-alvo do seu projeto. Nenhum cookie é definido e nada é rastreado por impressão digital.
