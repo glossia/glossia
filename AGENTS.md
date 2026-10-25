@@ -97,7 +97,7 @@ Markdown content here...
 - `summary` (required): one-line description shown on the docs index page.
 - `category` (required): one of `tutorials`, `how-to`, `reference`, `explanation`.
 - `order` (required): integer that controls sort order within its category.
-- `section` (optional): sidebar group within the category. One of `translation`, `platform`, or `analytics` (defined in `Glossia.Docs`). Pages without a section are listed first, without a heading. Translated pages always inherit the English page's section.
+- `section` (optional): sidebar group within the category. One of `translation`, `platform`, `analytics`, or `ecosystems` (defined in `Glossia.Docs`). Ecosystem-specific guides keep their Diataxis category and use `section: "ecosystems"` to group framework and file-format practices. Pages without a section are listed first, without a heading. Translated pages always inherit the English page's section.
 - `markdown_only` (optional, defaults to `false`): publish the page only through the Markdown and agent-discovery interfaces, not HTML documentation, navigation, search, or documentation indexes. Translations inherit this flag from English. Comparison content uses this flag and remains discoverable through `/llms.txt`, `/llms-full.txt`, and the sitemap.
 
 ### Layout

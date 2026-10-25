@@ -1586,6 +1586,11 @@ msgstr "英文容忍度"
 msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
 msgstr "每个 (国家，语言) 对的优先级取决于具有本地化差距的访问者，按该国的 (1 - EF EPI 英文容忍度) 加权。数值越高，错失的机会越大。"
 
+#: lib/glossia/docs.ex
+#, elixir-autogen, elixir-format
+msgid "Ecosystems"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Edit"

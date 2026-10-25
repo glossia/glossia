@@ -1592,6 +1592,11 @@ msgstr ""
 msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
 msgstr ""
 
+#: lib/glossia/docs.ex
+#, elixir-autogen, elixir-format
+msgid "Ecosystems"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Edit"

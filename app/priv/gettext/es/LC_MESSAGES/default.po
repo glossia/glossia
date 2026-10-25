@@ -1593,6 +1593,11 @@ msgstr "Tolerancia EN"
 msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
 msgstr "La prioridad de cada par (país, idioma) corresponde a los visitantes con una brecha de localización, ponderada por (1 - Tolerancia EF EPI de inglés) para ese país. Mayor = mayor oportunidad perdida."
 
+#: lib/glossia/docs.ex
+#, elixir-autogen, elixir-format
+msgid "Ecosystems"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Edit"

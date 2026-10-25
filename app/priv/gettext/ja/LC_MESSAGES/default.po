@@ -1586,6 +1586,11 @@ msgstr "英語許容度"
 msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
 msgstr "（国、言語）ペアごとの優先順位は、言語ギャップを持つ訪問者に基づき、その国の（1 - EF EPI 英語許容度）で重み付けされます。数値が高いほど、より大きな見逃し機会（Missed opportunity）を表します。"
 
+#: lib/glossia/docs.ex
+#, elixir-autogen, elixir-format
+msgid "Ecosystems"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Edit"

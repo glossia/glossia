@@ -1586,6 +1586,11 @@ msgstr "EN 허용도"
 msgid "Each (country, language) pair's priority is visitors with a locale gap, weighted by (1 - EF EPI English tolerance) for that country. Higher = bigger missed opportunity."
 msgstr "각 (국가, 언어) 쌍의 우선순위는 로케일 격차가 있는 방문자 수에 따라, 해당 국가의 (1 - EF EPI 영어 허용도) 로 가중치가 적용됩니다. 높을수록 놓친 기회가 더 큽니다."
 
+#: lib/glossia/docs.ex
+#, elixir-autogen, elixir-format
+msgid "Ecosystems"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Edit"
