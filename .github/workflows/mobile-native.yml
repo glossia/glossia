@@ -1,0 +1,108 @@
+name: Mobile Native
+
+on:
+  push:
+    branches: [main]
+    paths: ["mobile/native/**", ".github/workflows/mobile-native.yml"]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths: ["mobile/native/**", ".github/workflows/mobile-native.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-native-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  MISE_GITHUB_TOKEN: ${{ github.token }}
+  MISE_AUTO_INSTALL: "0"
+  ONCE_CACHE_PROVIDER: local
+
+defaults:
+  run:
+    working-directory: mobile/native
+
+jobs:
+  core:
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          version: 2026.9.2
+          working_directory: mobile/native
+          install_args: rust github:tuist/once
+      - run: mise exec -- rustup component add clippy rustfmt
+      - run: mise run check
+
+  android:
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          version: 2026.9.2
+          working_directory: mobile/native
+          install_args: rust java gradle github:tuist/once
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-35 build-tools;35.0.0 ndk;27.3.13750724"
+          log-accepted-android-sdk-licenses: false
+      - run: mise exec -- rustup target add aarch64-linux-android
+      - name: Create ephemeral debug signing key
+        run: |
+          echo "ANDROID_DEBUG_KEYSTORE=$RUNNER_TEMP/glossia-debug.keystore" >> "$GITHUB_ENV"
+          mise exec -- keytool -genkeypair -noprompt \
+            -keystore "$RUNNER_TEMP/glossia-debug.keystore" -storepass android -keypass android \
+            -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+      - run: |
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.3.13750724"
+          mise run build:android
+      - name: Verify packaged native library supports 16 KB pages
+        run: |
+          apk=.once/out/GlossiaAndroid/GlossiaAndroid.apk
+          unzip -p "$apk" lib/arm64-v8a/libglossia_core.so > "$RUNNER_TEMP/libglossia_core.so"
+          "$ANDROID_HOME/ndk/27.3.13750724/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
+            -lW "$RUNNER_TEMP/libglossia_core.so" |
+            awk '$1 == "LOAD" { count++; if ($NF != "0x4000") bad=1 } END { exit (!count || bad) }'
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 -v 4 "$apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glossia-android-debug
+          path: mobile/native/.once/out/GlossiaAndroid/GlossiaAndroid.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  ios:
+    if: github.event.pull_request.draft != true
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          version: 2026.9.2
+          working_directory: mobile/native
+          install_args: rust github:tuist/once
+      - run: mise exec -- rustup target add aarch64-apple-ios-sim aarch64-apple-ios
+      - run: mise run build:ios
+      - run: mise run build:ios-device
+      - name: Package app bundles
+        run: |
+          mkdir -p delivery
+          ditto -c -k --keepParent .once/out/GlossiaIOS/Glossia.app delivery/Glossia-simulator.zip
+          ditto -c -k --keepParent .once/out/GlossiaIOSDevice/Glossia.app delivery/Glossia-device.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glossia-ios-bundles
+          path: mobile/native/delivery/*.zip
+          if-no-files-found: error
+          retention-days: 14

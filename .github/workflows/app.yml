@@ -42,13 +42,11 @@ on:
 permissions:
   contents: read
 
-# Avoid precompiled-NIF downloads through Erlang's HTTP client: GitHub release
-# redirects can exceed its header limit. Match the source builds in Dockerfile.
 env:
-  LUMIS_BUILD: "true"
-  MDEX_NATIVE_BUILD: "true"
-  CONDUKT_BASHKIT_BUILD: "true"
-  CONDUKT_MICROSANDBOX_BUILD: "true"
+  # GitHub release redirects exceed :httpc's header limit on current OTP.
+  # Use mise's Rust toolchain for all NIFs until rustler_precompiled ships
+  # https://github.com/philss/rustler_precompiled/pull/113.
+  RUSTLER_PRECOMPILED_FORCE_BUILD_ALL: "true"
 
 # Both PR checks and post-merge checks use hosted runners. Image publication
 # waits for the post-merge checks, so an unavailable self-hosted runner would

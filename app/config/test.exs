@@ -75,6 +75,10 @@ config :glossia, Oban, testing: :inline
 # independent files in parallel.
 config :glossia, :translation_concurrency, 1
 
+# Exercise publication without production-sized sleeps. Pacing tests pass
+# explicit rates and timestamps to verify the actual per-hour limits.
+config :glossia, Glossia.TranslationSessions.PublicationPacing, max_pushes_per_hour: 3_600_000
+
 config :glossia, Glossia.OgImage, enabled: false
 
 config :fun_with_flags, :cache, enabled: false
