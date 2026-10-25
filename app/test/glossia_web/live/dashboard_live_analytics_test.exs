@@ -258,7 +258,7 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
     refute has_element?(view, "[data-part='localization-priority'] [data-part='legend-bar']")
   end
 
-  test "distinguishes unreported page languages and gives each language group a unique row", %{
+  test "omits unreported page languages and gives each reported language group a unique row", %{
     conn: conn,
     project: project,
     user: user
@@ -272,7 +272,7 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
     %{fields: fields, types: types} = Event.buffer_opts()
     types = Enum.zip(fields, types) ++ [inserted_at: :datetime]
 
-    for {served_locale, gap} <- [{"", 1}, {"en", 0}] do
+    for {served_locale, gap} <- [{"", 1}, {"en", 0}, {"zh-Hans", 1}] do
       row = %{
         id: Uniq.UUID.uuid7(),
         inserted_at: DateTime.add(DateTime.utc_now(), -60, :second),
@@ -300,21 +300,16 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
 
     {:ok, view, _html} = live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/analytics")
 
-    assert has_element?(view, "#browser-languages-table #en-US--1", "Not reported")
+    refute has_element?(view, "#browser-languages-table #en-US--1")
+    refute has_element?(view, "#browser-languages-table", "Not reported")
     assert has_element?(view, "#browser-languages-table #en-US-en-0", "en")
-    assert has_element?(view, "#page-language-help-en-US-1", "Older tracker versions")
-
-    assert has_element?(
-             view,
-             "#page-language-help-en-US-1 [data-part='trigger'][tabindex='0'] [data-part='cell']",
-             "Not reported"
-           )
-
-    refute has_element?(view, "#browser-languages-table", "Unknown")
+    assert has_element?(view, "#browser-languages-table #en-US-zh-Hans-1", "zh-Hans")
 
     send(view.pid, {:refresh_analytics, project.id, 1})
-    assert has_element?(view, "#browser-languages-table #en-US--1", "Not reported")
+    refute has_element?(view, "#browser-languages-table #en-US--1")
+    refute has_element?(view, "#browser-languages-table", "Not reported")
     assert has_element?(view, "#browser-languages-table #en-US-en-0", "en")
+    assert has_element?(view, "#browser-languages-table #en-US-zh-Hans-1", "zh-Hans")
   end
 
   test "live refresh ignores timers from another project and reloads its own", %{
