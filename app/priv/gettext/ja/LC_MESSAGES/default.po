@@ -5290,16 +5290,6 @@ msgstr "未対応の言語に関する訪問に国と言語データが含まれ
 msgid "Visitor countries appear when geolocation succeeds. Visits without a resolved country are not shown."
 msgstr "ジオロケーションが成功した場合に訪問者の国が表示されます。国が決定されていない訪問は表示されません。"
 
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "Not reported"
-msgstr "報告されていない"
-
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "The tracker did not report a page language. Older tracker versions and pages without an HTML lang attribute can cause this."
-msgstr "トラッカーはページ言語を報告していません。古いトラッカーバージョンや HTML lang 属性がないページがこれの原因となります。"
-
 #: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Cached input"
