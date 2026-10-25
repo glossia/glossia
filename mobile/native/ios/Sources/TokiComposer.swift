@@ -75,8 +75,15 @@ struct TokiComposer: View {
         let shape = RoundedRectangle(cornerRadius: 28)
         if reduceTransparency || contrast == .increased {
             shape.fill(Color(uiColor: .secondarySystemBackground)).overlay { shape.strokeBorder(Color(uiColor: .separator), lineWidth: 1) }
-        } else if #available(iOS 26.0, *) { shape.fill(.clear).glassEffect(.regular, in: shape) }
-        else { shape.fill(.regularMaterial) }
+        } else {
+            // Xcode 16's SDK cannot resolve glassEffect, even inside #available.
+            #if compiler(>=6.2)
+            if #available(iOS 26.0, *) { shape.fill(.clear).glassEffect(.regular, in: shape) }
+            else { shape.fill(.regularMaterial) }
+            #else
+            shape.fill(.regularMaterial)
+            #endif
+        }
     }
 }
 
