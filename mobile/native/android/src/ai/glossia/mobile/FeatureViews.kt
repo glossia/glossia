@@ -1,0 +1,179 @@
+package ai.glossia.mobile
+
+import android.content.Context
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.chip.Chip
+import org.json.JSONArray
+import org.json.JSONObject
+import java.text.NumberFormat
+
+class FeatureViews(private val context: Context) {
+    fun translations(model: PageModel, ready: Boolean, refresh: () -> Unit, more: () -> Unit, open: (String) -> Unit = {}): View {
+        val body = context.column(20)
+        body.addSpaced(context.heading("Every word, in motion"), 8)
+        body.addSpaced(context.label("Translation activity for your project.", 15f, true), 24)
+        if (!ready) body.addSpaced(empty(R.drawable.toki_languages, "Choose a project", "Use the workspace selector above to see its translations."))
+        else {
+            if (model.loaded && model.items.isEmpty()) body.addSpaced(empty(R.drawable.toki_languages, "Ready for your first words", "Translation sessions will appear here when your project starts translating."))
+            model.items.forEach { item ->
+                body.addSpaced(context.card {
+                    addSpaced(context.heading(item.optionalString("commit_message") ?: "Translation session", 18f), 8)
+                    addSpaced(Chip(context).apply {
+                        text = item.optString("status", "Unknown").replaceFirstChar { it.uppercase() }
+                        isCheckable = false; isClickable = false
+                    }, 8)
+                    val targets = item.optJSONArray("target_languages") ?: JSONArray()
+                    val languages = (0 until targets.length()).joinToString(", ") { targets.optString(it) }
+                    addSpaced(context.label("${item.optionalString("source_language") ?: "Source"} → ${languages.ifEmpty { "No target languages" }}", 14f, true), 8)
+                    addSpaced(context.label("${number(item, "translated_content_count")} translated items", 14f), 8)
+                    item.optionalString("summary")?.let { addSpaced(context.label(it, 14f, true), 8) }
+                    item.optionalString("inserted_at")?.let { addView(context.label(displayDate(it), 12f, true)) }
+                    item.optionalString("id")?.let { id -> addView(context.button("View translation") { open(id) }) }
+                })
+            }
+            if (model.busy) body.loading("Loading translations…")
+            body.failure(model.error) { if (model.requestedPage == 1) refresh() else more() }
+            if (model.hasMore) body.addSpaced(context.button("Load more", action = more).apply { isEnabled = !model.busy })
+            body.addSpaced(context.button("Refresh translations", action = refresh).apply { isEnabled = !model.busy })
+        }
+        return context.scroll(body)
+    }
+
+    fun translation(model: TranslationModel, retry: () -> Unit, back: () -> Unit, discuss: () -> Unit, share: () -> Unit = {}): View {
+        val body = context.column(20)
+        body.addSpaced(context.button("Back to translations", action = back), 8)
+        body.addSpaced(context.heading("Translation detail"), 16)
+        if (model.busy) body.loading("Loading translation…")
+        body.failure(model.error, retry)
+        model.data?.let { item ->
+            body.addSpaced(context.card {
+                addSpaced(context.heading(item.optionalString("commit_message") ?: "Translation session", 20f), 12)
+                addSpaced(Chip(context).apply {
+                    text = item.optString("status", "Unknown").replaceFirstChar { it.uppercase() }
+                    isClickable = false; isCheckable = false
+                }, 16)
+                detail("Summary", item.optionalString("summary") ?: "No summary is available for this translation.")
+                val targets = item.optJSONArray("target_languages") ?: JSONArray()
+                detail("Languages", "${item.optionalString("source_language") ?: "Source"} → " +
+                    (0 until targets.length()).joinToString(", ") { targets.optString(it) }.ifEmpty { "No target languages" })
+                detail("Translated items", number(item, "translated_content_count"))
+                item.optionalString("inserted_at")?.let { detail("Started", displayDate(it)) }
+            })
+            body.addSpaced(context.button("Discuss with Toki", true, discuss).apply { isEnabled = !model.busy && model.error == null })
+            body.addSpaced(context.button("Share translation link", action = share).apply { isEnabled = !model.busy && model.error == null })
+            body.addSpaced(context.label("Start a conversation about this translation. Nothing is sent until you choose Send.", 14f, true))
+        }
+        return context.scroll(body)
+    }
+
+    fun analytics(model: AnalyticsModel, ready: Boolean, daysChanged: (Int) -> Unit, retry: () -> Unit): View {
+        val body = context.column(20)
+        body.addSpaced(context.heading("A world of understanding"), 8)
+        body.addSpaced(context.label("See who you reach, and who’s still waiting.", 15f, true), 20)
+        val filter = MaterialButtonToggleGroup(context).apply { isSingleSelection = true; isSelectionRequired = true }
+        val dayIds = mutableMapOf<Int, Int>()
+        listOf(7, 30, 90).forEach { days ->
+            val button = context.button("${days} days") {}.apply {
+                id = View.generateViewId(); isCheckable = true
+                dayIds[id] = days
+            }
+            filter.addView(button, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            if (model.days == days) filter.check(button.id)
+        }
+        filter.addOnButtonCheckedListener { _, id, checked -> if (checked) dayIds[id]?.let(daysChanged) }
+        body.addSpaced(filter, 24)
+        if (!ready) body.addSpaced(empty(R.drawable.toki_globe, "Choose a project", "Select a project above to explore its audience."))
+        else {
+            val data = model.data
+            if (data != null) {
+                val summary = data.optJSONObject("summary") ?: JSONObject()
+                val row = LinearLayout(context)
+                row.addView(metric("Pageviews", number(summary, "pageviews")), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = context.dp(12) })
+                row.addView(metric("Unique visitors", number(summary, "unique_visitors")), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                body.addSpaced(row)
+                body.addSpaced(context.card {
+                    addSpaced(context.label("Locale gap visits", 14f, true), 4)
+                    addSpaced(context.heading(number(summary, "locale_gap_visits"), 28f), 8)
+                    addView(context.label("Visits in a language your project doesn’t offer yet.", 13f, true))
+                })
+                body.addSpaced(context.card {
+                    addSpaced(context.heading("Your audience", 18f), 16)
+                    detail("Top country", summary.optionalString("top_country") ?: "No data yet")
+                    detail("Top browser language", summary.optionalString("top_browser_language") ?: "No data yet")
+                })
+                val pages = data.optJSONArray("top_pages") ?: JSONArray()
+                body.addSpaced(context.card {
+                    addSpaced(context.heading("Top pages", 18f), 16)
+                    if (pages.length() == 0) {
+                        addView(context.label("No pageviews in this period. Data will appear after your tracker receives visits.", muted = true))
+                    } else for (index in 0 until pages.length()) {
+                        val page = pages.getJSONObject(index)
+                        detail(page.optString("pathname", "/"), "${number(page, "pageviews")} views")
+                    }
+                })
+            }
+            if (model.busy) body.loading("Loading audience insights…")
+            body.failure(model.error, retry)
+            body.addSpaced(context.button("Refresh analytics", action = retry).apply { isEnabled = !model.busy })
+        }
+        return context.scroll(body)
+    }
+
+    fun profile(model: FeatureModel, server: String?, organization: String?, project: String?, retry: () -> Unit, signOut: () -> Unit): View {
+        val body = context.column(20)
+        val user = model.data?.optJSONObject("user")
+        body.addView(context.mascot(R.drawable.toki_delighted, 112))
+        body.addSpaced(context.heading(user?.optionalString("name") ?: "Your profile").apply { gravity = Gravity.CENTER }, 8)
+        user?.optionalString("email")?.let { body.addSpaced(context.label(it, 15f, true).apply { gravity = Gravity.CENTER }, 24) }
+        if (model.busy) body.loading("Loading profile…")
+        body.failure(model.error, retry)
+        body.addSpaced(context.card {
+            addSpaced(context.heading("Account", 18f), 16)
+            detail("Name", user?.optionalString("name") ?: "Not available")
+            detail("Email", user?.optionalString("email") ?: "Not available")
+            detail("Handle", user?.optionalString("handle") ?: "Not available")
+            user?.optionalString("id")?.let { detail("Account ID", it) }
+        })
+        body.addSpaced(context.card {
+            addSpaced(context.heading("Workspace", 18f), 16)
+            detail("Organization", organization ?: "None selected")
+            detail("Project", project ?: "None selected")
+            detail("Server", server ?: "Not connected")
+            detail("Server version", model.data?.optionalString("server_version") ?: "Not available")
+            val version = context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "Unknown"
+            detail("Glossia for Android", version)
+        })
+        body.addSpaced(context.card {
+            addSpaced(context.heading("Private by design", 18f), 8)
+            addView(context.label("Your credentials are encrypted with Android Keystore. Signing out clears your workspace, conversations and drafts from this app.", muted = true))
+        })
+        body.addSpaced(context.button("Refresh profile", action = retry).apply { isEnabled = !model.busy })
+        body.addSpaced(context.button("Sign out", action = signOut).apply {
+            themed { setTextColor(GlossiaAppearance.states(readableErrorColor())) }
+        })
+        return context.scroll(body)
+    }
+
+    private fun empty(image: Int, title: String, subtitle: String) = context.card {
+        addView(context.mascot(image, 144))
+        addSpaced(context.heading(title, 20f).apply { gravity = Gravity.CENTER }, 8)
+        addView(context.label(subtitle, 14f, true).apply { gravity = Gravity.CENTER })
+    }
+
+    private fun metric(title: String, value: String) = context.card {
+        addSpaced(context.label(title, 13f, true), 8)
+        addView(context.heading(value, 28f))
+    }
+
+    private fun LinearLayout.detail(title: String, value: String) {
+        addSpaced(context.label(title, 12f, true), 2)
+        addSpaced(context.label(value, 15f).apply { setTextIsSelectable(true) }, 16)
+    }
+
+    private fun number(value: JSONObject, key: String): String = if (!value.has(key) || value.isNull(key)) "—"
+        else NumberFormat.getIntegerInstance().format(value.optLong(key))
+}

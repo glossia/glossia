@@ -14,10 +14,45 @@ This is separate from the older Expo prototype in `mobile/`. It does not require
 Node or an Xcode project. Commands below run from `mobile/native/`.
 
 The UI follows Apple's Human Interface Guidelines on iOS and Material Design on
-Android. System components own navigation chrome, control shapes, typography,
-feedback, safe areas, and light/dark appearances. Branding is limited to the logo
-and an adaptive accent color. Android 12+ also supports the device's dynamic
-color theme. There are no hand-painted tab buttons or custom card surfaces.
+Android. System components own navigation, typography, feedback, and safe areas.
+Glossia's warm surface and violet accent tokens adapt to light/dark appearances.
+Toki uses six transparent sprite poses; see `resources/README.md` for regeneration.
+
+## Server-owned appearance
+
+Like Atlas, both clients fetch the public `/api/native/themes` catalog at runtime
+from the selected HTTPS server. The hosted login uses `https://glossia.ai`;
+self-hosted sign-in and session restoration select that server's own catalog.
+The server compiles light/dark colors and control radii from the canonical tokens
+in `app/priv/static/assets/styles.css`, with a content revision and five-minute
+cache policy. Toki appears in new conversations, not on the welcome screen.
+
+Rust validates schema compatibility, bounded values, colors, and text contrast
+before either platform applies tokens. Native clients cache validated catalogs
+per normalized server origin, reject stale responses after switching servers,
+and refresh on foreground entry at most once every five minutes. A failed fetch
+keeps that server's last valid catalog, or bundled Glossia tokens on first use.
+It never blocks OAuth or invalidates credentials. Appearance networking runs
+independently of credential rotation and feature requests. System typography,
+accessibility, and native navigation behavior remain platform-owned.
+
+## Feature boundaries and concurrency
+
+Rust owns OAuth, validation, fixed REST routes, authenticated transport, and
+workspace discovery. `toki`, `translations`, `analytics`, and `profile` are
+independent core modules. SwiftUI and Kotlin own native presentation, lifecycle,
+secure storage, and feature state. The JSON C/JNI boundary accepts explicit
+commands and returns one result; it does not hold mutable global feature state.
+
+Each tab has an independent model. Credential refresh and secure-storage writes
+are serialized; feature requests take a durable credential snapshot and run on
+up to four workers sharing Rust's thread-safe HTTP client. Project/session
+generation checks discard obsolete responses. This lets tabs and features evolve
+independently without a global networking queue or competing refresh rotations.
+No automatic retries are applied to message writes: the native model retains the
+same client-generated UUID and content for an explicit retry.
+Responses are bounded to 1 MiB for OAuth and 8 MiB for APIs, enough for the
+server's complete, bounded conversation history including JSON escaping.
 
 ## Sign-in and workspace
 
@@ -29,33 +64,113 @@ selection and consent happen in the server's browser login, not in the app.
 OAuth endpoints must stay on the chosen server's origin. No client secret is
 embedded in either app.
 
-Requests use `organization:read project:read voice:read glossary:read`. The
-registration controller change in this repository is required on the server for
-secretless refresh. Deploying the mobile files alone does not update that server.
+Requests use `user:read organization:read project:read voice:read glossary:read
+translation:read analytics:read toki:read toki:write`. The server must support
+these scopes and secretless public-client refresh. Deploying the mobile files
+alone does not update the server.
 
-Credentials stay in platform secure storage. Requests and refreshes run serially
-off the UI thread; rotated credentials are persisted before fetching workspace
-data. Superseded resource requests are discarded before starting; sign-out waits
-for at most the active request, not a queue of historical tab selections.
+Credentials stay in platform secure storage. Rotated credentials are persisted
+before feature requests start. Superseded resource responses cannot replace the
+active project's data; sign-out is not queued behind feature networking.
 Transient failures retain the session and offer retry. Sign-out removes the
 local session; it does not revoke other sessions or clear browser cookies.
 If the server has deleted a cached OAuth client, **Reset saved sign-in** on the
 welcome screen clears its registration so the next sign-in registers again.
 Unrelated Android callbacks do not consume the current pending PKCE grant.
 
-The navigation bar's workspace action opens native organization and project
-pickers. The selection persists across tabs and launches and appears in Android's
-app-bar subtitle. Organization changes reset the selected project; deleted or
-inaccessible selections fall back to the first available workspace. Project
-lists follow all API pages. There is no bundled demo data in the app.
+The toolbar shows the active organization/project and opens a focused selector:
+an organization menu, searchable projects, and a checkmark on the active project.
+Browsing organizations is staged; Cancel preserves the existing context, and
+choosing a project applies both fields together. Selection persists across tabs
+and launches. Switching projects clears unsent Toki drafts. Inaccessible saved
+selections fall back to an accessible workspace. Project discovery follows every
+API page. Production bundles contain no fixture data.
 
-- **Overview:** selected project, setup status, and linked repository.
-- **Voice / Glossary:** real read-only organization-wide resources, with loading,
-  error, empty, and retry states. These are not project-specific in Glossia's API.
-- **Settings:** server, global selection, and sign-out.
+This follows Apple's [sheet guidance](https://developer.apple.com/design/human-interface-guidelines/sheets)
+for a scoped task with cancellation, [menu guidance](https://developer.apple.com/design/human-interface-guidelines/menus)
+for selection, and [search-field guidance](https://developer.apple.com/design/human-interface-guidelines/search-fields)
+for finding items in a growing collection. Project context remains visible in the
+toolbar rather than being hidden in Profile or encoded as extra tabs.
+
+- **Toki:** private project conversations, durable messages, queued/running reply
+  states, explicit retry, and foreground-only polling.
+- **Translations:** paginated project translation sessions and status.
+- **Analytics:** project pageviews, visitors, locale gaps, and top pages over
+  7, 30, or 90 days.
+- **Profile:** signed-in identity, server, project context, and sign-out.
+
+The REST API exposes `/api/me` and project-scoped `translations`, `analytics`,
+and `toki/conversations` under `/api/:handle/projects/:project`. Toki writes use
+client UUIDs for replay safety. The server enforces OAuth scopes and LetMe project
+permissions; conversations are also private to their creator. Apply the server
+migration through your normal deployment procedure, configure an inference
+provider, and run the Toki Oban queue before expecting live replies. See the
+server's API reference and OpenAPI document for request and response schemas.
 
 Editing, offline sync, push notifications, store publishing, and production
 signing are not included. Native UI currently uses English copy.
+
+## Navigation and translation discussions
+
+External links and in-app actions use the same typed, server-bound destination.
+Rust owns parsing, validation, and canonical link generation. Native navigation
+owns the tab, parent stack, pending intent, and draft protection; each feature
+continues to own its data and requests.
+
+Supported custom-scheme routes are:
+
+```text
+glossia://navigate/{organization}/{project}/toki?server={https-origin}
+glossia://navigate/{organization}/{project}/toki/{conversation-uuid}?server={https-origin}
+glossia://navigate/{organization}/{project}/toki/new?server={https-origin}&translation_id={session-uuid}
+glossia://navigate/{organization}/{project}/translations?server={https-origin}
+glossia://navigate/{organization}/{project}/translations/{session-uuid}?server={https-origin}
+glossia://navigate/{organization}/{project}/analytics?server={https-origin}
+glossia://navigate/profile?server={https-origin}
+```
+
+`server` is required and URL-encoded. `translation_id` is optional and accepted
+only on `toki/new`. Links contain references, never credentials, message content,
+or instructions to execute. OAuth's `glossia://oauth/callback` remains separate.
+Unknown routes, extra/duplicate parameters, ambiguous paths, invalid IDs and
+non-HTTPS server origins are rejected.
+
+For example, a translation on the hosted server can be shared as:
+
+```text
+glossia://navigate/acme/website/translations/abc12345-802e-4f91-9112-77d8a919efc5?server=https%3A%2F%2Fglossia.ai%2F
+```
+
+The Rust bridge exposes `operation: "navigation"` with `action: "parse"` and a
+`url`, or `action: "link"` and a `destination`. Both return the canonical
+`destination` and `url`. Destinations contain `screen`, `server`, `organization`,
+`project`, `id`, and `translation_id`; absent fields serialize as null. Screens
+are `toki`, `conversation`, `new_conversation`, `translations`, `translation`,
+`analytics`, and `profile`.
+
+Signed-out links wait in memory until authentication and workspace discovery
+finish. The latest link wins. Links cannot initiate sign-in or switch servers,
+and an inaccessible workspace never falls back to a different project. Pending
+intents clear on explicit sign-out. Hidden drafts and pending writes block
+navigation that could replace unfinished work; the person can finish or
+explicitly discard local drafts. Obsolete lookups cannot replace newer intent.
+
+Translation records load directly by UUID, independently of loaded list pages,
+with native Back, loading, unavailable and Retry states. **Discuss with Toki**
+opens a local conversation draft carrying the translation-session UUID. Opening
+a link does not create a conversation or send a message. An explicit Send
+creates the private conversation with its immutable `translation_session_id`,
+then sends using the same conversation/message UUIDs on retry. A source link in
+the conversation returns to the translation.
+
+The backend rechecks project and translation-read authorization before attaching
+source context. Provenance currently identifies a session and its summary, not
+individual source/target segments. It does not approve or publish voice/glossary
+changes; that review workflow remains separate.
+
+This slice registers custom-scheme navigation, not verified HTTPS Universal Links
+or Android App Links. Those require hosted association documents and stable signed
+application identities; arbitrary self-hosted domains are not claimed.
 
 ## Shared core checks
 
@@ -97,6 +212,9 @@ fi
 mise run build:android
 adb install -r .once/out/GlossiaAndroid/GlossiaAndroid.apk
 adb shell am start -n ai.glossia.mobile/.MainActivity
+
+# Builds the same JNI/APK, then runs model/render tests and lint:
+mise run test:android
 ```
 
 The debug APK contains `lib/arm64-v8a/libglossia_core.so`. It is not a Play Store
@@ -122,6 +240,15 @@ xcrun simctl launch booted ai.glossia.mobile
 
 # Compile the device bundle, without distribution credentials:
 mise run build:ios-device
+
+# Model tests and simulator interaction tests:
+mise run test:ios
+mise run test:ios-ui
+
+# Isolated fixture bundle, never linked into production:
+mise run preview:ios
+xcrun simctl install booted .once/out/GlossiaIOSPreview/GlossiaPreview.app
+xcrun simctl launch booted ai.glossia.mobile.preview workspace
 ```
 
 The simulator target includes its own Keychain entitlement. The device target
@@ -131,23 +258,26 @@ before installation on a physical device. No signing credentials are committed.
 
 ## CI and validation
 
-`.github/workflows/mobile-native.yml` checks Rust and builds Android, the iOS
-simulator app, and the iOS device bundle. It retains build artifacts without
-publishing previews or releases. The server's OAuth regression tests run in the
-existing app workflow.
+`.github/workflows/mobile-native.yml` runs independent Rust, Android, iOS build,
+and iOS test jobs. The iOS build matrix compiles simulator and device bundles in
+parallel. Model tests exercise message replay, access-loss clearing, and paginated
+retry; UI tests exercise staged workspace changes, self-hosted URL entry, and
+chat scroll/status placement. Android tests also render both themes with native
+Robolectric graphics, using test-only transports rather than production fixtures.
+Artifacts include APKs, app bundles, and test results without publishing releases.
+Server authorization and API regressions run in the existing app workflow.
 
-In this Linux orb, Once's Rust tests and the signed Android build were executed.
-Android native widgets were also rendered in a temporary Robolectric harness
-with fixture data; project selection, tab scope, stale/duplicate callbacks,
-registration reset, and skipping queued requests were checked. Login captures
-cover light/dark mode and a narrow screen at 150% font scale. Those captures
-are not device tests or a completed browser sign-in. Swift sources passed a
-syntax parse; the unchanged runtime actor was also exercised on Linux with
-substitute storage/network boundaries to check cancellation, durable token
-rotation, and registration reset. CI also builds the iOS simulator and device
-bundles on macOS. Native iOS rendering, Keychain runtime, browser handoff,
-16 KB-device JNI loading, and physical device behavior still require
-simulator/device verification.
+The preview bundle supports `login`, `empty`, `toki`, `chat`, `thinking`, `failed`,
+`empty-chat`, `translations`, `translations-empty`, `analytics`, `analytics-empty`,
+`profile`, `workspace`, `translation-detail`, and `source-chat` launch arguments.
+Append `--link URL` to exercise the production navigation adapter against isolated
+fixture records; this option is not linked into the production app. To inspect
+a server catalog without authenticating, append
+`--theme-catalog BASE64_JSON` to a preview launch; it passes through the same Rust
+validator and appearance owner. This argument is not in the production bundle.
+A fixture capture does not verify a real browser sign-in or inference provider. Physical-device
+secure storage, browser handoff, production signing, and live-provider integration
+still need deployment/device validation.
 
 Tuist's MIT attribution is included in both app bundles through
 [`third_party_notices.txt`](android/res/raw/third_party_notices.txt).

@@ -4,7 +4,7 @@ defmodule Glossia.MemberPermissions do
   alias Glossia.Accounts.{Account, Organization, OrganizationMembership, User}
   alias Glossia.Repo
 
-  @domains ~w(account organization project voice members glossary discussion ticket llm_model translation api_credentials)
+  @domains ~w(account organization project voice members glossary discussion ticket llm_model translation analytics toki api_credentials)
 
   def available_scopes do
     Glossia.Authz.available_scopes()
@@ -18,7 +18,7 @@ defmodule Glossia.MemberPermissions do
 
   def basic_scopes,
     do:
-      ~w(account:read organization:read project:read voice:read glossary:read discussion:read ticket:read)
+      ~w(account:read organization:read project:read voice:read glossary:read discussion:read ticket:read translation:read analytics:read toki:read toki:write)
 
   def decision(action, user, object, opts \\ [])
 

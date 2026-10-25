@@ -16,7 +16,7 @@ defmodule GlossiaWeb.OpenApiSpec do
         "version" => "1.0.0"
       },
       "servers" => [%{"url" => issuer, "description" => "Glossia server"}],
-      "paths" => paths(issuer),
+      "paths" => Map.merge(paths(issuer), GlossiaWeb.MobileOpenApiSpec.paths()),
       "components" => %{
         "securitySchemes" => %{
           "oauth2" => %{
@@ -34,7 +34,7 @@ defmodule GlossiaWeb.OpenApiSpec do
             "scheme" => "bearer"
           }
         },
-        "schemas" => schemas()
+        "schemas" => Map.merge(schemas(), GlossiaWeb.MobileOpenApiSpec.schemas())
       }
     }
   end

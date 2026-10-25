@@ -1,4 +1,10 @@
-# Glossia Mobile (Expo)
+# Glossia Mobile
+
+The native iOS and Android app lives in [`native/`](native/README.md), with
+Once builds, a shared Rust core, and the Toki, Translations, Analytics, and Profile
+tabs. Follow its README for development and validation.
+
+## Older Expo prototype
 
 This app uses:
 - Expo + React Native

@@ -1,0 +1,5 @@
+<resources>
+    <style name="GlossiaTheme" parent="GlossiaThemeBase">
+        <item name="android:windowLightNavigationBar">?attr/isLightTheme</item>
+    </style>
+</resources>

@@ -1,4 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/compose_conversation" android:title="Compose" android:icon="@drawable/ic_compose" app:iconTint="?attr/colorOnSurfaceVariant" app:showAsAction="always" android:visible="false" />
     <item android:id="@+id/choose_workspace" android:title="Choose workspace" android:icon="@drawable/ic_workspace" app:iconTint="?attr/colorOnSurfaceVariant" app:showAsAction="always" />
-    <item android:id="@+id/refresh" android:title="Refresh" app:showAsAction="never" />
+    <!-- Both actions share the toolbar's runtime palette, without a static-theme overflow popup. -->
+    <item android:id="@+id/refresh" android:title="Refresh" android:icon="@drawable/ic_refresh" app:iconTint="?attr/colorOnSurfaceVariant" app:showAsAction="always" />
 </menu>

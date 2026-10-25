@@ -191,9 +191,45 @@ defmodule Glossia.Policy do
   end
 
   object :translation do
+    action :read do
+      allow(:super_admin)
+      allow(:organization_admin)
+      allow(:organization_member)
+      allow(:temporary_account_access)
+      allow(:public_account)
+    end
+
     action :write do
       allow(:organization_admin)
       allow(:organization_member)
+    end
+  end
+
+  object :analytics do
+    action :read do
+      allow(:super_admin)
+      allow(:organization_admin)
+      allow(:organization_member)
+      allow(:temporary_account_access)
+      allow(:public_account)
+    end
+  end
+
+  object :toki do
+    action :read do
+      allow(:super_admin)
+      allow(:organization_admin)
+      allow(:organization_member)
+      allow(:temporary_account_access)
+      allow(:public_account)
+      allow(:toki_owner_read)
+    end
+
+    action :write do
+      allow(:super_admin)
+      allow(:organization_admin)
+      allow(:organization_member)
+      allow(:toki_owner_write)
     end
   end
 
