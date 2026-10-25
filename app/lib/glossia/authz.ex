@@ -44,6 +44,7 @@ defmodule Glossia.Authz do
     scopes = Keyword.get(opts, :scopes, :all)
 
     with :ok <- authorize_scope(action, scopes),
+         :ok <- authorize_private_resource(subject, object),
          :ok <- authorize_member(action, subject, object, opts) do
       :ok
     end
@@ -69,6 +70,20 @@ defmodule Glossia.Authz do
       {:error, :insufficient_scope, required}
     end
   end
+
+  # Ownership is an invariant, not a permission grant. In particular, an
+  # organization member's explicit scopes (or a policy extension) must never
+  # bypass it, including for organization and instance administrators.
+  defp authorize_private_resource(
+         %{id: user_id},
+         %Glossia.Toki.Conversation{user_id: user_id}
+       ),
+       do: :ok
+
+  defp authorize_private_resource(_, %Glossia.Toki.Conversation{}),
+    do: {:error, :unauthorized}
+
+  defp authorize_private_resource(_, _), do: :ok
 
   defp authorize_member(action, subject, object, opts) do
     case Glossia.MemberPermissions.decision(action, subject, object, opts) do

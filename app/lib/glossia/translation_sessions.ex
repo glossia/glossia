@@ -143,6 +143,21 @@ defmodule Glossia.TranslationSessions do
 
   def get_session(_), do: nil
 
+  @doc "Direct, exact lookup within the project's account; malformed and foreign IDs are absent."
+  def get_project_session(%Project{} = project, id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, id} when not is_nil(id) ->
+        Repo.get_by(TranslationSession,
+          id: id,
+          project_id: project.id,
+          account_id: project.account_id
+        )
+
+      _ ->
+        nil
+    end
+  end
+
   def create_session(%Account{} = account, %Project{} = project, attrs) do
     %TranslationSession{account_id: account.id, project_id: project.id}
     |> TranslationSession.changeset(attrs)

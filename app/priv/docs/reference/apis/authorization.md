@@ -46,7 +46,11 @@ Scopes control what actions a token can perform. They follow the `object:action`
 | `ticket:admin` | Administrative ticket actions |
 | `llm_model:read` | Read account language models |
 | `llm_model:write` | Manage account language models |
+| `translation:read` | Read project translation activity |
 | `translation:write` | Write translation data |
+| `analytics:read` | Read project website analytics |
+| `toki:read` | Read your own private project conversations |
+| `toki:write` | Create private conversations and queue companion replies |
 | `api_credentials:read` | Read access credentials |
 | `api_credentials:write` | Manage access credentials |
 
@@ -72,7 +76,9 @@ Scopes represent the *maximum* capability of a token. Resource-level checks enfo
 
 ### Member permissions
 
-Non-administrator organization memberships can carry explicit permission scopes. New members start with read access to the account, organization, projects, voice, glossary, discussions, and tickets. An organization administrator can replace those scopes through [Members → Permissions](/docs/how-to/member-permissions). A requested action must be included in the member's allowed scopes as well as the token's scopes when using a token.
+Non-administrator organization memberships can carry explicit permission scopes. New members start with read access to the account, organization, projects, voice, glossary, discussions, tickets, translation activity, and analytics, plus access to their own private Toki conversations. An organization administrator can replace those scopes through [Members → Permissions](/docs/how-to/member-permissions). A requested action must be included in the member's allowed scopes as well as the token's scopes when using a token.
+
+Private Toki ownership is checked before organization member scope overrides. Neither membership grants nor administrator roles permit access to another user's conversation. Project visibility is checked separately. See the [mobile and companion API](/docs/reference/apis/mobile) for endpoint scopes and limits.
 
 Organization administrators retain their administrator role. Existing memberships without explicit scopes continue to use the role-based policy below until permissions are saved.
 
@@ -101,4 +107,3 @@ The table below shows common role-based rules for memberships without explicit s
 | `glossary:read` | | Yes | Yes | |
 | `glossary:write` | | | Yes | |
 | `glossary:admin` | | | Yes | |
-

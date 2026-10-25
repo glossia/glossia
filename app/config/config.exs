@@ -163,7 +163,7 @@ config :glossia, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.PG,
   repo: Glossia.Repo,
-  queues: [default: 10, analytics: 5],
+  queues: [default: 10, analytics: 5, toki: 2],
   plugins: [
     # Oban.Met otherwise starts itself for every Oban instance and runs DDL at
     # runtime. The schema migration owns that one-time change instead, so a
@@ -174,6 +174,7 @@ config :glossia, Oban,
        {"*/10 * * * *", Glossia.Projects.SetupPullRequestSyncWorker},
        {"*/5 * * * *", Glossia.TranslationSessions.SessionRecoveryWorker},
        {"*/5 * * * *", Glossia.TranslationSessions.EngineRecoveryWorker},
+       {"* * * * *", Glossia.Toki.RecoveryWorker},
        {"0 3 * * *", Glossia.OrganizationDomainVerificationWorker}
      ]}
   ]

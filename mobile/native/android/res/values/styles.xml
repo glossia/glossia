@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="GlossiaTheme" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="GlossiaThemeBase" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/glossia_primary</item>
         <item name="colorOnPrimary">@color/glossia_on_primary</item>
+        <item name="colorPrimaryContainer">@color/glossia_accent_soft</item>
+        <item name="colorOnPrimaryContainer">@color/glossia_primary</item>
+        <item name="colorSecondaryContainer">@color/glossia_accent_soft</item>
+        <item name="colorOnSecondaryContainer">@color/glossia_primary</item>
+        <item name="colorSurface">@color/glossia_background</item>
+        <item name="colorSurfaceContainer">@color/glossia_subtle</item>
+        <item name="colorOnSurface">@color/glossia_text</item>
+        <item name="colorOnSurfaceVariant">@color/glossia_muted</item>
+        <item name="colorOutline">@color/glossia_border</item>
+        <item name="colorOutlineVariant">@color/glossia_border</item>
+        <item name="android:colorBackground">@color/glossia_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
-        <item name="android:windowLightNavigationBar">?attr/isLightTheme</item>
     </style>
+    <style name="GlossiaTheme" parent="GlossiaThemeBase" />
 </resources>

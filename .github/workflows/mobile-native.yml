@@ -65,7 +65,7 @@ jobs:
             -dname "CN=Android Debug,O=Android,C=US"
       - run: |
           export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.3.13750724"
-          mise run build:android
+          mise run test:android
       - name: Verify packaged native library supports 16 KB pages
         run: |
           apk=.once/out/GlossiaAndroid/GlossiaAndroid.apk
@@ -80,8 +80,47 @@ jobs:
           path: mobile/native/.once/out/GlossiaAndroid/GlossiaAndroid.apk
           if-no-files-found: error
           retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: glossia-android-test-results
+          path: |
+            mobile/native/.once/android-build/reports/
+            mobile/native/.once/android-build/test-results/
+            mobile/native/.once/android-build/screenshots/
+          if-no-files-found: error
+          retention-days: 14
 
   ios:
+    if: github.event.pull_request.draft != true
+    runs-on: macos-15
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [GlossiaIOS, GlossiaIOSDevice]
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          version: 2026.9.2
+          working_directory: mobile/native
+          install_args: rust github:tuist/once
+      - run: mise exec -- rustup target add aarch64-apple-ios-sim aarch64-apple-ios
+      - run: mise run prepare:rust
+      - run: mise exec -- once build ${{ matrix.target }}
+      - name: Package app bundles
+        run: |
+          mkdir -p delivery
+          ditto -c -k --keepParent .once/out/${{ matrix.target }}/Glossia.app delivery/${{ matrix.target }}.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glossia-${{ matrix.target }}
+          path: mobile/native/delivery/*.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  ios-tests:
     if: github.event.pull_request.draft != true
     runs-on: macos-15
     timeout-minutes: 30
@@ -92,17 +131,15 @@ jobs:
           version: 2026.9.2
           working_directory: mobile/native
           install_args: rust github:tuist/once
-      - run: mise exec -- rustup target add aarch64-apple-ios-sim aarch64-apple-ios
-      - run: mise run build:ios
-      - run: mise run build:ios-device
-      - name: Package app bundles
-        run: |
-          mkdir -p delivery
-          ditto -c -k --keepParent .once/out/GlossiaIOS/Glossia.app delivery/Glossia-simulator.zip
-          ditto -c -k --keepParent .once/out/GlossiaIOSDevice/Glossia.app delivery/Glossia-device.zip
+      - run: mise exec -- rustup target add aarch64-apple-ios-sim
+      - run: mise run test:ios
+      - run: mise run test:ios-ui
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: glossia-ios-bundles
-          path: mobile/native/delivery/*.zip
+          name: glossia-ios-test-results
+          path: |
+            mobile/native/.once/out/GlossiaIOSTests/test/
+            mobile/native/.once/out/GlossiaIOSUITests/test/
           if-no-files-found: error
           retention-days: 14

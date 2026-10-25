@@ -5,8 +5,15 @@ defmodule Glossia.TranslationSessions.TranslationSession do
   @derive {
     Flop.Schema,
     filterable: [:status, :outcome, :commit_sha, :commit_message, :source_language],
-    sortable: [:inserted_at, :status, :outcome, :translated_content_count, :content_hit_count],
-    default_order: %{order_by: [:inserted_at], order_directions: [:desc]}
+    sortable: [
+      :id,
+      :inserted_at,
+      :status,
+      :outcome,
+      :translated_content_count,
+      :content_hit_count
+    ],
+    default_order: %{order_by: [:inserted_at, :id], order_directions: [:desc, :desc]}
   }
 
   @statuses ~w(pending running completed failed cancelled)

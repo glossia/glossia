@@ -1,52 +1,15 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root" android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:background="?attr/colorSurface">
+    android:orientation="vertical" android:background="@color/glossia_background">
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:minHeight="?attr/actionBarSize" app:menu="@menu/workspace" />
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/workspace_progress" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:indeterminate="true" android:visibility="gone" android:contentDescription="Loading workspace" />
-    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <ScrollView android:id="@+id/login" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="vertical" android:padding="24dp" android:gravity="center_horizontal">
-                <ImageView android:layout_width="72dp" android:layout_height="72dp" android:layout_marginTop="32dp"
-                    android:layout_marginBottom="24dp" android:src="@drawable/glossia_mark" android:importantForAccessibility="no" />
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Welcome to Glossia"
-                    android:textAppearance="?attr/textAppearanceHeadlineLarge" android:gravity="center" android:accessibilityHeading="true" />
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Your voice. Every language."
-                    android:textAppearance="?attr/textAppearanceBodyLarge" android:gravity="center" android:layout_marginTop="16dp" android:layout_marginBottom="32dp" />
-                <com.google.android.material.progressindicator.CircularProgressIndicator
-                    android:id="@+id/login_progress" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:indeterminate="true" android:visibility="gone" android:contentDescription="Connecting securely" />
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/login_error" android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceBodyMedium" android:textColor="?attr/colorError"
-                    android:accessibilityLiveRegion="polite" android:visibility="gone" />
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/retry_session" style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Retry saved session" android:visibility="gone" />
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/sign_in" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Sign in with Glossia" />
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/self_hosted" style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Self-hosted server" />
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/reset_sign_in" style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Reset saved sign-in" />
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp"
-                    android:text="Secure sign-in opens in your browser." android:textAppearance="?attr/textAppearanceBodySmall" android:gravity="center" />
-            </LinearLayout>
-        </ScrollView>
-        <ListView android:id="@+id/content_list" android:layout_width="match_parent" android:layout_height="match_parent"
-            android:visibility="gone" android:clipToPadding="false" android:paddingBottom="16dp" />
-    </FrameLayout>
+    <FrameLayout android:id="@+id/screen" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/navigation" android:layout_width="match_parent" android:layout_height="wrap_content"
-        app:menu="@menu/navigation" app:labelVisibilityMode="labeled" />
+        app:menu="@menu/navigation" app:labelVisibilityMode="labeled" android:background="@color/glossia_background" />
 </LinearLayout>

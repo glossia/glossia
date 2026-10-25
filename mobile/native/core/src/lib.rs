@@ -1,4 +1,10 @@
+mod analytics;
 pub mod bridge;
+mod navigation;
+mod profile;
+mod themes;
+mod toki;
+mod translations;
 mod transport;
 mod workspace;
 
@@ -77,6 +83,22 @@ type Result<T> = std::result::Result<T, AuthError>;
 
 fn error(kind: &'static str, message: &'static str) -> AuthError {
     AuthError { kind, message }
+}
+
+fn validate_uuid(value: &str) -> Result<()> {
+    if value.len() == 36
+        && value.bytes().enumerate().all(|(index, byte)| {
+            if matches!(index, 8 | 13 | 18 | 23) {
+                byte == b'-'
+            } else {
+                byte.is_ascii_hexdigit()
+            }
+        })
+    {
+        Ok(())
+    } else {
+        Err(error("invalid_input", "IDs must be hyphenated UUIDs."))
+    }
 }
 
 fn invalid() -> AuthError {
@@ -207,7 +229,7 @@ fn begin_using(
         ("redirect_uri", REDIRECT_URI),
         (
             "scope",
-            "organization:read project:read voice:read glossary:read",
+            "organization:read project:read voice:read glossary:read user:read translation:read analytics:read toki:read toki:write",
         ),
         ("state", &pending.state),
         (
