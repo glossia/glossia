@@ -10,7 +10,11 @@ struct GlossiaPreviewApp: App {
     private let screen: String
 
     init() {
-        screen = ProcessInfo.processInfo.arguments.dropFirst().first ?? "login"
+        // A cold launch through iOS's URL dispatcher has no XCTest arguments.
+        // Restore only the preview scenario, never production credentials.
+        screen = ProcessInfo.processInfo.arguments.dropFirst().first
+            ?? UserDefaults.standard.string(forKey: "glossia.preview.screen") ?? "login"
+        UserDefaults.standard.set(screen, forKey: "glossia.preview.screen")
         let session = GlossiaSession()
         session.restoring = false
         if screen != "login" {

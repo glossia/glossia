@@ -183,8 +183,13 @@ final class WorkspaceUITests: XCTestCase {
     func testColdAndWarmLinksOpenDirectRecordsWithNativeBack() {
         let app = XCUIApplication(bundleIdentifier: "ai.glossia.mobile.preview")
         app.launchArguments = ["empty"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["No conversations yet"].waitForExistence(timeout: 10))
+        app.terminate()
+        XCTAssertTrue(app.wait(for: .notRunning, timeout: 5))
         let suffix = "?server=https%3A%2F%2Fglossia.example.com%2F"
-        app.open(URL(string: "glossia://navigate/acme/website/translations/abc12345-802e-4f91-9112-77d8a919efc5" + suffix)!)
+        XCUIDevice.shared.system.open(URL(string: "glossia://navigate/acme/website/translations/abc12345-802e-4f91-9112-77d8a919efc5" + suffix)!)
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
         XCTAssertTrue(app.buttons["discuss-translation"].waitForExistence(timeout: 10))
         app.navigationBars.buttons["Translations"].tap()
         XCTAssertTrue(app.buttons["translation-abc12345-802e-4f91-9112-77d8a919efc5"].waitForExistence(timeout: 5))
