@@ -26,11 +26,11 @@ msgid "Top pages"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "Where to translate next"
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Traffic"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format, fuzzy
-msgid "Traffic"
+#, elixir-autogen, elixir-format
+msgid "Where to translate next"
 msgstr ""

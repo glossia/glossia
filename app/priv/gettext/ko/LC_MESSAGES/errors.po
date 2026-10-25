@@ -1,6 +1,9 @@
 msgid ""
 msgstr "Language: ko\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=1; plural=0;\n"
 
+msgid "are still associated with this entry"
+msgstr "이 항목들과 여전히 연결되어 있습니다"
+
 ## This is a PO Template file.
 ##
 ## `msgid`s here are often extracted from source code.
@@ -14,90 +17,87 @@ msgstr "Language: ko\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8
 msgid "can't be blank"
 msgstr "빈 값일 수 없습니다"
 
+## From Ecto.Changeset.validate_confirmation/3
+msgid "does not match confirmation"
+msgstr "확인 필드와 일치하지 않습니다"
+
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
 msgstr "이미 사용되었습니다"
-
-## From Ecto.Changeset.put_change/3
-msgid "is invalid"
-msgstr "올바르지 않습니다"
-
-## From Ecto.Changeset.validate_acceptance/3
-msgid "must be accepted"
-msgstr "수락해야 합니다"
-
-## From Ecto.Changeset.validate_format/3
-msgid "has invalid format"
-msgstr "형식이 올바르지 않습니다"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
 msgstr "잘못된 항목입니다"
 
+## From Ecto.Changeset.validate_format/3
+msgid "has invalid format"
+msgstr "형식이 올바르지 않습니다"
+
+## From Ecto.Changeset.put_change/3
+msgid "is invalid"
+msgstr "올바르지 않습니다"
+
 ## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
 msgstr "예약되어 있습니다"
-
-## From Ecto.Changeset.validate_confirmation/3
-msgid "does not match confirmation"
-msgstr "확인 필드와 일치하지 않습니다"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
 msgstr "이 항목과 여전히 연결되어 있습니다"
 
-msgid "are still associated with this entry"
-msgstr "이 항목들과 여전히 연결되어 있습니다"
+## From Ecto.Changeset.validate_acceptance/3
+msgid "must be accepted"
+msgstr "수락해야 합니다"
+
+msgid "must be equal to %{number}"
+msgstr "%{number} 와 일치해야 합니다"
+
+msgid "must be greater than %{number}"
+msgstr "%{number} 보다 커야 합니다"
+
+msgid "must be greater than or equal to %{number}"
+msgstr "%{number} 보다 크거나 같아야 합니다"
+
+## From Ecto.Changeset.validate_number/3
+msgid "must be less than %{number}"
+msgstr "%{number} 보다 작아야 합니다"
+
+msgid "must be less than or equal to %{number}"
+msgstr "%{number} 보다 작거나 같아야 합니다"
+
+msgid "should be %{count} byte(s)"
+msgid_plural "should be %{count} byte(s)"
+msgstr[0] "%{count}개 바이트가 있어야 합니다"
+
+msgid "should be %{count} character(s)"
+msgid_plural "should be %{count} character(s)"
+msgstr[0] "%{count}개 문자가 있어야 합니다"
+
+msgid "should be at least %{count} byte(s)"
+msgid_plural "should be at least %{count} byte(s)"
+msgstr[0] "최소 %{count} 바이트 이상이어야 합니다"
+
+msgid "should be at least %{count} character(s)"
+msgid_plural "should be at least %{count} character(s)"
+msgstr[0] "최소 %{count} 개 이상의 문자가 있어야 합니다"
+
+msgid "should be at most %{count} byte(s)"
+msgid_plural "should be at most %{count} byte(s)"
+msgstr[0] "최대 %{count} 바이트여야 합니다"
+
+msgid "should be at most %{count} character(s)"
+msgid_plural "should be at most %{count} character(s)"
+msgstr[0] "최대 %{count} 글자여야 합니다"
 
 ## From Ecto.Changeset.validate_length/3
 msgid "should have %{count} item(s)"
 msgid_plural "should have %{count} item(s)"
 msgstr[0] "%{count}개 항목이 있어야 합니다"
 
-msgid "should be %{count} character(s)"
-msgid_plural "should be %{count} character(s)"
-msgstr[0] "%{count}개 문자가 있어야 합니다"
-
-msgid "should be %{count} byte(s)"
-msgid_plural "should be %{count} byte(s)"
-msgstr[0] "%{count}개 바이트가 있어야 합니다"
-
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
 msgstr[0] "최소 %{count} 개 이상의 항목이 있어야 합니다"
 
-msgid "should be at least %{count} character(s)"
-msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "최소 %{count} 개 이상의 문자가 있어야 합니다"
-
-msgid "should be at least %{count} byte(s)"
-msgid_plural "should be at least %{count} byte(s)"
-msgstr[0] "최소 %{count} 바이트 이상이어야 합니다"
-
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
 msgstr[0] "최대 %{count} 개 이하의 항목이 있어야 합니다"
-
-msgid "should be at most %{count} character(s)"
-msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "최대 %{count} 글자여야 합니다"
-
-msgid "should be at most %{count} byte(s)"
-msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "최대 %{count} 바이트여야 합니다"
-
-## From Ecto.Changeset.validate_number/3
-msgid "must be less than %{number}"
-msgstr "%{number} 보다 작아야 합니다"
-
-msgid "must be greater than %{number}"
-msgstr "%{number} 보다 커야 합니다"
-
-msgid "must be less than or equal to %{number}"
-msgstr "%{number} 보다 작거나 같아야 합니다"
-
-msgid "must be greater than or equal to %{number}"
-msgstr "%{number} 보다 크거나 같아야 합니다"
-
-msgid "must be equal to %{number}"
-msgstr "%{number} 와 일치해야 합니다"

@@ -11,7 +11,7 @@ defmodule Glossia.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      gettext: [write_reference_line_numbers: false],
+      gettext: [write_reference_line_numbers: false, sort_by_msgid: :case_sensitive],
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       listeners: [Phoenix.CodeReloader]
     ]
