@@ -6,6 +6,45 @@ defmodule GlossiaWeb.ProfileLivePreferencesTest do
   alias Glossia.Accounts
   alias Glossia.TestHelpers
 
+  test "fluent languages are independent of the dashboard language, editable and removable", %{
+    conn: conn
+  } do
+    user = TestHelpers.create_user("fluent-preferences@test.com", "fluentpreferences")
+
+    {:ok, view, _} =
+      conn |> init_test_session(%{user_id: user.id}) |> live(~p"/-/settings/preferences")
+
+    view
+    |> form("#fluent-languages-form", fluency: %{languages: "es-mx, zh-Hant, es-MX"})
+    |> render_submit()
+
+    updated = Accounts.get_user(user.id)
+    assert updated.fluent_languages == ["es-MX", "zh-Hant"]
+    assert updated.locale == user.locale
+    assert has_element?(view, "#fluent-languages[value='es-MX, zh-Hant']")
+
+    view |> form("#fluent-languages-form", fluency: %{languages: ""}) |> render_submit()
+    assert Accounts.get_user(user.id).fluent_languages == []
+  end
+
+  test "invalid fluent languages keep the person's input without changing stored preferences", %{
+    conn: conn
+  } do
+    user = TestHelpers.create_user("invalid-fluency@test.com", "invalidfluency")
+    {:ok, user} = Accounts.update_user_fluent_languages(user, ["fr"])
+
+    {:ok, view, _} =
+      conn |> init_test_session(%{user_id: user.id}) |> live(~p"/-/settings/preferences")
+
+    view
+    |> form("#fluent-languages-form", fluency: %{languages: "not-a-language"})
+    |> render_submit()
+
+    assert has_element?(view, "#fluent-languages[value='not-a-language']")
+    assert render(view) =~ "Enter up to 50 supported language tags"
+    assert Accounts.get_user(user.id).fluent_languages == ["fr"]
+  end
+
   test "the language a user picks is stored on their account", %{conn: conn} do
     user = TestHelpers.create_user("preferences-language@test.com", "preferenceslanguage")
 

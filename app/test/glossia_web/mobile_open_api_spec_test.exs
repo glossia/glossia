@@ -11,10 +11,13 @@ defmodule GlossiaWeb.MobileOpenApiSpecTest do
 
     for {path, method, scope, schema, status} <- [
           {"/api/me", "get", "user:read", "MobileProfile", "200"},
+          {"/api/me/fluent-languages", "put", "user:write", "MobileProfile", "200"},
           {"/api/{handle}/projects/{project}/translations", "get", "translation:read",
            "MobileTranslations", "200"},
           {"/api/{handle}/projects/{project}/translations/{id}", "get", "translation:read",
            "MobileTranslation", "200"},
+          {"/api/{handle}/projects/{project}/translations/{id}/reviews", "get",
+           "translation:read", "LinguisticReviews", "200"},
           {"/api/{handle}/projects/{project}/analytics", "get", "analytics:read",
            "MobileAnalytics", "200"},
           {"/api/{handle}/projects/{project}/toki/conversations", "get", "toki:read",
@@ -53,6 +56,25 @@ defmodule GlossiaWeb.MobileOpenApiSpecTest do
     list_fields = schemas["MobileTranslations"]["properties"]["sessions"]["items"]["properties"]
     detail_fields = schemas["MobileTranslation"]["properties"]["session"]["properties"]
     assert Map.delete(detail_fields, "commit_sha") == list_fields
+
+    answer =
+      paths["/api/{handle}/projects/{project}/translations/{id}/reviews/{review_id}/answer"][
+        "post"
+      ]
+
+    assert answer["security"] == [%{"oauth2" => ~w(translation:read translation:write)}]
+    assert schemas["LinguisticReviewRequest"]["required"] == ["answer", "resolution_message_id"]
+    assert schemas["LinguisticReview"]["properties"]["resumed_session_id"]["format"] == "uuid"
+
+    for {path, methods} <- [
+          {"/api/me/push-devices/capabilities", ["get"]},
+          {"/api/me/push-devices/{installation_id}", ["put", "delete"]}
+        ],
+        method <- methods do
+      assert paths[path][method]["security"] == [%{"oauth2" => []}]
+    end
+
+    assert schemas["PushDeviceRequest"]["additionalProperties"] == false
   end
 
   test "analytics publishes the real traffic series and bucket-local visitor semantics" do
@@ -92,11 +114,15 @@ defmodule GlossiaWeb.MobileOpenApiSpecTest do
     assert progress["properties"]["seq"]["description"] =~ "Durable"
     item = schemas["MobileTranslationProgressItem"]
     assert Enum.sort(item["required"]) == ~w(file_ref index locale output_path status turns)
-    assert item["properties"]["status"]["enum"] == ~w(queued running done failed cancelled)
+
+    assert item["properties"]["status"]["enum"] ==
+             ~w(queued running done failed cancelled awaiting_input)
+
     refute Map.has_key?(item["properties"], "text")
     refute Map.has_key?(item["properties"], "reason")
     summary = schemas["MobileTranslationProgressSummary"]
     assert "assessed?" in summary["required"]
     assert "glossary" in summary["required"]
+    assert "awaiting_input" in summary["required"]
   end
 end

@@ -13,6 +13,9 @@ ONCE_CACHE_PROVIDER = "local"
 [tasks."prepare:rust"]
 run = "cargo vendor --quiet --locked .once/vendor > /dev/null"
 
+[tasks."localize:extract"]
+run = "python3 -B tools/extract_localizations.py"
+
 [tasks.check]
 depends = ["prepare:rust"]
 run = ["once query validate-workspace", "cargo fmt --all -- --check", "cargo clippy --locked --workspace --all-targets -- -D warnings", "once test GlossiaCoreTests"]

@@ -28,9 +28,10 @@ object GlossiaCore {
 
 class GlossiaApplication : Application() {
     val session by lazy { GlossiaSession(applicationContext) }
+    override fun onCreate() { super.onCreate(); GlossiaFirebase.initialize(this) }
 }
 
-private class Failure(val kind: String, message: String) : Exception(message)
+internal class Failure(val kind: String, message: String) : Exception(message)
 
 internal interface CredentialStorage {
     fun load(name: String): JSONObject?
@@ -38,11 +39,11 @@ internal interface CredentialStorage {
     fun delete(name: String)
 }
 
-private class SecureStorage(context: Context) : CredentialStorage {
+internal class SecureStorage(context: Context) : CredentialStorage {
     private val preferences = context.getSharedPreferences("glossia.oauth", Context.MODE_PRIVATE)
     private val alias = "ai.glossia.mobile.oauth"
 
-    private fun key(): SecretKey {
+    private fun key(): SecretKey = synchronized(keyLock) {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (store.getKey(alias, null) as? SecretKey)?.let { return it }
         return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore").run {
@@ -71,6 +72,8 @@ private class SecureStorage(context: Context) : CredentialStorage {
     }
 
     override fun delete(name: String) { check(preferences.edit().remove(name).commit()) }
+
+    companion object { private val keyLock = Any() }
 }
 
 // Application-owned models survive rotation. Only credential rotation and durable
@@ -78,7 +81,11 @@ private class SecureStorage(context: Context) : CredentialStorage {
 class GlossiaSession internal constructor(context: Context,
     private val storage: CredentialStorage = SecureStorage(context.applicationContext),
     private val bridge: (String) -> String = { GlossiaCore.execute(it) }) {
+    private val context = context.applicationContext
     val appearance = GlossiaAppearance(context, bridge)
+    val push = GlossiaPushNotifications(context.applicationContext, storage, ::pushRequest).apply {
+        listener = { this@GlossiaSession.listener?.invoke() }
+    }
     private val preferences = context.getSharedPreferences("glossia.workspace", Context.MODE_PRIVATE)
     private val credentials = Executors.newSingleThreadExecutor()
     private val requests = ThreadPoolExecutor(4, 4, 30, TimeUnit.SECONDS, ArrayBlockingQueue(32))
@@ -124,7 +131,8 @@ class GlossiaSession internal constructor(context: Context,
     private val unavailableTranslations = mutableSetOf<String>()
     val analytics = AnalyticsModel()
     val profile = FeatureModel()
-    val toki = TokiModel()
+    val fluentLanguages = FluentLanguagesModel()
+    val toki = TokiModel { context.nativeText(it).toString() }
     private val tokiNotifications = TokiNotifications(context.applicationContext,
         { appearance.color(context, R.color.glossia_primary) ?: context.token(R.color.glossia_primary) }, ::tokiNotificationLink)
     val workspacePicker = WorkspacePickerModel()
@@ -149,7 +157,7 @@ class GlossiaSession internal constructor(context: Context,
 
     private fun snapshot(ticket: Int): JSONObject {
         check(ticket == generation)
-        val saved = storage.load("session") ?: throw Failure("sign_in_required", "Sign in to Glossia again.")
+        val saved = storage.load("session") ?: throw Failure("sign_in_required", context.nativeText("Sign in to Glossia again.").toString())
         val session = command(JSONObject().put("operation", "restore").put("session", saved))
         check(ticket == generation)
         storage.save("session", session) // Commit rotated credentials even if the API fails.
@@ -158,9 +166,9 @@ class GlossiaSession internal constructor(context: Context,
     }
 
     private fun message(error: Throwable): String = when (error) {
-        is Failure -> error.message ?: "Request failed."
-        is java.util.concurrent.RejectedExecutionException -> "Too many requests. Please try again."
-        else -> "Could not complete the request securely. Please try again."
+        is Failure -> error.message ?: context.nativeText("Request failed.").toString()
+        is java.util.concurrent.RejectedExecutionException -> context.nativeText("Too many requests. Please try again.").toString()
+        else -> context.nativeText("Could not complete the request securely. Please try again.").toString()
     }
 
     // Executed on the credential executor. A late response may never delete a
@@ -168,6 +176,7 @@ class GlossiaSession internal constructor(context: Context,
     private fun reject(error: Throwable, ticket: Int, revision: Long = credentialRevision): Boolean {
         if (ticket != generation || revision != credentialRevision || error !is Failure ||
             error.kind !in listOf("rejected", "sign_in_required")) return false
+        endPushSession()
         storage.delete("session")
         storage.delete("pending")
         if (error.kind == "rejected") storage.delete("registration")
@@ -209,6 +218,7 @@ class GlossiaSession internal constructor(context: Context,
                 val saved = JSONObject(preferences.getString("selection", "{}") ?: "{}")
                 organization = saved.optionalString("organization"); project = saved.optionalString("project")
                 appearance.configure(server!!)
+                push.configure(server)
                 reload()
             }
         }
@@ -235,7 +245,7 @@ class GlossiaSession internal constructor(context: Context,
         if (busy) { deferredCallback = url; return }
         val ticket = generation
         credentialWork({
-            val pending = storage.load("pending") ?: throw Failure("callback", "No sign-in is waiting. Start a new sign-in.")
+            val pending = storage.load("pending") ?: throw Failure("callback", context.nativeText("No sign-in is waiting. Start a new sign-in.").toString())
             try {
                 command(JSONObject().put("operation", "validate_callback").put("pending", pending).put("callback", url))
             } catch (failure: Failure) {
@@ -250,6 +260,7 @@ class GlossiaSession internal constructor(context: Context,
             clearFeatures()
             server = session?.getJSONObject("registration")?.getString("server")
             server?.let(appearance::configure)
+            push.configure(server)
             reload()
         }
     }
@@ -269,7 +280,7 @@ class GlossiaSession internal constructor(context: Context,
                 val resolved = result.getJSONObject("selection")
                 if (organization != resolved.optionalString("organization") || project != resolved.optionalString("project")) {
                     if (protectWork()) {
-                        error = "The workspace changed. Finish your Toki draft or unconfirmed message before reloading."
+                        error = context.nativeText("The workspace changed. Finish your Toki draft or unconfirmed message before reloading.").toString()
                         return@request
                     }
                     clearFeatures()
@@ -314,7 +325,7 @@ class GlossiaSession internal constructor(context: Context,
                 if (result.optJSONObject("selection")?.optionalString("organization") == handle) {
                     workspacePicker.projects = result.getJSONArray("projects")
                     workspacePicker.loaded = true
-                } else workspacePicker.error = "This organization is no longer available. Choose another organization."
+                } else workspacePicker.error = context.nativeText("This organization is no longer available. Choose another organization.").toString()
             }
         }
         changed()
@@ -339,6 +350,7 @@ class GlossiaSession internal constructor(context: Context,
     }
 
     fun selectTab(value: String) {
+        if (toki.active?.protectsDecision == true && protectWork()) { changed(); return }
         cancelNavigation()
         if (value == "Toki") toki.activeId = null
         tab = value
@@ -383,12 +395,74 @@ class GlossiaSession internal constructor(context: Context,
         }
     }
 
+    // Installation enrollment is account-wide, not tied to a project generation.
+    private fun pushRequest(value: JSONObject, completion: (Result<JSONObject>) -> Unit) {
+        val ticket = generation
+        fun finish(result: Result<JSONObject>, revision: Long) {
+            credentials.execute {
+                if (ticket != generation) return@execute
+                val invalid = result.exceptionOrNull()?.let { runCatching { reject(it, ticket, revision) }.getOrDefault(false) } ?: false
+                main.post {
+                    if (ticket != generation) return@post
+                    if (invalid) { reset(); error = context.nativeText("Sign in to Glossia again.").toString() }
+                    completion(result); listener?.invoke()
+                }
+            }
+        }
+        credentials.execute {
+            if (ticket != generation) return@execute
+            val saved = runCatching { snapshot(ticket) }
+            val revision = credentialRevision
+            if (saved.isFailure) { finish(Result.failure(saved.exceptionOrNull()!!), revision); return@execute }
+            try {
+                requests.execute {
+                    if (ticket == generation) finish(runCatching {
+                        command(value.put("operation", "push").put("session", saved.getOrThrow()))
+                    }, revision)
+                }
+            } catch (failure: java.util.concurrent.RejectedExecutionException) { finish(Result.failure(failure), revision) }
+        }
+    }
+
+    private fun endPushSession() {
+        val session = storage.load("session") ?: return
+        val origin = session.optJSONObject("registration")?.optionalString("server") ?: return
+        val saved = GlossiaPushStorage.disable(storage, origin) ?: return
+        val payload = JSONObject().put("operation", "push").put("action", "unregister")
+            .put("installation_id", saved.getString("installation_id")).put("session", session)
+        // Independent from logout and project networking. The server tombstones
+        // DELETEs so a late PUT from the old session cannot enroll again.
+        runCatching { requests.execute { runCatching { command(payload) } } }
+    }
+
+    internal fun consumePushIntent(intent: android.content.Intent): Boolean {
+        val raw = intent.getStringExtra("glossia.push") ?: return false
+        intent.removeExtra("glossia.push"); intent.data = null
+        if (intent.action != android.content.Intent.ACTION_VIEW ||
+            intent.flags and android.content.Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return true
+        runCatching {
+            val session = storage.load("session") ?: return true
+            val origin = session.getJSONObject("registration").getString("server")
+            val saved = storage.load(GlossiaPushStorage.key(origin)) ?: return true
+            val payload = JSONObject(raw)
+            val data = payload.keys().asSequence().associateWith { payload.getString(it) }
+            GlossiaPushPayload.destination(data, origin, saved) { url ->
+                command(JSONObject().put("operation", "navigation").put("action", "parse").put("url", url))
+                    .getJSONObject("destination").let(GlossiaDestination::fromCore)
+            }?.let(::receiveLink)
+        }
+        return true
+    }
+
     fun signOut(resetRegistration: Boolean = false) {
+        try { server?.let { GlossiaPushStorage.disable(storage, it) } }
+        catch (_: Exception) { error = context.nativeText("Could not securely disable notifications. Try signing out again.").toString(); listener?.invoke(); return }
         reset() // Fence in-flight requests immediately, not after their network calls.
         busy = true; error = null
         val ticket = generation
         credentials.execute {
             val result = runCatching {
+                endPushSession()
                 if (resetRegistration) storage.delete("registration")
                 storage.delete("pending"); storage.delete("session")
                 credentialRevision += 1
@@ -403,6 +477,7 @@ class GlossiaSession internal constructor(context: Context,
     }
 
     private fun reset() {
+        push.prepareForSessionEnd()
         generation += 1; workspaceTicket += 1
         clearFeatures()
         server = null; organization = null; project = null; projects = JSONArray(); organizations = JSONArray()
@@ -420,6 +495,7 @@ class GlossiaSession internal constructor(context: Context,
         scopeGeneration += 1
         resolvingNavigation = false
         translations.clear(); translation.clear(); analytics.clear(); profile.clear(); toki.clear()
+        fluentLanguages.clear()
         unavailableTranslations.clear()
         workspacePicker.clear()
         main.removeCallbacks(poll)
@@ -434,11 +510,12 @@ class GlossiaSession internal constructor(context: Context,
         main.removeCallbacks(poll)
         val thread = toki.active
         if (foreground && tab == "Toki" && thread != null &&
-            thread.running && !thread.busy && thread.error == null) main.postDelayed(poll, 2500)
+            thread.shouldPollVisible && !thread.busy && !thread.resolving && thread.error == null) main.postDelayed(poll, 2500)
     }
 
     fun setForeground(value: Boolean) {
         foreground = value
+        push.setForeground(value)
         if (!value) toki.threads.values.forEach { it.pauseWorkObservation() }
         if (value) appearance.refresh()
         if (value) loadCurrent()
@@ -471,7 +548,7 @@ class GlossiaSession internal constructor(context: Context,
             "Toki" -> if (organization != null && project != null) {
                 if (force || !toki.history.loaded) loadPage(toki.history, refresh = force)
                 toki.active?.let {
-                    if (it.created && (force || !it.loaded || it.running || it.workStatus in listOf("queued", "running"))) fetchConversation(it.id)
+                    if (it.created && (force || !it.loaded || it.shouldPollVisible || it.sharedGoal || it.workStatus in listOf("queued", "running"))) fetchConversation(it.id)
                 }
             }
             "Translations" -> if (organization != null && project != null) {
@@ -532,6 +609,28 @@ class GlossiaSession internal constructor(context: Context,
         changed()
     }
 
+    fun editFluentLanguages() {
+        if (!profile.loaded || fluentLanguages.saving) return
+        fluentLanguages.draft = profile.data?.optJSONObject("user")?.optJSONArray("fluent_languages")?.let { values ->
+            (0 until values.length()).joinToString(", ") { values.getString(it) }
+        }.orEmpty()
+        fluentLanguages.error = null; changed()
+    }
+
+    fun discardFluentLanguages() { if (!fluentLanguages.saving) { fluentLanguages.clear(); changed() } }
+
+    fun saveFluentLanguages() {
+        if (fluentLanguages.draft == null || fluentLanguages.saving) return
+        fluentLanguages.saving = true; fluentLanguages.error = null
+        request(JSONObject().put("operation", "fluent_languages").put("fluent_languages", JSONArray(fluentLanguages.languages))) { result, failure ->
+            fluentLanguages.saving = false
+            if (result?.optJSONObject("user")?.optJSONArray("fluent_languages") != null) {
+                profile.data = result; profile.loaded = true; fluentLanguages.clear()
+            } else fluentLanguages.error = failure?.let(::message) ?: context.nativeText("Could not confirm fluent languages. Your draft is unchanged.").toString()
+        }
+        changed()
+    }
+
     fun receiveLink(url: String) {
         beginNavigation(JSONObject().put("operation", "navigation").put("action", "parse").put("url", url))
     }
@@ -544,7 +643,7 @@ class GlossiaSession internal constructor(context: Context,
         cancelNavigation(); navigationNotice = null
         val ticket = navigationTicket
         navigationWork(ticket, command) { result ->
-            if (result == null) navigationNotice = "This Glossia link is invalid or unsupported."
+            if (result == null) navigationNotice = context.nativeText("This Glossia link is invalid or unsupported.").toString()
             else {
                 pendingDestination = GlossiaDestination.fromCore(result.getJSONObject("destination"))
                 resolveNavigation()
@@ -580,10 +679,11 @@ class GlossiaSession internal constructor(context: Context,
         navigationTicket += 1; pendingDestination = null; resolvingNavigation = false
     }
 
-    private fun protectedThreads() = toki.threads.values.filter { it.draft.isNotEmpty() || it.pending != null || it.busy && !it.created }
-    val hasProtectedWork get() = protectedThreads().isNotEmpty()
+    private fun protectedThreads() = toki.threads.values.filter { it.protectsDecision || it.draft.isNotEmpty() || it.pending != null || it.busy && !it.created }
+    val hasProtectedWork get() = protectedThreads().isNotEmpty() || fluentLanguages.protectsDraft
 
     fun resumeUnsentWork() {
+        if (fluentLanguages.protectsDraft) { cancelNavigation(); tab = "Profile"; navigationNotice = null; changed(); return }
         val thread = protectedThreads().firstOrNull() ?: return
         cancelNavigation(); navigationNotice = null
         tab = "Toki"; toki.activeId = thread.id
@@ -593,10 +693,14 @@ class GlossiaSession internal constructor(context: Context,
     // Explicitly discard only local work. An ambiguous send might already have
     // reached the server; this is not a cancellation or a server-side deletion.
     fun discardUnsentWork() {
+        if (fluentLanguages.saving || toki.threads.values.any { it.resolving }) {
+            navigationNotice = context.nativeText("A decision is being saved. Wait for the result before leaving.").toString(); changed(); return
+        }
         cancelNavigation()
+        fluentLanguages.clear()
         protectedThreads().forEach { thread ->
             val hadPending = thread.pending != null
-            thread.writeTicket += 1; thread.draft = ""; thread.pending = null
+            thread.writeTicket += 1; thread.draft = ""; thread.pending = null; thread.discardDecision()
             if (!thread.created) {
                 thread.clear(); toki.threads.remove(thread.id)
                 if (toki.activeId == thread.id) toki.activeId = null
@@ -604,14 +708,14 @@ class GlossiaSession internal constructor(context: Context,
                 thread.busy = false; thread.error = null; thread.loaded = false
             }
         }
-        navigationNotice = "Local unsent work discarded. A message already received by the server may still complete. Open the link again when ready."
+        navigationNotice = context.nativeText("Local unsent work discarded. A message already received by the server may still complete. Open the link again when ready.").toString()
         changed()
     }
 
     private fun protectWork(): Boolean {
-        if (protectedThreads().isEmpty()) return false
+        if (!hasProtectedWork) return false
         workspacePicker.clear() // A blocking notice must not sit behind a modal.
-        navigationNotice = "Your Toki draft or unconfirmed message is safe. Return to finish it, or explicitly discard local unsent work, then open the link again."
+        navigationNotice = context.nativeText("Your draft or unconfirmed reply is safe. Return to finish it, or explicitly discard local unsent work, then open the link again.").toString()
         return true
     }
 
@@ -633,7 +737,7 @@ class GlossiaSession internal constructor(context: Context,
             }
             if (result == null || result.getJSONObject("destination").getString("server") != destination.server) {
                 cancelNavigation()
-                navigationNotice = "This link belongs to a different Glossia server. Sign out, sign in to ${destination.server}, then open the link again."
+                navigationNotice = context.nativeFormat("This link belongs to a different Glossia server. Sign out, sign in to %1\$s, then open the link again.", destination.server)
                 changed()
             } else if (protectWork()) {
                 cancelNavigation(); changed()
@@ -646,14 +750,14 @@ class GlossiaSession internal constructor(context: Context,
                     resolvingNavigation = false
                     if (!workspaceReady || busy || server != address) return@request
                     if (workspace == null) {
-                        navigationNotice = "Could not open the linked workspace. ${failure?.let(::message) ?: "Try again."}"
+                        navigationNotice = context.nativeFormat("Could not open the linked workspace. %1\$s", failure?.let(::message) ?: context.nativeText("Try again."))
                     } else {
                         val resolved = workspace.getJSONObject("selection")
                         fun contains(items: JSONArray, handle: String?) = (0 until items.length()).any { items.getJSONObject(it).optionalString("handle") == handle }
                         if (resolved.optionalString("organization") != destination.organization || resolved.optionalString("project") != destination.project ||
                             !contains(workspace.getJSONArray("organizations"), destination.organization) || !contains(workspace.getJSONArray("projects"), destination.project)) {
                             cancelNavigation()
-                            navigationNotice = "The linked organization or project is not accessible. Ask a workspace administrator for access, then open the link again."
+                            navigationNotice = context.nativeText("The linked organization or project is not accessible. Ask a workspace administrator for access, then open the link again.").toString()
                         } else if (protectWork()) {
                             cancelNavigation()
                         } else {
@@ -695,6 +799,11 @@ class GlossiaSession internal constructor(context: Context,
         navigate(GlossiaDestination(GlossiaScreen.TRANSLATION, address, organization, project, id))
     }
 
+    fun openReviewConversation(id: String) {
+        val address = server ?: return
+        navigate(GlossiaDestination(GlossiaScreen.CONVERSATION, address, organization, project, id))
+    }
+
     fun shareTranslation(share: (String) -> Unit) {
         val address = server ?: return
         val id = translation.id ?: return
@@ -706,7 +815,7 @@ class GlossiaSession internal constructor(context: Context,
             .put("destination", destination.json())) { result ->
             if (scopeTicket != scopeGeneration || recordTicket != translation.ticket || tab != "Translations") return@navigationWork
             if (result == null) {
-                navigationNotice = "Could not create a translation link. Try sharing again."
+                navigationNotice = context.nativeText("Could not create a translation link. Try sharing again.").toString()
                 changed()
             } else share(result.getString("url")) // Only Rust's canonical URL, never credentials or API payloads.
         }
@@ -743,7 +852,7 @@ class GlossiaSession internal constructor(context: Context,
             }
             translation.error = when {
                 failure is Failure && failure.kind in listOf("forbidden", "not_found") ->
-                    "This translation is not available or you do not have access. Retry to check access."
+                    context.nativeText("This translation is not available or you do not have access. Retry to check access.").toString()
                 translation.liveSnapshotRevision != liveRevision -> null
                 else -> failure?.let(::message)
             }
@@ -756,6 +865,52 @@ class GlossiaSession internal constructor(context: Context,
                     translation.progress = result.optJSONObject("progress")
                     translation.loaded = true
                 }
+                loadTranslationReviews()
+            }
+        }
+        changed()
+    }
+
+    fun loadTranslationReviews() {
+        val id = translation.id ?: return
+        val model = translation.reviews
+        if (model.busy || translation.data == null) return
+        val ticket = ++model.ticket
+        model.busy = true; model.error = null
+        request(JSONObject().put("operation", "translation_reviews").put("action", "list")
+            .put("selection", selection).put("id", id)) { result, failure ->
+            if (ticket != model.ticket || translation.id != id) return@request
+            model.busy = false
+            if (failure is Failure && failure.kind in listOf("forbidden", "not_found")) {
+                model.clear()
+                model.error = context.nativeText("You do not have permission to view linguistic reviews.").toString()
+            } else if (result != null) {
+                runCatching { model.accept(result, id) }.onFailure { model.error = message(it) }
+            } else model.error = failure?.let(::message)
+        }
+        changed()
+    }
+
+    fun saveGoalDecision() {
+        val thread = toki.active ?: return
+        if (!thread.canSaveDecision) return
+        val goal = thread.goal ?: return
+        val draft = thread.decision ?: return
+        val ticket = ++thread.writeTicket
+        thread.resolving = true; thread.resolutionError = null
+        val payload = JSONObject().put("operation", "translation_reviews").put("action", "answer")
+            .put("selection", selection).put("id", goal.getString("translation_session_id"))
+            .put("review_id", goal.getString("id")).put("answer", draft.answer)
+            .put("resolution_message_id", thread.resolutionMessageId)
+        if (draft.reusable) payload.put("guidance", draft.guidance).put("context_scope", draft.scope)
+        request(payload) { result, failure ->
+            if (ticket != thread.writeTicket) return@request
+            thread.resolving = false; thread.resolutionNeedsRefresh = true
+            if (failure == null && result != null) {
+                thread.resolutionAcknowledged = true
+                fetchConversation(thread.id)
+            } else {
+                thread.resolutionError = context.nativeFormat("%1\$s Refresh the conversation before explicitly retrying; the decision may already be saved.", failure?.let(::message) ?: context.nativeText("Could not confirm the saved decision."))
             }
         }
         changed()
@@ -807,7 +962,7 @@ class GlossiaSession internal constructor(context: Context,
                 main.post {
                     if (!current()) { handle?.let(::closeTranslationHandle); return@post }
                     liveOpening = false
-                    if (invalid) { reset(); error = "Sign in to Glossia again."; changed(); return@post }
+                    if (invalid) { reset(); error = context.nativeText("Sign in to Glossia again.").toString(); changed(); return@post }
                     if (handle != null) {
                         liveConnection = handle
                         nextTranslationLive(handle, ticket)
@@ -861,7 +1016,9 @@ class GlossiaSession internal constructor(context: Context,
                 // legitimately carry exactly the same progress sequence.
                 if (sequence != null && sequence > liveAfter) {
                     liveAfter = sequence
+                    val previousStatus = translation.data?.optionalString("status")
                     delivery.optJSONObject("snapshot")?.let(translation::acceptSnapshot)
+                    if (translation.data?.optionalString("status") == "awaiting_input" && previousStatus != "awaiting_input") loadTranslationReviews()
                 }
                 val state = delivery.optString("state", "reconnecting")
                 val failure = delivery.optionalString("error")
@@ -910,7 +1067,7 @@ class GlossiaSession internal constructor(context: Context,
             openTranslationLive()
         } else {
             denyTranslation(requireNotNull(translation.id))
-            translation.error = "Sign in to Glossia again to view this translation."
+            translation.error = context.nativeText("Sign in to Glossia again to view this translation.").toString()
         }
     }
 
@@ -956,17 +1113,19 @@ class GlossiaSession internal constructor(context: Context,
         if (translation.id == id) {
             stopTranslationLive()
             translation.ticket += 1; translation.busy = false; translation.data = null; translation.loaded = false
+            translation.reviews.clear()
             translation.progress = null; translation.liveState = "unavailable"
-            translation.error = "This translation is not available or you do not have access. Retry to check access."
+            translation.error = context.nativeText("This translation is not available or you do not have access. Retry to check access.").toString()
         }
         toki.threads.values.filter { it.translationSessionId == id }.forEach {
             it.clearWorkObservation()
-            it.source.clear(); it.source.error = "The source translation is no longer accessible."
+            it.source.clear(); it.source.error = context.nativeText("The source translation is no longer accessible.").toString()
         }
     }
 
     fun back(): Boolean {
         cancelNavigation()
+        if (tab == "Toki" && toki.active?.protectsDecision == true && protectWork()) { changed(); return true }
         when {
             tab == "Translations" && translation.id != null -> { translation.clear(); loadCurrent() }
             tab == "Toki" && toki.activeId != null -> { toki.activeId = null; loadCurrent() }
@@ -977,6 +1136,7 @@ class GlossiaSession internal constructor(context: Context,
 
     fun newConversation() {
         if (server == null || organization == null || project == null) return
+        if (toki.active?.protectsDecision == true && protectWork()) { changed(); return }
         cancelNavigation()
         // Local navigation never discards other drafts or unconfirmed retries.
         // Workspace/deep-link changes still go through protectWork().
@@ -987,19 +1147,23 @@ class GlossiaSession internal constructor(context: Context,
 
     fun showConversation(id: String) {
         if (server == null || organization == null || project == null) return
+        if (toki.active?.protectsDecision == true && toki.activeId != id && protectWork()) { changed(); return }
         cancelNavigation()
         tab = "Toki"
         fetchConversation(id)
     }
 
     private fun fetchConversation(id: String) {
-        val thread = toki.threads.getOrPut(id) { ConversationModel(id, created = true) }
+        val thread = toki.threads.getOrPut(id) { ConversationModel(id, created = true, localize = { context.nativeText(it).toString() }) }
         toki.activeId = id
-        if (thread.busy || thread.pending != null || !thread.created) { changed(); return }
+        if (thread.busy || thread.resolving || thread.pending != null || !thread.created) { changed(); return }
         thread.busy = true; thread.error = null
         request(conversationRequest(thread, "show")) { result, failure ->
             conversationFailure(thread, failure)
-            if (result != null) { thread.accept(result); loadSource(thread) }
+            if (result != null) {
+                try { thread.accept(result); loadSource(thread) }
+                catch (_: Exception) { thread.unavailable = true; thread.error = context.nativeText("Glossia returned an invalid shared conversation. Refresh to retry.").toString() }
+            }
         }
         changed()
     }
@@ -1007,7 +1171,7 @@ class GlossiaSession internal constructor(context: Context,
     fun sendMessage() {
         if (server == null || organization == null || project == null) return
         val thread = toki.active ?: return
-        if (thread.busy || thread.running || thread.unavailable) return
+        if (thread.busy || thread.running || thread.unavailable || thread.goalClosed || thread.protectsDecision || thread.resolutionNeedsRefresh) return
         if (thread.pending == null) {
             if (thread.draft.isBlank() || thread.draft.codePointCount(0, thread.draft.length) > 4000) return
             thread.pending = PendingMessage(java.util.UUID.randomUUID().toString(), thread.draft)
@@ -1052,7 +1216,7 @@ class GlossiaSession internal constructor(context: Context,
         thread.busy = false
         thread.error = when {
             failure == null -> null
-            thread.unavailable -> "This conversation is no longer available. Retry to check access, or start a new conversation."
+            thread.unavailable -> context.nativeText("This conversation is no longer available. Retry to check access, or start a new conversation.").toString()
             else -> message(failure)
         }
     }
@@ -1064,7 +1228,7 @@ class GlossiaSession internal constructor(context: Context,
     private fun pollConversation() {
         if (!foreground || tab != "Toki") return
         val thread = toki.active ?: return
-        if (thread.running && !thread.busy && thread.error == null) fetchConversation(thread.id)
+        if (thread.shouldPollVisible && !thread.busy && !thread.resolving && thread.error == null) fetchConversation(thread.id)
     }
 }
 

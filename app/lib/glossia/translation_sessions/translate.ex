@@ -93,6 +93,23 @@ defmodule Glossia.TranslationSessions.Translate do
           {{:ok, _changes}, {:error, reason}} ->
             fail_translation(session, project, account, {:translation_publication_failed, reason})
 
+          {{:awaiting_input, changes}, :ok} ->
+            case publication_result(session, project, token, changes) do
+              {:error, reason} ->
+                fail_translation(
+                  session,
+                  project,
+                  account,
+                  {:translation_publication_failed, reason}
+                )
+
+              _ ->
+                Glossia.LinguisticReviews.pause(session.id)
+            end
+
+          {{:awaiting_input, _changes}, {:error, reason}} ->
+            fail_translation(session, project, account, {:translation_publication_failed, reason})
+
           {{:error, reason}, {:error, publication_reason}} ->
             fail_translation(
               session,

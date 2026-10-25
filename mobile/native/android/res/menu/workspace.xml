@@ -1,6 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/compose_conversation" android:title="Compose" android:icon="@drawable/ic_compose" app:iconTint="?attr/colorOnSurfaceVariant" app:showAsAction="always" android:visible="false" />
-    <item android:id="@+id/choose_workspace" android:title="Choose workspace" android:icon="@drawable/ic_workspace" app:iconTint="?attr/colorOnSurfaceVariant" app:showAsAction="always" />
+    <item android:id="@+id/compose_conversation" android:title="@string/native_98652afe6ee7c577" android:icon="@drawable/ic_compose" app:iconTint="?attr/colorOnSurfaceVariant" app:showAsAction="always" android:visible="false" />
+    <item android:id="@+id/choose_workspace" android:title="@string/native_94b211b56e22d4d9" android:icon="@drawable/ic_workspace" app:iconTint="?attr/colorOnSurfaceVariant" app:showAsAction="always" />
     <!-- Both actions share the toolbar's runtime palette, without a static-theme overflow popup. -->
-    <item android:id="@+id/refresh" android:title="Refresh" android:icon="@drawable/ic_refresh" app:iconTint="?attr/colorOnSurfaceVariant" app:showAsAction="always" />
+    <item android:id="@+id/refresh" android:title="@string/native_0e91610117029a62" android:icon="@drawable/ic_refresh" app:iconTint="?attr/colorOnSurfaceVariant" app:showAsAction="always" />
 </menu>

@@ -16,6 +16,13 @@ pub(crate) enum Body<'a> {
     Form(Vec<(&'a str, &'a str)>),
     Api(&'a str),
     ApiJson(&'a str, Value),
+    ApiPut(&'a str, Value),
+    Push {
+        method: reqwest::Method,
+        token: &'a str,
+        payload: Option<Value>,
+        failure: fn(u16, &[u8]) -> AuthError,
+    },
 }
 
 pub(crate) trait Transport {
@@ -27,9 +34,12 @@ pub(crate) struct Network;
 impl Transport for Network {
     fn request<T: DeserializeOwned>(&self, url: &Url, body: Body<'_>) -> Result<T> {
         let client = client()?;
-        let api = matches!(&body, Body::Api(_) | Body::ApiJson(_, _));
+        let api = matches!(
+            &body,
+            Body::Api(_) | Body::ApiJson(_, _) | Body::ApiPut(_, _) | Body::Push { .. }
+        );
         let failure = match &body {
-            Body::Public { failure } => Some(*failure),
+            Body::Public { failure } | Body::Push { failure, .. } => Some(*failure),
             _ => None,
         };
         let request = match body {
@@ -38,6 +48,20 @@ impl Transport for Network {
             Body::Form(pairs) => client.post(url.clone()).form(&pairs),
             Body::Api(token) => client.get(url.clone()).bearer_auth(token),
             Body::ApiJson(token, value) => client.post(url.clone()).bearer_auth(token).json(&value),
+            Body::ApiPut(token, value) => client.put(url.clone()).bearer_auth(token).json(&value),
+            Body::Push {
+                method,
+                token,
+                payload,
+                ..
+            } => {
+                let request = client.request(method, url.clone()).bearer_auth(token);
+                if let Some(payload) = payload {
+                    request.json(&payload)
+                } else {
+                    request
+                }
+            }
         };
         response(
             request
@@ -163,6 +187,58 @@ mod tests {
             request
         });
         (url, worker)
+    }
+
+    #[test]
+    fn push_puts_and_deletes_use_real_bearer_transport_without_redirects_or_error_body_leaks() {
+        for method in [reqwest::Method::PUT, reqwest::Method::DELETE] {
+            for status in [200, 302, 401, 403, 404, 503] {
+                let payload =
+                    (method == reqwest::Method::PUT).then(|| json!({"token":"provider-token"}));
+                let (url, worker) = serve(
+                    status,
+                    json!({"deleted":true,"private":"never-echo"}).to_string(),
+                );
+                let result: Result<Value> = Network.request(
+                    &url,
+                    Body::Push {
+                        method: method.clone(),
+                        token: "access",
+                        payload: payload.clone(),
+                        failure: |_, _| error("push_unavailable", "Push unavailable."),
+                    },
+                );
+                let request = worker.join().unwrap();
+                assert!(request.starts_with(&format!("{method} /fixed HTTP/1.1\r\n")));
+                let (headers, body) = request.split_once("\r\n\r\n").unwrap();
+                assert!(
+                    headers
+                        .to_ascii_lowercase()
+                        .contains("authorization: bearer access")
+                );
+                assert!(
+                    headers
+                        .to_ascii_lowercase()
+                        .contains("cache-control: no-store")
+                );
+                if let Some(payload) = payload {
+                    assert_eq!(serde_json::from_str::<Value>(body).unwrap(), payload);
+                } else {
+                    assert!(body.is_empty());
+                }
+                if status == 200 {
+                    assert_eq!(result.unwrap()["deleted"], true);
+                } else {
+                    let failure = result.unwrap_err();
+                    assert_eq!(failure.kind, "push_unavailable");
+                    assert!(
+                        !serde_json::to_string(&failure)
+                            .unwrap()
+                            .contains("never-echo")
+                    );
+                }
+            }
+        }
     }
 
     #[test]

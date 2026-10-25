@@ -62,6 +62,7 @@ defmodule Glossia.Application do
         Glossia.Repo,
         Glossia.ClickHouseRepo,
         Glossia.IngestRepo,
+        Glossia.Push.Supervisor,
         {Oban, Application.fetch_env!(:glossia, Oban)},
         {DNSCluster, query: Application.get_env(:glossia, :dns_cluster_query) || :ignore},
         {Phoenix.PubSub, name: Glossia.PubSub},

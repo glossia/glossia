@@ -22,16 +22,16 @@ class FeatureViews(private val context: Context) {
             if (model.loaded && model.items.isEmpty()) body.addSpaced(empty(R.drawable.toki_languages, "Ready for your first words", "Translation sessions will appear here when your project starts translating."))
             model.items.forEach { item ->
                 body.addSpaced(context.card {
-                    addSpaced(context.heading(item.optionalString("commit_message") ?: "Translation session", 18f), 8)
+                    addSpaced(context.heading(item.optionalString("commit_message") ?: context.nativeText("Translation session").toString(), 18f, verbatim = true), 8)
                     addSpaced(Chip(context).apply {
-                        text = item.optString("status", "Unknown").replaceFirstChar { it.uppercase() }
+                        text = context.nativeText(translationStatus(item.optString("status", "Unknown")))
                         isCheckable = false; isClickable = false
                     }, 8)
                     val targets = item.optJSONArray("target_languages") ?: JSONArray()
                     val languages = (0 until targets.length()).joinToString(", ") { targets.optString(it) }
-                    addSpaced(context.label("${item.optionalString("source_language") ?: "Source"} → ${languages.ifEmpty { "No target languages" }}", 14f, true), 8)
-                    addSpaced(context.label("${number(item, "translated_content_count")} translated items", 14f), 8)
-                    item.optionalString("summary")?.let { addSpaced(context.label(it, 14f, true), 8) }
+                    addSpaced(context.label("\u2068${item.optionalString("source_language") ?: context.nativeText("Source")}\u2069 → \u2068${languages.ifEmpty { context.nativeText("No target languages").toString() }}\u2069", 14f, true, verbatim = true), 8)
+                    addSpaced(context.label(context.nativeFormat("Translated items: %1\$s", number(item, "translated_content_count")), 14f), 8)
+                    item.optionalString("summary")?.let { addSpaced(context.label(it, 14f, true, verbatim = true), 8) }
                     item.optionalString("inserted_at")?.let { addView(context.label(displayDate(it), 12f, true)) }
                     item.optionalString("id")?.let { id -> addView(context.button("View translation") { open(id) }) }
                 })
@@ -44,26 +44,36 @@ class FeatureViews(private val context: Context) {
         return context.scroll(body)
     }
 
-    fun translation(model: TranslationModel, retry: () -> Unit, back: () -> Unit, discuss: () -> Unit, share: () -> Unit = {}): View {
+    fun translation(model: TranslationModel, retry: () -> Unit, back: () -> Unit, discuss: () -> Unit, share: () -> Unit = {},
+        refreshReviews: () -> Unit = {}, openReview: (String) -> Unit = {}): View {
         val body = context.column(20)
         body.addSpaced(context.button("Back to translations", action = back), 8)
         body.addSpaced(context.heading("Translation detail"), 16)
         if (model.busy) body.loading("Loading translation…")
         body.failure(model.error, retry)
+        if (model.data != null) {
+            val answered = model.reviews.loaded && model.reviews.items.any { it.optString("status") == "answered" } &&
+                model.reviews.items.none { it.optString("status") == "open" }
+            val status = if (model.data?.optString("status") == "awaiting_input" && answered) "Linguistic input answered" else translationStatus(model.data?.optString("status") ?: "Unknown")
+            body.addSpaced(context.label(status, 16f), 12)
+            body.addSpaced(TranslationReviewsView(context, model.reviews, refreshReviews, openReview))
+        }
         if (model.data != null || model.liveState in listOf("connecting", "reconnecting")) {
             body.addSpaced(translationProgress(model))
         }
         model.data?.let { item ->
             body.addSpaced(context.card {
-                addSpaced(context.heading(item.optionalString("commit_message") ?: "Translation session", 20f), 12)
+                addSpaced(context.heading(item.optionalString("commit_message") ?: context.nativeText("Translation session").toString(), 20f, verbatim = true), 12)
                 addSpaced(Chip(context).apply {
-                    text = item.optString("status", "Unknown").replaceFirstChar { it.uppercase() }
+                    text = context.nativeText(if (item.optString("status") == "awaiting_input" && model.reviews.loaded &&
+                        model.reviews.items.any { it.optString("status") == "answered" } && model.reviews.items.none { it.optString("status") == "open" })
+                        "Linguistic input answered" else translationStatus(item.optString("status", "Unknown")))
                     isClickable = false; isCheckable = false
                 }, 16)
-                detail("Summary", item.optionalString("summary") ?: "No summary is available for this translation.")
+                detail("Summary", item.optionalString("summary") ?: context.nativeText("No summary is available for this translation.").toString())
                 val targets = item.optJSONArray("target_languages") ?: JSONArray()
-                detail("Languages", "${item.optionalString("source_language") ?: "Source"} → " +
-                    (0 until targets.length()).joinToString(", ") { targets.optString(it) }.ifEmpty { "No target languages" })
+                detail("Languages", "\u2068${item.optionalString("source_language") ?: context.nativeText("Source")}\u2069 → \u2068" +
+                    (0 until targets.length()).joinToString(", ") { targets.optString(it) }.ifEmpty { context.nativeText("No target languages").toString() } + "\u2069")
                 detail("Translated items", number(item, "translated_content_count"))
                 item.optionalString("inserted_at")?.let { detail("Started", displayDate(it)) }
             })
@@ -83,21 +93,24 @@ class FeatureViews(private val context: Context) {
         val total = summary?.takeIf { it.has("needs_translation") && !it.isNull("needs_translation") }?.optLong("needs_translation")
         val done = summary?.takeIf { it.has("done") && !it.isNull("done") }?.optLong("done")
         addSpaced(context.heading("Translation progress", 18f), 8)
-        addSpaced(context.label(when (model.liveState) {
-            "live" -> "Live updates"
-            "connecting" -> "Connecting to live updates…"
-            "reconnecting" -> "Reconnecting… Showing the latest available progress."
-            "unavailable" -> "Live updates unavailable"
-            else -> "Live updates paused"
-        }, 13f, true).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }, 12)
+        if (!terminal && status != "awaiting_input") {
+            addSpaced(context.label(when (model.liveState) {
+                "live" -> "Live updates"
+                "connecting" -> "Connecting to live updates…"
+                "reconnecting" -> "Reconnecting… Showing the latest available progress."
+                "unavailable" -> "Live updates unavailable"
+                else -> "Live updates paused"
+            }, 13f, true).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }, 12)
+        }
         addSpaced(context.label(when {
-            terminal -> status!!.replaceFirstChar { it.uppercase() }
+            status == "awaiting_input" -> if (model.reviews.loaded && model.reviews.items.none { it.optString("status") == "open" } && model.reviews.items.any { it.optString("status") == "answered" }) "Historical run · linguistic input answered" else "Waiting for linguistic input"
+            terminal -> translationStatus(status!!)
             !assessed -> "Planning translations…"
             total == 0L -> "No translation work required"
             else -> "Translating files"
         }, 16f), 8)
         if (assessed && total != null && total > 0 && done != null) {
-            val title = "${number(summary!!, "done")} / ${number(summary, "needs_translation")} translated"
+            val title = context.nativeFormat("%1\$s / %2\$s translated", number(summary!!, "done"), number(summary, "needs_translation"))
             addSpaced(context.label(title, 20f), 12)
             addSpaced(LinearProgressIndicator(context).apply {
                 isIndeterminate = false; max = 1000
@@ -105,30 +118,30 @@ class FeatureViews(private val context: Context) {
                 contentDescription = title
                 themed { setIndicatorColor(context.token(R.color.glossia_primary)); trackColor = context.token(R.color.glossia_border) }
             }, 16)
-        } else if (!terminal && !(assessed && total == 0L)) {
+        } else if (!terminal && status != "awaiting_input" && !(assessed && total == 0L)) {
             addSpaced(LinearProgressIndicator(context).apply {
                 isIndeterminate = true
-                contentDescription = "Planning translations; progress is not yet known"
+                contentDescription = context.nativeText("Planning translations; progress is not yet known")
                 themed { setIndicatorColor(context.token(R.color.glossia_primary)); trackColor = context.token(R.color.glossia_border) }
             }, 16)
         }
         if (summary != null) {
             val counts = listOf("checked" to "checked", "total" to "planned", "skipped" to "up to date",
-                "running" to "running", "queued" to "queued", "failed" to "failed", "cancelled" to "cancelled")
+                "running" to "running", "queued" to "queued", "awaiting_input" to "awaiting linguistic input", "failed" to "failed", "cancelled" to "cancelled")
                 .filter { summary.has(it.first) && !summary.isNull(it.first) }
-                .joinToString(" · ") { "${number(summary, it.first)} ${it.second}" }
-            if (counts.isNotEmpty()) addSpaced(context.label(counts, 13f, true), 16)
+                .joinToString(" · ") { context.nativeFormat("%1\$s %2\$s", number(summary, it.first), context.nativeText(it.second)) }
+            if (counts.isNotEmpty()) addSpaced(context.label(counts, 13f, true, verbatim = true), 16)
         }
         val items = progress?.optJSONArray("items")
         if (items != null && items.length() > 0) {
             addSpaced(context.heading("Files", 16f), 12)
             for (index in 0 until items.length()) {
                 val item = items.getJSONObject(index)
-                addSpaced(context.label(item.optionalString("output_path") ?: "Path not available", 14f).apply {
+                addSpaced(context.label("\u2066${item.optionalString("output_path") ?: context.nativeText("Path not available")}\u2069", 14f, verbatim = true).apply {
                     setTextIsSelectable(true)
                 }, 4)
-                addSpaced(context.label(listOfNotNull(item.optionalString("locale"), item.optionalString("status"))
-                    .joinToString(" · ").ifEmpty { "Status not available" }, 13f, true), 12)
+                addSpaced(context.label(listOfNotNull(item.optionalString("locale")?.let { "\u2068$it\u2069" }, item.optionalString("status")?.let { context.nativeText(translationStatus(it)) })
+                    .joinToString(" · ").ifEmpty { context.nativeText("Status not available").toString() }, 13f, true, verbatim = true), 12)
             }
         } else addView(context.label(if (terminal) "No file details are available." else "File progress will appear as the plan is prepared.", 13f, true))
     }
@@ -140,7 +153,7 @@ class FeatureViews(private val context: Context) {
         val filter = MaterialButtonToggleGroup(context).apply { isSingleSelection = true; isSelectionRequired = true }
         val dayIds = mutableMapOf<Int, Int>()
         listOf(7, 30, 90).forEach { days ->
-            val button = context.button("${days} days") {}.apply {
+            val button = context.button(context.nativeFormat("%1\$s days", days)) {}.apply {
                 id = View.generateViewId(); isCheckable = true
                 dayIds[id] = days
             }
@@ -165,8 +178,8 @@ class FeatureViews(private val context: Context) {
                 })
                 body.addSpaced(context.card {
                     addSpaced(context.heading("Your audience", 18f), 16)
-                    detail("Top country", summary.optionalString("top_country") ?: "No data yet")
-                    detail("Top browser language", summary.optionalString("top_browser_language") ?: "No data yet")
+                    detail("Top country", summary.optionalString("top_country") ?: context.nativeText("No data yet").toString())
+                    detail("Top browser language", summary.optionalString("top_browser_language") ?: context.nativeText("No data yet").toString())
                 })
                 val pages = data.optJSONArray("top_pages") ?: JSONArray()
                 body.addSpaced(context.card {
@@ -175,7 +188,7 @@ class FeatureViews(private val context: Context) {
                         addView(context.label("No pageviews in this period. Data will appear after your tracker receives visits.", muted = true))
                     } else for (index in 0 until pages.length()) {
                         val page = pages.getJSONObject(index)
-                        detail(page.optString("pathname", "/"), "${number(page, "pageviews")} views")
+                        detail(page.optString("pathname", "/"), context.nativeFormat("%1\$s views", number(page, "pageviews")), titleVerbatim = true)
                     }
                 })
             }
@@ -186,27 +199,40 @@ class FeatureViews(private val context: Context) {
         return context.scroll(body)
     }
 
-    fun profile(model: FeatureModel, server: String?, organization: String?, project: String?, retry: () -> Unit, signOut: () -> Unit): View {
+    fun profile(model: FeatureModel, server: String?, organization: String?, project: String?, retry: () -> Unit, signOut: () -> Unit,
+        push: GlossiaPushNotifications? = null, languages: FluentLanguagesModel? = null,
+        editLanguages: () -> Unit = {}, saveLanguages: () -> Unit = {}, discardLanguages: () -> Unit = {}): View {
+        if (languages?.draft != null) return context.scroll(context.column().apply {
+            addView(context.fluentLanguagesView(languages, saveLanguages, discardLanguages))
+        })
         val body = context.column(20)
         val user = model.data?.optJSONObject("user")
         body.addView(context.mascot(R.drawable.toki_delighted, 112))
-        body.addSpaced(context.heading(user?.optionalString("name") ?: "Your profile").apply { gravity = Gravity.CENTER }, 8)
-        user?.optionalString("email")?.let { body.addSpaced(context.label(it, 15f, true).apply { gravity = Gravity.CENTER }, 24) }
+        body.addSpaced(context.heading(user?.optionalString("name") ?: context.nativeText("Your profile").toString(), verbatim = true).apply { gravity = Gravity.CENTER }, 8)
+        user?.optionalString("email")?.let { body.addSpaced(context.label(it, 15f, true, verbatim = true).apply { gravity = Gravity.CENTER }, 24) }
         if (model.busy) body.loading("Loading profile…")
         body.failure(model.error, retry)
+        if (push != null) body.addSpaced(context.pushSettings(push))
+        body.addSpaced(context.card {
+            addSpaced(context.heading("Fluent languages", 18f), 8)
+            val tags = user?.optJSONArray("fluent_languages")
+            addSpaced(context.label(if (tags == null || tags.length() == 0) "No fluent languages selected" else
+                (0 until tags.length()).joinToString(", ") { tags.getString(it) }, muted = true), 8)
+            addView(context.button("Edit fluent languages", action = editLanguages).apply { isEnabled = model.loaded && !model.busy })
+        })
         body.addSpaced(context.card {
             addSpaced(context.heading("Account", 18f), 16)
-            detail("Name", user?.optionalString("name") ?: "Not available")
-            detail("Email", user?.optionalString("email") ?: "Not available")
-            detail("Handle", user?.optionalString("handle") ?: "Not available")
+            detail("Name", user?.optionalString("name") ?: context.nativeText("Not available").toString())
+            detail("Email", user?.optionalString("email") ?: context.nativeText("Not available").toString())
+            detail("Handle", user?.optionalString("handle") ?: context.nativeText("Not available").toString())
             user?.optionalString("id")?.let { detail("Account ID", it) }
         })
         body.addSpaced(context.card {
             addSpaced(context.heading("Workspace", 18f), 16)
-            detail("Organization", organization ?: "None selected")
-            detail("Project", project ?: "None selected")
-            detail("Server", server ?: "Not connected")
-            detail("Server version", model.data?.optionalString("server_version") ?: "Not available")
+            detail("Organization", organization ?: context.nativeText("None selected").toString())
+            detail("Project", project ?: context.nativeText("None selected").toString())
+            detail("Server", server ?: context.nativeText("Not connected").toString())
+            detail("Server version", model.data?.optionalString("server_version") ?: context.nativeText("Not available").toString())
             val version = context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "Unknown"
             detail("Glossia for Android", version)
         })
@@ -232,9 +258,9 @@ class FeatureViews(private val context: Context) {
         addView(context.heading(value, 28f))
     }
 
-    private fun LinearLayout.detail(title: String, value: String) {
-        addSpaced(context.label(title, 12f, true), 2)
-        addSpaced(context.label(value, 15f).apply { setTextIsSelectable(true) }, 16)
+    private fun LinearLayout.detail(title: String, value: String, titleVerbatim: Boolean = false) {
+        addSpaced(context.label(title, 12f, true, verbatim = titleVerbatim), 2)
+        addSpaced(context.label(value, 15f, verbatim = true).apply { setTextIsSelectable(true) }, 16)
     }
 
     private fun number(value: JSONObject, key: String): String = if (!value.has(key) || value.isNull(key)) "—"

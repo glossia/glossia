@@ -17,7 +17,7 @@ struct GlossiaPreviewApp: App {
         screen = ProcessInfo.processInfo.arguments.dropFirst().first
             ?? UserDefaults.standard.string(forKey: "glossia.preview.screen") ?? "login"
         UserDefaults.standard.set(screen, forKey: "glossia.preview.screen")
-        let session = GlossiaSession()
+        let session = GlossiaSession(push: Self.previewPush(screen))
         session.restoring = false
         if screen != "login" {
             session.server = "https://glossia.example.com"
@@ -25,6 +25,7 @@ struct GlossiaPreviewApp: App {
             session.organizations = [["handle": "acme", "name": "Acme"], ["handle": "other", "name": "Other team"]]
             session.projects = [["handle": "website", "name": "Website"]]
             session.tab = screen == "empty" ? "toki" : screen
+            if screen.hasPrefix("profile-push-") { session.tab = "profile" }
             if ["translations-empty", "translation-detail", "translation-live"].contains(screen) { session.tab = "translations" }
             if screen == "analytics-empty" { session.tab = "analytics" }
             if screen == "source-chat" { session.tab = "toki" }
@@ -66,6 +67,10 @@ struct GlossiaPreviewApp: App {
                     NavigationStack { TokiConversationView(model: chat) }
                 } else if screen == "workspace" {
                     WorkspacePicker(session: session, request: Self.request)
+                } else if screen.hasPrefix("review-") {
+                    ReviewPreview(state: screen)
+                } else if screen.hasPrefix("goal-") {
+                    GoalPreview(state: screen)
                 } else {
                     GlossiaWorkspaceView(session: session) { value in
                         if screen == "empty" && value["resource"] as? String == "conversations" {
@@ -89,6 +94,13 @@ struct GlossiaPreviewApp: App {
             .onOpenURL { url in Task { await session.receive(url, request: Self.request) } }
             .onChange(of: scenePhase, initial: true) { _, phase in work.setForeground(phase == .active) }
             .task {
+                if screen.hasPrefix("profile-push-") {
+                    await session.push.configure(origin: session.server) { input in
+                        ["registered": true, "registration_id": input["installation_id"] as Any? ?? NSNull(), "deleted": true]
+                    }
+                    await session.push.enable()
+                    if screen == "profile-push-enabled" { await session.push.refresh(token: String(repeating: "ab", count: 32)) }
+                }
                 if screen.hasPrefix("activity-") {
                     work.observe(Self.activityConversation(screen == "activity-queued" ? "queued" : "running"),
                                  id: chat.selectedID!, context: session.projectContext)
@@ -111,6 +123,14 @@ struct GlossiaPreviewApp: App {
                 }
             }
         }
+    }
+
+    static func previewPush(_ state: String) -> GlossiaPushNotifications {
+        var values: [String: Data] = [:]
+        let store = GlossiaPushStore(read: { values[$0] }, write: { values[$0] = try JSONSerialization.data(withJSONObject: $1) },
+                                    remove: { values[$0] = nil })
+        return GlossiaPushNotifications(store: store, environment: { state == "profile-push-unavailable" ? nil : "sandbox" },
+            authorize: { state == "profile-push-enabled" }, allowed: { state == "profile-push-enabled" }, register: {}, unregister: {})
     }
 
     static func themeRequest(_ input: [String: Any]) async throws -> Data {
@@ -166,6 +186,7 @@ struct GlossiaPreviewApp: App {
     }
 
     static func request(_ input: [String: Any]) async throws -> [String: Any] {
+        if input["operation"] as? String == "translation_reviews" { return ["reviews": []] }
         if input["operation"] as? String == "translation" {
             guard input["id"] as? String == translationID else { throw GlossiaFailure(kind: "not_found", message: "This translation is no longer available.") }
             let running = ProcessInfo.processInfo.arguments.contains("translation-live")
@@ -239,6 +260,64 @@ struct GlossiaPreviewApp: App {
                     "traffic": ["granularity": "day", "points": points], "days": days]
         case "profile":
             return ["user": ["id": "person", "name": "Alex Rivera", "email": "alex@example.com", "handle": "alex"], "server_version": "0.1.0-preview"]
+        default: return [:]
+        }
+    }
+}
+
+// Deterministic review states are isolated in this preview bundle, not the app.
+private struct ReviewPreview: View {
+    @StateObject private var reviews: TranslationReviewsModel
+    @State private var resumed = false
+    let state: String
+    static let reviewID = "def12345-802e-4f91-9112-77d8a919efc5"
+
+    init(state: String) {
+        self.state = state
+        let model = TranslationReviewsModel(id: GlossiaPreviewApp.translationID) { input in try await Self.request(input, state: state) }
+        _reviews = StateObject(wrappedValue: model)
+    }
+
+    var body: some View {
+        NavigationStack {
+            TranslationDetailView(destination: GlossiaDestination(screen: .translation, server: "https://glossia.example.com/",
+                organization: "acme", project: "website", id: GlossiaPreviewApp.translationID),
+                request: { try await Self.request($0, state: state) }, reviewsModel: reviews,
+                openResumed: { _ in resumed = true }) {}
+                .navigationDestination(isPresented: $resumed) { Text("Resumed translation").navigationTitle("Translation") }
+        }
+    }
+
+    static func row(_ status: String) -> [String: Any] {
+        var row: [String: Any] = ["id": reviewID, "translation_session_id": GlossiaPreviewApp.translationID,
+            "status": status, "conversation_id": GoalFixture.chatID, "locale": "es", "question": "Should we address the reader with tú or usted?",
+            "source_path": "locales/en/welcome.json", "output_path": "locales/es/welcome.json",
+            "source_excerpt": "Welcome back!", "translation_excerpt": "¡Bienvenido de nuevo!",
+            "inserted_at": "2026-10-25T10:00:00Z"]
+        if status == "answered" {
+            row["answer"] = "Use informal tú."
+            row["guidance"] = "Use informal tú in Spanish onboarding."
+            row["context_path"] = "L10N/es.md"
+            row["resumed_session_id"] = "aaa12345-802e-4f91-9112-77d8a919efc5"
+        }
+        return row
+    }
+
+    static func request(_ input: [String: Any], state: String) async throws -> [String: Any] {
+        switch input["operation"] as? String {
+        case "translation":
+            var session = GlossiaPreviewApp.translation; session["status"] = "awaiting_input"
+            return ["session": session]
+        case "translation_live":
+            if input["action"] as? String == "open" { return ["connection": "preview-review"] }
+            if input["action"] as? String == "close" { return ["closed": true] }
+            try await Task.sleep(for: .seconds(3600)); return ["state": "closed"]
+        case "translation_reviews":
+            if state == "review-loading" { try await Task.sleep(for: .seconds(3600)) }
+            if state == "review-denied" { throw GlossiaFailure(kind: "forbidden", message: "Permission denied") }
+            if state == "review-error" { throw GlossiaFailure(kind: "network", message: "Offline. Your translation is still available.") }
+            if input["action"] as? String == "answer" { return ["review": row("answered")] }
+            return ["reviews": [row(state == "review-answered" ? "answered" : state == "review-stale" ? "stale" : "open")]]
         default: return [:]
         }
     }

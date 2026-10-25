@@ -47,7 +47,7 @@ class WorkspacePickerView(context: Context, private val model: WorkspacePickerMo
         addSpaced(current)
         addSpaced(organizationButton, 8)
         addSpaced(TextInputLayout(context, null, com.google.android.material.R.attr.textInputOutlinedStyle).apply {
-            hint = "Search projects"; addView(search)
+            hint = context.nativeText("Search projects"); addView(search)
         })
         addView(status); addView(retry)
         addView(list, LayoutParams(LayoutParams.MATCH_PARENT, context.dp(240)))
@@ -61,8 +61,8 @@ class WorkspacePickerView(context: Context, private val model: WorkspacePickerMo
 
     fun render(organization: String?, project: String?) {
         activeOrganization = organization; activeProject = project
-        current.text = "Current: ${organization ?: "No organization"} / ${project ?: "No project"}"
-        organizationButton.text = "Organization: ${model.organization ?: "Choose"} ▾"
+        current.text = context.nativeFormat("Current: %1\$s / %2\$s", organization ?: context.nativeText("No organization"), project ?: context.nativeText("No project"))
+        organizationButton.text = context.nativeFormat("Organization: %1\$s ▾", model.organization ?: context.nativeText("Choose"))
         organizationButton.isEnabled = organizations.length() > 0
         if (search.text.toString() != model.search) search.setText(model.search)
         retry.visibility = if (model.error == null) View.GONE else View.VISIBLE
@@ -80,12 +80,12 @@ class WorkspacePickerView(context: Context, private val model: WorkspacePickerMo
         })
         list.isEnabled = !model.busy && model.error == null
         status.text = when {
-            model.busy -> "Loading projects…"
+            model.busy -> context.nativeText("Loading projects…")
             model.error != null -> model.error
-            model.organization == null -> "Choose an organization to see its projects."
-            model.projects.length() == 0 -> "No projects in this organization. Choose another organization or create a project on Glossia."
-            projects.isEmpty() -> "No matching projects."
-            else -> "Select a project to switch workspace."
+            model.organization == null -> context.nativeText("Choose an organization to see its projects.")
+            model.projects.length() == 0 -> context.nativeText("No projects in this organization. Choose another organization or create a project on Glossia.")
+            projects.isEmpty() -> context.nativeText("No matching projects.")
+            else -> context.nativeText("Select a project to switch workspace.")
         }
         status.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
     }
@@ -100,10 +100,10 @@ class WorkspacePickerView(context: Context, private val model: WorkspacePickerMo
                     checkMarkTintList = GlossiaAppearance.states(context.token(R.color.glossia_primary))
                 }
         }
-        context.themed(MaterialAlertDialogBuilder(context).setTitle("Organization")
+        context.themed(MaterialAlertDialogBuilder(context).setTitle(context.nativeText("Organization"))
             .setSingleChoiceItems(choices,
                 options.indexOfFirst { it.optString("handle") == model.organization }) { dialog, index ->
                 dialog.dismiss(); browse(options[index].getString("handle"))
-            }.setNegativeButton("Cancel", null).show())
+            }.setNegativeButton(context.nativeText("Cancel"), null).show())
     }
 }

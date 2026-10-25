@@ -11,6 +11,8 @@ config :glossia,
   ecto_repos: [Glossia.Repo, Glossia.IngestRepo],
   generators: [timestamp_type: :utc_datetime]
 
+config :phoenix, :filter_parameters, ["password", "passwd", "secret", "token"]
+
 # Build the MDEx NIF with Lumis so docs, blog, and other markdown content
 # render with syntax highlighting instead of plain monospace code blocks.
 config :mdex_native, syntax_highlighter: :lumis
@@ -163,7 +165,7 @@ config :glossia, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.PG,
   repo: Glossia.Repo,
-  queues: [default: 10, analytics: 5, toki: 2],
+  queues: [default: 10, analytics: 5, toki: 2, push: 5],
   plugins: [
     # Oban.Met otherwise starts itself for every Oban instance and runs DDL at
     # runtime. The schema migration owns that one-time change instead, so a
@@ -175,6 +177,7 @@ config :glossia, Oban,
        {"*/5 * * * *", Glossia.TranslationSessions.SessionRecoveryWorker},
        {"*/5 * * * *", Glossia.TranslationSessions.EngineRecoveryWorker},
        {"* * * * *", Glossia.Toki.RecoveryWorker},
+       {"0 * * * *", Glossia.Push.Prune},
        {"0 3 * * *", Glossia.OrganizationDomainVerificationWorker}
      ]}
   ]

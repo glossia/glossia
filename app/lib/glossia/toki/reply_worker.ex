@@ -1,5 +1,5 @@
 defmodule Glossia.Toki.ReplyWorker do
-  @moduledoc "Generates one private reply, never retries an already claimed inference."
+  @moduledoc "Generates one authorized reply, never retries an already claimed inference."
   use Oban.Worker, queue: :toki, max_attempts: 1
 
   alias Glossia.{Accounts, Projects, Repo, Toki}
@@ -23,7 +23,7 @@ defmodule Glossia.Toki.ReplyWorker do
 
   defp generate(message, scopes) do
     conversation = Repo.get!(Conversation, message.conversation_id)
-    user = Accounts.get_user(conversation.user_id)
+    user = Accounts.get_user(message.user_id || conversation.user_id)
     project = Projects.get_project_by_id(conversation.project_id)
 
     with :ok <- authorize_reply(user, project, conversation, scopes),
@@ -60,8 +60,12 @@ defmodule Glossia.Toki.ReplyWorker do
 
   defp authorize_reply(user, project, conversation, scopes) do
     with :ok <- Toki.authorize_project(:toki_write, user, project, scopes: scopes),
-         {:ok, _source} <- Toki.conversation_source(user, project, conversation, scopes: scopes) do
+         {:ok, _source} <- Toki.conversation_source(user, project, conversation, scopes: scopes),
+         true <- Toki.open?(conversation) do
       :ok
+    else
+      false -> {:error, :not_found}
+      error -> error
     end
   end
 end

@@ -42,8 +42,8 @@ struct WorkspacePicker: View {
                     if busy { ProgressView("Loading projects…") }
                     if let error { GlossiaErrorView(message: error) { Task { await load() } } }
                     if !busy && error == nil && projects.isEmpty {
-                        ContentUnavailableView(search.isEmpty ? "No projects" : "No matching projects", systemImage: "folder",
-                                               description: Text(search.isEmpty ? "This organization has no accessible projects." : "Try a different name or handle."))
+                        ContentUnavailableView(search.isEmpty ? String(localized: "No projects") : String(localized: "No matching projects"), systemImage: "folder",
+                                               description: Text(search.isEmpty ? String(localized: "This organization has no accessible projects.") : String(localized: "Try a different name or handle.")))
                     }
                     ForEach(projects.indices, id: \.self) { index in
                         let project = projects[index]

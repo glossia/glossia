@@ -1,6 +1,7 @@
 defmodule Glossia.Toki do
   @moduledoc """
-  Private, project-scoped companion conversations. Requests only persist work;
+  Private companion chats and shared, goal-driven linguistic conversations.
+  Requests only persist work;
   Oban performs inference. A durable message claim permits at most one model
   attempt, including after client retries or job redelivery. Interrupted work
   fails rather than risking a second billable inference.
@@ -9,6 +10,8 @@ defmodule Glossia.Toki do
 
   alias Glossia.Accounts.User
   alias Glossia.Authz
+  alias Glossia.LinguisticReviews
+  alias Glossia.LinguisticReviews.Review
   alias Glossia.Repo
   alias Glossia.Toki.{Conversation, Message, ReplyWorker}
   alias Glossia.TranslationSessions
@@ -58,7 +61,9 @@ defmodule Glossia.Toki do
             detail(conversation)
 
           nil ->
-            if Repo.aggregate(scoped_conversations(user, project), :count) >= 100,
+            private = where(scoped_conversations(user, project), [c], c.user_id == ^user.id)
+
+            if Repo.aggregate(private, :count) >= 100,
               do: Repo.rollback(:conversation_limit)
 
             conversation = %Conversation{
@@ -101,21 +106,27 @@ defmodule Glossia.Toki do
 
         changeset =
           Message.changeset(
-            %Message{conversation_id: conversation.id, role: "user", status: "queued"},
+            %Message{
+              conversation_id: conversation.id,
+              user_id: user.id,
+              role: "user",
+              status: "queued"
+            },
             Map.put(attrs, "id", message_id)
           )
 
         if not changeset.valid?, do: Repo.rollback(changeset)
 
         case Repo.get(Message, message_id) do
-          %Message{conversation_id: id, role: "user", content: content}
-          when id == conversation.id ->
+          %Message{conversation_id: id, user_id: author, role: "user", content: content}
+          when id == conversation.id and (author == user.id or is_nil(author)) ->
             if content != Ecto.Changeset.get_field(changeset, :content),
               do: Repo.rollback(:id_conflict)
 
             detail(conversation)
 
           nil ->
+            if not open?(conversation), do: Repo.rollback(:goal_closed)
             enqueue_message(user, conversation, changeset, opts)
 
           _ ->
@@ -131,7 +142,14 @@ defmodule Glossia.Toki do
   on retries, because earlier assistant messages may contain source material.
   """
   def conversation_source(user, project, conversation, opts \\ []) do
-    if conversation.user_id == user.id and conversation.project_id == project.id do
+    shared = not is_nil(conversation.linguistic_review_id)
+
+    accessible =
+      if shared,
+        do: authorize_project(:toki_write, user, project) == :ok,
+        else: conversation.user_id == user.id
+
+    if accessible and conversation.project_id == project.id do
       case conversation.translation_session_id do
         nil ->
           {:ok, nil}
@@ -139,8 +157,19 @@ defmodule Glossia.Toki do
         id ->
           with :ok <- authorize_project(:translation_read, user, project, opts) do
             case TranslationSessions.get_project_session(project, id) do
-              nil -> {:error, :not_found}
-              session -> {:ok, session}
+              nil ->
+                {:error, :not_found}
+
+              session ->
+                if not shared or
+                     Repo.exists?(
+                       from r in Review,
+                         where:
+                           r.id == ^conversation.linguistic_review_id and
+                             r.translation_session_id == ^session.id
+                     ),
+                   do: {:ok, session},
+                   else: {:error, :not_found}
             end
           end
       end
@@ -158,6 +187,11 @@ defmodule Glossia.Toki do
   end
 
   defp visible_sources(query, user, project, opts) do
+    query =
+      if authorize_project(:toki_write, user, project) == :ok,
+        do: query,
+        else: where(query, [c], is_nil(c.linguistic_review_id))
+
     if authorize_project(:translation_read, user, project, opts) == :ok do
       from c in query,
         left_join: s in TranslationSession,
@@ -176,10 +210,42 @@ defmodule Glossia.Toki do
       |> where(conversation_id: ^conversation.id)
       |> order_by([m], asc: m.inserted_at, asc: m.id)
       |> limit(100)
+      |> preload(:user)
       |> Repo.all()
 
+    conversation = Repo.preload(conversation, linguistic_review: [:conversation, :participants])
     %{conversation: conversation, messages: messages}
   end
+
+  def ensure_review_conversation(review, project_id) do
+    Repo.get_by(Conversation, linguistic_review_id: review.id) ||
+      then(
+        Repo.insert!(%Conversation{
+          project_id: project_id,
+          linguistic_review_id: review.id,
+          translation_session_id: review.translation_session_id,
+          title: String.slice(review.question, 0, 80)
+        }),
+        fn conversation ->
+          Repo.insert!(%Message{
+            conversation_id: conversation.id,
+            role: "assistant",
+            status: "completed",
+            content: review.question
+          })
+
+          conversation
+        end
+      )
+  end
+
+  def open?(%Conversation{linguistic_review_id: nil}), do: true
+
+  def open?(conversation),
+    do:
+      Repo.exists?(
+        from r in Review, where: r.id == ^conversation.linguistic_review_id and r.status == "open"
+      )
 
   def expire_interrupted_replies do
     now = DateTime.utc_now()
@@ -268,7 +334,23 @@ defmodule Glossia.Toki do
         end
 
       Repo.update!(Ecto.Changeset.change(message, status: status))
-      Repo.update!(Ecto.Changeset.change(conversation, status: status, error: error))
+      updated = Repo.update!(Ecto.Changeset.change(conversation, status: status, error: error))
+
+      if status == "completed" do
+        recipients =
+          if conversation.linguistic_review_id,
+            do: LinguisticReviews.notification_recipients(conversation.linguistic_review_id),
+            else: [conversation.user_id]
+
+        Enum.each(recipients, fn user_id ->
+          Glossia.Push.notify_user(user_id, "toki_completed", %{
+            conversation_id: conversation.id,
+            message_id: message.id
+          })
+        end)
+      end
+
+      updated
     end)
   end
 
@@ -282,8 +364,12 @@ defmodule Glossia.Toki do
 
     active =
       Repo.aggregate(
-        from(c in Conversation,
-          where: c.user_id == ^user.id and c.status in ["queued", "running"]
+        from(m in Message,
+          join: c in Conversation,
+          on: c.id == m.conversation_id,
+          where:
+            m.role == "user" and m.status in ["queued", "running"] and
+              (m.user_id == ^user.id or c.user_id == ^user.id)
         ),
         :count
       )
@@ -320,7 +406,13 @@ defmodule Glossia.Toki do
   end
 
   defp scoped_conversations(user, project),
-    do: from(c in Conversation, where: c.user_id == ^user.id and c.project_id == ^project.id)
+    do:
+      from(c in Conversation,
+        where:
+          c.project_id == ^project.id and
+            (c.user_id == ^user.id or not is_nil(c.linguistic_review_id)),
+        preload: [linguistic_review: [:conversation, :participants]]
+      )
 
   defp lock_user(user),
     do: Repo.one!(from u in User, where: u.id == ^user.id, lock: "FOR UPDATE")

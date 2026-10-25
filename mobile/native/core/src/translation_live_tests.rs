@@ -121,10 +121,38 @@ fn snapshot(status: &str, seq: u64) -> Value {
         "source_language":"en","target_languages":["es"],"translated_content_count":0,
         "inserted_at":"2026-10-25T00:00:00Z","summary":null},
         "progress":{"seq":seq,"summary":{"total":1,"checked":1,"needs_translation":1,
-            "assessed?":true,"skipped":0,"done":0,"failed":0,"cancelled":0,"running":1,"queued":0,
+            "assessed?":true,"skipped":0,"done":0,"failed":0,"cancelled":0,"running":1,"queued":0,"awaiting_input":0,
             "glossary":{"applied_ids":[],"shadowed_ids":[],"files_with_applied":0,"files_with_shadowed":0}},
             "items":[{"index":1,"output_path":"es.md","locale":"es","status":"running",
                 "turns":1,"file_ref":null}],"omitted_items":0}})
+}
+
+#[test]
+fn linguistic_input_snapshots_preserve_counts_and_reject_unknown_states() {
+    let mut value = snapshot("awaiting_input", 12);
+    value["progress"]["items"][0]["status"] = json!("awaiting_input");
+    value["progress"]["summary"]["awaiting_input"] = json!(1);
+    let clean = sanitize(value.clone(), ID).unwrap();
+    assert_eq!(clean["session"]["status"], "awaiting_input");
+    assert_eq!(clean["progress"]["items"][0]["status"], "awaiting_input");
+    assert_eq!(clean["progress"]["summary"]["awaiting_input"], 1);
+    value["session"]["status"] = json!("unrecognized");
+    assert!(sanitize(value.clone(), ID).is_err());
+    value["session"]["status"] = json!("running");
+    value["progress"]["items"][0]["status"] = json!("unrecognized");
+    assert!(sanitize(value.clone(), ID).is_err());
+    value["progress"]["items"][0]["status"] = json!("awaiting_input");
+    value["progress"]["summary"]["awaiting_input"] = json!(-1);
+    assert!(sanitize(value, ID).is_err());
+    let mut legacy = snapshot("running", 12);
+    legacy["progress"]["summary"]
+        .as_object_mut()
+        .unwrap()
+        .remove("awaiting_input");
+    assert_eq!(
+        sanitize(legacy, ID).unwrap()["progress"]["summary"]["awaiting_input"],
+        0
+    );
 }
 
 #[allow(clippy::result_large_err)] // Tungstenite's handshake callback fixes this type.

@@ -1,0 +1,903 @@
+/* No comment provided by engineer. */
+"%@ / %@" = "%1$@ / %2$@";
+
+/* No comment provided by engineer. */
+"%@ / 8000 characters" = "%@ / 8000 characters";
+
+/* No comment provided by engineer. */
+"%@ already up to date" = "%@ already up to date";
+
+/* No comment provided by engineer. */
+"%@ awaiting linguistic input" = "%@ awaiting linguistic input";
+
+/* No comment provided by engineer. */
+"%@ cancelled" = "%@ cancelled";
+
+/* No comment provided by engineer. */
+"%@ failed" = "%@ failed";
+
+/* No comment provided by engineer. */
+"%@ items translated" = "%@ items translated";
+
+/* No comment provided by engineer. */
+"%@ more files" = "%@ more files";
+
+/* No comment provided by engineer. */
+"%@ of %@ files checked" = "%1$@ of %2$@ files checked";
+
+/* No comment provided by engineer. */
+"%@ of %@ files translated" = "%1$@ of %2$@ files translated";
+
+/* No comment provided by engineer. */
+"%@ pageviews · %@ unique visitors in this period" = "%1$@ pageviews · %2$@ unique visitors in this period";
+
+/* No comment provided by engineer. */
+"%@ → %@" = "%1$@ → %2$@";
+
+/* No comment provided by engineer. */
+"30 days" = "30 days";
+
+/* No comment provided by engineer. */
+"7 days" = "7 days";
+
+/* No comment provided by engineer. */
+"90 days" = "90 days";
+
+/* No comment provided by engineer. */
+"A current completed reply and an independently reviewed decision are required. If the conversation changed, refresh and discard this proposal before resolving the latest reply." = "A current completed reply and an independently reviewed decision are required. If the conversation changed, refresh and discard this proposal before resolving the latest reply.";
+
+/* No comment provided by engineer. */
+"All files are up to date" = "All files are up to date";
+
+/* No comment provided by engineer. */
+"Another participant may have resolved or superseded this goal. Your unsaved decision and guidance remain editable below for copying. They cannot be saved to this closed goal." = "Another participant may have resolved or superseded this goal. Your unsaved decision and guidance remain editable below for copying. They cannot be saved to this closed goal.";
+
+/* No comment provided by engineer. */
+"answer" = "answer";
+
+/* No comment provided by engineer. */
+"Ask about this project's languages or recent translations. Replies use your organization's configured AI provider." = "Ask about this project's languages or recent translations. Replies use your organization's configured AI provider.";
+
+/* No comment provided by engineer. */
+"content" = "content";
+
+/* No comment provided by engineer. */
+"Current: %@ / %@. Your workspace changes only when you choose a project." = "Current: %1$@ / %2$@. Your workspace changes only when you choose a project.";
+
+/* No comment provided by engineer. */
+"Discuss each goal with Toki in its project-shared conversation, then explicitly save the agreed decision to resume affected work in a new translation." = "Discuss each goal with Toki in its project-shared conversation, then explicitly save the agreed decision to resume affected work in a new translation.";
+
+/* No comment provided by engineer. */
+"Enter your Glossia server’s HTTPS address. Sign-in opens in your browser." = "Enter your Glossia server’s HTTPS address. Sign-in opens in your browser.";
+
+/* No comment provided by engineer. */
+"Every language starts here" = "Every language starts here";
+
+/* No comment provided by engineer. */
+"Get an alert when translations or Toki need your attention. Alerts never include private content. Optional; turn off anytime." = "Get an alert when translations or Toki need your attention. Alerts never include private content. Optional; turn off anytime.";
+
+/* No comment provided by engineer. */
+"Glossia chooses the nearest L10N.md or L10N/<locale>.md path. Guidance becomes a reviewed diff in the normal translation PR, never a direct repository edit." = "Glossia chooses the nearest L10N.md or L10N/<locale>.md path. Guidance becomes a reviewed diff in the normal translation PR, never a direct repository edit.";
+
+/* No comment provided by engineer. */
+"Goal unavailable. Refresh the conversation to check access." = "Goal unavailable. Refresh the conversation to check access.";
+
+/* No comment provided by engineer. */
+"https://glossia.example.com" = "https://glossia.example.com";
+
+/* No comment provided by engineer. */
+"Import a UTF-8 text file into your editable draft. Nothing sends automatically. Image uploads are unavailable." = "Import a UTF-8 text file into your editable draft. Nothing sends automatically. Image uploads are unavailable.";
+
+/* No comment provided by engineer. */
+"Keep chatting until you agree on a decision. Resolution requires a completed Toki reply and no unsent draft." = "Keep chatting until you agree on a decision. Resolution requires a completed Toki reply and no unsent draft.";
+
+/* No comment provided by engineer. */
+"Last checked %@" = "Last checked %@";
+
+/* No comment provided by engineer. */
+"Linguistic review" = "Linguistic review";
+
+/* No comment provided by engineer. */
+"locale" = "locale";
+
+/* No comment provided by engineer. */
+"Messages can contain up to 4,000 characters." = "Messages can contain up to 4,000 characters.";
+
+/* No comment provided by engineer. */
+"name" = "name";
+
+/* No comment provided by engineer. */
+"namehandle" = "namehandle";
+
+/* No comment provided by engineer. */
+"No excerpt provided" = "No excerpt provided";
+
+/* No comment provided by engineer. */
+"No file progress was recorded for this run." = "No file progress was recorded for this run.";
+
+/* No comment provided by engineer. */
+"No linguistic questions for this translation." = "No linguistic questions for this translation.";
+
+/* No comment provided by engineer. */
+"Notifications" = "Notifications";
+
+/* No comment provided by engineer. */
+"or" = "or";
+
+/* No comment provided by engineer. */
+"Participants: %@" = "Participants: %@";
+
+/* No comment provided by engineer. */
+"Proposed guidance · ⁦%@⁩" = "Proposed guidance · ⁦%@⁩";
+
+/* No comment provided by engineer. */
+"Refresh to check for the resumed translation." = "Refresh to check for the resumed translation.";
+
+/* No comment provided by engineer. */
+"Saved decision" = "Saved decision";
+
+/* No comment provided by engineer. */
+"Secure sign-in opens in your browser." = "Secure sign-in opens in your browser.";
+
+/* No comment provided by engineer. */
+"Select a project to see its audience and traffic." = "Select a project to see its audience and traffic.";
+
+/* No comment provided by engineer. */
+"Select a workspace to see its translations." = "Select a workspace to see its translations.";
+
+/* No comment provided by engineer. */
+"Separate language tags with commas. Leave empty to remove your fluent languages." = "Separate language tags with commas. Leave empty to remove your fluent languages.";
+
+/* No comment provided by engineer. */
+"Shared conversation unavailable. Refresh reviews to retry." = "Shared conversation unavailable. Refresh reviews to retry.";
+
+/* No comment provided by engineer. */
+"Shared linguistic goal" = "Shared linguistic goal";
+
+/* No comment provided by engineer. */
+"Sign in with Glossia" = "Sign in with Glossia";
+
+/* No comment provided by engineer. */
+"Start a private conversation linked to this translation. No changes are applied automatically." = "Start a private conversation linked to this translation. No changes are applied automatically.";
+
+/* No comment provided by engineer. */
+"status" = "status";
+
+/* No comment provided by engineer. */
+"Tap the compose button to start a private conversation about this project." = "Tap the compose button to start a private conversation about this project.";
+
+/* No comment provided by engineer. */
+"Tap Toki to say hello" = "Tap Toki to say hello";
+
+/* No comment provided by engineer. */
+"These languages help invite authorized linguists into the same shared review conversation. They do not change the app language or grant project access." = "These languages help invite authorized linguists into the same shared review conversation. They do not change the app language or grant project access.";
+
+/* No comment provided by engineer. */
+"This clears local drafts and pending retries. Messages already accepted by the server are not deleted." = "This clears local drafts and pending retries. Messages already accepted by the server are not deleted.";
+
+/* No comment provided by engineer. */
+"This goal is no longer current. Chat and resolution are read-only." = "This goal is no longer current. Chat and resolution are read-only.";
+
+/* No comment provided by engineer. */
+"This is an editable proposal from Toki’s latest completed reply, not an automatic resolution." = "This is an editable proposal from Toki’s latest completed reply, not an automatic resolution.";
+
+/* No comment provided by engineer. */
+"This locale" = "This locale";
+
+/* No comment provided by engineer. */
+"Toki can help you explore your project's languages and translations." = "Toki can help you explore your project's languages and translations.";
+
+/* No comment provided by engineer. */
+"Toki, translations and analytics use this project. Switching projects clears unsent Toki drafts." = "Toki, translations and analytics use this project. Switching projects clears unsent Toki drafts.";
+
+/* No comment provided by engineer. */
+"Translation context" = "Translation context";
+
+/* No comment provided by engineer. */
+"Translation resumed" = "Translation resumed";
+
+/* No comment provided by engineer. */
+"Translation sessions will appear when Glossia translates your project." = "Translation sessions will appear when Glossia translates your project.";
+
+/* No comment provided by engineer. */
+"Unsent message retained on this device" = "Unsent message retained on this device";
+
+/* No comment provided by engineer. */
+"Visible to project members · one shared conversation." = "Visible to project members · one shared conversation.";
+
+/* No comment provided by engineer. */
+"Visitors are counted separately in each time bucket." = "Visitors are counted separately in each time bucket.";
+
+/* No comment provided by engineer. */
+"Waiting for permission…" = "Waiting for permission…";
+
+/* No comment provided by engineer. */
+"Welcome to Glossia" = "Welcome to Glossia";
+
+/* No comment provided by engineer. */
+"What shall we explore?" = "What shall we explore?";
+
+/* No comment provided by engineer. */
+"Whole project" = "Whole project";
+
+/* No comment provided by engineer. */
+"Your credentials are protected by the iOS Keychain. Ordinary Toki chats are private; linguistic goal conversations are shared with authorized project members." = "Your credentials are protected by the iOS Keychain. Ordinary Toki chats are private; linguistic goal conversations are shared with authorized project members.";
+
+/* No comment provided by engineer. */
+"Your fluency helps invite authorized people into one shared Toki goal. This is separate from the app language." = "Your fluency helps invite authorized people into one shared Toki goal. This is separate from the app language.";
+
+/* No comment provided by engineer. */
+"Your voice. Every language.\nOne workspace, wherever you are." = "Your voice. Every language.\nOne workspace, wherever you are.";
+
+/* No comment provided by engineer. */
+"⁦%@ → %@⁩" = "⁦%1$@ → %2$@⁩";
+
+/* No comment provided by engineer. */
+"⁦%@⁩" = "⁦%@⁩";
+
+/* No comment provided by engineer. */
+"⁨%@⁩ · %@" = "⁨%1$@⁩ · %2$@";
+
+
+/* GlossiaPushNotifications.swift: static UI/model copy */
+"Allow Glossia notifications in iOS Settings to enable alerts." = "Allow Glossia notifications in iOS Settings to enable alerts.";
+
+/* TokiVoiceInput.swift: static UI/model copy */
+"Allow microphone and speech recognition in Settings to use on-device dictation." = "Allow microphone and speech recognition in Settings to use on-device dictation.";
+
+/* TranslationsView.swift: static UI/model copy */
+"Already up to date" = "Already up to date";
+
+/* Fixed notification alert; available for future APNs loc-key payloads: static UI/model copy */
+"An update is ready. Open Glossia to view it." = "An update is ready. Open Glossia to view it.";
+
+/* GlossiaWorkspaceView.swift: static UI/model copy */
+"Analytics" = "Analytics";
+
+/* ProfileView.swift: static UI/model copy */
+"App version" = "App version";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Applies to" = "Applies to";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Around the world" = "Around the world";
+
+/* TranslationsView.swift: static UI/model copy */
+"Awaiting linguistic input" = "Awaiting linguistic input";
+
+/* TokiSprite.swift: static UI/model copy */
+"Body" = "Body";
+
+/* WorkspacePicker.swift: static UI/model copy */
+"Cancel" = "Cancel";
+
+/* TranslationsView.swift: static UI/model copy */
+"Cancelled" = "Cancelled";
+
+/* TokiWorkStatusView.swift: static UI/model copy */
+"Check status" = "Check status";
+
+/* TokiComposer.swift: static UI/model copy */
+"Choose Files" = "Choose Files";
+
+/* TokiComposer.swift: static UI/model copy */
+"Choose a UTF-8 text file no larger than 16 KB." = "Choose a UTF-8 text file no larger than 16 KB.";
+
+/* TokiComposer.swift: static UI/model copy */
+"Choose a UTF-8 text file. Binary files and images are unsupported." = "Choose a UTF-8 text file. Binary files and images are unsupported.";
+
+/* TokiComposer.swift: static UI/model copy */
+"Choose a non-empty UTF-8 text file. Binary files and images are unsupported." = "Choose a non-empty UTF-8 text file. Binary files and images are unsupported.";
+
+/* TranslationsView.swift: static UI/model copy */
+"Choose a project" = "Choose a project";
+
+/* GlossiaWorkspaceView.swift: static UI/model copy */
+"Choose project" = "Choose project";
+
+/* TokiWorkStatusView.swift: static UI/model copy */
+"Collapsed" = "Collapsed";
+
+/* TranslationsView.swift: static UI/model copy */
+"Commit" = "Commit";
+
+/* TranslationsView.swift: static UI/model copy */
+"Completed" = "Completed";
+
+/* GlossiaPushNotifications.swift: static UI/model copy */
+"Connecting this device…" = "Connecting this device…";
+
+/* TranslationsView.swift: static UI/model copy */
+"Connecting to live progress…" = "Connecting to live progress…";
+
+/* ProfileView.swift: static UI/model copy */
+"Connection" = "Connection";
+
+/* GlossiaSession.swift: static UI/model copy */
+"Could not access secure storage. Try again." = "Could not access secure storage. Try again.";
+
+/* GlossiaSession.swift: static UI/model copy */
+"Could not complete the request." = "Could not complete the request.";
+
+/* FluentLanguages.swift: static UI/model copy */
+"Could not confirm fluent languages. Your draft is unchanged." = "Could not confirm fluent languages. Your draft is unchanged.";
+
+/* TranslationsView.swift: static UI/model copy */
+"Could not open live translation progress." = "Could not open live translation progress.";
+
+/* GlossiaSession.swift: static UI/model copy */
+"Could not open secure sign-in." = "Could not open secure sign-in.";
+
+/* GlossiaPushNotifications.swift: static UI/model copy */
+"Could not read secure notification settings." = "Could not read secure notification settings.";
+
+/* TokiView.swift: static UI/model copy */
+"Curious" = "Curious";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Daily totals · UTC" = "Daily totals · UTC";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Date" = "Date";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Decision summary" = "Decision summary";
+
+/* TokiWorkStatusView.swift: static UI/model copy */
+"Delighted" = "Delighted";
+
+/* TokiVoiceInput.swift: static UI/model copy */
+"Dictation reached its time limit. Your typed draft is unchanged." = "Dictation reached its time limit. Your typed draft is unchanged.";
+
+/* TokiVoiceInput.swift: static UI/model copy */
+"Dictation stopped. Your typed draft is unchanged; try again." = "Dictation stopped. Your typed draft is unchanged; try again.";
+
+/* FluentLanguages.swift: static UI/model copy */
+"Discard changes" = "Discard changes";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Discard decision draft" = "Discard decision draft";
+
+/* TokiComposer.swift: static UI/model copy */
+"Discard dictation" = "Discard dictation";
+
+/* TokiView.swift: static UI/model copy */
+"Discard drafts" = "Discard drafts";
+
+/* TokiView.swift: static UI/model copy */
+"Discard unsent drafts" = "Discard unsent drafts";
+
+/* TokiView.swift: static UI/model copy */
+"Discard unsent drafts?" = "Discard unsent drafts?";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Discard unsent message" = "Discard unsent message";
+
+/* TranslationsView.swift: static UI/model copy */
+"Discuss with Toki" = "Discuss with Toki";
+
+/* TokiView.swift: static UI/model copy */
+"Draft conversation" = "Draft conversation";
+
+/* TokiLiveActivity.swift: static UI/model copy */
+"Elapsed since observed" = "Elapsed since observed";
+
+/* ProfileView.swift: static UI/model copy */
+"Email" = "Email";
+
+/* TokiWorkStatusView.swift: static UI/model copy */
+"Expanded" = "Expanded";
+
+/* TranslationsView.swift: static UI/model copy */
+"Failed" = "Failed";
+
+/* WorkspacePicker.swift: static UI/model copy */
+"Find a project" = "Find a project";
+
+/* GlossiaSession.swift: static UI/model copy */
+"Finish or discard your conversation draft before opening another destination." = "Finish or discard your conversation draft before opening another destination.";
+
+/* ProfileView.swift: static UI/model copy */
+"Fluent languages" = "Fluent languages";
+
+/* TokiWorkStatusView.swift: static UI/model copy */
+"Focused" = "Focused";
+
+/* ProfileView.swift: static UI/model copy */
+"Glossia" = "Glossia";
+
+/* GlossiaNavigation.swift: static UI/model copy */
+"Glossia link" = "Glossia link";
+
+/* TokiView.swift: static UI/model copy */
+"Glossia returned a different conversation." = "Glossia returned a different conversation.";
+
+/* TranslationsView.swift: static UI/model copy */
+"Glossia returned a different translation." = "Glossia returned a different translation.";
+
+/* TranslationsView.swift: static UI/model copy */
+"Glossia returned an invalid linguistic review." = "Glossia returned an invalid linguistic review.";
+
+/* GlossiaSession.swift: static UI/model copy */
+"Glossia returned an invalid response." = "Glossia returned an invalid response.";
+
+/* GlossiaLoginView.swift: static UI/model copy */
+"GlossiaMark" = "GlossiaMark";
+
+/* GlossiaPushNotifications.swift: static UI/model copy */
+"GlossiaPushEnvironment" = "GlossiaPushEnvironment";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Goal closed" = "Goal closed";
+
+/* ProfileView.swift: static UI/model copy */
+"Handle" = "Handle";
+
+/* TokiSprite.swift: static UI/model copy */
+"Happy to see you" = "Happy to see you";
+
+/* TokiView.swift: static UI/model copy */
+"Help me plan our next language" = "Help me plan our next language";
+
+/* TranslationsView.swift: static UI/model copy */
+"Historical run · linguistic input answered" = "Historical run · linguistic input answered";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Hourly totals · UTC" = "Hourly totals · UTC";
+
+/* TokiView.swift: static UI/model copy */
+"Image uploads are unavailable. Choose a UTF-8 text file instead." = "Image uploads are unavailable. Choose a UTF-8 text file instead.";
+
+/* TokiComposer.swift: static UI/model copy */
+"Import text file; images unavailable" = "Import text file; images unavailable";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Independent reusable rule" = "Independent reusable rule";
+
+/* GlossiaSession.swift: static UI/model copy */
+"Invalid sign-in response." = "Invalid sign-in response.";
+
+/* TranslationsView.swift: static UI/model copy */
+"Languages" = "Languages";
+
+/* FluentLanguages.swift: static UI/model copy */
+"Languages you speak fluently" = "Languages you speak fluently";
+
+/* TokiSprite.swift: static UI/model copy */
+"LeftArm" = "LeftArm";
+
+/* TokiView.swift: static UI/model copy */
+"Linguist" = "Linguist";
+
+/* TranslationsView.swift: static UI/model copy */
+"Linguistic input answered" = "Linguistic input answered";
+
+/* TranslationsView.swift: static UI/model copy */
+"Linguistic question" = "Linguistic question";
+
+/* ProfileView.swift: static UI/model copy */
+"Linguistic reviews" = "Linguistic reviews";
+
+/* TranslationsView.swift: static UI/model copy */
+"Load more" = "Load more";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Loading analytics…" = "Loading analytics…";
+
+/* TranslationsView.swift: static UI/model copy */
+"Loading linguistic reviews…" = "Loading linguistic reviews…";
+
+/* ProfileView.swift: static UI/model copy */
+"Loading profile…" = "Loading profile…";
+
+/* WorkspacePicker.swift: static UI/model copy */
+"Loading projects…" = "Loading projects…";
+
+/* TranslationsView.swift: static UI/model copy */
+"Loading translations…" = "Loading translations…";
+
+/* TokiComposer.swift: static UI/model copy */
+"Message Toki…" = "Message Toki…";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Metric" = "Metric";
+
+/* TokiVoiceInput.swift: static UI/model copy */
+"Microphone unavailable." = "Microphone unavailable.";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Monthly totals · UTC" = "Monthly totals · UTC";
+
+/* TokiView.swift: static UI/model copy */
+"New conversation" = "New conversation";
+
+/* TokiView.swift: static UI/model copy */
+"No conversations yet" = "No conversations yet";
+
+/* TokiGoalView.swift: static UI/model copy */
+"No excerpt" = "No excerpt";
+
+/* WorkspacePicker.swift: static UI/model copy */
+"No matching projects" = "No matching projects";
+
+/* WorkspacePicker.swift: static UI/model copy */
+"No projects" = "No projects";
+
+/* TokiVoiceInput.swift: static UI/model copy */
+"No speech was captured. Your typed draft is unchanged." = "No speech was captured. Your typed draft is unchanged.";
+
+/* AnalyticsView.swift: static UI/model copy */
+"No traffic to chart" = "No traffic to chart";
+
+/* AnalyticsView.swift: static UI/model copy */
+"No visits in this period. Install the Glossia tracker on your website to learn where your readers are." = "No visits in this period. Install the Glossia tracker on your website to learn where your readers are.";
+
+/* ProfileView.swift: static UI/model copy */
+"None" = "None";
+
+/* TranslationsView.swift: static UI/model copy */
+"Not available" = "Not available";
+
+/* GlossiaPushNotifications.swift: static UI/model copy */
+"Notifications are off locally. Server cleanup will retry when connected." = "Notifications are off locally. Server cleanup will retry when connected.";
+
+/* TokiVoiceInput.swift: static UI/model copy */
+"On-device dictation is unavailable for this language or device. You can still type." = "On-device dictation is unavailable for this language or device. You can still type.";
+
+/* TokiVoiceInput.swift: static UI/model copy */
+"On-device dictation is unavailable." = "On-device dictation is unavailable.";
+
+/* TokiActivityAttributes.swift: static UI/model copy */
+"Open Glossia to check Toki" = "Open Glossia to check Toki";
+
+/* TokiLiveActivity.swift: static UI/model copy */
+"Open Glossia to check the latest status" = "Open Glossia to check the latest status";
+
+/* TokiLiveActivity.swift: static UI/model copy */
+"Open conversation" = "Open conversation";
+
+/* TranslationsView.swift: static UI/model copy */
+"Open shared Toki conversation" = "Open shared Toki conversation";
+
+/* GlossiaApp.swift: static UI/model copy */
+"Opening Glossia…" = "Opening Glossia…";
+
+/* TokiView.swift: static UI/model copy */
+"Opening conversations…" = "Opening conversations…";
+
+/* TokiView.swift: static UI/model copy */
+"Opening conversation…" = "Opening conversation…";
+
+/* TranslationsView.swift: static UI/model copy */
+"Opening translation…" = "Opening translation…";
+
+/* WorkspacePicker.swift: static UI/model copy */
+"Organization" = "Organization";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Pageviews" = "Pageviews";
+
+/* TranslationsView.swift: static UI/model copy */
+"Pending" = "Pending";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Period" = "Period";
+
+/* TokiComposer.swift: static UI/model copy */
+"Photo Library" = "Photo Library";
+
+/* TranslationsView.swift: static UI/model copy */
+"Planning translations…" = "Planning translations…";
+
+/* GlossiaWorkspaceView.swift: static UI/model copy */
+"Profile" = "Profile";
+
+/* TranslationsView.swift: static UI/model copy */
+"Progress" = "Progress";
+
+/* ProfileView.swift: static UI/model copy */
+"Project" = "Project";
+
+/* WorkspacePicker.swift: static UI/model copy */
+"Projects" = "Projects";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Propose reusable guidance" = "Propose reusable guidance";
+
+/* GlossiaPushNotifications.swift: static UI/model copy */
+"Push notifications" = "Push notifications";
+
+/* GlossiaPushNotifications.swift: static UI/model copy */
+"Push notifications are not configured in this signed build." = "Push notifications are not configured in this signed build.";
+
+/* TranslationsView.swift: static UI/model copy */
+"Queued" = "Queued";
+
+/* TokiSprite.swift: static UI/model copy */
+"Ready to help" = "Ready to help";
+
+/* TranslationsView.swift: static UI/model copy */
+"Reconnecting to live progress…" = "Reconnecting to live progress…";
+
+/* TokiComposer.swift: static UI/model copy */
+"Recording on this device" = "Recording on this device";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Refresh goal and conversation" = "Refresh goal and conversation";
+
+/* TranslationsView.swift: static UI/model copy */
+"Refresh reviews" = "Refresh reviews";
+
+/* GlossiaSession.swift: static UI/model copy */
+"Request failed." = "Request failed.";
+
+/* GlossiaLoginView.swift: static UI/model copy */
+"Reset saved sign-in" = "Reset saved sign-in";
+
+/* TokiView.swift: static UI/model copy */
+"Resolve goal" = "Resolve goal";
+
+/* GlossiaNavigation.swift: static UI/model copy */
+"Retry" = "Retry";
+
+/* GlossiaLoginView.swift: static UI/model copy */
+"Retry saved session" = "Retry saved session";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Review the decision before saving" = "Review the decision before saving";
+
+/* TokiSprite.swift: static UI/model copy */
+"RightArm" = "RightArm";
+
+/* TranslationsView.swift: static UI/model copy */
+"Running" = "Running";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Save decision and resume" = "Save decision and resume";
+
+/* FluentLanguages.swift: static UI/model copy */
+"Save fluent languages" = "Save fluent languages";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Saving decision…" = "Saving decision…";
+
+/* FluentLanguages.swift: static UI/model copy */
+"Saving or loading languages…" = "Saving or loading languages…";
+
+/* TokiSprite.swift: static UI/model copy */
+"Say hello" = "Say hello";
+
+/* WorkspacePicker.swift: static UI/model copy */
+"Selected" = "Selected";
+
+/* GlossiaLoginView.swift: static UI/model copy */
+"Self-hosted server" = "Self-hosted server";
+
+/* TokiComposer.swift: static UI/model copy */
+"Send message" = "Send message";
+
+/* TokiView.swift: static UI/model copy */
+"Sending…" = "Sending…";
+
+/* ProfileView.swift: static UI/model copy */
+"Server" = "Server";
+
+/* GlossiaLoginView.swift: static UI/model copy */
+"Server address" = "Server address";
+
+/* ProfileView.swift: static UI/model copy */
+"Server version" = "Server version";
+
+/* TranslationsView.swift: static UI/model copy */
+"Share translation link" = "Share translation link";
+
+/* TokiWorkStatusView.swift: static UI/model copy */
+"Shows when Toki's status was last checked" = "Shows when Toki's status was last checked";
+
+/* GlossiaLoginView.swift: static UI/model copy */
+"Sign in" = "Sign in";
+
+/* GlossiaSession.swift: static UI/model copy */
+"Sign in to Glossia." = "Sign in to Glossia.";
+
+/* ProfileView.swift: static UI/model copy */
+"Sign out" = "Sign out";
+
+/* ProfileView.swift: static UI/model copy */
+"Sign out of Glossia? Unsaved Toki drafts will be removed." = "Sign out of Glossia? Unsaved Toki drafts will be removed.";
+
+/* GlossiaLoginView.swift: static UI/model copy */
+"Signing in…" = "Signing in…";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Source and translation context" = "Source and translation context";
+
+/* TranslationsView.swift: static UI/model copy */
+"Source language" = "Source language";
+
+/* TranslationsView.swift: static UI/model copy */
+"Status" = "Status";
+
+/* TokiLiveActivity.swift: static UI/model copy */
+"Status needs a fresh check" = "Status needs a fresh check";
+
+/* TokiComposer.swift: static UI/model copy */
+"Stop dictation" = "Stop dictation";
+
+/* TokiView.swift: static UI/model copy */
+"Summarize my recent translations" = "Summarize my recent translations";
+
+/* TranslationsView.swift: static UI/model copy */
+"Summary" = "Summary";
+
+/* WorkspacePicker.swift: static UI/model copy */
+"Switch workspace" = "Switch workspace";
+
+/* TokiSprite.swift: static UI/model copy */
+"Tap to say hello. Tap again for a different reaction." = "Tap to say hello. Tap again for a different reaction.";
+
+/* TokiComposer.swift: static UI/model copy */
+"Tap to start or stop, or hold and release to add editable text. Nothing sends automatically." = "Tap to start or stop, or hold and release to add editable text. Nothing sends automatically.";
+
+/* TranslationsView.swift: static UI/model copy */
+"Target languages" = "Target languages";
+
+/* TokiComposer.swift: static UI/model copy */
+"The imported text and draft must fit within 4,000 characters. Your draft is unchanged." = "The imported text and draft must fit within 4,000 characters. Your draft is unchanged.";
+
+/* TokiWorkStatusView.swift: static UI/model copy */
+"The latest status isn't available. Work may still be running. Open Glossia and check again." = "The latest status isn't available. Work may still be running. Open Glossia and check again.";
+
+/* TokiWorkStatusView.swift: static UI/model copy */
+"The server reports that Toki finished this reply." = "The server reports that Toki finished this reply.";
+
+/* TokiView.swift: static UI/model copy */
+"The shared goal is missing. Refresh to retry." = "The shared goal is missing. Refresh to retry.";
+
+/* GlossiaNavigation.swift: static UI/model copy */
+"This Glossia link is invalid or is not supported by this app." = "This Glossia link is invalid or is not supported by this app.";
+
+/* TokiView.swift: static UI/model copy */
+"This conversation is no longer available." = "This conversation is no longer available.";
+
+/* TokiView.swift: static UI/model copy */
+"This goal has closed. Your unsaved decision and guidance are retained below. Copy or explicitly discard the draft; it cannot be saved to a closed goal." = "This goal has closed. Your unsaved decision and guidance are retained below. Copy or explicitly discard the draft; it cannot be saved to a closed goal.";
+
+/* GlossiaSession.swift: static UI/model copy */
+"This link belongs to a different Glossia server. Sign in to that server and open the link again." = "This link belongs to a different Glossia server. Sign in to that server and open the link again.";
+
+/* WorkspacePicker.swift: static UI/model copy */
+"This organization has no accessible projects." = "This organization has no accessible projects.";
+
+/* TranslationsView.swift: static UI/model copy */
+"This translation is no longer available." = "This translation is no longer available.";
+
+/* GlossiaSession.swift: static UI/model copy */
+"This workspace is unavailable or you no longer have access to it." = "This workspace is unavailable or you no longer have access to it.";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Time-series data isn't available from this server. Your audience totals are shown below." = "Time-series data isn't available from this server. Your audience totals are shown below.";
+
+/* TokiView.swift: static UI/model copy */
+"Toki" = "Toki";
+
+/* TokiLiveActivity.swift: static UI/model copy */
+"Toki conversation" = "Toki conversation";
+
+/* TokiActivityAttributes.swift: static UI/model copy */
+"Toki couldn't finish" = "Toki couldn't finish";
+
+/* TokiWorkStatusView.swift: static UI/model copy */
+"Toki couldn't finish this reply. You can send a follow-up to try again." = "Toki couldn't finish this reply. You can send a follow-up to try again.";
+
+/* TokiActivityAttributes.swift: static UI/model copy */
+"Toki finished" = "Toki finished";
+
+/* TokiWorkStatusView.swift: static UI/model copy */
+"Toki is preparing a reply. Time is measured from when Glossia first observed this work." = "Toki is preparing a reply. Time is measured from when Glossia first observed this work.";
+
+/* TokiActivityAttributes.swift: static UI/model copy */
+"Toki is thinking" = "Toki is thinking";
+
+/* TokiWorkStatusView.swift: static UI/model copy */
+"Toki is thinking…" = "Toki is thinking…";
+
+/* TokiView.swift: static UI/model copy */
+"Toki suggestion" = "Toki suggestion";
+
+/* TokiLiveActivity.swift: static UI/model copy */
+"TokiFocused" = "TokiFocused";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Top browser language" = "Top browser language";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Top country" = "Top country";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Top pages" = "Top pages";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Traffic" = "Traffic";
+
+/* TokiComposer.swift: static UI/model copy */
+"Transcribe a voice message" = "Transcribe a voice message";
+
+/* TranslationsView.swift: static UI/model copy */
+"Translated" = "Translated";
+
+/* TranslationsView.swift: static UI/model copy */
+"Translated items" = "Translated items";
+
+/* TranslationsView.swift: static UI/model copy */
+"Translation" = "Translation";
+
+/* TranslationsView.swift: static UI/model copy */
+"Translation file" = "Translation file";
+
+/* TranslationsView.swift: static UI/model copy */
+"Translation session" = "Translation session";
+
+/* GlossiaWorkspaceView.swift: static UI/model copy */
+"Translations" = "Translations";
+
+/* WorkspacePicker.swift: static UI/model copy */
+"Try a different name or handle." = "Try a different name or handle.";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Unique visitors" = "Unique visitors";
+
+/* TranslationsView.swift: static UI/model copy */
+"Unknown" = "Unknown";
+
+/* TranslationsView.swift: static UI/model copy */
+"Unknown status" = "Unknown status";
+
+/* TokiGoalView.swift: static UI/model copy */
+"View resumed translation" = "View resumed translation";
+
+/* TokiView.swift: static UI/model copy */
+"View source translation" = "View source translation";
+
+/* AnalyticsView.swift: static UI/model copy */
+"Visits with a language gap" = "Visits with a language gap";
+
+/* TokiActivityAttributes.swift: static UI/model copy */
+"Waiting for Toki" = "Waiting for Toki";
+
+/* TranslationsView.swift: static UI/model copy */
+"Waiting for linguistic input" = "Waiting for linguistic input";
+
+/* TokiView.swift: static UI/model copy */
+"Wave" = "Wave";
+
+/* TokiSprite.swift: static UI/model copy */
+"Waving hello" = "Waving hello";
+
+/* TokiView.swift: static UI/model copy */
+"Which languages does this project support?" = "Which languages does this project support?";
+
+/* GlossiaWorkspaceView.swift: static UI/model copy */
+"Workspace" = "Workspace";
+
+/* TokiView.swift: static UI/model copy */
+"You" = "You";
+
+/* TranslationsView.swift: static UI/model copy */
+"You do not have permission to view linguistic reviews." = "You do not have permission to view linguistic reviews.";
+
+/* TranslationsView.swift: static UI/model copy */
+"You no longer have access to this translation." = "You no longer have access to this translation.";
+
+/* TokiWorkStatusView.swift: static UI/model copy */
+"Your message is queued. Toki hasn't started replying yet." = "Your message is queued. Toki hasn't started replying yet.";
+
+/* ProfileView.swift: static UI/model copy */
+"Your profile" = "Your profile";
+
+/* GlossiaSession.swift: static UI/model copy */
+"Your session changed. Retry this request." = "Your session changed. Retry this request.";
+
+/* TranslationsView.swift: static UI/model copy */
+"Your session is no longer authorized. Sign in again." = "Your session is no longer authorized. Sign in again.";

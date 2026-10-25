@@ -316,6 +316,10 @@ defmodule GlossiaWeb.Router do
     ]
 
     get "/me", MeApiController, :show
+    put "/me/fluent-languages", MeApiController, :update_fluent_languages
+    get "/me/push-devices/capabilities", PushDeviceController, :capabilities
+    put "/me/push-devices/:installation_id", PushDeviceController, :update, log: false
+    delete "/me/push-devices/:installation_id", PushDeviceController, :delete
     get "/accounts", AccountApiController, :index
 
     get "/organizations", OrganizationApiController, :index
@@ -352,6 +356,12 @@ defmodule GlossiaWeb.Router do
 
     get "/:handle/projects/:project/translations", ProjectActivityApiController, :translations
     get "/:handle/projects/:project/translations/:id", ProjectActivityApiController, :translation
+    get "/:handle/projects/:project/translations/:id/reviews", LinguisticReviewController, :index
+
+    post "/:handle/projects/:project/translations/:id/reviews/:review_id/answer",
+         LinguisticReviewController,
+         :answer
+
     get "/:handle/projects/:project/analytics", ProjectActivityApiController, :analytics
     get "/:handle/projects/:project/toki/conversations", TokiApiController, :index
     post "/:handle/projects/:project/toki/conversations", TokiApiController, :create
@@ -585,6 +595,8 @@ defmodule GlossiaWeb.Router do
       live "/:handle", DashboardLive, :account
       live "/:handle/:project/-/translations", DashboardLive, :project_translations
       live "/:handle/:project/-/sessions/:session_id", DashboardLive, :project_session
+      live "/:handle/:project/-/toki", TokiLive, :toki_index
+      live "/:handle/:project/-/toki/:id", TokiLive, :toki_show
       live "/:handle/:project", DashboardLive, :project
     end
   end

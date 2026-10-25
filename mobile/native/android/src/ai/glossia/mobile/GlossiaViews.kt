@@ -31,19 +31,19 @@ internal fun Context.column(padding: Int = 0) = LinearLayout(this).apply {
     orientation = LinearLayout.VERTICAL
     setPadding(dp(padding), dp(padding), dp(padding), dp(padding))
 }
-internal fun Context.label(value: CharSequence, size: Float = 14f, muted: Boolean = false) = MaterialTextView(this).apply {
-    text = value; textSize = size
+internal fun Context.label(value: CharSequence, size: Float = 14f, muted: Boolean = false, verbatim: Boolean = false) = MaterialTextView(this).apply {
+    text = if (verbatim) value else nativeText(value); textSize = size
     themed { setTextColor(GlossiaAppearance.states(context.token(if (muted) R.color.glossia_muted else R.color.glossia_text))) }
     setLineSpacing(dp(3).toFloat(), 1f)
 }
-internal fun Context.heading(value: String, size: Float = 24f) = label(value, size).apply {
+internal fun Context.heading(value: String, size: Float = 24f, verbatim: Boolean = false) = label(value, size, verbatim = verbatim).apply {
     typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     androidx.core.view.ViewCompat.setAccessibilityHeading(this, true)
 }
 internal fun Context.button(value: String, primary: Boolean = false, action: () -> Unit) = MaterialButton(
     this, null, if (primary) com.google.android.material.R.attr.materialButtonStyle else com.google.android.material.R.attr.borderlessButtonStyle
 ).apply {
-    text = value; isAllCaps = false; minHeight = dp(48); cornerRadius = dp(12)
+    text = nativeText(value); isAllCaps = false; minHeight = dp(48); cornerRadius = dp(12)
     setTag(R.id.appearance_primary, primary)
     setOnClickListener { action() }
 }
@@ -63,7 +63,7 @@ internal fun LinearLayout.loading(title: String) {
     val row = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
     row.addView(CircularProgressIndicator(context).apply {
         isIndeterminate = true; indicatorSize = context.dp(20); trackThickness = context.dp(2)
-        contentDescription = title
+        contentDescription = context.nativeText(title)
     }, LinearLayout.LayoutParams(context.dp(32), context.dp(32)))
     row.addView(context.label(title, muted = true), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
     addSpaced(row)
@@ -71,7 +71,7 @@ internal fun LinearLayout.loading(title: String) {
 internal fun LinearLayout.failure(message: String?, retry: () -> Unit) {
     if (message == null) return
     addSpaced(context.card {
-        addSpaced(context.label(message).apply {
+        addSpaced(context.label(message, verbatim = true).apply {
             themed { setTextColor(readableErrorColor()) }
             accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
         }, 0)
@@ -159,7 +159,7 @@ class GlossiaLoginView(context: Context, hosted: () -> Unit, selfHosted: () -> U
 
     fun render(busy: Boolean, error: String?) {
         progress.visibility = if (busy) View.VISIBLE else View.GONE
-        errorLabel.text = error; errorLabel.visibility = if (error == null) View.GONE else View.VISIBLE
+        errorLabel.text = error?.let { context.nativeText(it) }; errorLabel.visibility = if (error == null) View.GONE else View.VISIBLE
         retryButton.visibility = errorLabel.visibility; resetButton.visibility = errorLabel.visibility
         listOf(hostedButton, selfHostedButton, retryButton, resetButton).forEach { it.isEnabled = !busy }
     }

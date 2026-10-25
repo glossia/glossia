@@ -229,7 +229,7 @@ defmodule Glossia.TranslationSessions do
       existing =
         from(s in TranslationSession,
           where: s.project_id == ^project.id and s.commit_sha == ^commit_sha,
-          where: s.status in ["pending", "running", "completed"],
+          where: s.status in ["pending", "running", "awaiting_input", "completed"],
           order_by: [desc: s.inserted_at],
           limit: 1
         )
@@ -240,7 +240,8 @@ defmodule Glossia.TranslationSessions do
       else
         active_sessions =
           from(s in TranslationSession,
-            where: s.project_id == ^project.id and s.status in ["pending", "running"],
+            where:
+              s.project_id == ^project.id and s.status in ["pending", "running", "awaiting_input"],
             order_by: [desc: s.updated_at],
             lock: "FOR UPDATE"
           )
@@ -255,6 +256,11 @@ defmodule Glossia.TranslationSessions do
         superseded_sessions =
           Enum.map(active_sessions, fn session ->
             counts = progress_counts(session.id)
+
+            from(r in Glossia.LinguisticReviews.Review,
+              where: r.translation_session_id == ^session.id and r.status == "open"
+            )
+            |> Repo.update_all(set: [status: "stale", updated_at: now])
 
             session
             |> Ecto.Changeset.change(%{
@@ -362,7 +368,7 @@ defmodule Glossia.TranslationSessions do
     id
     |> session_progress()
     |> Progress.items()
-    |> Enum.filter(&(&1.status in [:running, :queued]))
+    |> Enum.filter(&(&1.status in [:running, :queued, :awaiting_input]))
   end
 
   defp cancel_superseded_jobs(session_id) do
@@ -671,8 +677,18 @@ defmodule Glossia.TranslationSessions do
   end
 
   def cancel_session(%TranslationSession{status: status} = session)
-      when status in ["pending", "running"] do
-    with {:ok, _count} <- cancel_queued_jobs(session.id) do
+      when status in ["pending", "running", "awaiting_input"] do
+    Repo.transaction(fn ->
+      Repo.one!(from p in Project, where: p.id == ^session.project_id, lock: "FOR UPDATE")
+
+      session =
+        Repo.one!(from s in TranslationSession, where: s.id == ^session.id, lock: "FOR UPDATE")
+
+      if session.status not in ["pending", "running", "awaiting_input"],
+        do: Repo.rollback(:not_cancellable)
+
+      {:ok, _count} = cancel_queued_jobs(session.id)
+
       # Cancelling the Oban job only stops a launch that has not happened yet.
       # A translation already under way is signalled through Launcher.cancel/1,
       # which the local dev/test path treats as a no-op — a downstream launcher plugs in
@@ -680,8 +696,17 @@ defmodule Glossia.TranslationSessions do
       # whatever the swap points to).
       Glossia.TranslationSessions.Launcher.cancel(session.id)
       cancel_in_flight_items(session, "cancelled")
-      update_session_status(session, "cancelled")
-    end
+
+      from(r in Glossia.LinguisticReviews.Review,
+        where: r.translation_session_id == ^session.id and r.status == "open"
+      )
+      |> Repo.update_all(set: [status: "stale", updated_at: DateTime.utc_now()])
+
+      case update_session_status(session, "cancelled") do
+        {:ok, updated} -> updated
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
   end
 
   def cancel_session(%TranslationSession{}), do: {:error, :not_cancellable}

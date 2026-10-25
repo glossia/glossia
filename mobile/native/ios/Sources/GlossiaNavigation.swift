@@ -61,7 +61,7 @@ struct GlossiaDestination: Codable, Equatable, Hashable {
     }
 
     private static func invalid() -> GlossiaFailure {
-        GlossiaFailure(kind: "invalid_link", message: "This Glossia link is invalid or is not supported by this app.")
+        GlossiaFailure(kind: "invalid_link", message: String(localized: "This Glossia link is invalid or is not supported by this app."))
     }
 }
 

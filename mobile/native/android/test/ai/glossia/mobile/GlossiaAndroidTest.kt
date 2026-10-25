@@ -136,6 +136,19 @@ class GlossiaAndroidTest {
     private fun failure(kind: String, message: String = kind) = JSONObject().put("error", JSONObject().put("kind", kind).put("message", message))
     private fun translationRecord(id: String = translationId) = JSONObject("""{"status":"completed","commit_message":"A warmer welcome, in every language","source_language":"en","target_languages":["es","fr","de"],"translated_content_count":128,"summary":"Updated homepage and onboarding translations.","inserted_at":"2026-10-25T08:00:00Z"}""").put("id", id)
 
+    private val reviewId = "def12345-802e-4f91-9112-77d8a919efc5"
+    private val goalChatId = "93cf36a3-802e-4f91-9112-77d8a919efc5"
+    private val goalReplyId = "aaa12345-802e-4f91-9112-77d8a919efc5"
+    private fun reviewRecord(status: String = "open") = JSONObject("""{"locale":"es","question":"Should we address the reader with tú or usted?","source_path":"locales/en/welcome.json","output_path":"locales/es/welcome.json","source_excerpt":"Welcome back!","translation_excerpt":"¡Bienvenido de nuevo!","inserted_at":"2026-10-25T10:00:00Z"}""")
+        .put("id", reviewId).put("translation_session_id", translationId).put("conversation_id", goalChatId).put("status", status)
+
+    private fun goalConversation(status: String = "open", phase: String = "completed") = conversation(goalChatId, phase).apply {
+        getJSONObject("conversation").put("linguistic_review", reviewRecord(status))
+        put("messages", JSONArray().put(JSONObject().put("id", "bbb12345-802e-4f91-9112-77d8a919efc5").put("role", "assistant").put("content", "Should we address the reader with tú or usted?"))
+            .put(JSONObject().put("id", "ccc12345-802e-4f91-9112-77d8a919efc5").put("role", "user").put("content", "Our onboarding should feel friendly."))
+            .put(JSONObject().put("id", goalReplyId).put("role", "assistant").put("status", "completed").put("reply_to_id", "ccc12345-802e-4f91-9112-77d8a919efc5").put("content", "Use informal tú.")))
+    }
+
     private fun session(signedIn: Boolean = true, restore: Boolean = true,
         custom: (JSONObject) -> JSONObject? = { null }): Pair<GlossiaSession, MemoryStorage> {
         context.getSharedPreferences("glossia.workspace", 0).edit().clear().commit()
@@ -149,6 +162,7 @@ class GlossiaAndroidTest {
                 "restore" -> request.getJSONObject("session")
                 "navigation" -> navigationFixture(request)
                 "translation" -> JSONObject().put("session", translationRecord(request.getString("id")))
+                "translation_reviews" -> JSONObject().put("reviews", JSONArray())
                 "begin" -> JSONObject().put("authorization_url", "https://glossia.ai/oauth/authorize")
                     .put("registration", JSONObject().put("server", request.getString("server"))).put("pending", JSONObject())
                 "validate_callback" -> JSONObject()
@@ -178,6 +192,65 @@ class GlossiaAndroidTest {
             pump { !session.busy && if (signedIn) session.server != null && session.toki.history.loaded else session.server == null }
         }
         return session to storage
+    }
+
+    @Test fun linguisticAnswersPreserveIndependentGuidanceAndUseTypedResumedNavigation() {
+        var answered = false
+        val resumedId = "aaa12345-802e-4f91-9112-77d8a919efc5"
+        val (session, _) = session { request ->
+            if (request.optString("operation") == "conversation") goalConversation(if (answered) "answered" else "open").apply {
+                if (answered) getJSONObject("conversation").getJSONObject("linguistic_review").put("resumed_session_id", resumedId)
+            }
+            else if (request.optString("operation") != "translation_reviews") null
+            else if (request.optString("action") == "answer") {
+                answered = true
+                JSONObject().put("review", reviewRecord("answered").put("answer", request.getString("answer")).put("resumed_session_id", resumedId))
+            } else JSONObject().put("reviews", JSONArray().put(reviewRecord(if (answered) "answered" else "open")
+                .apply { if (answered) put("resumed_session_id", resumedId) }))
+        }
+        session.showTranslation(translationId); pump { session.translation.reviews.loaded }
+        session.openReviewConversation(goalChatId); pump { session.toki.active?.loaded == true }
+        val model = session.toki.active!!
+        model.beginResolution()
+        assertFalse(model.decision!!.reusable)
+        model.decision!!.apply { answer = "Use tú"; reusable = true; guidance = "Use informal Spanish in onboarding."; scope = "project" }
+        assertTrue(session.hasProtectedWork)
+        session.back(); assertEquals(goalChatId, session.toki.activeId)
+        session.saveGoalDecision(); pump { answered && model.goalClosed && !model.resolving && !model.busy }
+        val write = calls.single { it.optString("operation") == "translation_reviews" && it.optString("action") == "answer" }
+        assertEquals("Use tú", write.getString("answer")); assertEquals("Use informal Spanish in onboarding.", write.getString("guidance"))
+        assertEquals("project", write.getString("context_scope")); assertFalse(session.hasProtectedWork)
+        assertEquals(goalReplyId, write.getString("resolution_message_id"))
+        session.showTranslation(resumedId); pump { session.translation.id == resumedId && session.translation.loaded }
+        assertTrue(calls.any { it.optString("operation") == "navigation" && it.optString("action") == "link" &&
+            it.optJSONObject("destination")?.optString("screen") == GlossiaScreen.TRANSLATION.wire &&
+            it.optJSONObject("destination")?.optString("id") == resumedId })
+    }
+
+    @Test fun ambiguousReviewAnswerRequiresRefreshAndStaleWorkspaceResultCannotRestoreIt() {
+        val started = CountDownLatch(1); val release = CountDownLatch(1).also(releases::add)
+        var fail = true
+        val (session, _) = session { request ->
+            if (request.optString("operation") == "conversation") goalConversation()
+            else if (request.optString("operation") != "translation_reviews") null
+            else if (request.optString("action") == "list") JSONObject().put("reviews", JSONArray().put(reviewRecord()))
+            else if (fail) { fail = false; failure("network") }
+            else { started.countDown(); release.await(5, TimeUnit.SECONDS); JSONObject().put("review", reviewRecord("answered")) }
+        }
+        session.showConversation(goalChatId); pump { session.toki.active?.loaded == true }
+        val model = session.toki.active!!
+        model.beginResolution(); model.decision!!.answer = "Use tú"
+        session.saveGoalDecision(); pump { model.resolutionNeedsRefresh }
+        session.saveGoalDecision()
+        assertEquals(1, calls.count { it.optString("operation") == "translation_reviews" && it.optString("action") == "answer" })
+        val oneOff = calls.last { it.optString("action") == "answer" }
+        assertFalse(oneOff.has("guidance")); assertFalse(oneOff.has("context_scope"))
+        session.showConversation(goalChatId); pump { !model.busy && !model.resolutionNeedsRefresh }
+        session.saveGoalDecision(); assertTrue(started.await(2, TimeUnit.SECONDS))
+        session.signOut(); release.countDown(); pump { session.server == null && !session.busy }
+        assertTrue(session.translation.reviews.items.isEmpty()); assertFalse(session.hasProtectedWork)
+        assertFalse(ReviewDraft().apply { answer = " "; reusable = false }.valid)
+        assertFalse(ReviewDraft().apply { answer = "Use tú"; reusable = true; guidance = "" }.valid)
     }
 
     @Test fun parallelRequestsDoNotBlockSignOutOrRestoreStaleModels() {
@@ -507,7 +580,7 @@ class GlossiaAndroidTest {
 
             // Only explicit Send creates a server conversation. If its message
             // response is lost, merge its history row with the same local retry.
-            val send = descendants(view()).filterIsInstance<MaterialButton>().single { it.text == "Send" }
+            val send = descendants(view()).single { it.contentDescription == "Send message" }
             assertTrue(send.isEnabled); assertTrue(send.performClick())
             assertNotNull(thread.pending)
             pump { thread.error != null }
@@ -1244,12 +1317,12 @@ class GlossiaAndroidTest {
         val controller = Robolectric.buildActivity(RenderActivity::class.java).setup()
         val activity = controller.get()
         var sharedURL: String? = null
-        val detail = FeatureViews(activity).translation(session.translation, session::loadTranslation, { session.back() }, session::discussTranslation) {
+        val detail = FeatureViews(activity).translation(session.translation, session::loadTranslation, { session.back() }, session::discussTranslation, share = {
             session.shareTranslation { url ->
                 sharedURL = url
                 activity.startActivity(GlossiaIntents.shareTranslation(url))
             }
-        }
+        })
         activity.setContentView(detail)
         val buildsBeforeShare = calls.count { it.optString("operation") == "navigation" && it.optString("action") == "link" }
         descendants(detail).filterIsInstance<MaterialButton>().single { it.text == "Share translation link" }.performClick()
@@ -1751,6 +1824,107 @@ class GlossiaAndroidTest {
         }
     }
 
+    @Test fun fluentLanguagesUseIndependentProfilePutAndPreserveFailedDrafts() {
+        var fail = true
+        val (session, _) = session { request ->
+            when (request.optString("operation")) {
+                "resource" -> if (request.optString("resource") == "profile") JSONObject().put("user", JSONObject().put("fluent_languages", JSONArray().put("es"))) else null
+                "fluent_languages" -> if (fail) failure("forbidden", "user:write required") else JSONObject().put("user", JSONObject().put("fluent_languages", request.getJSONArray("fluent_languages")))
+                else -> null
+            }
+        }
+        pump { session.server != null && !session.busy }
+        session.loadProfile(); pump { session.profile.loaded }
+        session.editFluentLanguages(); assertEquals("es", session.fluentLanguages.draft)
+        session.fluentLanguages.draft = "ar, zh-Hant"; session.saveFluentLanguages()
+        pump { session.fluentLanguages.error != null }
+        assertEquals("ar, zh-Hant", session.fluentLanguages.draft); assertTrue(session.hasProtectedWork)
+        fail = false; session.saveFluentLanguages(); pump { session.fluentLanguages.draft == null }
+        val write = calls.last { it.optString("operation") == "fluent_languages" }
+        assertEquals(listOf("ar", "zh-Hant"), (0 until write.getJSONArray("fluent_languages").length()).map { write.getJSONArray("fluent_languages").getString(it) })
+        assertFalse(write.has("locale")); assertFalse(session.hasProtectedWork)
+    }
+
+    @Test fun goalEligibilityRequiresACompletedReplyToTheLatestHumanTurn() {
+        val model = ConversationModel(goalChatId, created = true)
+        model.accept(goalConversation()); assertTrue(model.canResolve)
+        model.messages.getJSONObject(model.messages.length() - 1).remove("reply_to_id")
+        assertFalse(model.canResolve)
+        model.accept(goalConversation()); model.messages.getJSONObject(model.messages.length() - 1).put("status", "running")
+        assertFalse(model.canResolve)
+        model.accept(goalConversation()); model.messages.put(JSONObject().put("id", reviewId).put("role", "user").put("content", "Newer turn"))
+        assertFalse(model.canResolve)
+        for (phase in listOf("queued", "running", "failed")) { model.accept(goalConversation(phase = phase)); assertFalse(model.canResolve) }
+        model.accept(goalConversation()); model.beginResolution(); model.messages.getJSONObject(model.messages.length() - 1).put("id", reviewId)
+        assertFalse(model.canSaveDecision); assertTrue(model.protectsDecision)
+    }
+
+    @Test fun idleSharedGoalPollsTeammatesAndPreservesFrozenProposalAndEditor() {
+        var response = goalConversation()
+        val (session, _) = session { request -> if (request.optString("operation") == "conversation") response else null }
+        session.showConversation(goalChatId); pump { session.toki.active?.loaded == true }
+        val thread = session.toki.active!!
+        thread.draft = "Unsent chat"; session.setForeground(true)
+        pump { !thread.busy }
+        response = goalConversation().apply { getJSONArray("messages").put(JSONObject().put("id", reviewId).put("role", "user").put("content", "Another linguist asks")) }
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2600))
+        pump { thread.messages.length() == 4 && !thread.busy }
+        assertEquals("Unsent chat", thread.draft); assertFalse(thread.canResolve)
+        thread.draft = ""; response = goalConversation(); session.showConversation(goalChatId); pump { !thread.busy }
+        thread.beginResolution(); thread.decision!!.apply { answer = "Reviewed decision"; reusable = true; guidance = "Independent rule" }
+        val controller = Robolectric.buildActivity(RenderActivity::class.java).setup(); val activity = controller.get()
+        val view = TokiView(activity, session.toki, {}, {}, {}, {}, {}).apply { render(true) }
+        val editor = view.findViewWithTag<TextInputEditText>("goal-decision")!!
+        editor.requestFocus(); editor.setSelection(3)
+        response = goalConversation().apply { getJSONArray("messages").getJSONObject(2).put("id", reviewId) }
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2600)); pump { !thread.busy && thread.completedReply?.optString("id") == reviewId }
+        view.render(true)
+        assertSame(editor, view.findViewWithTag<TextInputEditText>("goal-decision")); assertEquals(3, editor.selectionStart)
+        assertEquals("Reviewed decision", thread.decision!!.answer); assertFalse(thread.canSaveDecision)
+        response = goalConversation("answered")
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2600)); pump { thread.goalClosed && !thread.busy }
+        view.render(true)
+        assertSame(editor, view.findViewWithTag<TextInputEditText>("goal-decision")); assertEquals("Independent rule", thread.decision!!.guidance)
+        assertTrue(thread.protectsDecision); assertFalse(thread.canSaveDecision); assertNotNull(thread.resolutionError)
+        controller.pause().stop().destroy()
+        val ordinary = ConversationModel(reviewId, true).apply { accept(conversation(reviewId, "completed")) }
+        assertFalse(ordinary.shouldPollVisible)
+    }
+
+    @Test fun sharedGoalsRenderMirroredArabicHebrewAndLargeTextWithRealViews() {
+        for (language in listOf("ar", "he")) for (large in listOf(false, true)) {
+            RuntimeEnvironment.setQualifiers("$language-r${if (language == "ar") "EG" else "IL"}-ldrtl-w411dp-h891dp-420dpi")
+            RuntimeEnvironment.setFontScale(if (large) 1.6f else 1f)
+            val controller = Robolectric.buildActivity(RenderActivity::class.java).setup()
+            val activity = controller.get()
+            val thread = ConversationModel(goalChatId, created = true).apply {
+                accept(goalConversation()); draft = "مرحبا L10N/ar.md שלום"
+                goal!!.put("locale", language).put("question", if (language == "ar") "هل نخاطب القارئ بصيغة رسمية أم ودية؟" else "באיזה סגנון נפנה לקוראים?")
+                    .put("output_path", "locales/$language/welcome.json").put("translation_excerpt", if (language == "ar") "مرحبًا بعودتك!" else "ברוכים השבים!")
+            }
+            val model = TokiModel().apply { threads[goalChatId] = thread; activeId = goalChatId }
+            val voice = TokiVoiceInput(TestTokiVoiceCapture(), { true }, {}, {}, {})
+            val view = TokiView(activity, model, { thread.draft = it }, {}, {}, {}, {}, voice = voice).apply { layoutDirection = View.LAYOUT_DIRECTION_RTL }
+            view.render(true); activity.setContentView(view)
+            view.setBackgroundColor(activity.token(R.color.glossia_background))
+            activity.appearance.apply(activity, view)
+            descendants(view).filterIsInstance<MaterialButton>().single { it.text == "Source and translation context" }.performClick()
+            view.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(2340, View.MeasureSpec.EXACTLY)); view.layout(0, 0, 1080, 2340)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(32))
+            val attach = descendants(view).single { it.contentDescription == "Import text file; images unavailable" }
+            val send = descendants(view).single { it.contentDescription == "Send message" }
+            val mic = descendants(view).single { it.contentDescription == "Transcribe a voice message" }
+            fun position(v: View) = IntArray(2).also { v.getLocationOnScreen(it) }[0]
+            assertTrue(position(attach) > position(mic)); assertTrue(position(mic) > position(send))
+            assertTrue(send.width >= activity.dp(48)); assertTrue(mic.isEnabled)
+            assertEquals("مرحبا L10N/ar.md שלום", findInput(view)!!.text.toString())
+            val bitmap = Bitmap.createBitmap(1080, 2340, Bitmap.Config.ARGB_8888); view.draw(Canvas(bitmap))
+            File(artifacts, "android-goal-$language${if (large) "-large" else ""}.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
+            controller.pause().stop().destroy()
+        }
+        RuntimeEnvironment.setFontScale(1f)
+    }
+
     @Test fun productionViewsRenderLightAndDarkAndChatStates() {
         for (custom in listOf(false, true)) for (night in listOf(false, true)) {
             RuntimeEnvironment.setQualifiers("w411dp-h891dp-${if (night) "night" else "notnight"}-420dpi")
@@ -1792,7 +1966,9 @@ class GlossiaAndroidTest {
                             if (!button.isEnabled) assertTrue(Color.alpha(button.currentTextColor) < 255)
                         }
                     }
-                    descendants(view).filterIsInstance<MaterialCardView>().forEach { assertEquals(activity.dp(12).toFloat(), it.radius, 1f) }
+                    descendants(view).filterIsInstance<MaterialCardView>().forEach {
+                        assertEquals(activity.dp(if (it.getTag(R.id.appearance_surface) == "composer") 28 else 12).toFloat(), it.radius, 1f)
+                    }
                 }
                 root.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(2340, View.MeasureSpec.EXACTLY))
                 root.layout(0, 0, 1080, 2340)
@@ -1878,7 +2054,7 @@ class GlossiaAndroidTest {
                         assertFalse(indicators.single().isIndeterminate)
                         assertEquals(if (state == "completed") 1000 else 333, indicators.single().progress)
                         assertTrue(labels.contains("${if (state == "completed") 3 else 1} / 3 translated"))
-                        assertTrue(labels.contains("locales/es/home.json")); assertTrue(labels.contains("es · done"))
+                        assertTrue(labels.contains("\u2066locales/es/home.json\u2069")); assertTrue(labels.contains("\u2068es\u2069 · Translated"))
                         assertEquals(activity.token(R.color.glossia_primary), indicators.single().indicatorColor.single())
                         assertEquals(activity.token(R.color.glossia_border), indicators.single().trackColor)
                         if (state == "reconnecting") assertTrue(labels.any { it.startsWith("Reconnecting…") })
@@ -1886,6 +2062,89 @@ class GlossiaAndroidTest {
                     }
                 }
             }
+            for (state in listOf("open", "answered", "stale", "denied", "loading", "error", "legacy")) {
+                val reviewModel = TranslationModel().apply {
+                    id = translationId; data = translationRecord().put("status", "awaiting_input"); loaded = true
+                    liveState = "connecting"
+                    reviews.loaded = true
+                    if (state == "loading") { reviews.busy = true; reviews.loaded = false }
+                    else if (state == "denied") { reviews.error = "You do not have permission to view linguistic reviews." }
+                    else if (state == "error") reviews.error = "Offline. Refresh reviews to try again."
+                    else reviews.items.add(reviewRecord(if (state in listOf("answered", "stale")) state else "open").apply {
+                        if (state == "answered") { put("answer", "Use informal tú."); put("guidance", "Use informal Spanish in onboarding.")
+                            put("context_path", "L10N/es.md"); put("resumed_session_id", "aaa12345-802e-4f91-9112-77d8a919efc5") }
+                    })
+                    if (state == "legacy") reviews.items[0].remove("conversation_id")
+                }
+                var opened: String? = null
+                val reviewView = views.translation(reviewModel, {}, {}, {}, openReview = { opened = it })
+                show("review-$state", reviewView, R.id.translations)
+                val labels = descendants(reviewView).filterIsInstance<TextView>().map { it.text.toString() }
+                assertFalse(labels.any { it.startsWith("Connecting") || it.startsWith("Reconnecting") })
+                assertFalse(labels.contains("Planning translations…"))
+                assertFalse(labels.contains("Translating files"))
+                assertFalse(labels.contains("Submit answer"))
+                if (state in listOf("denied", "loading", "error")) assertFalse(labels.contains("No linguistic questions for this translation."))
+                if (state in listOf("open", "answered", "stale")) {
+                    descendants(reviewView).filterIsInstance<MaterialButton>().single { it.text == "Open shared Toki conversation" }.performClick()
+                    assertEquals(goalChatId, opened)
+                }
+            }
+            for (state in listOf("active", "editing", "resolved", "stale", "error", "permission", "denied", "closed-draft")) {
+                val goals = TokiModel()
+                val thread = ConversationModel(goalChatId, created = true).apply {
+                    accept(goalConversation(if (state == "resolved") "answered" else if (state == "stale") "stale" else "open"))
+                    messages = JSONArray().put(messages.getJSONObject(0))
+                        .put(JSONObject().put("id", "ddd12345-802e-4f91-9112-77d8a919efc5").put("role", "user").put("author", "Sam").put("content", "Let's keep the welcome approachable."))
+                        .put(messages.getJSONObject(1).put("author", "Alex")).put(messages.getJSONObject(2))
+                    goal!!.put("participants", JSONArray().put(JSONObject().put("id", "alex").put("name", "Alex")).put(JSONObject().put("id", "sam").put("name", "Sam")))
+                    if (state == "resolved") goal!!.put("answer", "Use informal tú.").put("guidance", "Use informal Spanish in onboarding.").put("context_path", "L10N/es.md").put("resumed_session_id", goalReplyId)
+                    if (state in listOf("editing", "error", "permission", "closed-draft")) {
+                        beginResolution(); decision!!.reusable = true; decision!!.guidance = "Use informal Spanish in onboarding."
+                        if (state == "closed-draft") accept(goalConversation("answered"))
+                        else if (state != "editing") { resolutionNeedsRefresh = true; resolutionError = if (state == "permission") "Saving requires translation:write permission. Refresh before explicitly retrying." else "Connection lost. Refresh before explicitly retrying; the decision may already be saved." }
+                    }
+                    if (state == "denied") { clear(); created = true; unavailable = true; error = "You do not have permission to view this shared conversation." }
+                }
+                goals.threads[goalChatId] = thread; goals.activeId = goalChatId
+                var resumed: String? = null
+                val capture = TestTokiVoiceCapture()
+                val voice = TokiVoiceInput(capture, { true }, {}, { thread.draft += it }, {})
+                val goalView = TokiView(activity, goals, { thread.draft = it }, {}, {}, {}, {}, source = { resumed = it }, voice = voice)
+                goalView.render(true); show("goal-$state", goalView, R.id.toki, thread)
+                val labels = descendants(goalView).filterIsInstance<TextView>().map { it.text.toString() }
+                if (state == "active") {
+                    assertTrue(labels.contains("Alex")); assertTrue(labels.contains("Sam"))
+                    assertFalse(labels.contains("Linguist")); assertFalse(labels.contains("You")); assertTrue(thread.canResolve)
+                    thread.messages.getJSONObject(2).remove("author"); goalView.render(true)
+                    assertTrue(descendants(goalView).filterIsInstance<TextView>().any { it.text == "Linguist" })
+                    thread.messages.getJSONObject(2).put("author", "Alex"); goalView.render(true)
+                }
+                if (state == "resolved") {
+                    descendants(goalView).filterIsInstance<MaterialButton>().single { it.text == "View resumed translation" }.performClick()
+                    assertEquals(goalReplyId, resumed)
+                }
+                if (state == "editing") {
+                    val scopes = descendants(goalView).filterIsInstance<com.google.android.material.chip.Chip>()
+                    assertEquals("This locale", scopes.single { it.isChecked }.text.toString())
+                    assertTrue(scopes.single { it.isChecked }.isCheckedIconVisible)
+                    scopes.single { it.text == "Whole project" }.performClick()
+                    assertEquals("project", thread.decision!!.scope)
+                    assertEquals("Whole project", scopes.single { it.isChecked }.text.toString())
+                }
+                if (state in listOf("error", "permission", "closed-draft")) assertFalse(descendants(goalView).filterIsInstance<MaterialButton>().single { it.text == "Save decision and resume" }.isEnabled)
+                if (state == "active") {
+                    voice.start(); repeat(24) { capture.level!!((it % 9).toFloat()) }
+                    goalView.refreshVoice(); show("goal-dictation-measured-fixture", goalView, R.id.toki, thread)
+                    voice.cancel()
+                }
+            }
+            val fluent = FluentLanguagesModel().apply { draft = "ar, he, es" }
+            val fluentView = activity.scroll(activity.column().apply { addView(activity.fluentLanguagesView(fluent, {}, {})) })
+            show("fluency", fluentView, R.id.profile)
+            val fluentField = descendants(fluentView).filterIsInstance<com.google.android.material.textfield.TextInputLayout>().single()
+            assertNull(fluentField.editText!!.backgroundTintList)
+            assertEquals(activity.token(R.color.glossia_surface), fluentField.boxBackgroundColor)
             val sourceThread = model.newConversation(translationId).apply {
                 source.loaded = true; source.data = translationRecord()
             }

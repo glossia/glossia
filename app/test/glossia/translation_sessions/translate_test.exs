@@ -81,6 +81,41 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     end)
   end
 
+  test "a run needing linguistic input waits without failing or restarting its runner" do
+    {user, project} = project_with_installation("translate-review@test.com", "translate-review")
+    session = session_for(user, project)
+    stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+    stub(Glossia.Translations.RepositoryRun, :run, fn started, _, _, _, _ ->
+      assert {:ok, _} =
+               Glossia.LinguisticReviews.request(
+                 started.id,
+                 %{
+                   source_path: "guide.txt",
+                   output_path: "es/guide.txt",
+                   locale: "es",
+                   context_targets: %{}
+                 },
+                 String.duplicate("a", 64),
+                 %{
+                   reason: "missing_context",
+                   question: "What does branch mean?",
+                   source: "Create a branch.",
+                   translation: "Crea una rama."
+                 }
+               )
+
+      {:awaiting_input, []}
+    end)
+
+    assert {:ok, %{status: "awaiting_input", error: nil, completed_at: nil}} =
+             Translate.run(session.id)
+
+    assert Glossia.LinguisticReviews.open_for_session?(session.id)
+    assert :ok = Translate.run(session.id)
+    assert Repo.get!(TranslationSession, session.id).status == "awaiting_input"
+  end
+
   test "exhausted rate limits enqueue an automatic continuation through the launcher" do
     {user, project} =
       project_with_installation("translate-throttle@test.com", "translate-throttle")

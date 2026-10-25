@@ -75,6 +75,7 @@ defmodule Glossia.Translations.Failure do
     provider-error
     decision-evaluation-failed
     decision-input-too-large
+    linguistic-input-needed
     validation-quality
     validation-syntax
     validation-empty-output
@@ -157,6 +158,9 @@ defmodule Glossia.Translations.Failure do
 
   def from({:decision_evaluation_failed, _reason}, _provider),
     do: failure("decision-evaluation-failed", "item")
+
+  def from(:linguistic_input_needed, _provider),
+    do: failure("linguistic-input-needed", "item")
 
   def from(:source_invalid_encoding, _provider),
     do: failure("source-invalid-encoding", "item")
