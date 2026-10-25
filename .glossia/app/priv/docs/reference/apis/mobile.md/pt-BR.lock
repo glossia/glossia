@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "1d8ca17581be2df5630f0527a53034bc975ef99d8a45bc1e1f164395a4cf57d7",
+  "hash": "2fa73aa06d7c8a18ed33575561c64b8b67008556464e7f1668194ce32293cbbd",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "1ab850e1dcafb88c1b8c9772a4901088e42d901881bac779462a43744dc781ff",
+          "hash": "e19f150e4917d41c766ac97fae539fe25f2901cc464034c83fc39d47b72d21db",
           "kind": "source",
           "label": "app/priv/docs/reference/apis/mobile.md",
           "metadata": {
-            "content_hash": "ec832641a9d878922eb76833fca77d388c4a2e10669973524fe5a1cba742a8b3"
+            "content_hash": "48690fb733e60974d917858bd8990bdaa789c19760b881c394c7e7a56adf73dc"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "1d8ca17581be2df5630f0527a53034bc975ef99d8a45bc1e1f164395a4cf57d7",
+      "hash": "2fa73aa06d7c8a18ed33575561c64b8b67008556464e7f1668194ce32293cbbd",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/apis/mobile.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "1baad49301e3681f4c50b6a89c032a583c324e980a32de8990b2ad2f8ae8176c",
+  "output_hash": "9553d1f8bce7aa8b66bd3b23d1efc9874dbe9f263ae347b321702b2f15766f79",
   "output_path": "app/priv/i18n/pt-BR/docs/reference/apis/mobile.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "145067c7c2cc031105ad7f9c24740c9f03016763",
+  "source_commit_sha": "e0a1287fb880032490ec1aaf5cee739c342dbe26",
   "source_path": "app/priv/docs/reference/apis/mobile.md",
-  "translated_at": "2026-10-25T12:20:24.597174Z",
-  "translation_session_id": "01a172f1-fda0-7b78-99b4-a867a60edf75"
+  "translated_at": "2026-10-25T15:53:04.015307Z",
+  "translation_session_id": "01a173bf-0047-76de-aec6-1a1565b7c060"
 }
