@@ -3,10 +3,10 @@ name: Mobile Native
 on:
   push:
     branches: [main]
-    paths: ["mobile/native/**", ".github/workflows/mobile-native.yml"]
+    paths: ["mobile/native/**", "L10N.md", ".github/workflows/mobile-native.yml"]
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    paths: ["mobile/native/**", ".github/workflows/mobile-native.yml"]
+    paths: ["mobile/native/**", "L10N.md", ".github/workflows/mobile-native.yml"]
   workflow_dispatch:
 
 permissions:
@@ -26,6 +26,24 @@ defaults:
     working-directory: mobile/native
 
 jobs:
+  localization:
+    if: github.event.pull_request.draft != true
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          version: 2026.9.2
+          working_directory: mobile/native
+          install_args: node
+      - name: Check source catalogs are current
+        run: mise run localize:check
+      - name: Test extraction and translation validation
+        run: |
+          python3 -B tools/extract_localizations_test.py
+          mise exec -- node --test tools/validate_localizations.test.mjs
+
   core:
     if: github.event.pull_request.draft != true
     runs-on: ubuntu-24.04

@@ -6,11 +6,14 @@ programmatic Views use nativeText for static copy and nativeFormat for arguments
 Keep the generated English tables in version control; translated outputs are owned
 by Glossia and are never overwritten here.
 """
+import argparse
 import hashlib
 import json
 from pathlib import Path
+import plistlib
 import re
 import subprocess
+import sys
 import tempfile
 import xml.etree.ElementTree as ET
 
@@ -47,9 +50,7 @@ def android_strings():
         # Android's quoted form preserves whitespace and apostrophes.
         item.text = '"' + value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n") + '"'
     ET.indent(table, space="    ")
-    output = ROOT / "android/res/values/strings.xml"
-    ET.ElementTree(table).write(output, encoding="utf-8", xml_declaration=True)
-    print(f"Android: {len(entries)} source strings → {output.relative_to(ROOT)}")
+    return ET.tostring(table, encoding="utf-8", xml_declaration=True)
 
 
 def apple_strings():
@@ -65,9 +66,8 @@ def apple_strings():
         diagnostics = result.stderr.splitlines()
         if any("Argument is not a literal string" not in line for line in diagnostics):
             raise RuntimeError(result.stderr)
-        output = ROOT / "ios/Resources/en.lproj/Localizable.strings"
-        output.parent.mkdir(parents=True, exist_ok=True)
-        extracted = (Path(directory) / "Localizable.strings").read_text(encoding="utf-16")
+        output = Path(directory) / "Localizable.strings"
+        extracted = output.read_text(encoding="utf-16")
         # Dynamic UIKit/model strings and String(localized:) are outside the old
         # genstrings SwiftUI recognizer. Include their static source copy too.
         supplemental = {"An update is ready. Open Glossia to view it.": "Fixed notification alert; available for future APNs loc-key payloads"}
@@ -87,11 +87,39 @@ def apple_strings():
             if re.search(r"^" + re.escape(key) + r"\s*=", extracted, re.MULTILINE):
                 continue
             extracted += f"\n/* {origin}: static UI/model copy */\n{key} = {key};\n"
-        output.write_text(extracted)
-        subprocess.run(["plutil", "-lint", str(output)], check=True)
-        print(f"iOS: SwiftUI + static UI/model copy → {output.relative_to(ROOT)} ({len(diagnostics)} dynamic expressions skipped)")
+        output.write_text(extracted, encoding="utf-8")
+        subprocess.run(["plutil", "-lint", str(output)], capture_output=True, check=True)
+        return extracted.encode("utf-8")
+
+
+def apple_permission_strings():
+    info = plistlib.loads((ROOT / "ios/Info.plist").read_bytes())
+    return "".join(
+        f"{json.dumps(key)} = {json.dumps(value, ensure_ascii=False)};\n"
+        for key, value in sorted(info.items())
+        if key.startswith("NS") and key.endswith("UsageDescription") and isinstance(value, str)
+    ).encode("utf-8")
 
 
 if __name__ == "__main__":
-    android_strings()
-    apple_strings()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="Fail on stale English catalogs without writing files")
+    args = parser.parse_args()
+    catalogs = [
+        ("android/res/values/strings.xml", android_strings()),
+        ("ios/Resources/en.lproj/Localizable.strings", apple_strings()),
+        ("ios/Resources/en.lproj/InfoPlist.strings", apple_permission_strings()),
+    ]
+    stale = []
+    for relative, content in catalogs:
+        output = ROOT / relative
+        if args.check:
+            if not output.is_file() or output.read_bytes() != content:
+                stale.append(relative)
+        else:
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_bytes(content)
+        print(f"{'Checked' if args.check else 'Extracted'} {relative}")
+    if stale:
+        print("Stale English catalogs: " + ", ".join(stale) + ". Run mise run localize:extract.", file=sys.stderr)
+        sys.exit(1)

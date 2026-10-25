@@ -444,13 +444,21 @@ Profile fluent-language tags are independent of app locale and never grant acces
 
 ## Native localization
 
-Run `python3 -B tools/extract_localizations.py` on macOS after changing static UI
-copy. It updates standard English Apple `.strings` and Android XML resources;
-user/server questions, messages, names and paths remain verbatim. Static model
-errors are localized when created, and format templates preserve their arguments.
-Root `L10N.md` mappings cover both catalogs without restricting native languages to
-marketing locales. Once packages translated `.lproj/*.strings`; Gradle stages
-`locales/<BCP47>/android/strings.xml` into `values-b+…` resources before building.
+Run `mise run localize:extract` on macOS after changing static UI copy. It updates
+English Apple `.strings`, permission descriptions from `ios/Info.plist`, and Android
+XML resources. User/server questions, messages, names and paths remain verbatim.
+Static model errors are localized when created, and format templates preserve their
+arguments. `mise run localize:check` checks freshness without modifying catalogs or
+translations. The Mobile Native workflow runs it on pull requests and `main`, plus
+the extractor regression test and translation-validator tests.
+
+Root `L10N.md` mappings include all three catalogs in the existing default-branch
+continuous-translation flow. They inherit the repository's targets: Spanish,
+French, German, Japanese, Simplified Chinese, Korean, and Brazilian Portuguese.
+Glossia proposes translated catalogs in its normal translation pull request; no
+separate mobile translation workflow or token is needed. Once packages translated
+`.lproj/*.strings`; Gradle stages `locales/<BCP47>/android/strings.xml` into
+`values-b+…` resources before building. Add target languages in root `L10N.md`.
 
 The scoped `L10N.md` validation command runs on Node 22 without Xcode, Android,
 Python or external packages in the translation sandbox. It validates candidate
