@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "434235c342a2840c4daf173b8e38abc597b566861d47750fb6b7ff7dc4c88350",
+  "hash": "e1dbaa6340d4ea367a3d021f8c00e3e623dd8586c8a02e9f84d3e3a01eaacc95",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
+          "hash": "f5e82ede8d4b0959c24c9ac7e96b6b28f9a912488370cbce5a14521ad7647d86",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "434235c342a2840c4daf173b8e38abc597b566861d47750fb6b7ff7dc4c88350",
+      "hash": "e1dbaa6340d4ea367a3d021f8c00e3e623dd8586c8a02e9f84d3e3a01eaacc95",
       "kind": "translation_input",
       "label": "app/priv/docs/how-to/member-permissions.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "8d25f6e035bcdbc4e4bb612067e29dc5f75b2aec99b08790a37447268a89c785",
+  "output_hash": "e544ea7d9b9a491bc6b39f2b0b6350af50ec3150ab0246efa328e55193162c70",
   "output_path": "app/priv/i18n/es/docs/how-to/member-permissions.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/docs/how-to/member-permissions.md",
-  "translated_at": "2026-10-20T07:43:07.372598Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-25T22:09:04.854825Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

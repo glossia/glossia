@@ -1,33 +1,33 @@
 %{
   title: "使用 Glossia 登录",
-  summary: "让用户使用其 Glossia 账户并通过 OAuth 2.1 登录您的应用。",
-  category: "教程",
+  summary: "让用户使用其 Glossia 账户通过 OAuth 2.1 登录您的应用程序。",
+  category: "操作指南",
   section: "platform",
   order: 2
 }
 ---
 
-本指南将指导你在应用中添加“使用 Glossia 登录”。完成后，你的用户将能够使用其 Glossia 账户登录，你的应用程序将获得访问令牌，代表用户调用 Glossia API。
+本指南将指导您为您的应用程序添加“使用 Glossia 登录”。结束时，您的用户将能够使用他们的 Glossia 帐户登录，并且您的应用程序将获得访问令牌，以便代表他们调用 Glossia API。
 
-Glossia 采用 **OAuth 2.1 与 PKCE**（Proof Key for Code Exchange）。PKCE 适用于所有客户端，包括服务器端应用程序。
+Glossia 使用 **OAuth 2.1 with PKCE**（证明密钥代码交换）。PKCE 是所有客户端（包括服务器端应用程序）所必需的。
 
-## 1. 注册您的 OAuth 应用
+## 1. 注册您的 OAuth 应用程序
 
-注册应用程序时有两个选项：
+您注册应用程序有两种选择：
 
-### 选项 A：通过仪表板（推荐）
+### Option A: 通过仪表板（推荐）
 
-1. 登录 Glossia 并前往您的账户仪表板。
-2. 从侧边栏打开 **API** 部分，然后点击 **OAuth 应用**。
-3. 点击 **创建应用**。
-4. 填写应用 **名称** 和 **回调 URL**（也称为重定向 URI）。
-5. 点击 **创建应用**。
+1. 登录 Glossia 后进入您的帐户仪表板。
+2. 从侧边栏打开 **API** 部分并点击 **OAuth apps**。
+3. 点击 **New application**。
+4. 填写应用程序的 **名称** 和 **回呼 URL**（也称为重定向 URI）。
+5. 点击 **Create application**。
 
-创建后，记录 **客户端 ID** 和 **客户端密钥**。密钥仅显示一次，请妥善保管。
+创建后，记下 **客户端 ID** 和 **客户端密钥**。该密钥仅显示一次，因此请安全地保存它。
 
-### 选项 B：动态客户端注册
+### Option B: 动态客户端注册
 
-向 `/oauth/register` 发送 `POST` 请求：
+向 `POST` 发送 `/oauth/register` 请求：
 
 ```bash
 curl -X POST https://glossia.ai/oauth/register \
@@ -43,7 +43,7 @@ curl -X POST https://glossia.ai/oauth/register \
 
 ## 2. 生成 PKCE 代码挑战
 
-在重定向用户之前，生成一个 PKCE 代码验证器和挑战：
+在重定向用户之前，生成 PKCE 代码验证器和挑战：
 
 ```javascript
 function generateCodeVerifier() {
@@ -85,23 +85,23 @@ https://glossia.ai/oauth/authorize?
   &state=RANDOM_STATE_VALUE
 ```
 
-**参数：**
+**参数:**
 
 | 参数 | 必需 | 描述 |
 |-----------|----------|-------------|
 | `response_type` | 是 | 始终 `code` |
-| `client_id` | 是 | 您的应用程序的客户端 ID |
-| `redirect_uri` | 是 | 必须匹配已注册的回调 URL |
-| `code_challenge` | 是 | PKCE 代码挑战（S256） |
+| `client_id` | 是 | 您的应用程序客户端 ID |
+| `redirect_uri` | 是 | 必须与已注册的回呼 URL 匹配 |
+| `code_challenge` | 是 | 该 PKCE 代码挑战（S256） |
 | `code_challenge_method` | 是 | 始终 `S256` |
-| `scope` | 否 | 空格分隔的 [作用域](/docs/reference/apis/authorization) 列表。如果省略则不会授予任何操作作用域 |
-| `state` | 推荐 | 用于防止跨站请求伪造（CSRF）攻击的随机字符串。请在用户返回时验证其是否匹配 |
+| `scope` | 否 | 空格分隔的 [作用域](/docs/reference/apis/authorization) 列表。如果省略，不会授予任何操作范围。 |
+| `state` | 推荐 | 一个随机字符串以防止 CSRF 攻击。用户返回时验证它是否匹配。 |
 
-用户将看到一个同意屏幕，显示您的应用名称和请求的作用域。批准后，Glossia 将重定向回您的回调 URL，并附带授权代码。
+用户将看到一个同意屏幕，显示您的应用程序名称和请求的作用域。他们批准后，Glossia 会将用户重定向回您的回呼 URL，并附带授权代码。
 
-## 4. 用代码交换令牌
+## 4. 交换代码以获取令牌
 
-当用户被重定向回您的回调 URL 时，URL 将包含一个 `code` 参数：
+当用户被重定向回您的回呼 URL 时，URL 将包含一个 `code` 参数：
 
 ```
 https://myapp.com/auth/callback?code=AUTHORIZATION_CODE&state=RANDOM_STATE_VALUE
@@ -131,22 +131,22 @@ curl -X POST https://glossia.ai/oauth/token \
 }
 ```
 
-请安全地存储这两个令牌。访问令牌用于 API 请求。刷新令牌用于在访问令牌过期时获取新的访问令牌。
+安全地存储两个令牌。访问令牌用于 API 请求。刷新令牌用于在现有令牌过期时获取新的访问令牌。
 
 ## 5. 代表用户调用 API
 
-使用访问令牌发送身份验证过的 API 请求：
+使用访问令牌进行身份验证的 API 请求：
 
 ```bash
 curl -H "Authorization: Bearer eyJhbGciOiJSUzI1..." \
   https://glossia.ai/api/projects
 ```
 
-令牌的作用域限制您可以访问的端点。资源级授权仍然适用——例如，具有 `project:read` 的令牌只能读取用户有权访问的项目。
+令牌的权限范围限制了您可以访问的端点。资源级别的授权仍然适用——例如，具有 `project:read` 的令牌只能读取用户有权访问的项目。
 
 ## 6. 刷新令牌
 
-当访问令牌过期时，使用刷新令牌获取新令牌，而无需再次引导用户完成同意流程：
+访问令牌过期时，使用刷新令牌获取新令牌，而无需再次让用户经过同意流程：
 
 ```bash
 curl -X POST https://glossia.ai/oauth/token \
@@ -159,7 +159,7 @@ curl -X POST https://glossia.ai/oauth/token \
 
 ## 7. 撤销令牌
 
-当用户断开应用连接或不再需要访问权限时，撤销令牌：
+当用户断开您的应用程序连接或您不再需要访问权限时，撤销令牌：
 
 ```bash
 curl -X POST https://glossia.ai/oauth/revoke \
@@ -171,7 +171,7 @@ curl -X POST https://glossia.ai/oauth/revoke \
 
 ## 选择作用域
 
-仅请求应用程序所需的作用域。以下是几种常见组合：
+仅请求您的应用程序所需的作用域。以下是一些常见组合：
 
 | 用例 | 作用域 |
 |----------|--------|
@@ -180,7 +180,7 @@ curl -X POST https://glossia.ai/oauth/revoke \
 | 管理项目 | `user:read project:read project:write` |
 | 管理组织资源 | `user:read organization:read organization:write members:read members:write project:read project:write` |
 
-有关所有可用作用域，请参阅 [作用域参考](/docs/reference/apis/authorization)。
+查看所有可用作用域，请参阅 [scopes reference](/docs/reference/apis/authorization)。
 
 ## 发现端点
 
@@ -190,13 +190,13 @@ curl -X POST https://glossia.ai/oauth/revoke \
 curl https://glossia.ai/.well-known/oauth-authorization-server
 ```
 
-这返回一个包含 `authorization_endpoint`、`token_endpoint`、`revocation_endpoint` 和其他详细信息的 JSON 文档。使用发现机制使您的集成对端点变更具有弹性。
+这将返回一个包含 `authorization_endpoint`、`token_endpoint`、`revocation_endpoint` 和其他详情的 JSON 文档。使用发现机制可以使您的集成对端点变更具有弹性。
 
 ## 错误处理
 
 ### 授权错误
 
-如果用户拒绝同意或授权过程中出现问题，Glossia 将重定向到您的回调 URL，并附带 `error` 参数：
+如果用户拒绝同意或授权过程中出现问题，Glossia 将通过一个 `error` 参数将用户重定向到您的回呼 URL：
 
 ```
 https://myapp.com/auth/callback?error=access_denied&state=RANDOM_STATE_VALUE
@@ -212,7 +212,7 @@ https://myapp.com/auth/callback?error=access_denied&state=RANDOM_STATE_VALUE
 
 ### 令牌错误
 
-令牌端点返回 HTTP 400 及 JSON 错误正文：
+令牌端点返回 HTTP 400，包含 JSON 错误体：
 
 ```json
 {
@@ -223,16 +223,16 @@ https://myapp.com/auth/callback?error=access_denied&state=RANDOM_STATE_VALUE
 
 ### 速率限制
 
-OAuth 端点按 IP 进行速率限制。如果您达到限制，将收到 HTTP 429。有关详细信息，请参阅 [速率限制参考](/docs/reference/apis/authentication)。
+OAuth 端点按 IP 进行速率限制。如果您触达限制，将收到 HTTP 429。有关详细信息，请参阅 [rate limiting reference](/docs/reference/apis/authentication)。
 
 ## 安全检查清单
 
-在投入生产之前，请验证您的实现是否遵循以下最佳实践：
+在上线生产前，核实您的实施是否符合以下做法：
 
-- 生产环境中的回调 URL 必须始终使用 HTTPS
-- 在回调处验证 `state` 参数以防止 CSRF
-- 静态存储时加密令牌
+- 生产环境中始终为回呼 URL 使用 HTTPS
+- 在回呼中验证 `state` 参数以防止 CSRF
+- 将令牌加密存储
 - 切勿在客户端 JavaScript 或浏览器 URL 中暴露令牌
-- 仅使用所需的最小作用域。
+- 使用所需的最小作用域集合。
 - 使用刷新令牌妥善处理令牌过期。
-- 当用户断开应用连接或删除账户时，撤销令牌。
+- 当用户断开您的应用程序连接或删除其账户时，撤销令牌。
