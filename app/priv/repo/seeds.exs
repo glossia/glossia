@@ -1037,6 +1037,7 @@ defmodule Glossia.Seeds do
   #   * repeat visitors (so the uniqExact aggregate is not 1:1 with events)
   #   * a handful of custom events (so `name != "pageview"` is exercised)
   #   * a referrer (so the referrer breakdown shows something)
+  #   * explicit language choices kept separate from browser preferences
   defp seed_analytics_events!(%Project{} = project) do
     project_id_str = to_string(project.id)
     target_languages = project.setup_target_languages || []
@@ -1146,7 +1147,16 @@ defmodule Glossia.Seeds do
         timezone = Enum.random(timezones)
         {ref, ref_source} = Enum.random(referrers)
         path = Enum.random(paths)
-        name = if :rand.uniform(20) == 1, do: "signup", else: "pageview"
+        # Some visitors explicitly chose English despite a different browser
+        # preference. Most visits have no observed choice, not an inferred one.
+        selected_locale = if browser_lang in ["nl", "sv"], do: served_locale, else: ""
+
+        name =
+          cond do
+            selected_locale != "" and :rand.uniform(5) == 1 -> "language_selection"
+            :rand.uniform(20) == 1 -> "signup"
+            true -> "pageview"
+          end
 
         # Scatter timestamps across the last 14 days.
         seconds_ago =
@@ -1179,6 +1189,7 @@ defmodule Glossia.Seeds do
           country_code: country,
           browser_language: browser_lang,
           served_locale: served_locale,
+          selected_locale: selected_locale,
           has_locale_gap: has_gap,
           device: device,
           browser: browser,

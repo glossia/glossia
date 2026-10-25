@@ -119,6 +119,7 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
     # Visitor prefers Japanese, project serves de/fr -> localization gap.
     assert event.browser_language == "ja"
     assert event.served_locale == ""
+    assert event.selected_locale == ""
     assert event.has_locale_gap == 1
     assert event.browser == "Chrome"
     assert event.screen_width == 1_440
@@ -310,6 +311,51 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
     [event] = from(e in Event, where: e.hostname == ^domain) |> ClickHouseRepo.all()
     assert event.served_locale == "en"
     assert event.has_locale_gap == 1
+  end
+
+  test "stores explicit choices separately from browser preference and actual page language", %{
+    conn: conn,
+    domain: domain
+  } do
+    for {name, page_language, gap} <- [
+          {"language_selection", "en", 0},
+          {"pageview", "zh-Hans", 1}
+        ] do
+      response =
+        post(conn, ~p"/v1/collect", %{
+          "d" => domain,
+          "u" => "https://#{domain}/#{name}",
+          "n" => name,
+          "l" => "en-US",
+          "sl" => page_language,
+          "cl" => "zh-hans"
+        })
+
+      assert response.status == 202
+
+      [event] =
+        from(e in Event, where: e.hostname == ^domain and e.name == ^name)
+        |> ClickHouseRepo.all()
+
+      assert event.browser_language == "en-US"
+      assert event.served_locale == page_language
+      assert event.selected_locale == "zh-Hans"
+      assert event.has_locale_gap == gap
+    end
+  end
+
+  test "ignores missing, malformed, and oversized choices without dropping the event", %{
+    conn: conn,
+    domain: domain
+  } do
+    for choice <- [nil, "", "en,es", "en_US", "x-default", String.duplicate("a", 65), 1, %{}] do
+      expect(Ingestion, :record_event, fn event ->
+        assert event.selected_locale == ""
+        :ok
+      end)
+
+      assert post(conn, ~p"/v1/collect", %{"d" => domain, "cl" => choice}).status == 202
+    end
   end
 
   test "returns 202 without recording for an unknown domain", %{conn: conn, domain: domain} do

@@ -2,9 +2,9 @@
 
 Cookieless, privacy-friendly web analytics that surfaces localization opportunities. Add one line of HTML and Glossia shows you which languages and countries your visitors actually want, and where you have a localization gap.
 
-- **No cookies, no fingerprinting.** Nothing is stored on the visitor's device. Unique visitors are derived server-side from a daily-rotated hash that cannot be linked across days.
+- **No cookies, no fingerprinting.** Only a per-tab session id and an explicitly selected language are kept in `sessionStorage`, with no cross-session identifier. Unique visitors are derived server-side from a daily-rotated hash that cannot be linked across days.
 - **Localization-first.** Collects browser languages, country (GeoIP), referrer, and the pages underserved traffic lands on, so you can prioritize the next locale with data.
-- **Tiny.** One small script, no dependencies, ships via `sendBeacon`.
+- **Tiny.** One small script, no dependencies. Events use credential-free keepalive fetch for external collectors, or `sendBeacon` on the same origin.
 
 ## Install
 
@@ -39,9 +39,36 @@ Set the collection endpoint explicitly when using the package in your own bundle
 
 `domain` is inferred from `window.location.hostname`. Pass `{ domain: "example.com" }` to override, for example to send events from a staging origin to the same project as production.
 
+## Track explicit language choices
+
+Call `selectLanguage()` from your language picker's user-action handler, before navigating:
+
+```js
+import glossia from "@glossia/web";
+
+// After glossia.init(), inside the handler for a visitor's selection:
+glossia.selectLanguage("zh-Hans");
+```
+
+The hosted script exposes the same method as `glossia.selectLanguage("zh-Hans")`.
+
+For standard same-origin links, annotate the destination language instead. No JavaScript handler is needed:
+
+```html
+<a href="/zh-hans/docs" data-glossia-language="zh-Hans">简体中文</a>
+```
+
+The delegated listener also handles dynamically rendered links and nested labels. It records trusted primary clicks (including keyboard activation), not scripted clicks, downloads, modified clicks, cross-origin links, or links targeting another tab or frame. It does not prevent navigation. Do not call the API as well as annotating the same action, or you will record it twice.
+
+Both integrations send a `language_selection` event immediately, with the choice in `cl`, and attach `cl` to later pageviews and custom events. Language tags are validated and canonicalized (for example, `zh-hans` becomes `zh-Hans`); invalid tags and API calls before initialization are ignored.
+
+The choice lasts for the current tab's session on the same origin, until another choice replaces it. If `sessionStorage` is blocked or full, the SDK retains it in memory until the page unloads. It does not follow cross-origin navigation. A page language change or redirect alone never establishes an explicit choice.
+
+The choice records intent, not proof that navigation succeeded. It stays separate from the browser preferences (`l`) and actual page language (`sl`), so a selection event on an English page can report `cl: "zh-Hans"` and `sl: "en"`. The collector stores it as `selected_locale`; it does not yet change the dashboard's browser-based gap calculation.
+
 ## What gets collected
 
-Sent from the browser: page URL, referrer, `navigator.languages`, actual page language (`<html lang>`), available translations (`<link rel="alternate" hreflang="…">`, excluding `x-default`), timezone, screen width, and a per-tab session id (in `sessionStorage`, cleared on close).
+Sent from the browser: page URL, referrer, `navigator.languages`, actual page language (`<html lang>`), available translations (`<link rel="alternate" hreflang="…">`, excluding `x-default`), explicitly chosen language when observed, timezone, screen width, and a per-tab session id (in `sessionStorage`, cleared on close).
 
 Set `<html lang>` on every page so the dashboard can report the language actually served. Advertise translations with `hreflang` links so existing translations are recognized even without Glossia project setup targets. Visits without a reported page language are omitted from the browser-language breakdown, not inferred from the visitor's browser. Events from older tracker versions retain their original metadata.
 

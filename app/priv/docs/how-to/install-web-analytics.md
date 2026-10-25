@@ -47,6 +47,28 @@ To record a custom event, for example a signup:
 glossia.track("signup");
 ```
 
+## Track explicit language choices
+
+To distinguish a visitor's choice from their browser preference, call the SDK in your language picker's user-action handler, before navigating:
+
+```js
+glossia.selectLanguage("zh-Hans");
+```
+
+This method is available on the imported SDK after `glossia.init()`, and on the `glossia` global when using the hosted script.
+
+Alternatively, annotate same-origin language-switch links:
+
+```html
+<a href="/zh-hans/docs" data-glossia-language="zh-Hans">简体中文</a>
+```
+
+Use one integration per action, not both. Annotated links record genuine user activation, including keyboard activation. They ignore scripted clicks, downloads, modified clicks, cross-origin destinations, and links that open another tab or frame, without preventing navigation.
+
+The SDK immediately sends a `language_selection` event and includes the chosen language (`cl`) on subsequent events. The choice is stored in `sessionStorage` for the current tab and origin until another choice replaces it. If storage is unavailable, it lasts only until the page unloads. No choice is inferred from redirects, URLs, or changes to `<html lang>`.
+
+The selection records intent, not successful navigation. Browser preference, actual page language, and explicit choice remain separate. The collector stores the choice; the dashboard's current browser-based gap calculation is unchanged.
+
 ## Verify your domain
 
 In your project's **Analytics settings**, save your site domain. The **Verify domain ownership** card shows the exact record name and value for your project. Add a text record with your domain provider:
@@ -79,4 +101,4 @@ A `202 Accepted` response confirms the request reached the collector. Unknown or
 
 ## What is collected
 
-The browser sends the page URL, referrer, `navigator.languages`, timezone, and screen width, plus a per-tab session id. The server adds the country (from GeoIP) and computes the localization gap against your project's target languages. No cookies are set and nothing is fingerprinted.
+The browser sends the page URL, referrer, `navigator.languages`, actual page language (`<html lang>`), advertised translations (`hreflang` links), explicitly chosen language when observed, timezone, and screen width, plus a per-tab session id. The server adds the country (from GeoIP) and computes the localization gap against your project's target languages, advertised translations, and actual page language. The session id and explicit choice use `sessionStorage`; no cookies are set and nothing is fingerprinted.

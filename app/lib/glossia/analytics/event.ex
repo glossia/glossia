@@ -13,6 +13,9 @@ defmodule Glossia.Analytics.Event do
 
     * `browser_language` - the visitor's most preferred normalized locale,
     * `served_locale` - the actual page language, or `""` when undeclared,
+    * `selected_locale` - an explicitly chosen language reported by the SDK,
+      or `""` when no choice was observed. This does not override the measured
+      page language or the browser-based gap calculation,
     * `has_locale_gap` - `1` when the visitor wanted a language the project does
       not serve.
 
@@ -46,5 +49,6 @@ defmodule Glossia.Analytics.Event do
     field :os, Ch, type: "LowCardinality(String)"
     field :screen_width, Ch, type: "UInt16"
     field :timezone, Ch, type: "LowCardinality(String)"
+    field :selected_locale, Ch, type: "LowCardinality(String)", default: ""
   end
 end
