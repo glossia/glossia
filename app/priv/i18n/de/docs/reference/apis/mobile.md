@@ -1,20 +1,20 @@
 %{
   title: "Mobile- und Begleit-API",
   summary:
-    "Native-Design, Profil, Übersetzungsaktivität, Analysen und private Toki-Konversationen.",
+    "Natives Erscheinungsbild, Profil, Übersetzungsaktivitäten, Analytik und private Toki-Gespräche.",
   category: "Referenz",
   subcategory: "APIs",
   order: 4
 }
 ---
 
-Alle Endpunkte außer dem öffentlichen nativen Aussehen-Katalog erfordern einen Bearer-Token. Die [OpenAPI-Spezifikation](/api/openapi.json) beschreibt die vollständigen Schemata. Erhalten Sie Tokens über den bestehenden [OAuth PKCE-Fluss](/docs/reference/apis/authentication). Verwenden Sie niemals einen Inferenz-Provider-Schlüssel in einem Client.
+Alle Endpunkte außer dem öffentlichen nativen Erscheinungsbild-Katalog erfordern einen Bearer-Token. Die [OpenAPI-Spezifikation](/api/openapi.json) beschreibt die vollständigen Schemas. Besorgen Sie sich Tokens über das bestehende [OAuth PKCE-Verfahren](/docs/reference/apis/authentication). Verwenden Sie niemals einen Inferenzanbieterschlüssel in einem Client.
 
 ## Autorisierung
 
-| Endpoint | Token-Bereich |
+| Endpunkt | Token scope |
 |---|---|
-| `GET /api/native/themes` | Keine (öffentliche Erscheinungsbild-Metadaten) |
+| `GET /api/native/themes` | Keine (öffentliches Erscheinungsbild-Metadaten) |
 | `GET /api/me` | `user:read` |
 | `GET /api/:handle/projects/:project/translations` | `translation:read` |
 | `GET /api/:handle/projects/:project/translations/:id` | `translation:read` |
@@ -24,26 +24,26 @@ Alle Endpunkte außer dem öffentlichen nativen Aussehen-Katalog erfordern einen
 | `GET /api/:handle/projects/:project/toki/conversations/:id` | `toki:read` |
 | `POST /api/:handle/projects/:project/toki/conversations/:id/messages` | `toki:write` |
 
-Token-Bereiche sind ein Deckel, keine Gewährung. Jedes Projekten-Endpunkt prüft ebenfalls die project-read-Zugelassenheit des Benutzers. Eine zweite `project:read` **Token** Bereich ist nicht erforderlich, sondern eine Organisationsmitgliedschaft mit expliziten Berechtigungen muss sowohl Projektlektüre als auch die angeforderte Fähigkeit zulassen. Neue Mitgliedschaften umfassen diese Mobilfähigkeiten; bestehende explizite Mitgliedschaften werden nicht automatisch erweitert.
+Token-Berechtigungen stellen eine Obergrenze, keine Gewährung. Jedes Projektenomdunkt prüft zudem die Projekt-Leseberechtigung des Benutzers. Ein zweiter `project:read` **Token**-Bereich ist nicht erforderlich, aber eine Organisationsmitgliedschaft mit expliziten Berechtigungen muss sowohl das Lesen des Projekts als auch die angeforderte Fähigkeit erlauben. Neue Mitgliedschaften umfassen diese mobilen Fähigkeiten; bestehende explizite Mitgliedschaften werden nicht automatisch ausgeweitet.
 
-Persönliche Projekte folgen den bestehenden Regeln für persönliche Organisationsmitglieder. Kontosichtbarkeit steuert die öffentlichen Projektlektüren; eine authentisierte Außenstehende mit dem erforderlichen Bereich kann die Übersetzungsaktivität und Analysen eines öffentlichen Projekts lesen. Toki-Schreiben erfordern eine Kontozugehörigkeit, sodass alleinige öffentliche Sichtbarkeit keine Inferenzguthaben eines Kontos ausgibt. Toki-Gespräche bleiben innerhalb des Projekts für deren erstellenden Benutzer privat, selbst bei öffentlichen Konten. Organisations- und Plattformadministratoren können kein Gespräch eines anderen Benutzers lesen. Das Wissen über eine Gesprächs-UUID gewährt keinen Zugriff.
+Private Projekte folgen den bestehenden Regeln für die persönliche Organisationsmitgliedschaft. Kontosichtbarkeit steuert das öffentliche Projektlesen; ein authentifizierter Externer mit dem erforderlichen Berechtigungsbereich kann die Übersetzungsaktivität und Analyse eines öffentlichen Projekts lesen. Toki-Schreibvorgänge erfordern Kontozugehörigkeit, sodass alleinige öffentliche Sichtbarkeit die Inferenzgutschriften eines Kontos nicht aufwendet. Toki-Gespräche bleiben innerhalb des Projekts für den Erstellbenutzenden privat, selbst bei öffentlichen Konten. Organisations- und Plattformadministratoren können nicht auf ein Gespräch eines anderen Benutzers zugreifen. Die Kenntnis einer Gesprächs-UUID gewährt keinen Zugriff.
 
 ## Natives Erscheinungsbild
 
-`GET /api/native/themes` gibt landschaftsquale Erscheinungsbild-Metadaten aus dem ausgewählten Glossia-Server zurück, ohne Authentifizierung oder Benutzer-/Projektdaten. Die Antworten enthalten `Cache-Control: public, max-age=300`. Dies ändert die Autorisierung für jedes Projekt-Endpoint nicht.
+`GET /api/native/themes` liefert instanzweit Erscheinungsbild-Metadaten vom ausgewählten Glossia-Server, ohne Authentifizierung oder Benutzer- oder Projektdaten. Antworten beinhalten `Cache-Control: public, max-age=300`. Dies ändert die Autorisierung für keine Projektenomdunkte.
 
 Die Antwort hat vier erforderliche Felder:
 
 | Feld | Wert |
 |---|---|
-| `schema_version` | Integer `1` |
-| `revision` | Nicht-leere Inhaltsrevision, maximal 128 Zeichen |
+| `schema_version` | Ganzzahl `1` |
+| `revision` | Nicht-leerer Inhaltsüberarbeitung, höchstens 128 Zeichen |
 | `default_theme_id` | `"glossia"` |
-| `themes` | Array, das das Standard-Glossia-Thema enthält |
+| `themes` | Array mit dem Standard-Glossia-Theme |
 
-Das Standardthema verfügt über `id: "glossia"`, `name: "Glossia"`, eine nicht-leere `description`, `typography: "standard"`, `button_radius: 8`, `card_radius: 12` und `light` und `dark`-Paletten. Radien sind numerische logische Pixel. Jede Palette enthält alle neun unten所列 Felder, ausgedrückt als undurchsichtige `#RRGGBB` Farben:
+Das Standardthema hat `id: "glossia"`, `name: "Glossia"`, einen nicht-leeren `description`, `typography: "standard"`, `button_radius: 8`, `card_radius: 12`, sowie `light`- und `dark`-Paletten. Radien sind numerische logische Pixel. Jede Palette enthält alle neun untenstehenden Felder, ausgedrückt als undurchsichtige `#RRGGBB`-Farben:
 
-| Paletten-Feld | Hell | Dunkel |
+| Palettenfeld | Helle | Dunkel |
 |---|---|---|
 | `background` | `#FAF8F5` | `#1C1917` |
 | `surface` | `#FFFFFF` | `#2A2621` |
@@ -55,11 +55,11 @@ Das Standardthema verfügt über `id: "glossia"`, `name: "Glossia"`, eine nicht-
 | `on_accent` | `#FFFFFF` | `#381E72` |
 | `tint` | `#6D3CC4` | `#D0BCFF` |
 
-Der Katalog wird aus den kanonischen `:root`-Farb- und Radius-Token in `app/priv/static/assets/styles.css` kompiliert. Das Neuaufbauen nach einem Token-Änderung aktualisiert den Katalog und seine deterministische Revision. Die Revision deckt Kataloginhalt ab, nicht unzusammenhängende Stylesheet-Änderungen. Es sind keine benutzerspezifischen Vorlieben oder Laufzeit-Theme-Konfigurationen enthalten.
+Der Katalog wird aus den kanonischen `:root`-Farb- und -Radius-Token in `app/priv/static/assets/styles.css` kompiliert. Das dunkle Farbschema verwendet nur native semantische Token und ändert die Web-Darstellung nicht. Ein erneutes Aufbauen nach einer Token-Änderung aktualisiert den Katalog und seine deterministische Revision. Die Revision umfasst den Kataloginhalt, nicht unbezogene Stylesheet-Änderungen. Es werden keine Benutzerpräferenzen oder Laufzeit-Theme-Konfigurationen enthalten.
 
 ## Profil
 
-`GET /api/me` gibt nur das Profil des authentisierten Benutzers zurück:
+`GET /api/me` gibt nur das Profil des authentifizierten Benutzers zurück:
 
 ```json
 {
@@ -73,11 +73,11 @@ Der Katalog wird aus den kanonischen `:root`-Farb- und Radius-Token in `app/priv
 }
 ```
 
-`name` kann `null` sein." Das Handle gehört zur persönlichen Konto des Benutzers, nicht zur ausgewählten Organisation. `server_version` ist die Version der laufenden Anwendung.
+`name` kann `null` sein. Das Handle gehört dem persönlichen Konto des Benutzers an, nicht der ausgewählten Organisation. `server_version` ist die Versionsnummer des laufenden Anwendungsprogramms.
 
 ## Paginierung
 
-Übersetzungs- und Gesprächslisten akzeptieren `page` (Standardwert `1`, Reichweite `1–10000`) und `page_size` (Standardwert `20`, Reichweite `1–50`). Ungültige Werte geben `400` statt leisem Nachnutzen wider.
+Übersetzungsver- und Gesprächslisten akzeptieren `page` (Standardwert `1`, Bereich `1–10000`) und `page_size` (Standardwert `20`, Bereich `1–50`). Ungültige Werte melden `400` statt es stumm auf einen Grenzwert festzulegen. Metadaten verwenden die gleiche Struktur wie andere Glossia-API-Listen:
 
 ```json
 {
@@ -90,7 +90,7 @@ Der Katalog wird aus den kanonischen `:root`-Farb- und Radius-Token in `app/priv
 }
 ```
 
-Listen spiegeln den aktuellen Zustand, keinen eingefrorenen Momentabbild wider. Gesprächsreihenfolge wird zuerst nach dem jüngsten Aktualisiert sortiert, wobei die UUID als deterministischer Entscheid.
+Listen spiegeln den aktuellen Zustand wider, nicht ein eingefrorenes Snapshot. Die Gesprächsreihenfolge ist nach der kürzlichsten Aktualisierung zuerst mit UUID als deterministischem Displizantin.
 
 ## Übersetzungsaktivität
 
@@ -112,19 +112,19 @@ Listen spiegeln den aktuellen Zustand, keinen eingefrorenen Momentabbild wider. 
 }
 ```
 
-Statusse sind `pending`, `running`, `completed`, `failed` oder `cancelled`. Commit-Nachricht, Quell-Sprache und Zusammenfassung können `null` sein, während Arbeit ausstehend ist oder nicht verfügbar ist. Ergebnisse sind neuester zuerst und auf das angesprochene Projekt beschränkt.
+Status sind `pending`, `running`, `completed`, `failed` oder `cancelled`. Commit-Nachricht, Quellsprache und Zusammenfassung können `null` sein, solange die Arbeit aussteht oder wenn unavailable. Ergebnisse sind neu zuerst und auf das angesprochene Projekt beschränkt.
 
-`GET /api/:handle/projects/:project/translations/:id` gibt `{session: {...}, progress: {...}}` zurück. Das `session` hat genau die Listen-Sitzungsfelder plus optional `commit_sha`, unverändert. `progress` wird aus langlebigen Ereignissen neu erstellt, unter Verwendung des gleichen Elixir-Fortschritt-Reduktors wie das Web-Dashboard. Dies ist eine direkte, exakte UUID-Suche innerhalb des angesprochenen Projekts und Kontos, unabhängig von Paginierung oder dem Alter der Sitzung. Fehlformatierte, fehlende und fremd-Projekt-IDs geben `404` mit `error: "not_found"` zurück; Authentifizierung und Projektautorisierung laufen zuerst ab (`401`/`403`). Das Öffnen dieser Ressource erstellt niemals ein Gespräch, sendet keine Nachricht oder startet eine Inferenz. Es bietet **Provenienz auf Sitzungsebene** und pro-Datei-Fortschritt, nicht übersetzter Segmente-Text oder eine Überprüfung von übersetzter Ausgabe.
+`GET /api/:handle/projects/:project/translations/:id` gibt `{session: {...}, progress: {...}}` zurück. Das `session` hat genau die benannten Sitzungs Felder plus nullbar `commit_sha`, unverändert. `progress` wird aus dauerhaften Ereignissen unter Verwendung desselben Elixir Fortschrittsreduktors wie das Web-Dashboard neu aufgebaut. Dies ist eine direkte, exakte UUID-Auffassung innerhalb des angesprochenen Projekts und des Kontos, unabhängig von Paginierung oder dem Alter der Sitzung. Fehlerhafte, fehlende und fremdprojekten IDs melden `404` mit `error: "not_found"`; Authentifizierung und Projekt-Autorisierung laufen trotzdem zuerst (`401`/`403`). Das Öffnen dieses Ressourcen erstellt niemals ein Gespräch, sendet keine Nachricht oder startet Inferenz. Es liefert **Session-Zusammenfassung-Niveau-Provenienz** und pro-Datei Fortschritt, nicht übersetzter Segmenttext oder eine Prüfung des Übersetzungsoutputs.
 
-### Echtes Live-Fortschritt
+### Natives Live-Fortschrittsmanagement
 
-Öffnen Sie einen persistenten Phoenix WebSocket bei `/native/socket/websocket?vsn=2.0.0` (`wss` auf HTTPS-Servern). Longpoll ist deaktiviert. Senden Sie das Zugangs-Token nur durch den WebSocket-Subprotokoll-Header, niemals über Abfrageparameter:
+Öffnen Sie ein persistentes Phoenix WebSocket bei `/native/socket/websocket?vsn=2.0.0` (`wss` auf HTTPS-Servern). Longpoll ist deaktiviert. Senden Sie den Zugriffstoken nur durch den WebSocket Subprotokoll-Header, niemals durch Abfrageparameter:
 
 ```text
 Sec-WebSocket-Protocol: phoenix,base64url.bearer.phx.<base64url-no-padding-of-access-token>
 ```
 
-Der Server verhandelt `phoenix`. Verbinden Sie das Topic `translation:<session UUID>` mit `{"organization":"account-handle","project":"project-handle"}`. Der Organisationswert entspricht demselben Kontohandle, der vom HTTP-API verwendet wird, einschließlich persönlicher Konten. Die Join-Antwort und jedes `snapshot`-Event enthalten die gleiche vollständige Projektion wie das HTTP-Detail:
+Der Server verhandelt `phoenix`. Verbinden Sie sich zum Thema `translation:<session UUID>` mit `{"organization":"account-handle","project":"project-handle"}`. Der Organisationswert ist das gleiche Konto-Handle, das vom HTTP-API verwendet wird, einschließlich persönlicher Konten. Die Verbindungsantwort und jedes `snapshot`-Ereignis tragen die gleiche vollständige Projektion wie HTTP-Details:
 
 ```json
 {
@@ -155,17 +155,17 @@ Der Server verhandelt `phoenix`. Verbinden Sie das Topic `translation:<session U
 }
 ```
 
-`seq` ist die persistente Fortschrittssequenz, **nicht** eine eindeutige Snapshot-Version. Sitzungsstatus- und Veröffentlichungs-Änderungen und Live-Modell-Aufrufzählungen können einen neuen Snapshot mit derselben Sequenz erzeugen; ersetzen Sie die vorherige Projektion, auch wenn `seq` unverändert bleibt. Status pro Datei sind `queued`, `running`, `done`, `failed` und `cancelled`. Pfade, Lokale und Datei-Referenzen können `null` sein, bevor sie bekannt sind. Eine unberührte Sitzung hat eine Sequenz von 0, leere Elemente und 0-Zählwerte. Die Zusammenfassung deckt **alle** Dateien ab, auch wenn Elemente ausgelassen werden. Die Glossar-Identifikatoren/Zählwerte der Zusammenfassung sind das Aggregat des Web-Reducers, nicht die Provider-Metadaten.
+`seq` ist die dauerhafte Fortschrittssequenz, **nicht** eine einzigartige Snapshot-Version. Sitzungsstatus/Veröffentlichungsänderungen und Live-Modell-Nummerierung können eine neue Snapshot mit derselben Sequenz erzeugen; ersetzen Sie die vorherige Projektion, auch wenn `seq` unverändert ist. Status pro Datei sind `queued`, `running`, `done`, `failed` und `cancelled`. Pfade, Lokale, und Dateireferenzen können `null` sein, bevor sie bekannt sind. Ein unberührter Sitzungssatz hat Sequenz Null, leere Elemente und Null-Zählungen. Das Fazit deckt **alle** Dateien ab, auch wenn Elemente weggelassen werden. Die Id- / Zählungen des Fazit- Worters sind das Web-Aggregat des Reduktoren, nicht Anbieter-Metadaten.
 
-Maximal 500 Artikel in der geplanten-Index-Reihenfolge werden berücksichtigt, mit einem kombinierten Encode-Artikel-Budget von 512.000 Bytes. Ein Artikel, der nicht passt, wird ausgelassen, und `omitted_items` zählt jede Zeile, die durch entweder Grenzwert ausgeschlossen ist. Roh-übersetzter Ausgabe, Stream-Text, Denken, private Provider-Payloads und rohe Fehlerdetails werden niemals enthalten. Live öffentliche Modell-Anruf-Zahlen können sich nach Neukonnektion oder Abgleich zurücksetzen; Beständige End-Zahlen und Datei-Zustände werden rekonstruiert. Volle nativ Snapshots sind auf 1.000.000 encodierte JSON-Bytes begrenzt. Wenn unveränderte Sitzungsmetadaten oder die vollständige Zusammenfassung allein das Limit überschreiten, die Verbindung versagt mit `{"reason":"payload_too_large"}`; ein bestehender Kanal erhält `error` mit diesem Grund und schließt sich anstelle den Senden eines übermäßigen Rahmens oder das Leise Abschneiden von Provenienz.
+Höchstens 500 Elemente in geplanter Indexreihenfolge werden mit einem kombinierten nachdotsitem-Budget von 512.000 Bytes enthalten. Ein Objekt, das nicht passt, wird weggelassen, und `omitted_items` zahlt alle Zeilen, die durch jede Begrenzung ausgeschlossen werden. Rohe Übersetzungsdaten, strömender Text, Denkprozesse, private Anbieter-Aktivlasten und rohe Fehlerdetails werden niemals enthalten. Livezahlen der öffentlich sichtbaren Modell-Nummerierung können nach Wiederanbinden oder Vereinigung zurücksetzen; dauerhafte Endanstreifungen und Dateizustände werden wiederhergestellt. Volle natives Snapshots sind auf 1.000.000 codierte JSON-Bytes begrenzt. Wenn unveränderte Sitzungsmetadaten oder das komplette Fazit allein diese Grenzeüber, versagt Beitritt mit `{"reason":"payload_too_large"}` oder ein bestehender Kanal empfangt `error` mit diesem Grund und schließt, anstatt einen überdimensionierten Rahmen zu senden oder die Provenienz schweigsam zu kürzen.
 
-Der Server abonniert den bestehenden cross-node Session PubSub **bevor** das persistente Vorangsefix liest, faltet den Live-Schwanz mit Sequenz-Entdublizierung und konsolidiert Fortschritts- /Status- /Veröffentlichung-Benachrichtigungen in vollständige Snapshots bei etwa 100 ms. Kein pro-Kunden-HTTP-Rating oder runner-lokalen Zustand ist erforderlich. Alle fünf Sekunden erneuert es die Autorisierung und baut den persistenten Status neu auf, um verpasste Benachrichtigungen zu reparieren. Neuverbinden und neu beitreten nach Vordergrund oder Transportunterbrechung; die Join-Projektion ist ausreichend, ohne Deltas wiederzugeben. Folgen Sie dem normalen Phoenix-Puls-Lebenszyklus während der Verbindung und verlassen Sie das Thema, wenn Sie es nicht mehr anzeigen.
+Der Server abonniert das existierende cross-node Session PubSub **bevor** das dauerhafte Präfix liest, faltet den live-Tail mit Sequenz-Deduplizierung und fusioniert Benachrichtigungen für Fortschritt/Status/Veröffentlichung in vollständige Snapshots bei ungefähr 100 ms. Per-Klient-HTTP-Abfragen oder runner-lokaler Zustand werden nicht benötigt. Alle fünf Sekunden erneuert es die Autorisierung und stellt den dauerhaften Zustand wieder her, um fehlgeschlagene Benachrichtigungen zu korrigieren. Nach Fokussierung oder einer Transportunterbrechung verbinden Sie sich neu und verbinden neuen Kanal; die Join-Projektion ist ausreichend ohne Deltas nachzuspielen. Folgen Sie dem normalen Phoenix Heartbeat-Lebenszyklus, solange verbunden, und verlassen Sie das Thema, wenn es nicht mehr angezeigt.
 
-Der gegenwärtige persistente Token-Bereiterung, Gültigkeit/Aufhebung, Benutzer, `translation:read` Token-Bereich, Richtlinienberechtigungen, Projekt-Sichtbarkeit und exakte Konten-/Projekt-/Sitzung-Zuordnung werden bei Join und vor jedem Snapshot geprüft. Fehlenden Bereich oder Richtlinienberechtigung gibt zurück `{"reason":"forbidden"}`; fehlender Ressource gibt zurück `{"reason":"not_found"}`; absichtlich oder aufgekündigte Authentifizierung gibt zurück `{"reason":"sign_in_required"}`. Nach erfolgreichem Join emittiert Abweisung `access_revoked` mit diesem Grund und schließt den Kanal sofort ohne anderen Snapshot. Erneuerung erkennt auch Aufhebung auf inaktiven Kanälen. Bei `sign_in_required`, aktualisieren /Re-Authentifizieren und erstelle eine neue Verbindung; bei anderen Abweisungen, stoppen Sie das Anzeigen des geschützten Details. WebSockets sind ein Vordergrund Live-Update-Mechanismus, keine Garantie der Lieferung während die mobile App pausiert ist.
+Der aktuelle persistente Token-Zugriff, Ablauf/Erhebungsverbot, Benutzer, `translation:read` Token-Bereich, Richtlinien-Berechtigungen, Projekt-Sichtbarkeit und genaue Konto/Projekt/Sitzungs-Assoziation werden beim Beitreten und vor jedem Snapshot geprüft. Fehlender Bereich oder Richtlinieberechtigung返回 `{"reason":"forbidden"}`; fehlende Ressource return `{"reason":"not_found"}`; abgelaufene/erhöhte Authentifizierung zurück `{"reason":"sign_in_required"}`. Nach erfolgreichem Beitritt sendet die Verweigerung anderen `access_revoked` mit diesem Grund und schließt den Kanal ohne weiteren Snapshot. Erneuerung erkennt auch Erwährung bei unbefrorenen Kanälen. Bei `sign_in_required` wiederherstellen/wiederauthentifizieren und neu verbinden; bei anderen Verweigerungen festhalten, das geschützte Detail anzeigen.
 
-## Analytik
+## Analytics
 
-`GET /api/:handle/projects/:project/analytics?days=30` gibt summarische Metriken zurück, bis zu zehn Top-Seiten und die Traffic-Logistik-Time-Serie. Ein leeres Projekt gibt zurück:
+`GET /api/:handle/projects/:project/analytics?days=30` wiedergibt zusammengefasste Metriken, bis zu zehn Top-Seiten und die Verkehrszeitreihen. Ein leeres Projekt werte zurück:
 
 ```json
 {
@@ -182,33 +182,33 @@ Der gegenwärtige persistente Token-Bereiterung, Gültigkeit/Aufhebung, Benutzer
 }
 ```
 
-`days` standardmäßig `30` und muss eine Ganzzahl von `1` bis `365` sein. Das gleitende UTC-Berichtsfenster endet zur Anfragezeit. Diese sind die gleichen projektbezogenen ClickHouse-Aggregate wie das Dashboard, einschließlich seiner alltagsrotierenden Besucher-Identifikatoren. Speicherfehler geben zurück `503` mit `error: "analytics_unavailable"`
+`days` defaultiert auf `30` und muss eine Gesamt angle von `1` bis `365` sein. Die wachsend UTC-Berichtsfenster enden in Abfragerate. Das sind dieselben projekt-scope ClickHouse-Verallgemeinerungen wie das Dashboard, einschließlich des täglichen-rotierten Besucheridentifikatoren. Speicherfehler return `503` mit `error: "analytics_unavailable"`, niemals erfundene null-Metriken.
 
-`traffic.granularity` ist `"hour"` für Fenster bis zwei Tage, `"day"` für Fenster bis 90 Tage, und `"month"` ansonsten. `traffic.points` ist chronologisch. Jeder Punkt enthält ein UTC-Bucket-Start-Zeitstempel und nichtnegative Anzahl-Zahlen:
+`traffic.granularity` ist `"hour"` für Fenster bis zu zwei Tage, `"day"` für Fenster bis zu neunzig Tagen und `"month"` sonst. `traffic.points` ist chronologisch. Jeder Punkt enthält ein UTC-Box-start-Timestamp und nicht-negative Ganzzahlzählungen:
 
 ```json
 {"bucket": "2026-10-25T00:00:00Z", "pageviews": 420, "unique_visitors": 280}
 ```
 
-Anzahlen umfassen nur Ereignisse in dem angeforderten Berichtsfenster, sodass die ersten und letzten Buckels unvollständig sein können. Wenn Ereignisse bestehen, werden Stille-Buckets in diesem Fenster mit Null-Anzahlen gewählt. Wenn keine Ereignisse bestehen, ist `points` leer statt eines synthetischen Flach-Trend. `unique_visitors` zählt eindeutige Identifikatoren **innerhalb jeden Buckles**; summieren dieses Vulkan-Werte ist nicht die Periode einzigartigen Besucher-Anzahl. Benutzen Sie `summary.unique_visitors` für diese Alumium. Klient sollten die zurückgegebenen Buckels unverändert darstellen statt von summarischen Metriken einen Trend rekonstruieren.
+Zählungen umfassen nur Ereignisse im angeforderten Berichtszeitfenster, sodass der erste und letzte Bucket partiell sein können. Wenn Ereignisse existieren, werden ruhige Buckets in diesem Fenster mit 0-Zählungen aufgenommen. Wenn keine Ereignisse existieren, ist `points` leer statt einer synthetischen, flachen Tendenz. `unique_visitors` zählt eindeutige Identifikatoren **innerhalb jedes Buckets**; die Summierung dieser Werte ergibt nicht die Anzahl der eindeutigen Besucher des Zeitraums. Verwenden Sie `summary.unique_visitors` für diese Summe. Clients sollten die zurückgegebenen Buckets unverändert abbilden, statt einen Trend aus Zusammenfassungs-Metriken zu rekonstruieren.
 
 ## Toki-Konversationen
 
-### Erstellen und Listen
+### Erstellen und listen
 
-`POST /api/:handle/projects/:project/toki/conversations` akzeptiert ein client-generiertes UUID:
+`POST /api/:handle/projects/:project/toki/conversations` akzeptiert eine client-generierte UUID:
 
 ```json
 {"id": "52a3b55c-c2db-4b3f-a83f-d7d3542ae46b"}
 ```
 
-Es gibt `201` mit `{conversation, messages: []}` zurück. Leere Konversationen haben Titel `New conversation` und Status `completed` (inaktiv, nicht generierend). Das Abspielen desselben UUID für denselben Akteur, Projekt und Ursprung gibt das vorhandene Detail zurück ohne eine weitere Konversation erstellen. Wiederverwenden für einen anderen Akteur, Projekt oder Ursprung gibt `409` mit `error: "id_conflict"` zurück.
+Es return `201` mit `{conversation, messages: []}`. Leere Konversationen haben Titel `New conversation` und Status `completed` (unaktiv, nicht generierend). Wiederholen derselben UUID für denselben Akteur, Projekt und Ursprung return existierende Details ohne weitere Konversation zu erstellen. Neuverwenden für anderen Akteur, Projekt oder Ursprung return `409` mit `error: "id_conflict"`.
 
-`GET /api/:handle/projects/:project/toki/conversations` zurück `{conversations: [...], meta: {...}}`. Eine Konversation enthält `id`, `title`, `status`, `updated_at`, Nullable `error`, und Nullable `translation_session_id`. Titel wird aus dem ersten Benutzer-Nachricht abgeleitet, nicht aus einer zweiten Modell-Aufruf.
+`GET /api/:handle/projects/:project/toki/conversations` return `{conversations: [...], meta: {...}}`. Eine Konversation enthält `id`, `title`, `status`, `updated_at`, nullable `error` und nullable `translation_session_id`. Titel werden aus der ersten Benutzer-Mission abgeleitet, nicht aus einer zweiten Modell-Aufrufen.
 
 ### Übersetzungsursprung
 
-Erstellung akzeptiert optional eine Übersetzungssitzung UUID vom gleichen Projekt:
+Erstellung akzeptiert optional eine Übersetzungssitzung UUID vom selben Projekt:
 
 ```json
 {
@@ -217,25 +217,25 @@ Erstellung akzeptiert optional eine Übersetzungssitzung UUID vom gleichen Proje
 }
 ```
 
-Der Ursprung ist unendlich; Auslassung und `null` bedeuten beide keinen Ursprung. Ein Retry muss denselben Ursprung beliefern, einschließlich nach dem Senden von Nachrichten. Sie können keinen Ursprung später anfügen oder mit einem Retry entfernen. Ein ungeschickter Ursprung gibt zurück `422`; eine fehlende oder ausländische Projekt-Ursprung gibt zurück `404`. Source-verknüpft Erstellung benötigt zusätzlich `translation:read` Token-Bereich und aktuelle Richtlinien-Berechtigung, zusammen mit `toki:write` und Projekt-Lese-Berechtigung. Client-bereitgestellte Ursprung-Zusammenfassungen, Metadaten, Rollen und Besitz werden ignoriert. Nur das UUID wird berechnet; der Server löst seinen autorisierten Kontext zur Antwort-Zeit.
+Der Ursprung ist unveränderlich; Weglassen und `null` beide mean kein Ursprung. Ein Retry muss denselben Ursprung liefern, einschließlich nach Senden von Nachrichten. Sie können zum Später keinen Ursprung anhängen oder mit einem Retry entfernen. Eine fehlerhafte Ursprung return `422`; ein fehlende oder fremd-projekt Quelle return `404`. Source-linked Erstellung erfordert zusätzlich `translation:read` Token-Bereich und aktuelle Richtlinie-Berechtigung, nebst `toki:write` und Projekt-Lesen-Berechtigung. Client-gelieferte Quellensummen, metadaten, Rollen und Eigentum sind ignoriert. Nur die UUID ist persistiert; der Dienst löst seinen autorisierten Kontext bei Antwortzeit.
 
-**Source-verknüpft Konversationen versagen geschlossen**, statt bloß den UUID zu redigieren: ohne aktuellen `translation:read` Bereich oder Richtlinie-Berechtigung, Detail, matching-origin create replay, Nachricht senden, und Nachricht replay gibt zurück `403`. Ein mismatched Ursprung gibt immer noch `409` zurück, ohne Geschichte oder Ursprung-Metadaten schreibt zurück. Listen lassen die ganze source-verknüpfte Konversation aus, einschließlich seines Titels und bei Paginierungs-Anzahl-Beitrag. Dies schützt frühere Assistenten-Nachrichten, die den Ursprung erwähnen könnten. Fehlende Bereiche schließen die normale `WWW-Authenticate`-Herausforderung ein. Unverknüpfte Konversationen behalten ihr bestehendes Toki-only Autorisierungsverhalten.
+**Source-linked Konversationen fail closed**, statt nur Kaudel der UUID: ohne aktuellen `translation:read` Bereich oder Richtlinie-Berechtigung, Detail, matching-origin erstellen-Wiederholung, Nachrichtensenden und Nachrichtewiederholung return `403`. Eine mismatched Ursprung return immer `409` ohne Geschichte oder Quellen-Metadaten zurückzugeben. Listen omittieren die gesamte source-linked Konversation, einschließlich ihren Titel und Beitrag zu pagination-Zählungen. Das schützt vorfrühere Assistent-Nachrichten, die die Quelle erwähnt. Fehlende Bereiche enthalten die normale `WWW-Authenticate` Herausforderung. Unlinked Konversationen behalten ihre existierende Toki-only Autorisierung-Verhalten.
 
-Gelöscht oder versetzte Ursprünge auch versagen geschlossen: source-verknüpfe Detail, Sends, und matching create retries geben `404` zurück, und Listen lassen die Konversation aus. Der unendliche UUID bleibt nach Ursprung-Löschung gespeichert, sodass ein Retry nicht stillschweigend unverknüpft werden kann. Der Referenz hat keine kaskadierende fremde Schlüssel; jede Benutzung prüft aktuelle Ursprung-Existenz und seine genaue Projekt/Konto. Keine Ursprung-Referenz erteilt Zugang oder ändert eine Stimme, Glossar, oder gemeinsamer Kontext.
+Gelöscht oder verschobene Quellen fällen auch geschlossen: source-linked Detail, Sends, und matching erstellen Retry return `404`, und Listen omittieren die Konversation. Der unveränderliche UUID bleibt nach Quellenlöschung gespeichert so that ein Retry nicht schweigend unlinked werden kann. Der Referenz hat keinen kaskadierenden Fremdschlüssel; jeden Gebrauch prüft aktuelle Quellen-Ekistenz und ihre genaue Projekt/Konto. Keine Quellen-Referenz verleiht Zugang oder ändert eine Stimme, glossar oder gemeinsamen Kontext.
 
-Erstellen oder Öffnen einer source-verknüpften Konversation sendet **nicht** eine Nachricht oder schloss Inferenz an. Native Navigation sollte die Übersetzungsdetail zuerst holen; nur eine explizite Benutzer-Aktion sollte die Konversation erstellen, und eine getrennte explizite Nachricht-Übermittlung startet eine Wende. Keine Vorschlag-Veröffentlichung, gemeinsame Diskussionsprüfung oder Agent Schreib-Tools werden bereitgestellt.
+Erstellen oder Öffnen einer source-linked Konversation sendet **keine** Nachricht oder queuete Inferenz. Native Navigation soll die Übersetzungsdetails zuerst abrufen; nur eine explizite Benutzer-Aktion soll die Konversation erstellen, und eine separierte explizite Nachrichteneinreichung start einen Turn. Keine Vorschlag-Veröffentlichung, gemeinsame Diskussion-Überprüfung oder agent Schreiben-Tools werden bereitgestellt.
 
 ### Senden und abfragen
 
-`POST /api/:handle/projects/:project/toki/conversations/:id/messages` akzeptiert einen separaten client-generierten **Nachricht** UUID:
+`POST /api/:handle/projects/:project/toki/conversations/:id/messages` akzeptiert eine separate client-generierte **Message** UUID:
 
 ```json
 {"id": "17c3b189-80f0-4382-b7bb-1305b1db70ad", "content": "Which translations have completed?"}
 ```
 
-Die Anfrage persistert die Benutzer-Nachricht und eine Oban-Arbeit in einer Datenbank-Transaktion. Es ruft kein Modell an. Es gibt `202` mit Konversationsstatus `queued` und den aktuellen Nachrichten zurück. Poll `GET /api/:handle/projects/:project/toki/conversations/:id` während Status ist `queued` oder `running`; stoppen auf `completed` oder `failed`.
+Die Anfrage persistiert die Benutzer-Nachricht und einen Oban-Job in einer Datenbank-Transaktion. Es ruft kein Modell. Es return `202` mit Konversations-Status `queued` und den aktuellen Nachrichten. Poll `GET /api/:handle/projects/:project/toki/conversations/:id` während Status `queued` oder `running`; stop bei `completed` oder `failed`.
 
-Detail-Antworten haben diese Form:
+Detail-Äntworten haben diese Form:
 
 ```json
 {
@@ -256,24 +256,24 @@ Detail-Antworten haben diese Form:
 }
 ```
 
-Nachrichten haben Rolle `user` oder `assistant` und sind chronologisch. Eine Konversation hält maximal 100 Nachrichten, sodass das Detail-Endpoint seine gesamte beschränkte Geschichte zurückgibt ohne eine zusätzliche Seitenanfrage.
+Nachrichten haben Rolle `user` oder `assistant` und sind chronologisch. Eine Konversation hält mindestens 100 Nachrichten, so dass das Detail-Endpunkt ihren gesamten begrenzten Geschichten zurückgeben ohne einen zusätzlichen Pagin-Anfrage.
 
-Ein Wiederspielen einer Nachrichten-UUID mit identischem Inhalt plant niemals eine weitere Inferenz, einschließlich nach Abschluss oder Fehlschlag. Eine abgeschlossene Wiedergabe gibt `200` zurück; eine ausstehende Wiedergabe gibt `202` zurück. Die Wiederverwendung einer UUID mit anderem Inhalt oder in einer anderen Konversation gibt `409` zurück. Eine andere während einer aktiven Wende eingereichte Nachricht gibt `409` mit `error: "conversation_busy"` zurück.
+Das Wiederholen einer Nachrichten-UUID mit identischem Inhalt queued niemals eine weitere Inferenz neu, einschließlich nach Abschluss oder Fehlschlag. Ein eingelöstes Replay return `200`; ein ausstehendes Replay return `202`. Die Wiederverwendung einer UUID mit verschiedenem Inhalt oder in einer anderen Konversation return `409`. Eine andere Nachricht eingereicht während ein Turn aktiv ist return `409` mit `error: "conversation_busy"`.
 
-### Modell-Verhalten und Grenzen
+### Modellverhalten und -grenzen
 
-- Jede Benutzer-Nachricht ist nicht-leerer Text, maximal 8.000 Zeichen und 32.000 UTF-8-Byte. Ungültige UUIDs, Typen oder Inhalte geben `422` zurück.
-- Jeder Benutzer kann maximal 100 Gespräche pro Projekt und fünf in Warteschlange/labende Gespräche über alle Projekte hinweg halten. Mehr als fünf ausstehende Wendungen gibt `429` zurück; Gesprächs/Geschichte-Grenzen geben `422` zurück.
-- Neue Nachrichten sind auf 30 pro Stunde pro Benutzer pro Server begrenzt, zusätzlich zu normalen API-Ratenbeschränkungen. Wiedergaben verbrauchen kein Inferenz-Quotum.
-- Die dedizierte Oban-Warteschlange führt pro Server zwei Jobs parallel aus. Jede Wendung stellt maximal eine Anbieter-HTTP-Anfrage: ReqLLM bereitet die Anbieter-Anfrage vor, dann führt der Oban-Worker sie synchron aus mit HTTP-Wiederholungen und Umlenkungen deaktiviert nach Anbieter-Anbindung. Keine Condukt-Sitzung, getrennte Inferenz-Aufgabe, Werkzeuge, Sub-Agenten oder Dateisystem-Instruktionslading ist beteiligt. Der Anbieter erhält ein 2.048-Ausgabeton-Dach; Assistent-Antworten sind ebenfalls auf 8.000 Zeichen und 32.000 Byte begrenzt.
-- HTTP-Verbindungs- und Pool-Wartezeiten sind auf fünf Sekunden und Sockets-Empfangswartezeiten auf 60 Sekunden begrenzt. Der Oban-Worker hat eine harte 90-Sekunden-Wanduhr-Frist, einschließlich tropfender Antworten. Arbeitsautertermination beendet auch seine lokale Inferenz-Umsetzung. Trennung kann keine Stornierung von Berechnungen gewährleisten, die bereits von einem remoter Provider akzeptiert wurden, sodass mehrdeutige Fehler niemals automatisch wiederholt werden.
-- Das Modell erhält begrenztes Projekt-Metadaten und maximal drei kürzeste Übersetzungszusammenfassungen, wenn sowohl Token als auch aktuelle Mitgliedschaft `translation:read` erlauben. Die letzten zehn Gesprächs-Auszüge sind unabhängig vom Speicher begrenzt. Es hat keine Schreib-Fähigkeiten oder allgemeinen Repositorium-Zugriff, und keine Analysen werden dem Modell zur Verfügung gestellt.
-- Bei einer Ursprungs-verknüpften Konversation erhält das Modell zusätzlich die genaue persistente Quelle, selbst wenn sie nicht aktuell ist: UUID, Status, Commit-Metadaten, Sprachen, Zählung und maximal 1.000 Zusammenfassungs-Charaktere. Kontext ist `provenance: "session_summary"` markiert, und die Aufforderung erfordert das Melden dieser Zusammenfassungsebene-Beschränkung. Kein Segment-Text, Repositorium-Dateien oder bei-Anbieter-Quelle-Kontext wird geladen.
-- Anmeldeinformationen werden über das existierende generative Modell und die Server-Inferenz-Konfiguration des Kontos gelöst. Interaktive CLI/OAuth-Sitzungen werden für Toki nicht verwendet. Fehlende oder nicht unterstützte Anmeldeinformationen produzieren Status `failed` mit `error: "provider_unavailable"`.
-- Provider-Fehler produzieren `inference_failed`; leerer oder übergroßer Output erzeugt `invalid_provider_response`. Roh-Provider-Fehler und Geheimnisse werden nicht zurückgegeben. Keine synthetische Assistentenantwort wird bei Fehlschlag eingefügt.
-- Konto/Projekt-Zugang und Ursprungs-Existenz, Projekt/Konto-Verbindung und Übersetzungs-autorisierung werden vor und nach Inferenz erneut geprüft. Entzogener Zugang oder unzureichende gewartete Bereiche füllt die Wendung mit `not_authorized`; eine gelöschte oder verschobene Quelle versagt mit `source_unavailable`. Keine Assistentenantwort wird bei beiden Fehlschlägen persistent gespeichert.
-- Ein Wiederherstellungs-Job läuft jede Minute und markiert laufende Arbeit älter als zwei Minuten oder gewartete Arbeit älter als 15 Minuten als `failed` mit `inference_interrupted`. Dies führt über Fällung, obsolut und verwaiste Jobs ohne Inferenzwiederholung ab. Ein verzögerter Job kann eine abgelaufene Nachricht nicht beanspruchen oder eine neuere Wendung überschreiben. Ein Benutzer kann absichtlich eine **neue** Nachrichten-UUID nach einem Fehlschlag senden.
+- Jede Benutzer-Nachricht ist nicht-leerer Text, maximal 8.000 Zeichen und 32.000 UTF-8 Bytes. Ungültige UUIDs, Typen oder Inhalte return `422`.
+- Jeder Benutzer kann maximal 100 Konversationen pro Projekt und fünf queued/running Konversationen über Projekte halten. Mehr als fünf ausstehende Turns return `429`; Konversation/Geschichten-Grenzen return `422`.
+- Neue Nachrichten sind auf 30 pro Stunde pro Benutzer pro Server begrenzt, zusätzlich zu normalen API-Rate-Limits. Replays verbrauchen keine Inferenz-Quote.
+- Die dedizierte Oban-Warteschlange führt pro Server zwei Jobs gleichzeitig aus. Jeder Turn führt maximal eine Provider-HTTP-Anfrage aus: ReqLLM vorbereitet die Provider-Anfrage, dann führt der Oban-Worker sie synchron aus mit HTTP-Retrys und nach Provider-Anbindung deaktivierten Redirects. Keine Condukt-Sitzung,ionierte Inferenz-Aufgabe, Tools, Subagenten oder Dateisystem-Instruktionsladung ist beteiligt. Der Provider erhält oben ab 2.048-Ausgabe-Token-Himmel; Assistant-Antworten sind ebenfalls auf 8.000 Zeichen und 32.000 Bytes begrenzt.
+- HTTP-Verbindung und Pool-Warten sind auf fünf Sekunden und Socket-Empfang-Warten auf 60 Sekunden beschränkt. Der Oban-Worker hat eine 90-Sekunden-Hartwallclock-Frist, einschließlich Einkommen-Verantwortungen. Worker-Terminierung terminiert auch seine lokale Inferenz-Ausführung. Trennen kann nicht Abbruch bereits akzeptierter Berechnung durch einen Remote-Provider garantieren, so dass mehrdeutige Fehlschläge nie automatisch neu versucht werden.
+- Das Modell erhält begrenztes Projekt-Metadatum und maximal drei aktuelle Übersetzung-Zusammenfassungen, wenn sowohl Token als auch aktuelle Mitgliedschaft `translation:read` erlauben. Die letzten zehn Konversations-Auszüge sind unabhängig vom Speicher begrenzt. Es hat keine Schreibfähigkeiten oder allgemeine Repository-Zugang, und keine Analysen werden dem Modell bereitgestellt.
+- Für eine source-linked Konversation erhält das Modell zusätzlich die exakte persistierte Quelle, sogar wenn sie nicht neu ist: UUID, Status, Commit-Metadatum, Sprachen, Zählung und maximal 1.000 Zusammenfassungs-Textzeichen. Kontext ist beschriftet `provenance: "session_summary"`, und der Prompt verlangt die Berichterstattung dieser Zusammenfassungs-Ebene-Beschränkung. Kein Segment-Text, Referenz-Dateien oder client-zulieferter Quellen-Kontext wird geladen.
+- Bereitstellungen lösen sich über die Konto-Existing generativer Modell und Server-Inferenz-Konfiguration. Interaktive CLI/OAuth-Sitzungen werden nicht für Toki verwendet. Fehlende oder nicht-unterstützte Credentials erzeugen Status `failed` mit `error: "provider_unavailable"`.
+- Provider-Fehler produzieren `inference_failed`; leerer oder überschüssiger Output produziert `invalid_provider_response`. Rohe Provider-Fehler und geheime werden nicht zurückgegeben. Keine synthetische Assistant-Antwort wird bei Fehlschlag eingefügt.
+- Konto/Projekt-Zugang und Quell-Ekistenz, Projekt/Konto-Assoziation, und Übersetzungsberechtigung werden vor und nach Inferenz erneut geprüft. Revoke Zugang oder unzureichende queued-Scope führen Turn mit `not_authorized` ab; eine gelöschte oder verschobene Quelle facht mit `source_unavailable` ab. Keine Assistant-Antwort wird bei beiden Fehlschlägen persistiert.
+- Eine Erholungsaufgabe läuft jede Minute und markiert laufende Arbeit älter als zweieinhalb Minuten, oder queued Arbeit älter als 15 Minuten, als `failed` mit `inference_interrupted`. Das regelt Timeout, terminierte und verwaiste Jobs ohne Inferenz-neu-Versuch. Eine verspätete Aufgabe kann ein abgelaufene Nachrichten nicht beanspruchen oder einen neueren Turn überschreiben. Ein Benutzer kann beabsichtigt eine **new** message UUID nach einem Fehlschlag senden.
 
 ## Fehler
 
-`401` bedeutet Authentifizierung fehlgeschlagen. `403` bedeutet der Geltungsbereich oder Ressourcenpolitik verweigerten Zugang; fehlende Bereiche enthalten eine `WWW-Authenticate` Herausforderung. Unbekannte Projekte und fremd/private Gespräch-UUIDs geben `404` zurück. Validierung verwendet `422`, Paginierung verwendet `400`, UUID/Bes affairs Konfliktzuteilungen verwenden `409`, und Kontingent-Erschöpfung verwendet `429`.
+`401` bedeutet Authentifizierung fehlgeschlagen. `403` bedeutet Scope oder Ressource-Politik verweigerte Zugang; fehlende Scopes umfassen eine `WWW-Authenticate` Herausforderung. Unbekannte Projekte und fremd/private Konversations-UUIDs return `404`. Validierung benutzt `422`, Paginierung nutzt `400`, UUID/busy Konflikte verwenden `409`, und Quota-Erschöpfung benutzt `429`.
