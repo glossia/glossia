@@ -4643,11 +4643,6 @@ msgstr "用語集の変更を提案"
 msgid "This revision does not contain glossary entries."
 msgstr "この改訂には用語集エントリが含まれていません。"
 
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "Translated output"
-msgstr "翻訳結果"
-
 #: lib/glossia_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Voices, glossary, audience profiles, and style rules live on the platform. They are shared across every project in your organization and versioned so nothing gets lost."
@@ -5570,3 +5565,8 @@ msgstr "このセッションでは翻訳されたファイルは生成されて
 #, elixir-autogen, elixir-format
 msgid "This session has no recorded activity."
 msgstr "このセッションには活動記録がありません。"
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Translated output preview"
+msgstr "翻訳結果"

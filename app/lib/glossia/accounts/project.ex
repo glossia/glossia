@@ -26,6 +26,7 @@ defmodule Glossia.Accounts.Project do
     field :description, :string
     field :url, :string
     field :avatar_url, :string
+    field :translation_last_pushed_at, :utc_datetime_usec
 
     belongs_to :account, Glossia.Accounts.Account
     belongs_to :github_installation, Glossia.Accounts.GithubInstallation

@@ -4643,11 +4643,6 @@ msgstr "용어사전 제안 변경"
 msgid "This revision does not contain glossary entries."
 msgstr "이 수정본에는 용어사전 항목이 없습니다"
 
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "Translated output"
-msgstr "번역 결과"
-
 #: lib/glossia_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
 msgid "Voices, glossary, audience profiles, and style rules live on the platform. They are shared across every project in your organization and versioned so nothing gets lost."
@@ -5570,3 +5565,8 @@ msgstr "이 세션은 번역된 파일을 생성하지 않았습니다."
 #, elixir-autogen, elixir-format
 msgid "This session has no recorded activity."
 msgstr "이 세션은 기록된 활동이 없습니다."
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Translated output preview"
+msgstr "번역 결과"
