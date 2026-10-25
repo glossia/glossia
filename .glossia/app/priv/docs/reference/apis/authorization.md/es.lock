@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "03456d63a4973122dcb9abf167a63b9f4e5f36bdb2be286188849a845a191e71",
+  "hash": "0af544c35f93a9cf48d93687909e184aa335f155ddaf5d3bae07a7773bcf9ab9",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
+          "hash": "f5e82ede8d4b0959c24c9ac7e96b6b28f9a912488370cbce5a14521ad7647d86",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "03456d63a4973122dcb9abf167a63b9f4e5f36bdb2be286188849a845a191e71",
+      "hash": "0af544c35f93a9cf48d93687909e184aa335f155ddaf5d3bae07a7773bcf9ab9",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/apis/authorization.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "2cd3f155ad410c5527076cc74c79d05198bf87986acccabc8658589c800514b8",
+  "output_hash": "efc1bcfe8fae65a4240358380bfacad716fda104bb7b6d5ef7f9ca171cf380ee",
   "output_path": "app/priv/i18n/es/docs/reference/apis/authorization.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "e7a4e28cd624d1a91a399937d3dffa41fe8c6b02",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/docs/reference/apis/authorization.md",
-  "translated_at": "2026-10-25T11:48:23.657326Z",
-  "translation_session_id": "01a172db-201d-71ea-a85b-b00a839353eb"
+  "translated_at": "2026-10-25T22:39:03.979838Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

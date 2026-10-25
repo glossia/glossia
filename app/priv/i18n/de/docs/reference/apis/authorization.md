@@ -1,93 +1,93 @@
 %{
   title: "Autorisierung",
   summary:
-    "Berechtigungsgebiete, Organisationsrollen und Zugriffskontrollen auf Ressourcensebene.",
+    "Berechtigungs-Bereiche, Organisationsrollen und Zugriffskontrollen auf Ressourcenebene.",
   category: "Referenz",
   subcategory: "APIs",
   order: 2
 }
 ---
 
-Authentifizierung definiert eine Identität; Autorisierung legt fest, welche Aktionen diese Identität ausführen darf. Siehe [Authentifizierung](/docs/reference/apis/authentication) für Anmelde- und Tokenabläufe.
+Authentifizierung definiert eine Identität; Autorisierung entscheidet, welche Aktionen diese Identität ausführen kann. Siehe [Authentifizierung](/docs/reference/apis/authentication) für Anmelde- und Token-Flows.
 
 ## Bereiche
 
-Bereiche steuern, welche Aktionen ein Token ausführen kann. Sie folgen dem `object:action` Muster.
+Bereiche steuern, welche Aktionen ein Token ausführen kann. Sie folgen dem `object:action`-Muster.
 
 | Bereich | Beschreibung |
 |-------|-------------|
-| `admin:read` | Lesen von Plattformverwaltungsdaten (nur Plattformadministratoren) |
-| `admin:write` | Bearbeiten von Plattformverwaltungsdaten (nur Plattformadministratoren) |
-| `ops:read` | Lesen von Plattformbetriebsdaten (nur Plattformadministratoren) |
+| `admin:read` | Lesen von Plattform-Verwaltungsdaten (nur für Plattform-Administratoren) |
+| `admin:write` | Ändern von Plattform-Verwaltungsdaten (nur für Plattform-Administratoren) |
+| `ops:read` | Lesen von Plattform-Betriebsdaten (nur für Plattform-Administratoren) |
 | `user:read` | Lesen von Benutzerprofilinformationen |
-| `user:write` | Bearbeiten von Benutzerprofil |
-| `account:read` | Auflisten der Organisationskonten, auf die Sie zugreifen können |
-| `organization:read` | Lesen der Organisationsdetails (und Auflisten Ihrer Organisationen) |
-| `organization:write` | Erstellen oder Bearbeiten von Organisationen |
-| `organization:claim` | Eine Organisation beanspruchen |
+| `user:write` | Aktualisieren des Benutzerprofils |
+| `account:read` | Liste der Organisation-Konten, auf die Sie Zugriff haben |
+| `organization:read` | Lesen der Organisationsdetails (und Liste Ihrer Organisationen) |
+| `organization:write` | Erstellen oder Aktualisieren von Organisationen |
+| `organization:claim` | Aneignen einer Organisation |
 | `organization:delete` | Löschen von Organisationen |
-| `organization:admin` | Verwaltungsaktionen für Organisationen |
-| `members:read` | Lesen der Organisationsmitglieder und Einladungen |
+| `organization:admin` | Administrative Organisationsaktionen |
+| `members:read` | Lesen von Organisationsmitgliedern und Einladungen |
 | `members:write` | Verwalten von Organisationsmitgliedern und Einladungen |
 | `project:read` | Lesen von Projekten |
-| `project:write` | Erstellen oder Bearbeiten von Projekten |
-| `project:admin` | Verwaltungsaktionen für Projekte |
+| `project:write` | Erstellen oder Aktualisieren von Projekten |
+| `project:admin` | Administrative Projektaktionen |
 | `project:delete` | Löschen von Projekten |
-| `voice:read` | Lesen der Stimme-Konfiguration |
-| `voice:write` | Erstellen oder Bearbeiten der Stimme-Konfiguration |
-| `voice:admin` | Verwaltungsaktionen für Stimmen |
-| `glossary:read` | Lesen von Glossarbegriffen |
-| `glossary:write` | Erstellen oder Bearbeiten von Glossarbegriffen |
+| `voice:read` | Lesen der Stimmenkonfiguration |
+| `voice:write` | Erstellen oder Aktualisieren der Stimmenkonfiguration |
+| `voice:admin` | Administrative Stimmenaktionen |
+| `glossary:read` | Lesen von Glossar-Einträgen |
+| `glossary:write` | Erstellen oder Aktualisieren von Glossar-Einträgen |
 | `glossary:admin` | Verwalten der Glossar-Einstellungen |
 | `discussion:read` | Lesen von Diskussionen |
-| `discussion:write` | Erstellen oder Bearbeiten von Diskussionen |
-| `discussion:admin` | Verwaltungsaktionen für Diskussionen |
+| `discussion:write` | Erstellen oder Aktualisieren von Diskussionen |
+| `discussion:admin` | Administrative Diskussionsaktionen |
 | `ticket:read` | Lesen von Tickets |
-| `ticket:write` | Erstellen oder Bearbeiten von Tickets |
-| `ticket:admin` | Verwaltungsaktionen für Tickets |
-| `llm_model:read` | Lesen der Kontensprachmodelle |
-| `llm_model:write` | Verwalten der Kontensprachmodelle |
+| `ticket:write` | Erstellen oder Aktualisieren von Tickets |
+| `ticket:admin` | Administrative Ticketaktionen |
+| `llm_model:read` | Lesen der Sprachmodelle des Kontos |
+| `llm_model:write` | Verwalten der Sprachmodelle des Kontos |
 | `translation:read` | Lesen der Projektübersetzungsaktivität |
 | `translation:write` | Schreiben von Übersetzungsdaten |
-| `analytics:read` | Lesen der Projektwebsite-Analytics |
-| `toki:read` | Lesen Ihrer eigenen privaten Projektkonversationen |
-| `toki:write` | Erstellen privater Konversationen und in der Warteschlange anlegen von Begleiterantworten |
-| `api_credentials:read` | Lesen von Zugangscertifikaten |
-| `api_credentials:write` | Verwalten von Zugangscertifikaten |
+| `analytics:read` | Lesen der Projektwebsite-Analytik |
+| `toki:read` | Lesen Ihrer eigenen privaten Projektgespräche |
+| `toki:write` | Erstellen privater Gespräche und Begleitantworten in die Warteschlange stellen |
+| `api_credentials:read` | Lesen von Zugangsdaten |
+| `api_credentials:write` | Verwalten von Zugangsdaten |
 
-Die [Entdeckungsmetadaten](/docs/reference/apis/authentication#discovery-endpoints) des Authentifizierungsservers veröffentlichen die Bereiche, die für Clients verfügbar sind. Dass ein Bereich verfügbar ist, gewährt keinen Zugriff von sich aus.
+Der Authentifizierungsserver veröffentlicht die für Clients verfügbaren [Discovery-Metadaten](/docs/reference/apis/authentication#discovery-endpoints). Das Vorhandensein eines Bereichs gewährt keinen Zugriff von sich aus.
 
 ## Autorisierungsmodell
 
-Glossia erzwingt **zwei Ebenen** für die [Representational State Transfer](https://developer.mozilla.org/en-US/docs/Glossary/REST)-Anwendungsschnittstelle und die [Model Context Protocol](https://modelcontextprotocol.io)-Server:
+Glossia durchsetzt **zwei Ebenen** für die [Representational State Transfer](https://developer.mozilla.org/en-US/docs/Glossary/REST)-Anwendungsschnittstelle und den [Model Context Protocol](https://modelcontextprotocol.io)-Server:
 
-1. **Bereichsprüfung**: Das Zugriffstoken muss den erforderlichen `object:action` Bereich enthalten.
-2. **Mediumsebene-Policy**: Der aktuelle Benutzer muss für die spezifische Ressource durch explizite Mitwirkberechtigungen oder die rollenbasierte Policy autorisiert sein.
+1. **Bereichsprüfung**: Das Zugriffstoken muss den erforderlichen `object:action`-Bereich umfassen.
+2. **Ressourcensebene-Beschränkung**: Der aktuelle Benutzer muss für die spezifische Ressource über explizite Mitgliedschaftsberechtigungen oder die rollenbasierte Politik autorisiert werden.
 
-Bereiche stellen die *maximale* Funktionalität eines Tokens dar. Mediumsebene-Checks erzwingen die *tatsächliche* Berechtigung für eine spezifische Ressource.
+Bereiche repräsentieren die *maximale* Fähigkeit eines Tokens. Ressourcensebenen-Prüfungen erzwingen die *tatsächliche* Berechtigung für eine spezifische Ressource.
 
 ### Rollen
 
 | Rolle | Beschreibung |
 |------|-------------|
-| `self` | Der Benutzer, der auf ihre eigenen Ressourcen zugreift |
-| `organization_member` | Ein Mitglied der Organisation, die die Ressource拥itzt |
-| `organization_admin` | Ein Administrator der Organisation, die die Ressource besitzt |
+| `self` | Der Benutzer, der auf seine eigenen Ressourcen zugreift |
+| `organization_member` | Ein Mitglied der Organisation, zu der die Ressource gehört |
+| `organization_admin` | Ein Administrator der Organisation, zu der die Ressource gehört |
 | `public_account` | Die Ressource gehört einem öffentlichen Konto |
 
-### Mitwirkberechtigungen
+### Mitgliedschaftsberechtigungen
 
-Nicht-administratorische Organisationsmitgliedschaften können explizite Berechtigungsbereiche tragen. Neue Mitglieder starten mit Lesezugriff auf das Konto, die Organisation, Projekte, Stimme, Glossar, Diskussionen, Tickets, Übersetzungsaktivität und Analytics, zusätzlich Zugriff auf ihre eigenen privaten Toki-Konversationen. Ein Organisationsadministrator kann diese Bereiche durch [Members → Permissions](/docs/how-to/member-permissions) ersetzen. Eine angeforderte Aktion muss in den erlaubten Bereichen des Mitglieds sowie in den Token-Bereichen enthalten sein, wenn ein Token verwendet wird.
+Mitgliedschaften ohne Administratorrechte können explizite Berechtigungsbereiche beinhalten. Neue Mitglieder beginnen mit Lesezugriff auf Konto, Organisation, Projekte, Stimme, Glossar, Diskussionen, Tickets, Übersetzungsaktivität und Analytik, sowie Zugang zu ihren eigenen privaten Toki-Gesprächen. Ein Organisationsadministrator kann diese Bereiche durch [Mitglieder → Berechtigungen](/docs/how-to/member-permissions) ersetzen. Eine angeforderte Aktion muss in den erlaubten Bereichen des Mitglieds sowie den Token-Bereichen enthalten sein, wenn ein Token verwendet wird.
 
-Private Toki-Besitz wird vor Organisationsmitglied-Bereichs-Overrides geprüft. Weder die Mitgliedschaft noch Administratorrollen gewähren Zugriff auf die Konversation eines anderen Benutzers. Projektsichtbarkeit wird separat geprüft. Siehe die [mobile und companion API](/docs/reference/apis/mobile) für Endpunktbereiche und Limits.
+Das Eigentum privater Toki wird vor Mitgliedschaftsbereichsoverrides geprüft. Weder die Mitgliedschaft noch Administratorrollen erlauben den Zugriff auf das Gespräch eines anderen Benutzers. Projektsichtbarkeit wird separat geprüft. Siehe die [Mobil- und Begleit-API](/docs/reference/apis/mobile) für Endpunktbereiche und Limits.
 
-Organisationsadministratoren behalten ihre Administratorrolle bei. Bestehende Mitgliedschaften ohne explizite Bereiche nutzen weiterhin die nachfolgende rollenbasierte Policy, bis Berechtigungen gespeichert werden.
+Organisationsadministratoren behalten ihre Administratorrolle. Bestehende Mitgliedschaften ohne explizite Bereiche verwenden weiterhin die rollenbasierte Politik unten, bis Berechtigungen gespeichert werden.
 
-### Rollberechtigungen
+### Rollenberechtigungen
 
-Die folgende Tabelle zeigt häufige rollenbasierte Regeln für Mitgliedschaften ohne explizite Bereiche. Es ist nicht die vollständige Policy: Sammelanfragen, temporärer Zugriff und Plattformadministratoren haben zusätzliche Regeln.
+Die folgende Tabelle zeigt gängige rollenbasierte Regeln für Mitgliedschaften ohne explizite Bereiche. Es ist nicht die vollständige Politik: Leseanfragen, vorübergehender Zugriff und Plattformadministratoren haben zusätzliche Regeln.
 
-| Bereich | selbst | organisation_member | organisation_admin | public_account |
+| Bereich | selbst | Organisationsmitglied | Organisationsadministrator | Öffentliches Konto |
 |-------|------|----------------------|--------------------|----------------|
 | `user:read` | Ja | Ja | | |
 | `user:write` | Ja | | | |
