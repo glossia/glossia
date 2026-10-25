@@ -1,10 +1,14 @@
+import Combine
 import SwiftUI
 
 @MainActor
 final class TokiModel: ObservableObject {
     @Published var conversations: [[String: Any]] = []
-    @Published var selectedID: String?
-    @Published var detail: [String: Any]?
+    @Published var selectedID: String? {
+        didSet { if oldValue != selectedID { acceptedTurnID = nil; workState = nil } }
+    }
+    @Published var detail: [String: Any]? { didSet { observeWork() } }
+    @Published private(set) var workState: TokiActivityAttributes.ContentState?
     @Published var drafts: [String: String] = [:]
     @Published var pending: [String: PendingMessage] = [:]
     @Published var busy = false
@@ -17,16 +21,63 @@ final class TokiModel: ObservableObject {
     @Published var sourceError: String?
     private var page = 0
     private var detailRevision = 0
+    private var authorizationRevision = 0
     private var localConversations: Set<String> = []
     private var origins: [String: String] = [:]
     private let request: GlossiaRequest
+    private let work: TokiWorkController?
+    private let workContext: String?
+    private var subscriptions: Set<AnyCancellable> = []
+    private var acceptedTurnID: String?
 
     struct PendingMessage {
         let id: String
         let content: String
     }
 
-    init(request: @escaping GlossiaRequest) { self.request = request }
+    init(work: TokiWorkController? = nil, context: String? = nil, request: @escaping GlossiaRequest) {
+        self.request = request; self.work = work; self.workContext = context
+        work?.$snapshots.sink { [weak self] snapshots in
+            guard let self, let id = self.selectedID, let snapshot = snapshots[id] else { return }
+            self.workState = snapshot.state
+        }.store(in: &subscriptions)
+        work?.updates.sink { [weak self] id, value in
+            guard let self, self.selectedID == id, value.isEmpty || !self.sending else { return }
+            self.detailRevision += 1; self.detailBusy = false
+            if value.isEmpty {
+                self.authorizationRevision += 1
+                self.acceptedTurnID = nil
+                self.detail = nil; self.drafts[id] = nil; self.pending[id] = nil
+                self.source = nil; self.sourceError = nil
+                self.conversations.removeAll { $0["id"] as? String == id }
+                self.detailError = "This conversation is no longer available."
+            } else {
+                self.detail = value; self.detailError = nil
+            }
+        }.store(in: &subscriptions)
+    }
+
+    private func observeWork() {
+        guard let id = selectedID, detail != nil, let phase = TokiWorkPhase(rawValue: status) else {
+            workState = nil
+            return
+        }
+        if let workContext, let snapshot = work?.snapshot(id, context: workContext) {
+            workState = snapshot.state
+            return
+        }
+        // A history record's default "completed" status isn't a completed turn.
+        guard phase.active || phase == .failed || workState != nil || acceptedTurnID != nil else {
+            workState = nil
+            return
+        }
+        let date = Date()
+        let previous = workState
+        workState = TokiActivityAttributes.ContentState(
+            phase: phase, observedAt: date,
+            startedAt: previous?.startedAt ?? date,
+            endedAt: phase.active ? nil : date)
+    }
 
     var draft: String {
         get { selectedID.flatMap { drafts[$0] } ?? "" }
@@ -111,6 +162,7 @@ final class TokiModel: ObservableObject {
             let value = try await request(["operation": "conversation", "action": "show", "id": id])
             try Task.checkCancellation()
             guard selectedID == id, ticket == detailRevision else { return }
+            if let workContext { work?.observe(value, id: id, context: workContext, allowNewTurn: true) }
             detail = value; detailError = nil
             await loadSource()
         } catch is CancellationError { }
@@ -126,6 +178,7 @@ final class TokiModel: ObservableObject {
         let content = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard pending[id] != nil || (!content.isEmpty && content.unicodeScalars.count <= 4000) else { return }
         let message = pending[id] ?? PendingMessage(id: UUID().uuidString.lowercased(), content: content)
+        let authorization = authorizationRevision
         pending[id] = message
         sending = true; detailError = nil
         defer { sending = false }
@@ -135,13 +188,16 @@ final class TokiModel: ObservableObject {
                 if let origin = origins[id] { create["translation_session_id"] = origin }
                 _ = try await request(create)
                 try Task.checkCancellation()
-                guard selectedID == id else { return }
+                guard selectedID == id, authorization == authorizationRevision else { return }
                 localConversations.remove(id)
             }
             let result = try await request(["operation": "conversation", "action": "send", "id": id,
                                             "message_id": message.id, "content": message.content])
             try Task.checkCancellation()
-            guard selectedID == id else { return }
+            guard selectedID == id, authorization == authorizationRevision else { return }
+            acceptedTurnID = message.id
+            workState = nil
+            if let workContext { work?.observe(result, id: id, context: workContext, sentMessageID: message.id) }
             detail = result; drafts[id] = nil; pending[id] = nil
             if let conversation = result["conversation"] as? [String: Any] {
                 if let index = conversations.firstIndex(where: { $0["id"] as? String == id }) {
@@ -150,7 +206,7 @@ final class TokiModel: ObservableObject {
             }
         } catch is CancellationError { }
         catch {
-            if selectedID == id {
+            if selectedID == id, authorization == authorizationRevision {
                 invalidateHistory(id, for: error)
                 detailError = error.localizedDescription
             }
@@ -159,6 +215,9 @@ final class TokiModel: ObservableObject {
 
     private func invalidateHistory(_ id: String, for error: Error) {
         if let failure = error as? GlossiaFailure, ["forbidden", "not_found"].contains(failure.kind) {
+            authorizationRevision += 1
+            acceptedTurnID = nil
+            if let workContext { work?.remove(id, context: workContext) }
             detail = nil; drafts[id] = nil; pending[id] = nil; source = nil; sourceError = nil
             localConversations.remove(id)
             conversations.removeAll { $0["id"] as? String == id }
@@ -180,6 +239,8 @@ final class TokiModel: ObservableObject {
     }
 
     func poll() async {
+        // The app-owned controller continues tracking after this view closes.
+        guard work == nil else { return }
         while !Task.isCancelled {
             do { try await Task.sleep(for: .seconds(2)) }
             catch { return }
@@ -199,31 +260,30 @@ struct TokiView: View {
     let destination: GlossiaDestination?
     let revision: UUID?
     let openSource: ((String) -> Void)?
+    private let work: TokiWorkController?
 
     init(request: @escaping GlossiaRequest, hasProject: Bool, destination: GlossiaDestination? = nil,
-         revision: UUID? = nil, openSource: ((String) -> Void)? = nil) {
-        _model = StateObject(wrappedValue: TokiModel(request: request))
+         revision: UUID? = nil, work: TokiWorkController? = nil, context: String? = nil,
+         openSource: ((String) -> Void)? = nil) {
+        _model = StateObject(wrappedValue: TokiModel(work: work, context: context, request: request))
         self.hasProject = hasProject
         self.destination = destination
         self.revision = revision
         self.openSource = openSource
+        self.work = work
     }
 
     var body: some View {
         List {
-            if !hasProject {
-                ContentUnavailableView("Choose a project", systemImage: "folder",
-                                       description: Text("Toki can help you explore your project's languages and translations."))
-            } else {
+            if hasProject {
+                if let work {
+                    TokiWorkOverview(work: work) { id in Task { await model.open(id) } }
+                        .listRowBackground(tokens.surface)
+                }
                 if let error = model.error {
                     GlossiaErrorView(message: error) { Task { await model.load(reset: true) } }
                 }
                 if model.busy { ProgressView("Opening conversations…") }
-                if model.conversations.isEmpty && !model.busy && model.error == nil {
-                    ContentUnavailableView("No conversations yet", systemImage: "bubble.left.and.bubble.right",
-                                           description: Text("Tap the compose button to start a private conversation about this project."))
-                        .listRowBackground(Color.clear)
-                }
                 ForEach(model.conversations.indices, id: \.self) { index in
                     let row = model.conversations[index]
                     Button { if let id = row["id"] as? String { Task { await model.open(id) } } } label: {
@@ -246,6 +306,15 @@ struct TokiView: View {
             }
         }
         .scrollContentBackground(.hidden).background(tokens.canvas)
+        .overlay {
+            if !hasProject {
+                ContentUnavailableView("Choose a project", systemImage: "folder",
+                                       description: Text("Toki can help you explore your project's languages and translations."))
+            } else if model.conversations.isEmpty && !model.busy && model.error == nil {
+                ContentUnavailableView("No conversations yet", systemImage: "bubble.left.and.bubble.right",
+                                       description: Text("Tap the compose button to start a private conversation about this project."))
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if model.selectedID == nil {
@@ -341,16 +410,11 @@ struct TokiConversationView: View {
                             if !outgoing { Spacer(minLength: 24) }
                         }.id(message["id"] as? String ?? String(index))
                     }
-                    if model.thinking || model.sending {
-                        HStack {
-                            TokiSprite(pose: "Focused").frame(width: 48, height: 48)
-                            ProgressView()
-                            Text(model.sending ? "Sending…" : "Toki is thinking…").font(.callout).foregroundStyle(tokens.muted)
-                        }
-                    }
-                    if model.status == "failed" {
-                        Label("Toki couldn't finish this reply. You can send a follow-up to try again.", systemImage: "exclamationmark.circle")
+                    if model.sending {
+                        Label("Sending…", systemImage: "arrow.up.circle")
                             .font(.callout).foregroundStyle(tokens.muted)
+                    } else if let state = model.workState {
+                        TokiWorkStatusView(state: state) { Task { await model.refreshDetail() } }
                     }
                     if let error = model.detailError {
                         GlossiaErrorView(message: error) {

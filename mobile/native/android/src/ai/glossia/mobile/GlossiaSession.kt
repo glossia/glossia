@@ -7,8 +7,10 @@ import android.os.Looper
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import android.util.JsonReader
 import org.json.JSONArray
 import org.json.JSONObject
+import java.math.BigInteger
 import java.security.KeyStore
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.Executors
@@ -80,6 +82,9 @@ class GlossiaSession internal constructor(context: Context,
     private val preferences = context.getSharedPreferences("glossia.workspace", Context.MODE_PRIVATE)
     private val credentials = Executors.newSingleThreadExecutor()
     private val requests = ThreadPoolExecutor(4, 4, 30, TimeUnit.SECONDS, ArrayBlockingQueue(32))
+    // Local next waits can last 30 seconds. Neither they nor close may queue
+    // behind credential rotation, feature traffic, or another connection's wait.
+    private val translationLive = Executors.newCachedThreadPool()
     private val main = Handler(Looper.getMainLooper())
     @Volatile
     private var generation = 0
@@ -108,10 +113,20 @@ class GlossiaSession internal constructor(context: Context,
         private set
     val translations = PageModel("translations", "sessions")
     val translation = TranslationModel()
+    @Volatile
+    private var liveTicket = 0
+    private var liveId: String? = null
+    private var liveConnection: Any? = null
+    private var liveOpening = false
+    private var liveAfter = BigInteger.ZERO
+    private var liveReauthenticated = false
+    private var liveRetry: Runnable? = null
     private val unavailableTranslations = mutableSetOf<String>()
     val analytics = AnalyticsModel()
     val profile = FeatureModel()
     val toki = TokiModel()
+    private val tokiNotifications = TokiNotifications(context.applicationContext,
+        { appearance.color(context, R.color.glossia_primary) ?: context.token(R.color.glossia_primary) }, ::tokiNotificationLink)
     val workspacePicker = WorkspacePickerModel()
     private var foreground = false
     private val poll = Runnable { pollConversation() }
@@ -400,6 +415,8 @@ class GlossiaSession internal constructor(context: Context,
     }
 
     private fun clearFeatures() {
+        stopTranslationLive()
+        tokiNotifications.clear()
         scopeGeneration += 1
         resolvingNavigation = false
         translations.clear(); translation.clear(); analytics.clear(); profile.clear(); toki.clear()
@@ -409,6 +426,10 @@ class GlossiaSession internal constructor(context: Context,
     }
 
     private fun changed() {
+        reconcileTranslationLive()
+        if (server != null && workspaceReady && organization != null && project != null) {
+            tokiNotifications.update(toki.threads.values, if (foreground && tab == "Toki") toki.activeId else null)
+        } else tokiNotifications.clear()
         listener?.invoke()
         main.removeCallbacks(poll)
         val thread = toki.active
@@ -418,9 +439,30 @@ class GlossiaSession internal constructor(context: Context,
 
     fun setForeground(value: Boolean) {
         foreground = value
+        if (!value) toki.threads.values.forEach { it.pauseWorkObservation() }
         if (value) appearance.refresh()
         if (value) loadCurrent()
         changed()
+    }
+
+    fun takeNotificationPermissionRequest() = foreground && tokiNotifications.takePermissionRequest()
+    fun refreshNotifications() { changed() }
+
+    private fun tokiNotificationLink(id: String, completion: (String?) -> Unit) {
+        val address = server ?: return
+        val sessionTicket = generation
+        val scopeTicket = scopeGeneration
+        val destination = GlossiaDestination(GlossiaScreen.CONVERSATION, address, organization, project, id)
+        try {
+            requests.execute {
+                val result = runCatching {
+                    command(JSONObject().put("operation", "navigation").put("action", "link").put("destination", destination.json()))
+                }
+                main.post {
+                    if (sessionTicket == generation && scopeTicket == scopeGeneration) completion(result.getOrNull()?.optionalString("url"))
+                }
+            }
+        } catch (_: java.util.concurrent.RejectedExecutionException) { completion(null) }
     }
 
     fun loadCurrent(force: Boolean = false) {
@@ -428,7 +470,9 @@ class GlossiaSession internal constructor(context: Context,
         when (tab) {
             "Toki" -> if (organization != null && project != null) {
                 if (force || !toki.history.loaded) loadPage(toki.history, refresh = force)
-                toki.active?.let { if (it.created && (force || !it.loaded)) fetchConversation(it.id) }
+                toki.active?.let {
+                    if (it.created && (force || !it.loaded || it.running || it.workStatus in listOf("queued", "running"))) fetchConversation(it.id)
+                }
             }
             "Translations" -> if (organization != null && project != null) {
                 if (translation.id != null) { if (force || !translation.loaded) loadTranslation() }
@@ -676,6 +720,7 @@ class GlossiaSession internal constructor(context: Context,
     }
 
     private fun openTranslationRecord(id: String) {
+        stopTranslationLive()
         translation.clear(); translation.id = id
         loadTranslation()
     }
@@ -683,7 +728,12 @@ class GlossiaSession internal constructor(context: Context,
     fun loadTranslation() {
         val id = translation.id ?: return
         if (translation.busy) return
+        if (translation.liveState == "unavailable") {
+            stopTranslationLive()
+            liveReauthenticated = false
+        }
         val ticket = ++translation.ticket
+        val liveRevision = translation.liveSnapshotRevision
         translation.busy = true; translation.error = null
         request(JSONObject().put("operation", "translation").put("selection", selection).put("id", id)) { result, failure ->
             if (ticket != translation.ticket) return@request
@@ -691,14 +741,195 @@ class GlossiaSession internal constructor(context: Context,
             if (failure is Failure && failure.kind in listOf("forbidden", "not_found")) {
                 denyTranslation(id)
             }
-            translation.error = if (failure is Failure && failure.kind in listOf("forbidden", "not_found"))
-                "This translation is not available or you do not have access. Retry to check access." else failure?.let(::message)
+            translation.error = when {
+                failure is Failure && failure.kind in listOf("forbidden", "not_found") ->
+                    "This translation is not available or you do not have access. Retry to check access."
+                translation.liveSnapshotRevision != liveRevision -> null
+                else -> failure?.let(::message)
+            }
             if (result != null) {
                 unavailableTranslations.remove(id)
-                translation.data = result.getJSONObject("session"); translation.loaded = true
+                // Suppress an HTTP response only when a live projection arrived
+                // during this request; later manual refreshes can still reconcile.
+                if (translation.liveSnapshotRevision == liveRevision) {
+                    translation.data = result.getJSONObject("session")
+                    translation.progress = result.optJSONObject("progress")
+                    translation.loaded = true
+                }
             }
         }
         changed()
+    }
+
+    private fun liveEligible() = foreground && tab == "Translations" && translation.id != null &&
+        server != null && organization != null && project != null
+
+    private fun reconcileTranslationLive() {
+        if (!liveEligible() || liveId != null && liveId != translation.id) {
+            if (liveId != null || liveRetry != null) stopTranslationLive()
+            return
+        }
+        if (!liveOpening && liveConnection == null && liveRetry == null && translation.liveState != "unavailable") {
+            openTranslationLive()
+        }
+    }
+
+    private fun closeTranslationHandle(connection: Any) {
+        translationLive.execute {
+            runCatching { command(JSONObject().put("operation", "translation_live").put("action", "close").put("connection", connection)) }
+        }
+    }
+
+    private fun stopTranslationLive() {
+        liveTicket += 1
+        liveConnection?.let(::closeTranslationHandle)
+        liveConnection = null; liveId = null; liveOpening = false
+        liveRetry?.let(main::removeCallbacks); liveRetry = null
+        liveAfter = BigInteger.ZERO; liveReauthenticated = false
+        translation.liveState = "closed"
+    }
+
+    private fun openTranslationLive() {
+        val id = translation.id ?: return
+        val chosen = selection
+        val ticket = ++liveTicket
+        val sessionTicket = generation
+        val scopeTicket = scopeGeneration
+        liveId = id; liveOpening = true; liveAfter = BigInteger.ZERO
+        translation.liveState = if (translation.loaded) "reconnecting" else "connecting"
+        fun current() = ticket == liveTicket && sessionTicket == generation && scopeTicket == scopeGeneration && liveEligible()
+        fun finish(result: Result<JSONObject>, revision: Long) {
+            // Open uses the same refreshed/persisted snapshot and auth-rejection
+            // protection as ordinary requests. Always account for late handles.
+            val handle = result.getOrNull()?.opt("connection")?.takeUnless { it === JSONObject.NULL }
+            if (!current()) { handle?.let(::closeTranslationHandle); return }
+            fun complete(invalid: Boolean) {
+                main.post {
+                    if (!current()) { handle?.let(::closeTranslationHandle); return@post }
+                    liveOpening = false
+                    if (invalid) { reset(); error = "Sign in to Glossia again."; changed(); return@post }
+                    if (handle != null) {
+                        liveConnection = handle
+                        nextTranslationLive(handle, ticket)
+                    } else liveFailure(result.exceptionOrNull())
+                    changed()
+                }
+            }
+            if (result.isSuccess) complete(false)
+            else credentials.execute {
+                val invalid = if (current()) result.exceptionOrNull()?.let {
+                    runCatching { reject(it, sessionTicket, revision) }.getOrDefault(false)
+                } ?: false else false
+                complete(invalid)
+            }
+        }
+        credentials.execute {
+            if (!current()) return@execute
+            val saved = runCatching { snapshot(sessionTicket) }
+            val revision = credentialRevision
+            if (saved.isFailure) { finish(Result.failure(saved.exceptionOrNull()!!), revision); return@execute }
+            try {
+                requests.execute {
+                    if (!current()) return@execute
+                    val result = runCatching {
+                        command(JSONObject().put("operation", "translation_live").put("action", "open")
+                            .put("session", saved.getOrThrow()).put("selection", chosen).put("id", id))
+                    }
+                    finish(result, revision)
+                }
+            } catch (failure: java.util.concurrent.RejectedExecutionException) {
+                finish(Result.failure(failure), revision)
+            }
+        }
+    }
+
+    private fun nextTranslationLive(connection: Any, ticket: Int) {
+        val after = liveAfter
+        translationLive.execute {
+            val result = runCatching {
+                translationDelivery(JSONObject().put("operation", "translation_live").put("action", "next")
+                    .put("connection", connection).put("after", after))
+            }
+            main.post {
+                if (ticket != liveTicket || !liveEligible()) return@post
+                val delivery = result.getOrNull()
+                if (delivery == null) {
+                    liveFailure(result.exceptionOrNull()); changed(); return@post
+                }
+                val sequence = delivery.opt("sequence")?.toString()?.toBigIntegerOrNull()
+                // Delivery sequence, not progress.seq: status-only changes may
+                // legitimately carry exactly the same progress sequence.
+                if (sequence != null && sequence > liveAfter) {
+                    liveAfter = sequence
+                    delivery.optJSONObject("snapshot")?.let(translation::acceptSnapshot)
+                }
+                val state = delivery.optString("state", "reconnecting")
+                val failure = delivery.optionalString("error")
+                when {
+                    failure in listOf("forbidden", "not_found") -> denyTranslation(requireNotNull(translation.id))
+                    state == "needs_session" || failure == "sign_in_required" -> translationNeedsSession()
+                    state in listOf("closed", "unavailable") -> liveFailure(null)
+                    else -> {
+                        if (state == "live") liveReauthenticated = false
+                        translation.liveState = state
+                        nextTranslationLive(connection, ticket)
+                    }
+                }
+                changed()
+            }
+        }
+    }
+
+    private fun translationDelivery(request: JSONObject): JSONObject {
+        val raw = bridge(request.toString())
+        val envelope = JSONObject(raw)
+        envelope.optJSONObject("error")?.let { throw Failure(it.getString("kind"), it.getString("message")) }
+        val delivery = envelope.getJSONObject("ok")
+        // Android's JSONObject falls back to Double above Long.MAX_VALUE.
+        // Read the u64 cursor as a JSON number token without losing precision.
+        JsonReader(raw.reader()).use { reader ->
+            reader.beginObject()
+            while (reader.hasNext()) {
+                if (reader.nextName() == "ok") {
+                    reader.beginObject()
+                    while (reader.hasNext()) {
+                        if (reader.nextName() == "sequence") delivery.put("sequence", reader.nextString())
+                        else reader.skipValue()
+                    }
+                    reader.endObject()
+                } else reader.skipValue()
+            }
+            reader.endObject()
+        }
+        return delivery
+    }
+
+    private fun translationNeedsSession() {
+        if (!liveReauthenticated) {
+            stopTranslationLive(); liveReauthenticated = true
+            openTranslationLive()
+        } else {
+            denyTranslation(requireNotNull(translation.id))
+            translation.error = "Sign in to Glossia again to view this translation."
+        }
+    }
+
+    private fun liveFailure(failure: Throwable?) {
+        if (failure is Failure && failure.kind in listOf("forbidden", "not_found")) {
+            denyTranslation(requireNotNull(translation.id)); return
+        }
+        if (failure is Failure && failure.kind in listOf("sign_in_required", "rejected")) {
+            translationNeedsSession(); return
+        }
+        val reauthenticated = liveReauthenticated
+        stopTranslationLive(); liveReauthenticated = reauthenticated
+        translation.liveState = "reconnecting"
+        // Retry the local subscription, never poll the HTTP detail endpoint.
+        val ticket = liveTicket
+        liveRetry = Runnable {
+            liveRetry = null
+            if (ticket == liveTicket && liveEligible()) { openTranslationLive(); listener?.invoke() }
+        }.also { main.postDelayed(it, 2000) }
     }
 
     fun retrySource() { toki.active?.let { loadSource(it, force = true) } }
@@ -723,10 +954,13 @@ class GlossiaSession internal constructor(context: Context,
     private fun denyTranslation(id: String) {
         unavailableTranslations.add(id); translations.remove(id)
         if (translation.id == id) {
+            stopTranslationLive()
             translation.ticket += 1; translation.busy = false; translation.data = null; translation.loaded = false
+            translation.progress = null; translation.liveState = "unavailable"
             translation.error = "This translation is not available or you do not have access. Retry to check access."
         }
         toki.threads.values.filter { it.translationSessionId == id }.forEach {
+            it.clearWorkObservation()
             it.source.clear(); it.source.error = "The source translation is no longer accessible."
         }
     }
@@ -798,7 +1032,7 @@ class GlossiaSession internal constructor(context: Context,
             if (ticket != thread.writeTicket) return@request
             conversationFailure(thread, failure)
             if (result != null) {
-                thread.accept(result)
+                thread.accept(result, sentTurnId = pending.id)
                 if (thread.draft == pending.content) thread.draft = ""
                 thread.pending = null
                 // Refresh the history independently, without clearing its rows.

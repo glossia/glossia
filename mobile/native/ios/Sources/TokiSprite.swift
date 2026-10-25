@@ -43,6 +43,12 @@ private enum TokiMotion {
     }
 }
 
+// The default plain-button highlight fades each painted layer and exposes
+// the overlapping shoulder joints. Toki reacts through motion, not opacity.
+private struct TokiButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { configuration.label }
+}
+
 struct TokiSprite: View {
     var pose = "Wave"
     var interactive = false
@@ -73,7 +79,7 @@ struct TokiSprite: View {
                     .aspectRatio(1, contentMode: .fit)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(TokiButtonStyle())
                 .accessibilityLabel("Toki")
                 .accessibilityValue(greeting ? (delighted ? "Happy to see you" : "Waving hello") : "Ready to help")
                 .accessibilityHint("Tap to say hello. Tap again for a different reaction.")

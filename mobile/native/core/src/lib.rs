@@ -4,6 +4,7 @@ mod navigation;
 mod profile;
 mod themes;
 mod toki;
+mod translation_live;
 mod translations;
 mod transport;
 mod workspace;

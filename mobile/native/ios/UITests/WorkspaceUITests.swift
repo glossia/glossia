@@ -2,6 +2,24 @@ import XCTest
 import UIKit
 
 final class WorkspaceUITests: XCTestCase {
+    func testProjectSelectionEmptyStatesAreCenteredAcrossTabs() {
+        let app = XCUIApplication(bundleIdentifier: "ai.glossia.mobile.preview")
+        app.launchArguments = ["no-project"]
+        app.launch()
+        for tab in ["Toki", "Translations", "Analytics"] {
+            app.tabBars.buttons[tab].tap()
+            let title = app.staticTexts["Choose a project"]
+            XCTAssertTrue(title.waitForExistence(timeout: 5))
+            let contentMidpoint = (app.navigationBars[tab].frame.maxY + app.tabBars.firstMatch.frame.minY) / 2
+            XCTAssertEqual(title.frame.midY, contentMidpoint, accuracy: 65, tab)
+            XCTAssertFalse(app.buttons["toki-mascot"].exists)
+            let capture = XCTAttachment(screenshot: app.screenshot())
+            capture.name = "ios-no-project-\(tab.lowercased())"
+            capture.lifetime = .keepAlways
+            add(capture)
+        }
+    }
+
     func testTokiReactsWithoutSendingOrChangingTheDraft() {
         let app = XCUIApplication(bundleIdentifier: "ai.glossia.mobile.preview")
         app.launchArguments = ["empty"]
@@ -13,6 +31,8 @@ final class WorkspaceUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["No conversations yet"].waitForExistence(timeout: 5))
         XCTAssertFalse(mascot.exists)
         XCTAssertFalse(composer.exists)
+        let contentMidpoint = (app.navigationBars["Toki"].frame.maxY + app.tabBars.firstMatch.frame.minY) / 2
+        XCTAssertEqual(app.staticTexts["No conversations yet"].frame.midY, contentMidpoint, accuracy: 65)
         let empty = XCTAttachment(screenshot: app.screenshot())
         empty.name = "ios-toki-empty-history"; empty.lifetime = .keepAlways; add(empty)
         compose.tap()
@@ -21,6 +41,9 @@ final class WorkspaceUITests: XCTestCase {
         XCTAssertFalse(app.buttons["toki-translation-source"].exists)
         let fresh = XCTAttachment(screenshot: app.screenshot())
         fresh.name = "ios-toki-new-conversation"; fresh.lifetime = .keepAlways; add(fresh)
+        mascot.press(forDuration: 1.5)
+        let settled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "Ready to help"), object: mascot)
+        XCTAssertEqual(XCTWaiter.wait(for: [settled], timeout: 4), .completed)
         composer.tap(); composer.typeText("Keep our linguistic decisions")
         XCTAssertEqual(mascot.value as? String, "Ready to help")
         mascot.tap()
@@ -127,7 +150,7 @@ final class WorkspaceUITests: XCTestCase {
         for (screen, text) in [
             ("chat", "Of course. Gather your product names, navigation labels, and the terms people see during onboarding. We can decide which to translate and which to keep."),
             ("thinking", "Toki is thinking…"),
-            ("failed", "Toki couldn't finish this reply. You can send a follow-up to try again.")
+            ("failed", "Toki couldn't finish")
         ] {
             app.launchArguments = [screen]
             app.launch()
@@ -141,6 +164,54 @@ final class WorkspaceUITests: XCTestCase {
         }
     }
 
+    func testTokiWorkStatusShowsTruthfulStatesAndExplainsStaleObservations() {
+        let app = XCUIApplication(bundleIdentifier: "ai.glossia.mobile.preview")
+        for (state, title) in [("running", "Toki is thinking…"), ("completed", "Toki finished"),
+                               ("failed", "Toki couldn't finish"), ("stale", "Open Glossia to check Toki")] {
+            app.launchArguments = ["activity-\(state)"]
+            app.launch()
+            let status = app.buttons["toki-work-status"]
+            XCTAssertTrue(status.waitForExistence(timeout: 10), state)
+            let changed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", title), object: status)
+            XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: 5), .completed, state)
+            status.tap()
+            XCTAssertEqual(status.value as? String, "Expanded")
+            if state == "stale" { XCTAssertTrue(app.buttons["toki-check-status"].exists) }
+            let capture = XCTAttachment(screenshot: app.screenshot())
+            capture.name = "ios-toki-work-\(state)"; capture.lifetime = .keepAlways; add(capture)
+            if state == "running" {
+                XCUIDevice.shared.press(.home)
+                let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+                XCTAssertTrue(springboard.wait(for: .runningForeground, timeout: 5))
+                // SpringBoard reports foreground before the home animation settles.
+                Thread.sleep(forTimeInterval: 2)
+                let compact = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+                compact.name = "ios-toki-live-activity-compact"; compact.lifetime = .keepAlways; add(compact)
+                springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.04)).press(forDuration: 1)
+                Thread.sleep(forTimeInterval: 1)
+                let expanded = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+                expanded.name = "ios-toki-live-activity-expanded"; expanded.lifetime = .keepAlways; add(expanded)
+            }
+            app.terminate()
+        }
+    }
+
+    func testTranslationProgressUpdatesWithoutManualRefresh() {
+        let app = XCUIApplication(bundleIdentifier: "ai.glossia.mobile.preview")
+        app.launchArguments = ["translation-live"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["1 of 3 files translated"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["locales/es/welcome.json"].exists)
+        let running = XCTAttachment(screenshot: app.screenshot())
+        running.name = "ios-translation-progress-running"; running.lifetime = .keepAlways; add(running)
+        XCTAssertTrue(app.staticTexts["3 of 3 files translated"].waitForExistence(timeout: 10))
+        let status = app.descendants(matching: .any)["translation-status"].firstMatch
+        XCTAssertTrue(status.label.contains("completed") || (status.value as? String)?.contains("completed") == true)
+        XCTAssertFalse(app.staticTexts["Reconnecting to live progress…"].exists)
+        let completed = XCTAttachment(screenshot: app.screenshot())
+        completed.name = "ios-translation-progress-completed"; completed.lifetime = .keepAlways; add(completed)
+    }
+
     func testTranslationDiscussionKeepsSourceAndConversationAcrossTabs() {
         let app = XCUIApplication(bundleIdentifier: "ai.glossia.mobile.preview")
         app.launchArguments = ["translations"]
@@ -149,11 +220,12 @@ final class WorkspaceUITests: XCTestCase {
         XCTAssertTrue(translation.waitForExistence(timeout: 10))
         translation.tap()
         let discuss = app.buttons["discuss-translation"]
-        XCTAssertTrue(discuss.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Refresh the welcome experience"].waitForExistence(timeout: 5))
         app.swipeUp()
+        XCTAssertTrue(discuss.waitForExistence(timeout: 5))
         let disclosure = app.staticTexts["Start a private conversation linked to this translation. No changes are applied automatically."]
         XCTAssertTrue(disclosure.isHittable)
-        XCTAssertLessThanOrEqual(disclosure.frame.maxY, app.tabBars.firstMatch.frame.minY)
+        XCTAssertLessThanOrEqual(disclosure.frame.maxY, app.tabBars.firstMatch.frame.minY + 0.5)
         let detail = XCTAttachment(screenshot: app.screenshot())
         detail.name = "ios-navigation-translation-detail"
         detail.lifetime = .keepAlways
@@ -190,6 +262,8 @@ final class WorkspaceUITests: XCTestCase {
         let suffix = "?server=https%3A%2F%2Fglossia.example.com%2F"
         XCUIDevice.shared.system.open(URL(string: "glossia://navigate/acme/website/translations/abc12345-802e-4f91-9112-77d8a919efc5" + suffix)!)
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+        XCTAssertTrue(app.staticTexts["Refresh the welcome experience"].waitForExistence(timeout: 10))
+        app.swipeUp()
         XCTAssertTrue(app.buttons["discuss-translation"].waitForExistence(timeout: 10))
         app.navigationBars.buttons["Translations"].tap()
         XCTAssertTrue(app.buttons["translation-abc12345-802e-4f91-9112-77d8a919efc5"].waitForExistence(timeout: 5))

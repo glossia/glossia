@@ -54,4 +54,49 @@ defmodule GlossiaWeb.MobileOpenApiSpecTest do
     detail_fields = schemas["MobileTranslation"]["properties"]["session"]["properties"]
     assert Map.delete(detail_fields, "commit_sha") == list_fields
   end
+
+  test "analytics publishes the real traffic series and bucket-local visitor semantics" do
+    schema = GlossiaWeb.OpenApiSpec.spec()["components"]["schemas"]["MobileAnalytics"]
+    assert "traffic" in schema["required"]
+    traffic = schema["properties"]["traffic"]
+    assert Enum.sort(traffic["required"]) == ~w(granularity points)
+    assert traffic["properties"]["granularity"]["enum"] == ~w(hour day month)
+    points = traffic["properties"]["points"]
+    assert points["type"] == "array"
+    assert points["description"] =~ "Empty when there are no events"
+    assert points["description"] =~ "zero-count buckets"
+    point = points["items"]
+    assert Enum.sort(point["required"]) == ~w(bucket pageviews unique_visitors)
+    assert point["properties"]["bucket"]["format"] == "date-time"
+    assert point["properties"]["bucket"]["description"] =~ "UTC"
+
+    for metric <- ~w(pageviews unique_visitors) do
+      assert point["properties"][metric]["type"] == "integer"
+      assert point["properties"][metric]["minimum"] == 0
+    end
+
+    assert point["properties"]["unique_visitors"]["description"] =~ "not additive"
+  end
+
+  test "translation detail documents bounded progress without widening session fields" do
+    schemas = GlossiaWeb.OpenApiSpec.spec()["components"]["schemas"]
+    detail = schemas["MobileTranslation"]
+    assert Enum.sort(detail["required"]) == ~w(progress session)
+
+    assert detail["properties"]["progress"]["$ref"] ==
+             "#/components/schemas/MobileTranslationProgress"
+
+    progress = schemas["MobileTranslationProgress"]
+    assert Enum.sort(progress["required"]) == ~w(items omitted_items seq summary)
+    assert progress["properties"]["items"]["maxItems"] == 500
+    assert progress["properties"]["seq"]["description"] =~ "Durable"
+    item = schemas["MobileTranslationProgressItem"]
+    assert Enum.sort(item["required"]) == ~w(file_ref index locale output_path status turns)
+    assert item["properties"]["status"]["enum"] == ~w(queued running done failed cancelled)
+    refute Map.has_key?(item["properties"], "text")
+    refute Map.has_key?(item["properties"], "reason")
+    summary = schemas["MobileTranslationProgressSummary"]
+    assert "assessed?" in summary["required"]
+    assert "glossary" in summary["required"]
+  end
 end

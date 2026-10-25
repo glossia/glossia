@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.chip.Chip
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.NumberFormat
@@ -49,6 +50,9 @@ class FeatureViews(private val context: Context) {
         body.addSpaced(context.heading("Translation detail"), 16)
         if (model.busy) body.loading("Loading translation…")
         body.failure(model.error, retry)
+        if (model.data != null || model.liveState in listOf("connecting", "reconnecting")) {
+            body.addSpaced(translationProgress(model))
+        }
         model.data?.let { item ->
             body.addSpaced(context.card {
                 addSpaced(context.heading(item.optionalString("commit_message") ?: "Translation session", 20f), 12)
@@ -68,6 +72,65 @@ class FeatureViews(private val context: Context) {
             body.addSpaced(context.label("Start a conversation about this translation. Nothing is sent until you choose Send.", 14f, true))
         }
         return context.scroll(body)
+    }
+
+    private fun translationProgress(model: TranslationModel) = context.card {
+        val progress = model.progress
+        val summary = progress?.optJSONObject("summary")
+        val status = model.data?.optionalString("status")
+        val terminal = status in listOf("completed", "failed", "cancelled")
+        val assessed = summary?.optBoolean("assessed?", summary.optBoolean("assessed")) == true
+        val total = summary?.takeIf { it.has("needs_translation") && !it.isNull("needs_translation") }?.optLong("needs_translation")
+        val done = summary?.takeIf { it.has("done") && !it.isNull("done") }?.optLong("done")
+        addSpaced(context.heading("Translation progress", 18f), 8)
+        addSpaced(context.label(when (model.liveState) {
+            "live" -> "Live updates"
+            "connecting" -> "Connecting to live updates…"
+            "reconnecting" -> "Reconnecting… Showing the latest available progress."
+            "unavailable" -> "Live updates unavailable"
+            else -> "Live updates paused"
+        }, 13f, true).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }, 12)
+        addSpaced(context.label(when {
+            terminal -> status!!.replaceFirstChar { it.uppercase() }
+            !assessed -> "Planning translations…"
+            total == 0L -> "No translation work required"
+            else -> "Translating files"
+        }, 16f), 8)
+        if (assessed && total != null && total > 0 && done != null) {
+            val title = "${number(summary!!, "done")} / ${number(summary, "needs_translation")} translated"
+            addSpaced(context.label(title, 20f), 12)
+            addSpaced(LinearProgressIndicator(context).apply {
+                isIndeterminate = false; max = 1000
+                setProgressCompat(((done.toDouble() / total) * max).toInt().coerceIn(0, max), false)
+                contentDescription = title
+                themed { setIndicatorColor(context.token(R.color.glossia_primary)); trackColor = context.token(R.color.glossia_border) }
+            }, 16)
+        } else if (!terminal && !(assessed && total == 0L)) {
+            addSpaced(LinearProgressIndicator(context).apply {
+                isIndeterminate = true
+                contentDescription = "Planning translations; progress is not yet known"
+                themed { setIndicatorColor(context.token(R.color.glossia_primary)); trackColor = context.token(R.color.glossia_border) }
+            }, 16)
+        }
+        if (summary != null) {
+            val counts = listOf("checked" to "checked", "total" to "planned", "skipped" to "up to date",
+                "running" to "running", "queued" to "queued", "failed" to "failed", "cancelled" to "cancelled")
+                .filter { summary.has(it.first) && !summary.isNull(it.first) }
+                .joinToString(" · ") { "${number(summary, it.first)} ${it.second}" }
+            if (counts.isNotEmpty()) addSpaced(context.label(counts, 13f, true), 16)
+        }
+        val items = progress?.optJSONArray("items")
+        if (items != null && items.length() > 0) {
+            addSpaced(context.heading("Files", 16f), 12)
+            for (index in 0 until items.length()) {
+                val item = items.getJSONObject(index)
+                addSpaced(context.label(item.optionalString("output_path") ?: "Path not available", 14f).apply {
+                    setTextIsSelectable(true)
+                }, 4)
+                addSpaced(context.label(listOfNotNull(item.optionalString("locale"), item.optionalString("status"))
+                    .joinToString(" · ").ifEmpty { "Status not available" }, 13f, true), 12)
+            }
+        } else addView(context.label(if (terminal) "No file details are available." else "File progress will appear as the plan is prepared.", 13f, true))
     }
 
     fun analytics(model: AnalyticsModel, ready: Boolean, daysChanged: (Int) -> Unit, retry: () -> Unit): View {

@@ -116,8 +116,14 @@ actor GlossiaRuntime {
                 let result = try await withTaskCancellationHandler {
                     try await task.value
                 } onCancel: { task.cancel() }
-                try Task.checkCancellation()
-                guard ticket == generation else { throw CancellationError() }
+                guard !Task.isCancelled, ticket == generation else {
+                    if operation == "translation_live", request["action"] as? String == "open",
+                       let opened = try JSONSerialization.jsonObject(with: result) as? [String: Any],
+                       let connection = opened["connection"] as? String {
+                        _ = try? Self.command(["operation": "translation_live", "action": "close", "connection": connection])
+                    }
+                    throw CancellationError()
+                }
                 return result
             }
             let result = try Self.command(request)
@@ -142,6 +148,15 @@ actor GlossiaRuntime {
             }
             throw failure
         }
+    }
+
+    // These commands only wait on or close a Rust-owned local socket handle.
+    // They must never occupy the credential actor or a feature-network slot.
+    nonisolated static func localLive(_ input: Data) async throws -> Data {
+        try await Task.detached {
+            let request = try JSONSerialization.jsonObject(with: input) as! [String: Any]
+            return try JSONSerialization.data(withJSONObject: command(request))
+        }.value
     }
 
     private nonisolated static func command(_ request: [String: Any]) throws -> [String: Any] {
@@ -185,11 +200,28 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
     var selectedProject: [String: Any]? { projects.first { $0["handle"] as? String == project } }
 
     func request(_ value: [String: Any], context: String) async throws -> [String: Any] {
+        let live = value["operation"] as? String == "translation_live"
+        let action = value["action"] as? String
+        if live && ["next", "close"].contains(action ?? "") {
+            if action != "close" { guard context == projectContext, server != nil else { throw CancellationError() } }
+            let input = try JSONSerialization.data(withJSONObject: value)
+            let result = try await GlossiaRuntime.localLive(input)
+            if action != "close" {
+                try Task.checkCancellation()
+                guard context == projectContext, server != nil else { throw CancellationError() }
+            }
+            return try JSONSerialization.jsonObject(with: result) as! [String: Any]
+        }
         guard context == projectContext, server != nil else { throw CancellationError() }
         var value = value
         value["selection"] = selection
         do {
             let response = try await run(value, authenticated: true)
+            if live, action == "open", (Task.isCancelled || context != projectContext || server == nil),
+               let connection = response["connection"] as? String {
+                let input = try JSONSerialization.data(withJSONObject: ["operation": "translation_live", "action": "close", "connection": connection])
+                _ = try? await GlossiaRuntime.localLive(input)
+            }
             try Task.checkCancellation()
             guard context == projectContext, server != nil else { throw CancellationError() }
             return response

@@ -93,10 +93,12 @@ for finding items in a growing collection. Project context remains visible in th
 toolbar rather than being hidden in Profile or encoded as extra tabs.
 
 - **Toki:** private project conversations, durable messages, queued/running reply
-  states, explicit retry, and foreground-only polling.
-- **Translations:** paginated project translation sessions and status.
+  states, explicit retry, and native work-status presentations.
+- **Translations:** paginated project sessions, with foreground live file progress
+  over an authenticated Phoenix WebSocket and durable reconstruction on reconnect.
 - **Analytics:** project pageviews, visitors, locale gaps, and top pages over
-  7, 30, or 90 days.
+  7, 30, or 90 days. iOS uses Swift Charts for server-provided UTC traffic buckets;
+  unique-visitor totals come from the server summary, not summed buckets.
 - **Profile:** signed-in identity, server, project context, and sign-out.
 
 The REST API exposes `/api/me` and project-scoped `translations`, `analytics`,
@@ -107,8 +109,40 @@ migration through your normal deployment procedure, configure an inference
 provider, and run the Toki Oban queue before expecting live replies. See the
 server's API reference and OpenAPI document for request and response schemas.
 
-Editing, offline sync, push notifications, store publishing, and production
+Editing, offline sync, remote push delivery, store publishing, and production
 signing are not included. Native UI currently uses English copy.
+
+## Native work status and background limits
+
+Toki's status presentation uses observed queued/running/completed/failed states,
+a companion mark, and elapsed time since observation. It never invents steps,
+percentages, or pause/stop controls that the backend does not support. iOS embeds
+a WidgetKit extension for ActivityKit Lock Screen and Dynamic Island views.
+Android uses a standard ongoing notification, not promoted Android Live Updates
+intended for time-sensitive navigation or delivery tracking. Notification
+permission denial does not prevent sending a message.
+
+System surfaces contain generic Toki status, never conversation titles, prompts,
+or replies. Their links use Rust's canonical navigation contract and reauthorize
+when opened. Account/workspace changes and detected access loss clear the
+associated status. Elapsed time is not an inferred server execution duration.
+
+These clients observe Toki through authorized foreground requests. Their native
+status surfaces do not keep networking alive after the OS suspends the app.
+The iOS activity becomes stale and asks the user to open Glossia rather than
+claiming work is still running indefinitely. Reliable suspended-app completion
+updates require an additional authorized registration/outbox service and
+configured APNs ActivityKit / Android push providers; none are provisioned here.
+
+Translation subscriptions also close in the background. Rust owns the persistent
+socket, heartbeat, bounded latest-only complete snapshots, reconnection, and
+opaque `open` / `next` / `close` handles. `next` waits locally, outside credential
+serialization and feature-network slots; it is not HTTP polling. The server
+subscribes before reconstructing progress, rechecks current OAuth scopes and
+LetMe permissions before pushing, and repairs missed broadcasts periodically.
+The local delivery sequence is distinct from the durable progress sequence:
+status and publication changes can occur without another file-progress event.
+Raw output, provider payloads, and model reasoning are not sent to native clients.
 
 ## Navigation and translation discussions
 
@@ -260,16 +294,21 @@ before installation on a physical device. No signing credentials are committed.
 
 `.github/workflows/mobile-native.yml` runs independent Rust, Android, iOS build,
 and iOS test jobs. The iOS build matrix compiles simulator and device bundles in
-parallel. Model tests exercise message replay, access-loss clearing, and paginated
-retry; UI tests exercise staged workspace changes, self-hosted URL entry, and
-chat scroll/status placement. Android tests also render both themes with native
-Robolectric graphics, using test-only transports rather than production fixtures.
+parallel and verifies the embedded Live Activity extension, mascot resource, and
+bundle signing. Model tests exercise message replay, access-loss clearing, and
+paginated retry; UI tests exercise staged workspace changes, self-hosted URL entry,
+live progress, charts, and chat/status placement. Android tests also render both
+themes with native Robolectric graphics, using test-only transports rather than
+production fixtures.
 Artifacts include APKs, app bundles, and test results without publishing releases.
 Server authorization and API regressions run in the existing app workflow.
 
 The preview bundle supports `login`, `empty`, `toki`, `chat`, `thinking`, `failed`,
 `empty-chat`, `translations`, `translations-empty`, `analytics`, `analytics-empty`,
-`profile`, `workspace`, `translation-detail`, and `source-chat` launch arguments.
+`profile`, `workspace`, `no-project`, `translation-detail`, `translation-live`, and
+`source-chat` launch arguments. `activity-queued`, `activity-running`,
+`activity-completed`, `activity-failed`, and `activity-stale` render Toki work states
+and exercise the real ActivityKit extension using isolated fixture conversations.
 Append `--link URL` to exercise the production navigation adapter against isolated
 fixture records; this option is not linked into the production app. To inspect
 a server catalog without authenticating, append

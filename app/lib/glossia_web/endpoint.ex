@@ -15,6 +15,12 @@ defmodule GlossiaWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
 
+  socket "/native/socket", GlossiaWeb.NativeSocket,
+    auth_token: true,
+    websocket: [max_frame_size: 1_048_576],
+    longpoll: false,
+    log: false
+
   if Code.ensure_loaded?(Tidewave) do
     plug Tidewave
   end

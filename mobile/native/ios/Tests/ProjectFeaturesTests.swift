@@ -255,3 +255,130 @@ struct NavigationTests {
         #expect(session.navigation.targets.isEmpty && session.navigation.pending == nil)
     }
 }
+
+@Suite @MainActor
+struct TranslationProgressTests {
+    private let id = "abc12345-802e-4f91-9112-77d8a919efc5"
+
+    private func snapshot(_ status: String, done: Int = 0) -> [String: Any] {
+        ["session": ["id": id, "status": status],
+         "progress": ["seq": 12, "summary": ["done": done, "needs_translation": 3], "items": []]]
+    }
+
+    private func eventually(_ condition: () -> Bool) async -> Bool {
+        for _ in 0..<200 {
+            if condition() { return true }
+            try? await Task.sleep(for: .milliseconds(5))
+        }
+        return condition()
+    }
+
+    @Test func liveStatusChangesApplyWithoutChangingDurableProgressAndRevocationClearsData() async {
+        let events = AsyncStream<[String: Any]>.makeStream()
+        var iterator = events.stream.makeAsyncIterator()
+        let model = TranslationDetailModel(id: id) { input in
+            switch input["operation"] as? String {
+            case "translation": return snapshot("running")
+            default:
+                switch input["action"] as? String {
+                case "open": return ["connection": "live"]
+                case "next": return await iterator.next() ?? ["state": "closed"]
+                default: return ["closed": true]
+                }
+            }
+        }
+        defer { model.setActive(false); events.continuation.finish() }
+        model.setActive(true)
+        events.continuation.yield(["sequence": 2, "state": "live", "snapshot": snapshot("running", done: 1)])
+        #expect(await eventually { (model.progress?["summary"] as? [String: Any])?["done"] as? Int == 1 })
+        events.continuation.yield(["sequence": 3, "state": "live", "snapshot": snapshot("completed", done: 1)])
+        #expect(await eventually { model.record?["status"] as? String == "completed" })
+        events.continuation.yield(["sequence": 4, "state": "unavailable", "error": "forbidden"])
+        #expect(await eventually { model.record == nil && model.progress == nil && model.error != nil })
+    }
+
+    @Test func obsoleteDetailAndLateLiveOpensCannotRestoreHiddenContent() async {
+        let started = AsyncStream<Void>.makeStream()
+        var finish: CheckedContinuation<[String: Any], Never>?
+        let model = TranslationDetailModel(id: id) { input in
+            guard input["operation"] as? String == "translation" else { return ["closed": true] }
+            return await withCheckedContinuation { finish = $0; started.continuation.yield(()) }
+        }
+        model.setActive(true)
+        for await _ in started.stream { break }
+        model.setActive(false)
+        finish?.resume(returning: snapshot("completed", done: 3))
+        #expect(await eventually { !model.busy })
+        #expect(model.record == nil && model.progress == nil)
+
+        let opened = AsyncStream<Void>.makeStream()
+        let closed = AsyncStream<String>.makeStream()
+        var completeOpen: CheckedContinuation<[String: Any], Never>?
+        let late = TranslationDetailModel(id: id) { input in
+            if input["operation"] as? String == "translation" { return snapshot("running") }
+            if input["action"] as? String == "open" {
+                return await withCheckedContinuation { completeOpen = $0; opened.continuation.yield(()) }
+            }
+            if input["action"] as? String == "close", let handle = input["connection"] as? String {
+                closed.continuation.yield(handle)
+            }
+            return ["closed": true]
+        }
+        late.setActive(true)
+        for await _ in opened.stream { break }
+        late.setActive(false)
+        completeOpen?.resume(returning: ["connection": "obsolete"])
+        for await handle in closed.stream { #expect(handle == "obsolete"); break }
+        #expect(late.record?["status"] as? String == "running")
+        #expect(late.liveState != "live")
+    }
+
+    @Test(arguments: ["completed", "forbidden", "not_found", "needs_session", "exception"])
+    func newerLiveStateWinsOverAnOlderManualRefresh(_ outcome: String) async {
+        let events = AsyncStream<[String: Any]>.makeStream()
+        var iterator = events.stream.makeAsyncIterator()
+        let refreshing = AsyncStream<Void>.makeStream()
+        var completeRefresh: CheckedContinuation<[String: Any], Never>?
+        var httpRequests = 0
+        let model = TranslationDetailModel(id: id) { input in
+            if input["operation"] as? String == "translation" {
+                httpRequests += 1
+                if httpRequests == 1 { return snapshot("running") }
+                return await withCheckedContinuation { completeRefresh = $0; refreshing.continuation.yield(()) }
+            }
+            switch input["action"] as? String {
+            case "open": return ["connection": "live"]
+            case "next":
+                let update = await iterator.next() ?? ["state": "closed"]
+                if update["throw"] as? Bool == true { throw GlossiaFailure(kind: "forbidden", message: "Revoked") }
+                return update
+            default: return ["closed": true]
+            }
+        }
+        defer { model.setActive(false); events.continuation.finish() }
+        model.setActive(true)
+        events.continuation.yield(["sequence": 2, "state": "live", "snapshot": snapshot("running", done: 1)])
+        #expect(await eventually { model.liveState == "live" })
+        let refresh = Task { await model.load() }
+        for await _ in refreshing.stream { break }
+        switch outcome {
+        case "completed":
+            events.continuation.yield(["sequence": 3, "state": "live", "snapshot": snapshot("completed", done: 3)])
+            #expect(await eventually { model.record?["status"] as? String == "completed" })
+        case "needs_session":
+            events.continuation.yield(["sequence": 3, "state": "needs_session"])
+            events.continuation.yield(["sequence": 4, "state": "needs_session"])
+        case "exception": events.continuation.yield(["throw": true])
+        default: events.continuation.yield(["sequence": 3, "state": "unavailable", "error": outcome])
+        }
+        if outcome != "completed" { #expect(await eventually { model.record == nil && model.error != nil }) }
+        completeRefresh?.resume(returning: snapshot("running", done: 0))
+        await refresh.value
+        if outcome == "completed" {
+            #expect(model.record?["status"] as? String == "completed")
+            #expect((model.progress?["summary"] as? [String: Any])?["done"] as? Int == 3)
+        } else {
+            #expect(model.record == nil && model.progress == nil && model.error != nil)
+        }
+    }
+}

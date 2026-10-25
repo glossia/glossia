@@ -36,7 +36,7 @@ defmodule GlossiaWeb.Api.ProjectActivityApiController do
   def translation(conn, %{"id" => id}) do
     case TranslationSessions.get_project_session(conn.assigns.project, id) do
       nil -> conn |> put_status(:not_found) |> json(%{error: "not_found"})
-      session -> json(conn, %{session: Map.take(session, [:commit_sha | @session_fields])})
+      session -> json(conn, GlossiaWeb.TranslationSnapshot.detail(session))
     end
   end
 
@@ -49,6 +49,7 @@ defmodule GlossiaWeb.Api.ProjectActivityApiController do
       json(conn, %{
         summary: Queries.summary(project.id, since, until),
         top_pages: Queries.top_pages(project.id, since: since, until: until, limit: 10),
+        traffic: Queries.traffic(project.id, since: since, until: until),
         days: days
       })
     else

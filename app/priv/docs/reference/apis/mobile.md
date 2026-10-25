@@ -113,27 +113,83 @@ Lists reflect current state, not a frozen snapshot. Conversation ordering is mos
 
 Statuses are `pending`, `running`, `completed`, `failed`, or `cancelled`. Commit message, source language, and summary can be `null` while work is pending or when unavailable. Results are newest first and restricted to the addressed project.
 
-`GET /api/:handle/projects/:project/translations/:id` returns `{session: {...}}` with exactly the list session fields plus nullable `commit_sha`. This is a direct, exact UUID lookup within the addressed project and account, independent of pagination or the session's age. Malformed, missing, and foreign-project IDs return `404` with `error: "not_found"`; authentication and project authorization still run first (`401`/`403`). Opening this resource never creates a conversation, sends a message, or starts inference. It provides **session-summary-level provenance**, not translated segment text or a review of translated output.
+`GET /api/:handle/projects/:project/translations/:id` returns `{session: {...}, progress: {...}}`. The `session` has exactly the list session fields plus nullable `commit_sha`, unchanged. `progress` is rebuilt from durable events using the same Elixir progress reducer as the web dashboard. This is a direct, exact UUID lookup within the addressed project and account, independent of pagination or the session's age. Malformed, missing, and foreign-project IDs return `404` with `error: "not_found"`; authentication and project authorization still run first (`401`/`403`). Opening this resource never creates a conversation, sends a message, or starts inference. It provides **session-summary-level provenance** and per-file progress, not translated segment text or a review of translated output.
+
+### Native live progress
+
+Open a persistent Phoenix WebSocket at `/native/socket/websocket?vsn=2.0.0` (`wss` on HTTPS servers). Longpoll is disabled. Send the access token only through the WebSocket subprotocol header, never through query parameters:
+
+```text
+Sec-WebSocket-Protocol: phoenix,base64url.bearer.phx.<base64url-no-padding-of-access-token>
+```
+
+The server negotiates `phoenix`. Join topic `translation:<session UUID>` with `{"organization":"account-handle","project":"project-handle"}`. The organization value is the same account handle used by the HTTP API, including personal accounts. The join reply and every `snapshot` event carry the same complete projection as HTTP detail:
+
+```json
+{
+  "session": {
+    "id": "e4183cef-2b43-42a8-a60f-78b4fbb02bbf",
+    "status": "running",
+    "commit_message": "Update installation guide",
+    "commit_sha": "abc123",
+    "source_language": "en",
+    "target_languages": ["es"],
+    "translated_content_count": 0,
+    "inserted_at": "2026-10-25T10:00:00Z",
+    "summary": null
+  },
+  "progress": {
+    "seq": 3,
+    "summary": {
+      "total": 2, "checked": 2, "needs_translation": 2, "assessed?": true,
+      "skipped": 0, "done": 0, "failed": 0, "cancelled": 0, "running": 1, "queued": 1,
+      "glossary": {"applied_ids": [], "shadowed_ids": [], "files_with_applied": 0, "files_with_shadowed": 0}
+    },
+    "items": [
+      {"index": 0, "output_path": "es/guide.md", "locale": "es", "status": "running", "turns": 1, "file_ref": null},
+      {"index": 1, "output_path": "es/faq.md", "locale": "es", "status": "queued", "turns": 0, "file_ref": null}
+    ],
+    "omitted_items": 0
+  }
+}
+```
+
+`seq` is the durable progress sequence, **not** a unique snapshot version. Session status/publication changes and live model-call counts can produce a new snapshot with the same sequence; replace the previous projection even when `seq` is unchanged. Per-file statuses are `queued`, `running`, `done`, `failed`, and `cancelled`. Paths, locales, and file references can be `null` before they are known. An untouched session has sequence zero, empty items, and zero counts. The summary covers **all** files, even when items are omitted. The summary's glossary identifiers/counts are the web reducer's aggregate, not provider metadata.
+
+At most 500 items in planned-index order are included, with a combined encoded-item budget of 512,000 bytes. An item that cannot fit is omitted, and `omitted_items` counts every row excluded by either limit. Raw translated output, streaming text, thinking, private provider payloads, and raw failure details are never included. Live public model-call counts can reset after reconnect or reconciliation; durable final counts and file states are reconstructed. Full native snapshots are limited to 1,000,000 encoded JSON bytes. If unchanged session metadata or the complete summary alone exceeds that limit, joining fails with `{"reason":"payload_too_large"}`, or an existing channel receives `error` with that reason and closes, rather than sending an oversized frame or silently truncating provenance.
+
+The server subscribes to the existing cross-node session PubSub **before** reading the durable prefix, folds the live tail with sequence deduplication, and coalesces progress/status/publication notifications into full snapshots at approximately 100 ms. No per-client HTTP polling or runner-local state is needed. Every five seconds it renews authorization and rebuilds the durable state to repair missed notifications. Reconnect and rejoin after foregrounding or a transport interruption; the join projection is sufficient without replaying deltas. Follow the normal Phoenix heartbeat lifecycle while connected, and leave the topic when no longer viewing it.
+
+The current persisted token grant, expiry/revocation, user, `translation:read` token scope, policy permissions, project visibility, and exact account/project/session association are checked at join and before every snapshot. Missing scope or policy permission returns `{"reason":"forbidden"}`; a missing resource returns `{"reason":"not_found"}`; expired/revoked authentication returns `{"reason":"sign_in_required"}`. After a successful join, denial emits `access_revoked` with that reason and immediately closes the channel without another snapshot. Renewal also detects revocation on idle channels. On `sign_in_required`, refresh/re-authenticate and create a new connection; on other denials, stop displaying the protected detail. WebSockets are a foreground live-update mechanism, not a guarantee of delivery while the mobile app is suspended.
 
 ## Analytics
 
-`GET /api/:handle/projects/:project/analytics?days=30` returns:
+`GET /api/:handle/projects/:project/analytics?days=30` returns summary metrics, up to ten top pages, and the traffic time series. An empty project returns:
 
 ```json
 {
   "summary": {
-    "pageviews": 1350,
-    "unique_visitors": 900,
-    "locale_gap_visits": 180,
-    "top_country": "DE",
-    "top_browser_language": "de"
+    "pageviews": 0,
+    "unique_visitors": 0,
+    "locale_gap_visits": 0,
+    "top_country": "",
+    "top_browser_language": ""
   },
-  "top_pages": [{"pathname": "/docs", "pageviews": 420}],
+  "top_pages": [],
+  "traffic": {"granularity": "day", "points": []},
   "days": 30
 }
 ```
 
-`days` defaults to `30` and must be an integer from `1` to `365`. The rolling UTC reporting window ends at request time. These are the same project-scoped ClickHouse aggregates as the dashboard, including its daily-rotated visitor identifiers. The top-pages list contains at most ten entries. Empty datasets return zero counts, empty top-value strings, and an empty page list. Storage failures return `503` with `error: "analytics_unavailable"`, never invented zero metrics.
+`days` defaults to `30` and must be an integer from `1` to `365`. The rolling UTC reporting window ends at request time. These are the same project-scoped ClickHouse aggregates as the dashboard, including its daily-rotated visitor identifiers. Storage failures return `503` with `error: "analytics_unavailable"`, never invented zero metrics.
+
+`traffic.granularity` is `"hour"` for windows up to two days, `"day"` for windows up to ninety days, and `"month"` otherwise. `traffic.points` is chronological. Each point contains a UTC bucket-start timestamp and non-negative integer counts:
+
+```json
+{"bucket": "2026-10-25T00:00:00Z", "pageviews": 420, "unique_visitors": 280}
+```
+
+Counts include only events in the requested reporting window, so the first and last buckets can be partial. When events exist, quiet buckets in that window are included with zero counts. When no events exist, `points` is empty rather than a synthetic flat trend. `unique_visitors` counts distinct identifiers **within each bucket**; summing these values does not give the period's distinct visitor count. Use `summary.unique_visitors` for that total. Clients should plot the returned buckets unchanged rather than reconstructing a trend from summary metrics.
 
 ## Toki conversations
 

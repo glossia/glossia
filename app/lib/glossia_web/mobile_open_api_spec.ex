@@ -45,7 +45,7 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
           operation("projectTranslation", "translation:read", "MobileTranslation", [], "200")
           |> Map.put(
             "description",
-            "Exact project-scoped UUID lookup, independent of list pagination. Returns session-summary-level metadata, not segment text. Malformed, missing and foreign-project IDs return 404."
+            "Exact project-scoped UUID lookup, independent of list pagination. Returns unchanged session metadata plus durable progress, per-file status and omitted_items. No raw output or reasoning. The same full projection is returned by translation:<UUID> joins and snapshot events on /native/socket/websocket?vsn=2.0.0. Malformed, missing and foreign-project IDs return 404."
           )
       },
       (project <> "/analytics") => %{
@@ -164,7 +164,52 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
         }),
       "MobileTranslation" =>
         object(%{
-          "session" => object(Map.put(session_properties(), "commit_sha", nullable_string()))
+          "session" => object(Map.put(session_properties(), "commit_sha", nullable_string())),
+          "progress" => ref("MobileTranslationProgress")
+        }),
+      "MobileTranslationProgress" =>
+        object(%{
+          "seq" => %{
+            "type" => "integer",
+            "minimum" => 0,
+            "description" => "Durable progress sequence, not a unique snapshot version"
+          },
+          "summary" => ref("MobileTranslationProgressSummary"),
+          "items" => array(ref("MobileTranslationProgressItem")) |> Map.put("maxItems", 500),
+          "omitted_items" => %{
+            "type" => "integer",
+            "minimum" => 0,
+            "description" => "Items omitted by the count or byte budget; summary covers all files"
+          }
+        }),
+      "MobileTranslationProgressSummary" =>
+        object(%{
+          "total" => integer(),
+          "checked" => integer(),
+          "needs_translation" => integer(),
+          "assessed?" => %{"type" => "boolean"},
+          "skipped" => integer(),
+          "done" => integer(),
+          "failed" => integer(),
+          "cancelled" => integer(),
+          "running" => integer(),
+          "queued" => integer(),
+          "glossary" =>
+            object(%{
+              "applied_ids" => array(string()),
+              "shadowed_ids" => array(string()),
+              "files_with_applied" => integer(),
+              "files_with_shadowed" => integer()
+            })
+        }),
+      "MobileTranslationProgressItem" =>
+        object(%{
+          "index" => integer(),
+          "output_path" => nullable_string(),
+          "locale" => nullable_string(),
+          "status" => %{"type" => "string", "enum" => ~w(queued running done failed cancelled)},
+          "turns" => integer(),
+          "file_ref" => nullable_string()
         }),
       "MobileAnalytics" =>
         object(%{
@@ -177,6 +222,32 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
               "top_browser_language" => string()
             }),
           "top_pages" => array(object(%{"pathname" => string(), "pageviews" => integer()})),
+          "traffic" =>
+            object(%{
+              "granularity" => %{"type" => "string", "enum" => ~w(hour day month)},
+              "points" =>
+                array(
+                  object(%{
+                    "bucket" =>
+                      Map.put(
+                        timestamp(),
+                        "description",
+                        "Start of the UTC bucket, chronological"
+                      ),
+                    "pageviews" => %{"type" => "integer", "minimum" => 0},
+                    "unique_visitors" => %{
+                      "type" => "integer",
+                      "minimum" => 0,
+                      "description" =>
+                        "Distinct visitors within this bucket, not additive across buckets"
+                    }
+                  })
+                )
+                |> Map.put(
+                  "description",
+                  "Empty when there are no events; otherwise includes zero-count buckets in the requested window"
+                )
+            }),
           "days" => %{"type" => "integer", "minimum" => 1, "maximum" => 365}
         }),
       "TokiConversation" =>

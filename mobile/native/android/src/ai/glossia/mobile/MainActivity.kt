@@ -1,13 +1,16 @@
 package ai.glossia.mobile
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -33,6 +36,9 @@ class MainActivity : AppCompatActivity(), AppearanceOwner {
     private var workspacePickerView: WorkspacePickerView? = null
     private var bindingNavigation = false
     private var keyboardVisible = false
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        session.refreshNotifications() // Denial never changes work, navigation or sign-in.
+    }
     private val destinations = linkedMapOf(R.id.toki to "Toki", R.id.translations to "Translations", R.id.analytics to "Analytics", R.id.profile to "Profile")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -179,6 +185,10 @@ class MainActivity : AppCompatActivity(), AppearanceOwner {
             catch (_: Exception) { themed(MaterialAlertDialogBuilder(this).setMessage("No browser is available for secure sign-in.").setPositiveButton("OK", null).show()) }
         }
         appearance.apply(this, findViewById(R.id.root))
+        if (Build.VERSION.SDK_INT >= 33 && lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED) &&
+            session.takeNotificationPermissionRequest()) {
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     private fun display(view: View) {
