@@ -1,87 +1,87 @@
 %{
   title: "Tokens de cuenta",
   summary: "Crear y gestionar tokens de cuenta para autenticarse con la API de Glossia.",
-  category: "Referencia",
+  category: "referencia",
   subcategory: "APIs",
   order: 3
 }
 ---
 
-Los tokens de cuenta ofrecen una forma sencilla de autenticar solicitudes de API sin pasar por todo el flujo de OAuth. Son ideales para guiones, pipelines de CI/CD y automatización personal.
+Los tokens de cuenta ofrecen una manera simple de autenticar solicitudes de API sin pasar por el flujo completo de OAuth. Son ideales para scripts, pipelines CI/CD y automatización personal.
 
 ## Creación de un token
 
-1. Inicie sesión en Glossia y navegue al panel de su cuenta.
-2. Abra la sección **API** de la barra lateral.
-3. Haga clic en **Tokens de cuenta** y luego en **Nuevo token**.
-4. Asigne un **nombre** descriptivo al token (por ejemplo, "CI deploy" o "Acceso CLI").
-5. Seleccione los **alcances** que necesita el token. Solo conceda los permisos mínimos requeridos.
-6. Establezca una **fecha de caducidad** o déjelo en blanco para un token que nunca expira.
+1. Inicie sesión en Glossia y navegue a su panel de control de cuenta.
+2. Abra la sección **API** desde la barra lateral.
+3. Haga clic en **Tokens de cuenta**, luego en **Nuevo token**.
+4. Asigne al token un **nombre** descriptivo (por ejemplo, "CI deploy" o "CLI access").
+5. Seleccione los **alcances** que necesita el token. Solo conceda las permisiones mínimas requeridas.
+6. Seleccione una **fecha de expiración** o déjelo en blanco para un token que nunca expira.
 7. Haga clic en **Crear token**.
 
-Tras la creación, se muestra el valor completo del token **una sola vez**. Copiérelo inmediatamente y guárdelo de forma segura. No podrá ver el valor completo nuevamente.
+Después de la creación, se muestra el valor completo del token **una sola vez**. Copielo inmediatamente y guárdelo de forma segura. No podrá volver a ver el valor completo.
 
 ## Uso de un token
 
-Incluya el token en el `Authorization` encabezado de sus solicitudes HTTP:
+Incluya el token en la cabecera `Authorization` de sus solicitudes HTTP:
 
 ```
 Authorization: Bearer glsa_abc123def456...
 ```
 
-Por ejemplo, utilizando `curl`:
+Por ejemplo, usando `curl`:
 
 ```bash
 curl -H "Authorization: Bearer glsa_abc123def456..." \
   https://glossia.ai/api/projects
 ```
 
-Los tokens de cuenta siguen el mismo [modelo de autorización](/docs/reference/apis/authorization) que los tokens OAuth. Los alcances del token definen el conjunto máximo de acciones que puede realizar y las políticas a nivel de recurso continúan aplicándose basándose en las relaciones de su cuenta.
+Los tokens de cuenta siguen el mismo [método de autorización](/docs/reference/apis/authorization) que los tokens OAuth. Los alcances del token definen el conjunto máximo de acciones que puede realizar, y las políticas a nivel de recurso aún se aplican según las relaciones de su cuenta.
 
 ## Formato del token
 
-Todos los tokens de cuenta comienzan con el `glsa_` prefijo seguido de una cadena hexadecimal aleatoria. Este prefijo hace que sea fácil identificar los tokens de Glossia en los registros y analizadores de secreto.
+Todos los tokens de cuenta comienzan con el prefijo `glsa_` seguido de una cadena hexadecimal aleatoria. Este prefijo facilita la identificación de los tokens de Glossia en los registros y exploradores de secretos.
 
 ## Alcances
 
-Los tokens de cuenta admiten los mismos alcances que los tokens OAuth. Consulte la [referencia de alcances](/docs/reference/apis/authorization) para la lista completa.
+Los tokens de cuenta admiten los mismos alcances que los tokens OAuth. Consulte la [referencia de alcances](/docs/reference/apis/authorization) para obtener la lista completa.
 
 Al crear un token, seleccione solo los alcances que requiere su caso de uso. Por ejemplo:
 
-- Una integración de solo lectura necesita `project:read` y `voice:read`.
-- Un pipeline de CI que crea proyectos necesita `project:read` y `project:write`.
-- Un guión que administra miembros de organización necesita `members:read` y `members:write`.
+- Una integración solo lectura necesita `project:read` y `voice:read`.
+- Un pipeline CI que crea proyectos necesita `project:read` y `project:write`.
+- Un script que gestiona los miembros de la organización necesita `members:read` y `members:write`.
 
 ## Gestión de tokens
 
-### Vistas de tokens
+### Visualización de tokens
 
-La página **Tokens de cuenta** enumera todos los tokens activos con su nombre, alcances, fecha de último uso y caducidad. Los tokens que nunca han sido utilizados muestran "Nunca" en la columna de último uso.
+La página **Tokens de cuenta** lista todos los tokens activos con su nombre, alcances, fecha de último uso y caducidad. Los tokens que nunca se han utilizado muestran "Nunca" en la columna de último uso.
 
 ### Edición de tokens
 
-Haga clic en el nombre de un token para editar su **nombre** y **descripción**. Los alcances y la caducidad no pueden modificarse tras la creación. Si necesita alcances diferentes, cree un nuevo token y revogue el anterior.
+Haga clic en el nombre de un token para editar su **nombre** y **descripción**. Los alcances y la fecha de expiración no se pueden cambiar después de la creación. Si necesita alcances diferentes, cree un nuevo token y revoque el anterior.
 
 ### Revocación de tokens
 
-Para revocar un token, haga clic en **Revocar** en la lista de tokens o abra la página de edición del token y use el botón **Revocar token** en la zona de peligro. Los tokens revocados dejan de funcionar inmediatamente y no pueden restaurarse.
+Para revocar un token, haga clic en **Revocar** en la lista de tokens o abra la página de edición del token y utilice el botón **Revocar token** en la zona de peligro. Los tokens revocados dejan de funcionar inmediatamente y no pueden ser restaurados.
 
 ## Mejores prácticas de seguridad
 
-- **Almacene los tokens de forma segura.** Utilice variables de entorno o un gestor de secretos. Nunca comprometa tokens en el control de versiones.
-- **Utilice tokens de vida corta.** Establezca una fecha de caducidad en la medida de lo posible.
-- **Minimice los alcances.** Conceda solo los permisos que el token necesita realmente.
-- **Gire periódicamente.** Cree nuevos tokens y revogue los anteriores según un calendario.
-- **Supervise el uso.** Revise la fecha de "último uso" periódicamente. Revogue los tokens que ya no se utilizan.
+- **Almacene los tokens de forma segura.** Utilice variables de entorno o un gestor de secretos. Nunca registre tokens en control de código fuente.
+- **Utilice tokens de vida corta.** Establezca una fecha de expiración siempre que sea posible.
+- **Minimice los alcances.** Conceda solo las permisiones que el token realmente necesita.
+- **Rotación periódica.** Cree nuevos tokens y revoque los antiguos según un horario.
+- **Monitoree el uso.** Verifique la fecha de "último uso" periódicamente. Revoque los tokens que ya no se utilizan.
 - **Utilice un token por integración.** De esta manera, revocar un token no rompe otros flujos de trabajo.
 
 ## Gestión de API
 
-También puede gestionar los tokens de cuenta a través de la REST API y el servidor MCP.
+También puede gestionar los tokens de cuenta a través de la API REST y el servidor MCP.
 
 ### REST API
 
-| Método | Punto de conexión | Descripción |
+| Método | Punto final | Descripción |
 |--------|----------|-------------|
 | `GET` | `/api/tokens` | Listar tokens activos |
 | `POST` | `/api/tokens` | Crear un nuevo token |
@@ -89,4 +89,4 @@ También puede gestionar los tokens de cuenta a través de la REST API y el serv
 
 ### MCP
 
-El servidor MCP expone herramientas `list_tokens`, `create_token` y `revoke_token` que reflejan la REST API.
+El servidor MCP expone `list_tokens`, `create_token` y `revoke_token` herramientas que reflejan la REST API.
