@@ -1,65 +1,65 @@
 %{
   title: "Glossar",
   summary:
-    "So stellt Glossia sicher, dass genehmigte Übersetzungen in jeder Sprache und jeder Datei konsistent sind.",
+    "Wie Glossia genehmigte Übersetzungen über jede Sprache und jede Datei hinweg konsistent hält.",
   category: "Erklärung",
   section: "translation",
   order: 5
 }
 ---
 
-Ein Glossar ist eine kuratierte Sammlung von Begriffen, die Ihre Übersetzungen jede Zeit auf dieselbe Weise darstellen müssen. "Commit" im Sinne der Versionskontrolle bleibt `commit` auf Spanisch, wird `提交` in vereinfachtes Chinesisch und `コミット` auf Japanisch. Eine Entscheidung pro Sprache, durchgängig durchgesetzt.
+Ein Glossar ist eine kuratierte Menge von Begriffen, die deine Übersetzungen jeweils auf dieselbe Weise darstellen müssen. "Commit" im Sinne der Versionskontrolle bleibt `commit` im Spanischen, wird `提交` im vereinfachten Chinesischen und `コミット` im Japanischen. Eine Entscheidung pro Sprache, überall durchgesetzt.
 
-## ## Zwei Orte, an denen ein Glossar untergebracht sein kann
+## Zwei Orte, an denen ein Glossar existieren kann
 
-Glossia sucht Glossar-Einträge in zwei Orten und kombiniert sie zum Übersetzungszeitpunkt:
+Glossia sucht an zwei Orten nach Glossareinträgen und fasst sie zur Übersetzungszeit zusammen:
 
-- **Ihr Repository**, in den Dateien, die Sie bereits zur Übersetzung verwenden. `L10N.md` erklärt die Begriffe, und die `L10N/<locale>.md` jeder Sprache erklärt ihre Übersetzungen. Dies ist das von Entwicklern autorisierte Glossar: Änderungen reisen durch Pull Requests, die Reviewer jeder Sprache verwalten ihre eigenen Dateien und verschachtelte Dateien können sie für einen Teil des Repositories verfeinern.
-- **Ihr Glossia-Konto**, verwaltet durch das gehostete Dashboard. Dies ist das von Linguisten autorisierte Glossar: Reviewer und Lokalisations-Beiträge fügen oder verfeinern Einträge ohne den Code zu berühren, über das Dashboard, die [REST API](/docs/reference/apis) oder den [MCP server](/docs/reference/mcp). Es gilt für alle Repositories, die das Konto übersetzt.
+- **Dein Repository**, in den Dateien, die du bereits für Übersetzungseinstellungen nutzt. `L10N.md` erklärt die Begriffe, und die `L10N/<locale>.md` der einzelnen Sprachen erklären deren Übersetzungen. Dies ist das entwickler-autoritäre Glossar: Änderungen werden über Pull Requests übergeben, die Reviewers jeder Sprache besitzen ihre eigene Datei, und verschachtelte Dateien können es für einen Teil des Repositories verfeinern.
+- **Dein Glossia-Account**, verwaltet über das gehostete Dashboard. Dies ist das linguist-autoritäre Glossar: Reviewers und Lokalisierungsbeiträge fügen oder verfeinern Einträge, ohne den Code zu berühren, über das Dashboard, den [REST API](/docs/reference/apis) oder den [MCP Server](/docs/reference/mcp). Dies gilt für jedes Repository, das der Account übersetzt.
 
 Beide Orte sind nützlich, und keiner ersetzt den anderen.
 
-## ## Wann Sie welche verwenden
+## Wann man welche verwendet
 
-Definieren Sie einen Begriff in **Ihr Glossia-Konto** wenn:
+Definiere einen Begriff in **deinem Glossia-Account**, wenn:
 
-- **Er gilt für mehrere Repositorys.** Produktname, Markenbezeichnungen und Firmen-Vokabular werden einmal definiert und überall verwendet.
-- **Die Personen, die entscheiden, arbeiten nicht im Repository.** Linguisten, Reviewer und externe Mitwirkende können das Glossar verfeinern, auch wenn das Repository Closed Source ist oder sie keinen Schreibzugriff darauf haben.
-- **Sie möchten einen Begriff ohne Codeänderung korrigieren.** Eine korrigierte Übersetzung wirkt beim nächsten Durchlauf, ohne Pull Request gegen die Codebasis.
-- **Änderungen benötigen Überprüfung und Historie.** Jede Änderung erstellt eine neue Version mit einem Änderungsnotiz, Mitwirkende können Änderungen als Vorschläge für jemanden vorbringen, diegenehmigt werden sollen, und frühere Versionen bleiben verfügbar.
-- **Auch andere Tools benötigen es.** Agenten und Integrationen können das Glossar über die REST API und den MCP server lesen, zum Beispiel, um neuen Inhalt zu schreiben, der bereits die genehmigten Begriffe verwendet.
+- **Es gilt für mehr als ein Repository.** Produktnamen, Markenbegriffe und Unternehmensvokabular werden einmal definiert und überall verwendet.
+- **D die Personen, die es entscheiden, arbeiten nicht im Repository.** Linguisten, Reviewers und externe Beiträge können das Glossar verfeinern, auch wenn das Repository Closed Source ist oder ihnen keine Schreibrechte darin gewährt sind.
+- **Du möchtest einen Begriff beheben, ohne eine Codeänderung.** Eine korrigierte Übersetzung kommt im nächsten Durchlauf zur Anwendung, ohne einen Pull Request gegen die Codebasis festzulegen.
+- **Änderungen benötigen Prüfung und Historie.** Jede Bearbeitung erstellt eine neue Version mit einem Änderungsnotiz, Beiträge können Änderungen als Vorschläge für jemanden zur Genehmigung vorlegen, und frühere Versionen bleiben verfügbar.
+- **Andere Tools benötigen es.** Dienste und Integrationen können das Glossar über die REST API und den MCP Server lesen, z. B., um neuen Content zu schreiben, der bereits die genehmigten Begriffe verwendet.
 
-Definieren Sie einen Begriff in **Ihr Repository** wenn:
+Definiere einen Begriff in **dem Repository**, wenn:
 
-- **Er gehört zu dieser Codebasis.** Ein Begriff, dessen Bedeutung einzig für ein Projekt spezifisch ist, wie z. B. "commit" als Version-Control-Aktion, sitzt neben dem Code, der ihn nutzt.
-- **Er sollte gemeinsam mit dem Quelltext geändert werden.** Der Begriff und der Text, der ihn eingeführt hat, landen im selben Pull Request und werden gemeinsam überprüft.
-- **Nur ein Teil des Repositories braucht es.** In einem verschachtelten `L10N.md` oder `L10N/<locale>.md` können Einträge für ein Verzeichnis hinzugefügt oder überschrieben werden, wie etwa für Marketingseiten.
-- **Es muss das Account-Glossar überschreiben.** Ein Repository-Eintrag hat Vorrang vor einem Account-Eintrag für denselben Begriff, für die Sprachen, die er übersetzt.
+- **Es gehört zu dieser Codebasis.** Ein Begriff, dessen Bedeutung spezifisch für ein Projekt ist, wie "commit" für die Versionskontrollhandlung, steht neben dem Code, der ihn verwendet.
+- **Es sollte gemeinsam mit dem Quelltext geändert werden.** Der Begriff und der Copy, der ihn eingeführt hat, landen im selben Pull Request und werden gemeinsam rezensiert.
+- **Nur ein Teil des Repositories benötigt es.** Ein verschachtelter `L10N.md` oder `L10N/<locale>.md` kann Einträge für ein Verzeichnis hinzufügen oder überschreiben, wie z. B. für Marketingseiten.
+- **Es muss den Account-Glossar überlagern.** Ein Repository-Eintrag gewinnt gegenüber einem Account-Eintrag für denselben Begriff für die Sprachen, die er übersetzt.
 
-## ## Wie sie kombiniert werden
+## Wie sie kombiniert werden
 
-Für jede Datei und Zielsprache löst Glossia die beiden Glossare in eine effektive Menge auf:
+Für jede Datei und Zielsprache fasst Glossia die beiden Glossare in eine effektive Menge zusammen:
 
-1. Beginnen Sie mit den Glossar-Einträgen des Accounts für die Zielsprache.
-2. Überlagern Sie die Repository-Einträge für diese Sprache: die Begriffe aus der Datei's `L10N.md` Kette, die eine Übersetzung in der `L10N/<locale>.md` Kette haben. Wenn ein Repository-Eintrag denselben Quellbegriff wie ein Account-Eintrag hat, gewinnt der Repository-Eintrag.
-3. Wenn ein Repository-Begriff für eine Sprache keine Übersetzung hat, gilt der Account-Eintrag für diese Sprache weiterhin. Das Repository blockiert niemals eine Sprache, die es nicht übersetzt.
+1. Beginne mit den Glossar-Einträgen des Accounts für die Zielsprache.
+2. Überlagere die Repository-Einträge für diese Sprache: Die Begriffe aus dem `L10N.md`-Chain der Datei, die eine Übersetzung in ihrer `L10N/<locale>.md`-Chain haben. Wenn ein Repository-Eintrag denselben Quellbegriff wie ein Account-Eintrag hat, gewinnt der Repository-Eintrag.
+3. Wenn ein Repository-Begriff keine Übersetzung für eine Sprache hat, gilt der Account-Eintrag für diese Sprache dennoch. Das Repository blockiert niemals eine Sprache, die es nicht übersetzt.
 
-Die Zusammenführung findet **pro Zielsprache** statt, nicht pro Eintrag. Eine spanische Übersetzung von "commit" in `L10N/es.md` ersetzt den Spanisch-Eintrag des Accounts für "commit", berührt aber nicht den japanischen Eintrag des Accounts für denselben Begriff. Reviewer können sehen, welche Account-Einträge ersetzt wurden: Die Zusammenfassung der Übersetzungssitzung zeigt, wie viele überschrieben wurden, und die Lockfile jeder Datei listet sie unter `glossary.shadowed` auf.
+Die Zusammenführung erfolgt **pro Zielsprache**, nicht pro Eintrag. Eine spanische Übersetzung von "commit" in `L10N/es.md` ersetzt den Account's spanischen Eintrag für "commit", berührt aber denAccount's japanischen Eintrag für denselben Begriff nicht. Reviewers können sehen, welche Account-Einträge ersetzt wurden: Die Übersetzungssitzungsübersicht zeigt an, wie viele überschrieben wurden, und die Lock-Datei jeder Datei listet sie unter `glossary.shadowed` auf.
 
-## ## Bei Glossaränderungen: Dateien neu übersetzen
+## Wenn das Glossar geändert wird, werden Dateien erneut übersetzt
 
-Wenn Sie einen Glossar-Eintrag bearbeiten, übersetzt Glossia nur die Dateien, deren *effektive Glossareinträge geändert wurden*. Wenn der Quelltext einer Datei keine Übereinstimmungen für den bearbeiteten Begriff enthält, bleiben ihre Übersetzungen unberührt. Wenn eine Datei den Begriff verwendet, enthält ihr nächster Übersetzungslauf die aktualisierte Anweisung.
+Wenn du einen Glossar-Eintrag bearbeitest, übersetzt Glossia nur die Dateien, deren *effektives Glossar geändert wurde*. Wenn der Quelltext einer Datei keine Übereinstimmungen für den geänderten Begriff enthält, bleiben ihre Übersetzungen unberührt. Wenn eine Datei den Begriff verwendet, umfasst der nächste Übersetzungsdurchgang den aktualisierten Anweisungen.
 
-Das gleiche Prinzip gilt rückwärts: Das Hinzufügen eines Begriffs, der nur in einem Teil der Dateien verwendet wird, erzwingt keinen kompletten Neustart.
+Das gleiche Prinzip gilt umgekehrt: Das Hinzufügen eines Begriffs, der nur von einer Teilmenge der Dateien verwendet wird, erzwingt keine vollständige Wiederherstellung.
 
-## ## Was ein Glossar nicht ist
+## Was ein Glossar nicht ist
 
-- Nicht ein Wörterbuch für maschinelle Übersetzung. Das Modell von Glossia liest den umgebenden Kontext und kann einen Begriff anders darstellen, wenn der Satz dies verlangt. Das Glossar ist eine Anleitung, keine Substitution.
-- Nicht die gesamte Stilvorgabe. Stimme, Ton, Formalität und Zielgruppe leben in Ihrer Voice-Konfiguration und in `L10N.md`. Das Glossar ist nur für einzelne Begriffe und ihre genehmigten Übersetzungen.
-- Nicht still. Jeder angewendete Begriff wird im Lockfile der Datei gespeichert, sodass ein Prüfer genau verfolgen kann, welche Glossareinträge das Modell erreicht haben.
+- Nicht ein Wörterbuch für maschinelle Übersetzung. Das Glossia-Modell erzwingt den umgebenden Kontext und kann einen Begriff anders darstellen, falls der Satz es verlangt. Das Glossar ist eine Richtlinie, keine Substitution.
+- Nicht der gesamte Style Guide. Stimme, Ton, Formalität und Zielgruppe leben in deiner Voice-Konfiguration und in `L10N.md`. Das Glossar gilt nur für einzelne Begriffe und deren genehmigte Übersetzungen.
+- Nicht stumm. Jeder angewendete Begriff wird in der Lock-Datei der Datei festgehalten, sodass ein Revisor genau nachvollziehen kann, welche Glossar-Einträge das Modell erreicht haben.
 
-## ## Verwandt
+## Verwandt
 
-- Fügen Sie Ihre ersten Begriffe hinzu: [Ein Glossar definieren](/docs/how-to/define-a-glossary).
-- Jedes Eintragfeld: [Glossarreferenz](/docs/reference/glossary).
+- Füge deine ersten Begriffe hinzu: [Einen Glossar definieren](/docs/how-to/define-a-glossary).
+- Jedes Eintragsfeld: [Glossar-Referenz](/docs/reference/glossary).
 - Die anderen `L10N.md` Felder: [L10N.md Referenz](/docs/reference/l10n-md).
