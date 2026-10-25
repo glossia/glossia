@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "6f910b4cc7e29ceaee698f8ad1bc61c8cf07c55211b7bbbf7da3370ecf702994",
+  "hash": "962a4726fb2d6a5636290299e558723f204f5a62d1d61450691f5bf5becd2d77",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "9ffe97288fca6d1cd66037b95bf10e3e13a3cbc4091dd65133955a3e15f28805",
+          "hash": "cd8756301281143c680f7403d70e77e40149e907f1f80c9dfa57c0d61776366a",
           "kind": "source",
           "label": "app/priv/docs/reference/web-analytics.md",
           "metadata": {
-            "content_hash": "b441c6f1fba017eea6faf92df039067a846c2306e115559771716467728b51a5"
+            "content_hash": "61c1503202d4f438ce88701d695703c79d94d4bd3833e93fd2f1e398a9563424"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "6f910b4cc7e29ceaee698f8ad1bc61c8cf07c55211b7bbbf7da3370ecf702994",
+      "hash": "962a4726fb2d6a5636290299e558723f204f5a62d1d61450691f5bf5becd2d77",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/web-analytics.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "517a42d28a02d9adabee30463464947bb7d4d5cdf0381e693a4ed82b58cf476f",
+  "output_hash": "130b15756426254f6470bfb96e07af8a808a6e4a39fd1adf50e691897e36c93a",
   "output_path": "app/priv/i18n/pt-BR/docs/reference/web-analytics.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "2e1873536d8eb3b7546249b4a81875ef063a6575",
   "source_path": "app/priv/docs/reference/web-analytics.md",
-  "translated_at": "2026-10-20T07:48:15.743963Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-25T09:07:06.694385Z",
+  "translation_session_id": "01a1724d-b231-70b9-a4a9-efae66834645"
 }

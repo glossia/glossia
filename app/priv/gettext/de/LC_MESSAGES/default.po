@@ -5574,6 +5574,6 @@ msgid "This session has no recorded activity."
 msgstr "Diese Sitzung hat keine protokollierte Aktivität."
 
 #: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Translated output preview"
-msgstr "Übersetztes Ergebnis"
+msgstr "Vorschau des Übersetzungsergebnisses"
