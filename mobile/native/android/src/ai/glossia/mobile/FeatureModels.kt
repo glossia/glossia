@@ -57,7 +57,21 @@ class AnalyticsModel : FeatureModel() {
 class TranslationModel : FeatureModel() {
     var id: String? = null
     var ticket = 0
-    override fun clear() { super.clear(); id = null; ticket += 1 }
+    var progress: JSONObject? = null
+    var liveState = "closed"
+    var liveSnapshotRevision = 0L
+        private set
+
+    fun acceptSnapshot(snapshot: JSONObject) {
+        data = snapshot.getJSONObject("session")
+        progress = snapshot.optJSONObject("progress")
+        loaded = true; error = null; liveSnapshotRevision += 1
+    }
+
+    override fun clear() {
+        super.clear(); id = null; ticket += 1
+        progress = null; liveState = "closed"; liveSnapshotRevision = 0
+    }
 }
 
 class WorkspacePickerModel : FeatureModel() {
@@ -80,21 +94,42 @@ class ConversationModel(val id: String, var created: Boolean = false, translatio
     var unavailable = false
     var conversation: JSONObject? = null
     var messages = JSONArray()
+    var workTurnId: String? = null
+        private set
+    var workStatus: String? = null
+        private set
+    var workObservationCurrent = false
+        private set
     var translationSessionId: String? = translationId
         private set
     val source = TranslationModel()
     val status get() = conversation?.optString("status") ?: ""
     val running get() = status in listOf("queued", "running")
 
-    fun accept(response: JSONObject) {
+    fun accept(response: JSONObject, sentTurnId: String? = null) {
         conversation = response.getJSONObject("conversation")
         if (translationSessionId == null) translationSessionId = conversation?.optionalString("translation_session_id")
         messages = response.optJSONArray("messages") ?: JSONArray()
+        val userMessage = (messages.length() - 1 downTo 0).firstNotNullOfOrNull { index ->
+            messages.optJSONObject(index)?.takeIf { it.optString("role") == "user" }
+        }
+        val candidate = sentTurnId ?: userMessage?.optionalString("id")
+        // A send acknowledgement binds to the immutable UUID we sent. Later
+        // detail responses must identify that turn before ending its activity.
+        // Idle/new conversations are also 'completed', so never start from that.
+        val pendingOtherTurn = sentTurnId == null && pending?.id?.let { it != candidate } == true
+        if (!pendingOtherTurn && candidate != null && (sentTurnId != null || candidate == workTurnId || running)) {
+            workTurnId = candidate; workStatus = status; workObservationCurrent = true
+        } else if (workTurnId != null) workObservationCurrent = false
         data = response; created = true; loaded = true; unavailable = false
     }
 
+    fun pauseWorkObservation() { workObservationCurrent = false }
+    fun clearWorkObservation() { workTurnId = null; workStatus = null; workObservationCurrent = false }
+
     override fun clear() {
         super.clear(); draft = ""; pending = null; conversation = null; messages = JSONArray(); created = false; unavailable = false
+        clearWorkObservation()
         translationSessionId = null; source.clear(); writeTicket += 1
     }
 }

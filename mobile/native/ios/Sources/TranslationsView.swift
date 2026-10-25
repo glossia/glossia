@@ -44,10 +44,7 @@ struct TranslationsView: View {
 
     var body: some View {
         List {
-            if !hasProject {
-                ContentUnavailableView("Choose a project", systemImage: "folder",
-                                       description: Text("Select a workspace to see its translations."))
-            } else {
+            if hasProject {
                 if let error = model.error {
                     GlossiaErrorView(message: error) { Task { await model.load(reset: model.sessions.isEmpty) } }
                 }
@@ -86,6 +83,12 @@ struct TranslationsView: View {
             }
         }
         .scrollContentBackground(.hidden).background(tokens.canvas)
+        .overlay {
+            if !hasProject {
+                ContentUnavailableView("Choose a project", systemImage: "folder",
+                                       description: Text("Select a workspace to see its translations."))
+            }
+        }
         .task { if hasProject && model.sessions.isEmpty { await model.load(reset: true) } }
         .refreshable { if hasProject { await model.load(reset: true) } }
     }
@@ -94,35 +97,149 @@ struct TranslationsView: View {
 @MainActor
 final class TranslationDetailModel: ObservableObject {
     @Published private(set) var record: [String: Any]?
+    @Published private(set) var progress: [String: Any]?
     @Published private(set) var busy = false
     @Published private(set) var error: String?
+    @Published private(set) var liveState = "connecting"
     let id: String
     private let request: GlossiaRequest
+    private var active = false
+    private var generation = 0
+    private var sequence: UInt64 = 0
+    private var snapshotRevision = 0
+    private var loadRevision = UUID()
+    private var connection: String?
+    private var worker: Task<Void, Never>?
 
     init(id: String, request: @escaping GlossiaRequest) { self.id = id; self.request = request }
 
     func load() async {
         guard !busy else { return }
+        let ticket = generation, revision = snapshotRevision
+        let loadID = UUID()
+        loadRevision = loadID
         busy = true; error = nil
-        defer { busy = false }
+        defer { if loadRevision == loadID { busy = false } }
         do {
             let value = try await request(["operation": "translation", "id": id])
             try Task.checkCancellation()
-            guard let record = value["session"] as? [String: Any], record["id"] as? String == id else {
-                throw GlossiaFailure(kind: "invalid_response", message: "Glossia returned a different translation.")
-            }
-            self.record = record
+            guard ticket == generation, revision == snapshotRevision else { return }
+            try accept(value)
         } catch is CancellationError { }
         catch {
-            if let failure = error as? GlossiaFailure, ["forbidden", "not_found", "invalid_response"].contains(failure.kind) { record = nil }
+            guard ticket == generation, revision == snapshotRevision else { return }
+            if denied(error) { record = nil; progress = nil; setActive(false) }
             self.error = error.localizedDescription
         }
+    }
+
+    func setActive(_ value: Bool) {
+        guard active != value || (value && worker == nil) else { return }
+        active = value; generation += 1
+        loadRevision = UUID(); busy = false
+        worker?.cancel(); worker = nil
+        if let connection { close(connection); self.connection = nil }
+        if value {
+            let ticket = generation
+            worker = Task { await observe(ticket: ticket) }
+        }
+    }
+
+    private func observe(ticket: Int) async {
+        defer {
+            if generation == ticket {
+                worker = nil
+                if let connection { close(connection); self.connection = nil }
+            }
+        }
+        await load()
+        var mayRefreshSession = true
+        while current(ticket) {
+            do {
+                liveState = "connecting"
+                let opened = try await request(["operation": "translation_live", "action": "open", "id": id])
+                guard let handle = opened["connection"] as? String else {
+                    throw GlossiaFailure(kind: "invalid_response", message: "Could not open live translation progress.")
+                }
+                guard current(ticket) else { close(handle); return }
+                connection = handle
+                sequence = 0
+                while current(ticket) {
+                    let update = try await request(["operation": "translation_live", "action": "next",
+                                                    "connection": handle, "after": sequence])
+                    guard current(ticket) else { return }
+                    sequence = (update["sequence"] as? NSNumber)?.uint64Value ?? sequence
+                    liveState = update["state"] as? String ?? "reconnecting"
+                    switch liveState {
+                    case "live":
+                        if let snapshot = update["snapshot"] as? [String: Any] { try accept(snapshot) }
+                        error = nil; mayRefreshSession = true
+                    case "needs_session":
+                        close(handle); connection = nil
+                        guard mayRefreshSession else {
+                            snapshotRevision += 1
+                            record = nil; progress = nil
+                            error = "Your session is no longer authorized. Sign in again."
+                            return
+                        }
+                        mayRefreshSession = false
+                    case "unavailable":
+                        snapshotRevision += 1
+                        record = nil; progress = nil
+                        error = update["error"] as? String == "not_found"
+                            ? "This translation is no longer available."
+                            : "You no longer have access to this translation."
+                        close(handle); connection = nil
+                        return
+                    case "closed": return
+                    default: break
+                    }
+                    if connection == nil { break }
+                }
+            } catch is CancellationError { return }
+            catch {
+                guard current(ticket) else { return }
+                if let connection { close(connection); self.connection = nil }
+                if denied(error) {
+                    snapshotRevision += 1
+                    record = nil; progress = nil
+                    self.error = error.localizedDescription
+                    liveState = "unavailable"
+                    return
+                }
+                liveState = "reconnecting"
+                do { try await Task.sleep(for: .seconds(3)) } catch { return }
+            }
+        }
+    }
+
+    private func current(_ ticket: Int) -> Bool { active && generation == ticket && !Task.isCancelled }
+
+    private func accept(_ value: [String: Any]) throws {
+        guard let record = value["session"] as? [String: Any], record["id"] as? String == id else {
+            throw GlossiaFailure(kind: "invalid_response", message: "Glossia returned a different translation.")
+        }
+        snapshotRevision += 1
+        self.record = record
+        progress = value["progress"] as? [String: Any]
+    }
+
+    private func denied(_ error: Error) -> Bool {
+        guard let failure = error as? GlossiaFailure else { return false }
+        return ["forbidden", "not_found", "sign_in_required", "invalid_response"].contains(failure.kind)
+    }
+
+    private func close(_ handle: String) {
+        let request = request
+        Task { _ = try? await request(["operation": "translation_live", "action": "close", "connection": handle]) }
     }
 }
 
 struct TranslationDetailView: View {
     @StateObject private var model: TranslationDetailModel
     @Environment(\.glossiaTokens) private var tokens
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var visible = false
     let destination: GlossiaDestination
     let discuss: () -> Void
 
@@ -135,11 +252,22 @@ struct TranslationDetailView: View {
     var body: some View {
         List {
             if model.busy { ProgressView("Opening translation…") }
-            if let error = model.error { GlossiaErrorView(message: error) { Task { await model.load() } } }
+            if let error = model.error {
+                GlossiaErrorView(message: error) { Task { await refresh() } }
+            }
             if let record = model.record {
                 Section {
                     Text(record["commit_message"] as? String ?? "Translation session").font(.title2.weight(.medium))
                     LabeledContent("Status", value: record["status"] as? String ?? "Unknown")
+                        .accessibilityIdentifier("translation-status")
+                }.listRowBackground(tokens.surface)
+                if let progress = model.progress { progressSection(progress, status: record["status"] as? String ?? "") }
+                if model.liveState != "live" {
+                    Label(model.liveState == "connecting" ? "Connecting to live progress…" : "Reconnecting to live progress…",
+                          systemImage: "antenna.radiowaves.left.and.right")
+                        .font(.caption).foregroundStyle(tokens.muted).listRowBackground(Color.clear)
+                }
+                Section("Languages") {
                     LabeledContent("Source language", value: record["source_language"] as? String ?? "Not available")
                     LabeledContent("Target languages", value: (record["target_languages"] as? [String] ?? []).joined(separator: ", "))
                     LabeledContent("Translated items", value: String(record["translated_content_count"] as? Int ?? 0))
@@ -161,7 +289,65 @@ struct TranslationDetailView: View {
         }
         .scrollContentBackground(.hidden).background(tokens.canvas)
         .navigationTitle("Translation").navigationBarTitleDisplayMode(.inline)
-        .task { await model.load() }
-        .refreshable { await model.load() }
+        .onAppear { visible = true; model.setActive(scenePhase == .active) }
+        .onChange(of: scenePhase) { _, phase in model.setActive(visible && phase == .active) }
+        .onDisappear { visible = false; model.setActive(false) }
+        .refreshable { await refresh() }
+    }
+
+    private func refresh() async {
+        await model.load()
+        if visible && scenePhase == .active { model.setActive(true) }
+    }
+
+    @ViewBuilder
+    private func progressSection(_ progress: [String: Any], status: String) -> some View {
+        if let summary = progress["summary"] as? [String: Any] {
+            let total = summary["needs_translation"] as? Int ?? 0
+            let done = summary["done"] as? Int ?? 0
+            let failed = summary["failed"] as? Int ?? 0
+            let cancelled = summary["cancelled"] as? Int ?? 0
+            let assessed = summary["assessed?"] as? Bool ?? false
+            Section("Progress") {
+                VStack(alignment: .leading, spacing: 12) {
+                    if assessed && total > 0 {
+                        ProgressView(value: Double(done + failed + cancelled), total: Double(total))
+                            .tint(tokens.accent)
+                        Text("\(done) of \(total) files translated").font(.headline)
+                    } else if assessed {
+                        Text("All files are up to date").font(.headline)
+                    } else if ["pending", "running"].contains(status) {
+                        ProgressView("Planning translations…")
+                        Text("\(summary["checked"] as? Int ?? 0) of \(summary["total"] as? Int ?? 0) files checked")
+                            .font(.callout).foregroundStyle(tokens.muted)
+                    } else {
+                        Text("No file progress was recorded for this run.").foregroundStyle(tokens.muted)
+                    }
+                    if failed > 0 { Text("\(failed) failed").foregroundStyle(tokens.muted) }
+                    if cancelled > 0 { Text("\(cancelled) cancelled").foregroundStyle(tokens.muted) }
+                    if let skipped = summary["skipped"] as? Int, skipped > 0 {
+                        Text("\(skipped) already up to date").font(.caption).foregroundStyle(tokens.muted)
+                    }
+                }.padding(.vertical, 8)
+                    .accessibilityIdentifier("translation-progress")
+                if let items = progress["items"] as? [[String: Any]] {
+                    ForEach(items.indices, id: \.self) { index in
+                        let item = items[index]
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: item["status"] as? String == "done" ? "checkmark.circle" : "doc.text")
+                                .foregroundStyle(tokens.tint)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(item["output_path"] as? String ?? "Translation file").font(.callout).lineLimit(2)
+                                Text([item["locale"] as? String, item["status"] as? String].compactMap { $0 }.joined(separator: " · "))
+                                    .font(.caption).foregroundStyle(tokens.muted)
+                            }
+                        }.padding(.vertical, 4)
+                    }
+                }
+                if let omitted = progress["omitted_items"] as? Int, omitted > 0 {
+                    Text("\(omitted) more files").font(.caption).foregroundStyle(tokens.muted)
+                }
+            }.listRowBackground(tokens.surface)
+        }
     }
 }

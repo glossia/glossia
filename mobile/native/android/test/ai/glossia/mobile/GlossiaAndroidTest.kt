@@ -1,6 +1,10 @@
 package ai.glossia.mobile
 
+import android.Manifest
 import android.app.Application
+import android.app.Notification
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -23,6 +27,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.textfield.TextInputEditText
 import org.json.JSONArray
 import org.json.JSONObject
@@ -70,7 +75,7 @@ class GlossiaAndroidTest {
         sessions.forEach { session ->
             session.setForeground(false)
             session.appearance.close()
-            for (name in listOf("credentials", "requests")) {
+            for (name in listOf("credentials", "requests", "translationLive")) {
                 val field = GlossiaSession::class.java.getDeclaredField(name).apply { isAccessible = true }
                 (field.get(session) as java.util.concurrent.ExecutorService).shutdownNow()
             }
@@ -92,6 +97,7 @@ class GlossiaAndroidTest {
     }
 
     private val calls = CopyOnWriteArrayList<JSONObject>()
+    private val rawCalls = CopyOnWriteArrayList<String>()
     private val translationId = "123e4567-e89b-12d3-a456-426614174000"
     private val conversationId = "123e4567-e89b-12d3-a456-426614174001"
     private val navigationFixtures = java.util.concurrent.ConcurrentHashMap<String, GlossiaDestination>()
@@ -134,8 +140,10 @@ class GlossiaAndroidTest {
         custom: (JSONObject) -> JSONObject? = { null }): Pair<GlossiaSession, MemoryStorage> {
         context.getSharedPreferences("glossia.workspace", 0).edit().clear().commit()
         context.getSharedPreferences("glossia.appearance", 0).edit().clear().commit()
+        context.getSharedPreferences("glossia.notifications", 0).edit().clear().commit()
         val storage = MemoryStorage().apply { if (signedIn) save("session", JSONObject("""{"registration":{"server":"https://glossia.ai"},"access_token":"private"}""")) }
         val session = GlossiaSession(context, storage) { raw ->
+            rawCalls.add(raw)
             val request = JSONObject(raw); calls.add(JSONObject(raw))
             val result = custom(request) ?: when (request.getString("operation")) {
                 "restore" -> request.getJSONObject("session")
@@ -162,7 +170,7 @@ class GlossiaAndroidTest {
                 "conversation" -> conversation(request.getString("id"), "completed")
                 else -> error("Unexpected operation: $request")
             }
-            if (result.has("error")) result.toString() else JSONObject().put("ok", result).toString()
+            if (result.optJSONObject("error") != null) result.toString() else JSONObject().put("ok", result).toString()
         }
         sessions.add(session)
         if (restore) {
@@ -1283,6 +1291,466 @@ class GlossiaAndroidTest {
         assertTrue(session.back()); assertNull(session.toki.activeId)
     }
 
+    private fun progressSnapshot(status: String = "running", assessed: Boolean = true, done: Int = 1) = JSONObject()
+        .put("session", translationRecord().put("status", status))
+        .put("progress", JSONObject().put("seq", 17)
+            .put("summary", JSONObject().put("total", 5).put("checked", if (assessed) 5 else 2)
+                .put("needs_translation", 3).put("assessed?", assessed).put("skipped", 2).put("done", if (assessed) done else 0)
+                .put("failed", if (status == "failed") 1 else 0).put("cancelled", when (status) { "cancelled" -> 2; "failed" -> 1; else -> 0 })
+                .put("running", if (status == "running" && assessed) 1 else 0).put("queued", if (status == "running" && assessed) 1 else 0))
+            .put("items", if (!assessed) JSONArray() else JSONArray("""[
+                {"index":0,"status":"done","output_path":"locales/es/home.json","locale":"es"},
+                {"index":1,"status":"running","output_path":"locales/fr/home.json","locale":"fr"},
+                {"index":2,"status":"queued","output_path":"locales/de/home.json","locale":"de"}]
+            """).apply {
+                if (status == "completed") for (index in 0 until length()) getJSONObject(index).put("status", "done")
+                if (status in listOf("failed", "cancelled")) {
+                    getJSONObject(1).put("status", if (status == "failed") "failed" else "cancelled")
+                    getJSONObject(2).put("status", "cancelled")
+                }
+            }))
+
+    // Transport is injected at the public session boundary. No timers simulate
+    // remote progress: each next blocks until an unsolicited delivery or close.
+    private class LiveFixture {
+        val opens = CopyOnWriteArrayList<JSONObject>()
+        val nexts = CopyOnWriteArrayList<JSONObject>()
+        val closes = CopyOnWriteArrayList<String>()
+        private val queues = java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.LinkedBlockingQueue<JSONObject>>()
+        fun push(handle: String, value: JSONObject) { queues.getValue(handle).put(value) }
+        fun command(request: JSONObject): JSONObject? {
+            if (request.optString("operation") != "translation_live") return null
+            return when (request.getString("action")) {
+                "open" -> {
+                    val handle = "connection-${opens.size + 1}"
+                    queues[handle] = java.util.concurrent.LinkedBlockingQueue()
+                    opens.add(JSONObject(request.toString()))
+                    JSONObject().put("connection", handle)
+                }
+                "next" -> { nexts.add(request); queues.getValue(request.getString("connection")).take() }
+                "close" -> {
+                    val handle = request.getString("connection"); closes.add(handle)
+                    push(handle, JSONObject().put("sequence", 999).put("state", "closed").put("snapshot", JSONObject.NULL))
+                    JSONObject().put("closed", true)
+                }
+                else -> error("Unexpected live command")
+            }
+        }
+    }
+
+    private fun delivery(sequence: Long, snapshot: JSONObject? = null, state: String = "live", error: String? = null) = JSONObject()
+        .put("sequence", sequence).put("state", state).put("snapshot", snapshot ?: JSONObject.NULL)
+        .apply { error?.let { put("error", it) } }
+
+    @Test fun liveTranslationAcceptsUnsolicitedAndStatusOnlyUpdatesWithoutHttpPolling() {
+        val live = LiveFixture()
+        val (session, _) = session { live.command(it) }
+        session.setForeground(true); session.showTranslation(translationId)
+        pump { session.translation.loaded && live.nexts.size == 1 }
+        assertEquals("private", live.opens.single().getJSONObject("session").getString("access_token"))
+        assertEquals("website", live.opens.single().getJSONObject("selection").getString("project"))
+        assertEquals(translationId, live.opens.single().getString("id"))
+        live.push("connection-1", delivery(1, progressSnapshot()))
+        pump { session.translation.progress != null && live.nexts.size == 2 }
+        assertEquals(1, session.translation.progress!!.getJSONObject("summary").getInt("done"))
+        assertEquals(1L, live.nexts.last().getLong("after"))
+        val statusOnly = progressSnapshot().apply { getJSONObject("session").put("status", "failed") }
+        live.push("connection-1", delivery(2, statusOnly))
+        pump { session.translation.data?.optString("status") == "failed" && live.nexts.size == 3 }
+        assertEquals(17, session.translation.progress!!.getInt("seq"))
+        assertEquals(1, session.translation.progress!!.getJSONObject("summary").getInt("done"))
+        live.push("connection-1", delivery(3, state = "reconnecting"))
+        pump { session.translation.liveState == "reconnecting" }
+        assertEquals("failed", session.translation.data!!.getString("status"))
+        assertEquals(1, calls.count { it.optString("operation") == "translation" })
+        assertTrue(live.nexts.all { !it.has("session") && !it.has("selection") })
+    }
+
+    @Test fun liveCursorPreservesUnsigned64BitDeliverySequence() {
+        val live = LiveFixture()
+        val (session, _) = session { live.command(it) }
+        session.setForeground(true); session.showTranslation(translationId); pump { live.nexts.size == 1 }
+        val cursor = "18446744073709551614"
+        live.push("connection-1", delivery(1, progressSnapshot()).put("sequence", cursor.toBigInteger()))
+        pump { session.translation.progress != null && live.nexts.size == 2 }
+        val request = rawCalls.last { it.contains("\"action\":\"next\"") }
+        assertTrue("The u64 cursor must remain an exact JSON number, not a string or rounded double", request.contains("\"after\":$cursor"))
+    }
+
+    @Test fun translationHttpBootstrapAcceptsSiblingProgressWithoutStartingBackgroundLiveWork() {
+        val (session, _) = session { request ->
+            if (request.optString("operation") == "translation") progressSnapshot() else null
+        }
+        session.showTranslation(translationId); pump { session.translation.loaded }
+        assertEquals(1, session.translation.progress!!.getJSONObject("summary").getInt("done"))
+        assertFalse(calls.any { it.optString("operation") == "translation_live" })
+    }
+
+    @Test fun liveWaitAndCloseBypassSaturatedFeaturePoolAndCredentialQueue() {
+        val live = LiveFixture()
+        val credentialStarted = CountDownLatch(1)
+        val credentialRelease = CountDownLatch(1).also(releases::add)
+        val featureStarted = CountDownLatch(4)
+        val featureRelease = CountDownLatch(1).also(releases::add)
+        val (session, storage) = session { live.command(it) }
+        session.setForeground(true); session.showTranslation(translationId)
+        pump { live.nexts.size == 1 }
+        fun executor(name: String) = (GlossiaSession::class.java.getDeclaredField(name).apply { isAccessible = true }
+            .get(session) as java.util.concurrent.ExecutorService)
+        executor("credentials").execute { credentialStarted.countDown(); credentialRelease.await(8, TimeUnit.SECONDS) }
+        repeat(4) { executor("requests").execute { featureStarted.countDown(); featureRelease.await(8, TimeUnit.SECONDS) } }
+        assertTrue(credentialStarted.await(2, TimeUnit.SECONDS)); assertTrue(featureStarted.await(2, TimeUnit.SECONDS))
+        live.push("connection-1", delivery(1, progressSnapshot()))
+        pump { session.translation.liveState == "live" && live.nexts.size == 2 }
+        session.setForeground(false)
+        pump { live.closes.contains("connection-1") }
+        assertEquals("closed", session.translation.liveState)
+        credentialRelease.countDown(); featureRelease.countDown()
+        session.signOut(); pump { !session.busy && storage.load("session") == null }
+        assertNull(session.translation.data)
+    }
+
+    @Test fun liveWaitDoesNotBlockOtherFeaturesAndSignOutAndLateDeliveriesStayFenced() {
+        val nextStarted = CountDownLatch(1)
+        val nextRelease = CountDownLatch(1).also(releases::add)
+        val closed = CountDownLatch(1)
+        val (session, storage) = session { request ->
+            if (request.optString("operation") != "translation_live") null else when (request.getString("action")) {
+                "open" -> JSONObject().put("connection", "held")
+                "next" -> { nextStarted.countDown(); nextRelease.await(8, TimeUnit.SECONDS); delivery(1, progressSnapshot()) }
+                "close" -> { closed.countDown(); JSONObject().put("closed", true) }
+                else -> null
+            }
+        }
+        session.setForeground(true); session.showTranslation(translationId)
+        pump { nextStarted.count == 0L }
+        session.selectTab("Analytics"); pump { session.analytics.loaded && closed.count == 0L }
+        session.signOut(); pump { !session.busy && storage.load("session") == null }
+        nextRelease.countDown(); Thread.sleep(50); shadowOf(Looper.getMainLooper()).idle()
+        assertNull(session.translation.progress); assertNull(session.translation.data); assertNull(session.server)
+    }
+
+    @Test fun lateLiveOpenIsClosedAfterBackgroundBackProjectChangeAndSignOut() {
+        for (leave in listOf("background", "back", "project", "signout")) {
+            val started = CountDownLatch(1)
+            val release = CountDownLatch(1).also(releases::add)
+            val credentialsStarted = CountDownLatch(1)
+            val credentialsRelease = CountDownLatch(1).also(releases::add)
+            val closed = CountDownLatch(1)
+            val next = AtomicInteger()
+            val (session, _) = session { request ->
+                if (request.optString("operation") != "translation_live") null else when (request.getString("action")) {
+                    "open" -> { started.countDown(); release.await(8, TimeUnit.SECONDS); JSONObject().put("connection", "late-$leave") }
+                    "close" -> { assertEquals("late-$leave", request.getString("connection")); closed.countDown(); JSONObject().put("closed", true) }
+                    "next" -> { next.incrementAndGet(); delivery(1, progressSnapshot()) }
+                    else -> null
+                }
+            }
+            session.setForeground(true); session.showTranslation(translationId); pump { started.count == 0L }
+            val credentials = GlossiaSession::class.java.getDeclaredField("credentials").apply { isAccessible = true }
+                .get(session) as java.util.concurrent.ExecutorService
+            credentials.execute { credentialsStarted.countDown(); credentialsRelease.await(8, TimeUnit.SECONDS) }
+            assertTrue(credentialsStarted.await(2, TimeUnit.SECONDS))
+            when (leave) {
+                "background" -> session.setForeground(false)
+                "back" -> session.back()
+                "project" -> { session.openWorkspacePicker(); session.selectWorkspaceProject("docs") }
+                else -> session.signOut()
+            }
+            release.countDown(); pump { closed.count == 0L }
+            assertEquals(0, next.get()); assertNull(session.translation.progress)
+            credentialsRelease.countDown()
+            session.setForeground(false)
+        }
+    }
+
+    @Test fun liveNeedsSessionReopensOnceWithRefreshedPersistedCredentialsThenClearsProtectedData() {
+        val live = LiveFixture()
+        val refreshes = AtomicInteger()
+        val (session, storage) = session { request ->
+            live.command(request) ?: if (request.optString("operation") == "restore")
+                JSONObject(request.getJSONObject("session").toString()).put("access_token", "rotated-${refreshes.incrementAndGet()}") else null
+        }
+        session.setForeground(true); session.showTranslation(translationId); pump { live.nexts.size == 1 }
+        live.push("connection-1", delivery(1, progressSnapshot()))
+        pump { session.translation.progress != null && live.nexts.size == 2 }
+        live.push("connection-1", delivery(2, state = "needs_session", error = "sign_in_required"))
+        pump { live.opens.size == 2 && live.nexts.size == 3 }
+        assertTrue(live.closes.contains("connection-1"))
+        val first = live.opens.first().getJSONObject("session").getString("access_token")
+        val second = live.opens.last().getJSONObject("session").getString("access_token")
+        assertNotEquals(first, second); assertEquals(second, storage.load("session")!!.getString("access_token"))
+        assertNotNull(session.translation.data) // Preserve the last snapshot during credential recovery.
+        live.push("connection-2", delivery(1, state = "needs_session", error = "sign_in_required"))
+        pump { session.translation.error?.contains("Sign in") == true && live.closes.contains("connection-2") }
+        assertEquals(2, live.opens.size); assertNull(session.translation.data); assertNull(session.translation.progress)
+        assertEquals("unavailable", session.translation.liveState)
+    }
+
+    @Test fun liveAccessDenialClearsProtectedDetailAndFencesLateHttpBootstrap() {
+        for (denied in listOf("forbidden", "not_found")) {
+            val live = LiveFixture()
+            val started = CountDownLatch(1)
+            val release = CountDownLatch(1).also(releases::add)
+            val finished = CountDownLatch(1)
+            val (session, _) = session { request ->
+                live.command(request) ?: if (request.optString("operation") == "translation") {
+                    started.countDown(); release.await(8, TimeUnit.SECONDS); finished.countDown()
+                    JSONObject().put("session", translationRecord().put("summary", "Private late HTTP response"))
+                } else null
+            }
+            session.setForeground(true); session.showTranslation(translationId)
+            pump { live.nexts.size == 1 && started.count == 0L }
+            live.push("connection-1", delivery(1, progressSnapshot()))
+            pump { session.translation.progress != null && live.nexts.size == 2 }
+            live.push("connection-1", delivery(2, state = "unavailable", error = denied))
+            pump { session.translation.liveState == "unavailable" && live.closes.contains("connection-1") }
+            assertNull(session.translation.data); assertNull(session.translation.progress)
+            release.countDown(); pump { finished.count == 0L }
+            Thread.sleep(50); shadowOf(Looper.getMainLooper()).idle()
+            assertNull(session.translation.data); assertFalse(session.translation.loaded)
+            session.setForeground(false)
+        }
+    }
+
+    @Test fun liveProjectionWinsLateHttpAndTransientBridgeErrorsKeepItVisible() {
+        val live = LiveFixture()
+        val release = CountDownLatch(1).also(releases::add)
+        val finished = CountDownLatch(1)
+        val httpRequests = AtomicInteger()
+        val (session, _) = session { request ->
+            live.command(request) ?: if (request.optString("operation") == "translation") {
+                release.await(8, TimeUnit.SECONDS); finished.countDown()
+                if (httpRequests.incrementAndGet() == 1) JSONObject().put("session", translationRecord().put("status", "queued"))
+                else progressSnapshot(status = "completed", done = 3)
+            } else null
+        }
+        session.setForeground(true); session.showTranslation(translationId); pump { live.nexts.size == 1 }
+        live.push("connection-1", delivery(1, progressSnapshot()))
+        pump { session.translation.progress != null && live.nexts.size == 2 }
+        release.countDown(); pump { finished.count == 0L && !session.translation.busy }
+        assertEquals("running", session.translation.data!!.getString("status"))
+        live.push("connection-1", failure("network", "Disconnected"))
+        pump { session.translation.liveState == "reconnecting" && live.closes.contains("connection-1") }
+        assertNotNull(session.translation.progress); assertNull(session.translation.error)
+        session.loadTranslation(); pump { httpRequests.get() == 2 && !session.translation.busy }
+        assertEquals("completed", session.translation.data!!.getString("status"))
+        assertEquals(3, session.translation.progress!!.getJSONObject("summary").getInt("done"))
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2))
+        pump { live.opens.size == 2 && live.nexts.size == 3 }
+        assertEquals(2, calls.count { it.optString("operation") == "translation" })
+    }
+
+    private val notificationManager get() = context.getSystemService(NotificationManager::class.java)
+    private fun tokiNotification() = notificationManager.activeNotifications.single().notification
+
+    private fun renderNotification(name: String, notification: Notification, expanded: Boolean = false) {
+        android.os.SystemClock.setCurrentTimeMillis(System.currentTimeMillis())
+        val controller = Robolectric.buildActivity(RenderActivity::class.java).setup()
+        val activity = controller.get()
+        // This is Android's actual RemoteViews template recovered from the
+        // production notification, not an app imitation of the system shade.
+        val builder = Notification.Builder.recoverBuilder(activity, notification)
+        val view = (if (expanded) builder.createBigContentView() else builder.createContentView())
+            .apply(activity, FrameLayout(activity))
+        activity.setContentView(view)
+        // SystemUI constrains these weighted native templates; UNSPECIFIED
+        // height collapses their content to only the notification header.
+        view.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(activity.dp(if (expanded) 192 else 88), View.MeasureSpec.EXACTLY))
+        view.layout(0, 0, 1080, view.measuredHeight)
+        val bitmap = Bitmap.createBitmap(1080, view.measuredHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(activity.token(R.color.glossia_surface)); view.draw(canvas)
+        File(artifacts, "android-toki-notification-$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        bitmap.recycle(); controller.pause().stop().destroy()
+    }
+
+    @Test fun tokiNotificationsFollowRealStatusesWithPrivateContentAndCanonicalImmutableIntent() {
+        // Align Android's virtual wall/elapsed clocks with the app's JVM wall
+        // clock before building the native chronometer template.
+        android.os.SystemClock.setCurrentTimeMillis(System.currentTimeMillis())
+        shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        val state = java.util.concurrent.atomic.AtomicReference("queued")
+        val turn = java.util.concurrent.atomic.AtomicReference(translationId)
+        val (session, _) = session { request ->
+            if (request.optString("action") == "show") tokiWork(request.getString("id"), state.get(), turn.get()).apply {
+                getJSONObject("conversation").put("title", "Sensitive customer launch")
+                getJSONArray("messages").getJSONObject(0).put("content", "Private prompt and model output")
+            } else null
+        }
+        session.setForeground(true); session.showConversation(conversationId)
+        pump { notificationManager.activeNotifications.size == 1 }
+        val queued = tokiNotification()
+        assertEquals("Toki · Queued", queued.extras.getString(Notification.EXTRA_TITLE))
+        assertTrue(queued.flags and Notification.FLAG_ONGOING_EVENT != 0)
+        assertTrue(queued.extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER))
+        val observedAt = queued.`when`
+        renderNotification("queued", queued)
+        val intent = shadowOf(queued.contentIntent).savedIntent
+        assertEquals(MainActivity::class.java.name, intent.component!!.className)
+        assertEquals(Intent.ACTION_VIEW, intent.action)
+        assertNull(intent.extras)
+        assertEquals(link(destination(GlossiaScreen.CONVERSATION, id = conversationId)), intent.dataString)
+        assertTrue(shadowOf(queued.contentIntent).flags and PendingIntent.FLAG_IMMUTABLE != 0)
+        val linkRequest = calls.last { it.optString("operation") == "navigation" }
+        assertEquals("conversation", linkRequest.getJSONObject("destination").getString("screen"))
+        assertFalse(linkRequest.has("session"))
+        for (status in listOf("running", "completed", "running", "failed")) {
+            if (state.get() == "completed" && status == "running") turn.set(conversationId)
+            state.set(status); session.showConversation(conversationId)
+            val title = "Toki · ${when (status) { "running" -> "Working"; "completed" -> "Completed"; else -> "Failed" }}"
+            pump { tokiNotification().extras.getString(Notification.EXTRA_TITLE) == title }
+            val notification = tokiNotification()
+            assertEquals(status == "running", notification.flags and Notification.FLAG_ONGOING_EVENT != 0)
+            assertEquals(status == "running", notification.extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER))
+            assertEquals(Notification.VISIBILITY_PRIVATE, notification.visibility)
+            assertEquals(Notification.VISIBILITY_PUBLIC, notification.publicVersion.visibility)
+            assertFalse(notification.extras.toString().contains("Sensitive customer"))
+            assertFalse(notification.publicVersion.extras.toString().contains("Private prompt"))
+            assertFalse(notification.extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE))
+            assertTrue(notification.actions.isNullOrEmpty()) // No unsupported stop/pause/retry controls.
+            if (status != "running") assertTrue(notification.timeoutAfter > 0)
+            if (status == "completed") assertEquals(observedAt, notification.`when`)
+            renderNotification(status, notification)
+        }
+        renderNotification("lockscreen", tokiNotification().publicVersion)
+        // A notification tap follows the same verified navigation/access path.
+        GlossiaIntents.consume(intent, session::receiveLink, session::callback)
+        pump { session.toki.activeId == conversationId && session.pendingDestination == null }
+        session.signOut(); pump { !session.busy && notificationManager.activeNotifications.isEmpty() }
+    }
+
+    @Test fun tokiBackgroundAndInactiveTabNotificationsAreExplicitlyLastKnownAndDoNotPoll() {
+        android.os.SystemClock.setCurrentTimeMillis(System.currentTimeMillis())
+        shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        val (session, _) = session { request ->
+            if (request.optString("action") == "show") tokiWork(request.getString("id"), "running") else null
+        }
+        session.setForeground(true); session.showConversation(conversationId)
+        pump { notificationManager.activeNotifications.size == 1 }
+        session.setForeground(false)
+        assertFalse(tokiNotification().extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER))
+        assertTrue(tokiNotification().extras.getString(Notification.EXTRA_TEXT)!!.contains("Last known"))
+        renderNotification("background", tokiNotification())
+        renderNotification("background-expanded", tokiNotification(), expanded = true)
+        val shows = calls.count { it.optString("action") == "show" }
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(10))
+        assertEquals(shows, calls.count { it.optString("action") == "show" })
+        session.setForeground(true)
+        pump { calls.count { it.optString("action") == "show" } > shows && session.toki.active!!.workObservationCurrent }
+        assertTrue(tokiNotification().extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER))
+        session.selectTab("Analytics"); session.setForeground(true); pump { session.analytics.loaded }
+        assertFalse(tokiNotification().extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER))
+        session.openWorkspacePicker(); session.selectWorkspaceProject("docs")
+        assertTrue(notificationManager.activeNotifications.isEmpty())
+    }
+
+    @Test fun tokiNotificationPermissionDenialNeverBlocksConversationAndDoesNotNag() {
+        shadowOf(context).denyPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        val (session, _) = session { request ->
+            if (request.optString("action") == "show") tokiWork(request.getString("id"), "running") else null
+        }
+        session.setForeground(true)
+        assertFalse(session.takeNotificationPermissionRequest())
+        session.showConversation(conversationId); pump { session.toki.active?.status == "running" }
+        assertTrue(session.takeNotificationPermissionRequest())
+        assertFalse(session.takeNotificationPermissionRequest())
+        session.refreshNotifications(); assertTrue(notificationManager.activeNotifications.isEmpty())
+        assertEquals("running", session.toki.active!!.status); assertNull(session.error)
+        session.selectTab("Analytics"); pump { session.analytics.loaded }
+        shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        session.refreshNotifications(); pump { notificationManager.activeNotifications.size == 1 }
+    }
+
+    @Test fun tokiNotificationsIgnoreIdleCompletionAndBindFollowUpToExactSentMessageUuid() {
+        shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        val response = java.util.concurrent.atomic.AtomicReference(tokiWork(conversationId, "completed"))
+        val sent = CopyOnWriteArrayList<String>()
+        val (session, _) = session { request ->
+            when (request.optString("action")) {
+                "show" -> response.get()
+                "send" -> {
+                    val turnId = request.getString("message_id"); sent.add(turnId)
+                    tokiWork(conversationId, "queued", turnId).also(response::set)
+                }
+                else -> null
+            }
+        }
+        session.setForeground(true); session.showConversation(conversationId)
+        pump { session.toki.active?.loaded == true }
+        assertTrue(notificationManager.activeNotifications.isEmpty()) // Historical or idle 'completed' is not a run.
+        session.draft("First explicit task"); session.sendMessage()
+        pump { sent.size == 1 && session.toki.active?.pending == null && notificationManager.activeNotifications.size == 1 }
+        val first = sent.single()
+        assertEquals(first, session.toki.active!!.workTurnId)
+        response.set(tokiWork(conversationId, "completed", first)); session.showConversation(conversationId)
+        pump { tokiNotification().extras.getString(Notification.EXTRA_TITLE) == "Toki · Completed" }
+        session.draft("A separate follow-up task"); session.sendMessage()
+        pump { sent.size == 2 && session.toki.active?.pending == null && tokiNotification().extras.getString(Notification.EXTRA_TITLE) == "Toki · Queued" }
+        val second = sent.last(); assertNotEquals(first, second)
+        val secondStart = tokiNotification().`when`
+        response.set(tokiWork(conversationId, "completed", first)); session.showConversation(conversationId)
+        pump { !session.toki.active!!.busy }
+        assertEquals(second, session.toki.active!!.workTurnId)
+        assertEquals("Toki · Queued", tokiNotification().extras.getString(Notification.EXTRA_TITLE))
+        assertTrue(tokiNotification().flags and Notification.FLAG_ONGOING_EVENT != 0)
+        assertEquals(secondStart, tokiNotification().`when`)
+        assertTrue(tokiNotification().extras.getString(Notification.EXTRA_TEXT)!!.contains("Last known"))
+        response.set(tokiWork(conversationId, "running", second)); session.showConversation(conversationId)
+        pump { tokiNotification().extras.getString(Notification.EXTRA_TITLE) == "Toki · Working" }
+        assertEquals(secondStart, tokiNotification().`when`)
+        response.set(tokiWork(conversationId, "failed", second)); session.showConversation(conversationId)
+        pump { tokiNotification().extras.getString(Notification.EXTRA_TITLE) == "Toki · Failed" }
+        assertFalse(tokiNotification().flags and Notification.FLAG_ONGOING_EVENT != 0)
+    }
+
+    @Test @Config(sdk = [32]) fun tokiNotificationsDoNotRequireRuntimePermissionBeforeAndroid13() {
+        val (session, _) = session { request ->
+            if (request.optString("action") == "show") tokiWork(request.getString("id"), "running") else null
+        }
+        session.setForeground(true); session.showConversation(conversationId)
+        pump { notificationManager.activeNotifications.size == 1 }
+        assertFalse(session.takeNotificationPermissionRequest())
+        session.signOut(); assertTrue(notificationManager.activeNotifications.isEmpty())
+    }
+
+    @Test fun tokiAccessLossAndLateCanonicalLinkCannotRestoreNotifications() {
+        shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        for (reason in listOf("forbidden", "not_found", "source_forbidden", "late_link")) {
+            val state = java.util.concurrent.atomic.AtomicReference("running")
+            val linkStarted = CountDownLatch(1)
+            val linkRelease = CountDownLatch(if (reason == "late_link") 1 else 0).also(releases::add)
+            val (session, _) = session { request ->
+                when {
+                    request.optString("action") == "show" -> if (state.get() == "running") tokiWork(request.getString("id"), "running").apply {
+                        if (reason == "source_forbidden") getJSONObject("conversation").put("translation_session_id", translationId)
+                    } else failure(state.get())
+                    request.optString("operation") == "translation" && state.get() == "forbidden" -> failure("forbidden")
+                    request.optString("operation") == "navigation" -> { linkStarted.countDown(); linkRelease.await(8, TimeUnit.SECONDS); null }
+                    else -> null
+                }
+            }
+            session.setForeground(true); session.showConversation(conversationId)
+            pump { linkStarted.count == 0L }
+            if (reason == "late_link") session.signOut()
+            else {
+                pump { notificationManager.activeNotifications.size == 1 }
+                if (reason == "source_forbidden") {
+                    pump { session.toki.active!!.source.loaded }
+                    state.set("forbidden"); session.retrySource()
+                    pump { session.toki.active!!.source.error != null }
+                } else {
+                    state.set(reason); session.showConversation(conversationId)
+                    pump { session.toki.active?.unavailable == true }
+                }
+            }
+            assertTrue(notificationManager.activeNotifications.isEmpty())
+            linkRelease.countDown(); Thread.sleep(50); shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(notificationManager.activeNotifications.isEmpty()); session.setForeground(false)
+        }
+    }
+
     @Test fun productionViewsRenderLightAndDarkAndChatStates() {
         for (custom in listOf(false, true)) for (night in listOf(false, true)) {
             RuntimeEnvironment.setQualifiers("w411dp-h891dp-${if (night) "night" else "notnight"}-420dpi")
@@ -1382,6 +1850,42 @@ class GlossiaAndroidTest {
             assertTrue(discussed)
             descendants(detailView).filterIsInstance<MaterialButton>().single { it.text == "Share translation link" }.performClick()
             assertTrue(shared)
+            for (state in listOf("planning", "running", "reconnecting", "completed", "failed", "cancelled", "zero", "missing")) {
+                val snapshot = progressSnapshot(
+                    status = if (state in listOf("completed", "failed", "cancelled")) state else "running",
+                    assessed = state != "planning", done = if (state == "completed") 3 else 1)
+                if (state == "zero") {
+                    snapshot.getJSONObject("progress").getJSONObject("summary").put("needs_translation", 0).put("done", 0)
+                    snapshot.getJSONObject("progress").put("items", JSONArray())
+                }
+                if (state == "missing") snapshot.remove("progress")
+                val liveDetail = TranslationModel().apply {
+                    id = translationId; acceptSnapshot(snapshot)
+                    liveState = if (state == "reconnecting") "reconnecting" else "live"
+                }
+                val liveView = views.translation(liveDetail, {}, {}, {})
+                show("translation-live-$state", liveView, R.id.translations)
+                val labels = descendants(liveView).filterIsInstance<TextView>().map { it.text.toString() }
+                val indicators = descendants(liveView).filterIsInstance<LinearProgressIndicator>()
+                when (state) {
+                    "planning", "missing" -> {
+                        assertTrue(indicators.single().isIndeterminate)
+                        assertTrue(labels.contains("Planning translations…"))
+                        assertFalse(labels.any { it.contains(" / ") && it.endsWith("translated") })
+                    }
+                    "zero" -> { assertTrue(indicators.isEmpty()); assertTrue(labels.contains("No translation work required")) }
+                    else -> {
+                        assertFalse(indicators.single().isIndeterminate)
+                        assertEquals(if (state == "completed") 1000 else 333, indicators.single().progress)
+                        assertTrue(labels.contains("${if (state == "completed") 3 else 1} / 3 translated"))
+                        assertTrue(labels.contains("locales/es/home.json")); assertTrue(labels.contains("es · done"))
+                        assertEquals(activity.token(R.color.glossia_primary), indicators.single().indicatorColor.single())
+                        assertEquals(activity.token(R.color.glossia_border), indicators.single().trackColor)
+                        if (state == "reconnecting") assertTrue(labels.any { it.startsWith("Reconnecting…") })
+                        if (state in listOf("completed", "failed", "cancelled")) assertTrue(labels.contains(state.replaceFirstChar { it.uppercase() }))
+                    }
+                }
+            }
             val sourceThread = model.newConversation(translationId).apply {
                 source.loaded = true; source.data = translationRecord()
             }
@@ -1418,6 +1922,9 @@ class GlossiaAndroidTest {
             controller.pause().stop().destroy()
         }
     }
+
+    private fun tokiWork(id: String, status: String, turnId: String = translationId) = conversation(id, status)
+        .put("messages", JSONArray().put(JSONObject().put("id", turnId).put("role", "user").put("content", "A private request").put("inserted_at", "2026-10-25T08:00:00Z")))
 
     private fun conversation(id: String, status: String) = JSONObject().put("conversation", JSONObject().put("id", id).put("title", "A conversation with Toki").put("status", status)).put("messages", JSONArray())
 }

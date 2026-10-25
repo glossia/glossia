@@ -109,6 +109,18 @@ jobs:
       - run: mise exec -- rustup target add aarch64-apple-ios-sim aarch64-apple-ios
       - run: mise run prepare:rust
       - run: mise exec -- once build ${{ matrix.target }}
+      - name: Verify embedded Live Activity extension
+        run: |
+          app=.once/out/${{ matrix.target }}/Glossia.app
+          extension="$app/PlugIns/TokiLiveActivity.appex"
+          test -x "$extension/TokiLiveActivity"
+          test -f "$extension/TokiFocused.png"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :NSSupportsLiveActivities' "$app/Info.plist")" = true
+          test "$(/usr/libexec/PlistBuddy -c 'Print :NSExtension:NSExtensionPointIdentifier' "$extension/Info.plist")" = com.apple.widgetkit-extension
+          app_id=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist")
+          extension_id=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$extension/Info.plist")
+          case "$extension_id" in "$app_id".*) ;; *) exit 1 ;; esac
+          codesign --verify --deep --strict "$app"
       - name: Package app bundles
         run: |
           mkdir -p delivery

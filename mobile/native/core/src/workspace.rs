@@ -36,6 +36,25 @@ impl Selection {
         )
     }
 
+    pub(crate) fn live_handles(&self) -> Result<(&str, &str)> {
+        let organization = self.organization()?;
+        let project = selection_segment(self.project.as_deref(), "Choose a project first.")?;
+        for (handle, digit_first) in [(organization, false), (project, true)] {
+            if !(2..=39).contains(&handle.len())
+                || !handle.bytes().next().is_some_and(|byte| {
+                    byte.is_ascii_lowercase() || (digit_first && byte.is_ascii_digit())
+                })
+                || handle.ends_with('-')
+                || !handle
+                    .bytes()
+                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+            {
+                return Err(error("invalid_input", "Choose a valid workspace."));
+            }
+        }
+        Ok((organization, project))
+    }
+
     pub(crate) fn project_url(&self, session: &Session, segments: &[&str]) -> Result<Url> {
         let organization = self.organization()?;
         let project = selection_segment(self.project.as_deref(), "Choose a project first.")?;

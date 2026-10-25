@@ -6,11 +6,13 @@ struct GlossiaWorkspaceView: View {
     @Environment(\.glossiaTokens) private var tokens
     @State private var showingWorkspace = false
     private let requestOverride: GlossiaRequest?
+    private let tokiWork: TokiWorkController?
 
-    init(session: GlossiaSession, request: GlossiaRequest? = nil) {
+    init(session: GlossiaSession, tokiWork: TokiWorkController? = nil, request: GlossiaRequest? = nil) {
         self.session = session
         self.navigation = session.navigation
         self.requestOverride = request
+        self.tokiWork = tokiWork
     }
 
     private var request: GlossiaRequest {
@@ -27,6 +29,7 @@ struct GlossiaWorkspaceView: View {
             NavigationStack {
                 TokiView(request: request, hasProject: session.project != nil,
                          destination: navigation.targets["toki"], revision: navigation.revisions["toki"],
+                         work: tokiWork, context: session.projectContext,
                          openSource: { open(.translation, id: $0) })
                     .navigationTitle("Toki")
                     .toolbar { workspaceButton }

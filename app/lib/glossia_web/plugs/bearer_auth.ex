@@ -26,47 +26,45 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
   end
 
   defp validate_token(conn, token_value) do
-    case validate_boruta_token(token_value) do
+    case verify(token_value) do
       {:ok, user, scopes, token} ->
         conn
         |> assign(:current_scope, Scope.for_user(user))
         |> assign(:current_user, user)
         |> assign(:scopes, scopes)
-        |> assign(:current_token, %{kind: :oauth_access_token, id: Map.get(token, :id)})
+        |> assign(:current_token, token)
 
       :error ->
-        validate_account_token(conn, token_value)
-    end
-  end
-
-  defp validate_boruta_token(token_value) do
-    with token when not is_nil(token) <- get_token(token_value),
-         false <- revoked?(token),
-         false <- expired?(token),
-         user when not is_nil(user) <- Accounts.get_user(token.sub) do
-      {:ok, user, parse_scopes(token.scope), token}
-    else
-      _ -> :error
-    end
-  end
-
-  defp validate_account_token(conn, "glsa_" <> _ = token_value) do
-    case AccountTokens.get_account_token_by_value(token_value) do
-      {:ok, token} ->
-        conn
-        |> assign(:current_scope, Scope.for_user(token.user))
-        |> assign(:current_user, token.user)
-        |> assign(:scopes, parse_scopes(token.scope))
-        |> assign(:current_token, %{kind: :account_token, id: token.id})
-
-      _ ->
         reject_unauthorized(conn)
     end
   end
 
-  defp validate_account_token(conn, _token_value) do
-    reject_unauthorized(conn)
+  @doc "Validates the current persisted grant and user, for HTTP and persistent native sockets."
+  def verify(token_value) when is_binary(token_value) do
+    with token when not is_nil(token) <- get_token(token_value),
+         false <- revoked?(token),
+         false <- expired?(token),
+         {:ok, user_id} when not is_nil(user_id) <- Ecto.UUID.cast(token.sub),
+         user when not is_nil(user) <- Accounts.get_user(user_id) do
+      {:ok, user, parse_scopes(token.scope), %{kind: :oauth_access_token, id: token.id}}
+    else
+      _ -> verify_account_token(token_value)
+    end
   end
+
+  def verify(_), do: :error
+
+  defp verify_account_token("glsa_" <> _ = token_value) do
+    case AccountTokens.get_account_token_by_value(token_value) do
+      {:ok, token} ->
+        {:ok, token.user, parse_scopes(token.scope), %{kind: :account_token, id: token.id}}
+
+      _ ->
+        :error
+    end
+  end
+
+  defp verify_account_token(_token_value), do: :error
 
   defp extract_bearer_token(conn) do
     case get_req_header(conn, "authorization") do
@@ -76,7 +74,12 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
   end
 
   defp get_token(value) do
-    Boruta.Config.access_tokens().get_by(value: value)
+    # Boruta's adapter caches grants. A long-lived socket must observe scope
+    # changes and revocations on other nodes, not a cached authorization. Keep
+    # that policy shared with HTTP, and never put the credential in SQL logs.
+    Boruta.Config.repo().get_by(Boruta.Ecto.Token, [type: "access_token", value: value],
+      log: false
+    )
   end
 
   defp revoked?(%{revoked_at: nil}), do: false
@@ -88,7 +91,7 @@ defmodule GlossiaWeb.Plugs.BearerAuth do
   end
 
   defp expired?(%{expires_at: %DateTime{} = expires_at}) do
-    DateTime.compare(expires_at, DateTime.utc_now()) == :lt
+    DateTime.compare(expires_at, DateTime.utc_now()) != :gt
   end
 
   defp expired?(_), do: true

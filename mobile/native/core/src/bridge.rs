@@ -47,6 +47,10 @@ enum Command {
         selection: workspace::Selection,
         id: String,
     },
+    TranslationLive {
+        #[serde(flatten)]
+        action: crate::translation_live::Action,
+    },
     Navigation {
         #[serde(flatten)]
         action: navigation::Action,
@@ -117,6 +121,9 @@ pub(crate) fn execute_using(network: &impl Transport, input: &str) -> String {
                     selection,
                     id,
                 } => return crate::translations::show(network, &session, &selection, &id),
+                Command::TranslationLive { action } => {
+                    return crate::translation_live::execute(action);
+                }
                 Command::Navigation { action } => return navigation::execute(action),
                 Command::Themes { server } => return crate::themes::fetch(network, &server),
                 Command::ValidateThemes { catalog } => return crate::themes::validate(catalog),

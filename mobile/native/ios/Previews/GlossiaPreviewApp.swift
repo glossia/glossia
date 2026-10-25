@@ -6,7 +6,9 @@ import SwiftUI
 struct GlossiaPreviewApp: App {
     @StateObject private var session: GlossiaSession
     @StateObject private var chat: TokiModel
+    @StateObject private var work: TokiWorkController
     @StateObject private var appearance = GlossiaAppearance(request: themeRequest)
+    @Environment(\.scenePhase) private var scenePhase
     private let screen: String
 
     init() {
@@ -23,13 +25,24 @@ struct GlossiaPreviewApp: App {
             session.organizations = [["handle": "acme", "name": "Acme"], ["handle": "other", "name": "Other team"]]
             session.projects = [["handle": "website", "name": "Website"]]
             session.tab = screen == "empty" ? "toki" : screen
-            if ["translations-empty", "translation-detail"].contains(screen) { session.tab = "translations" }
+            if ["translations-empty", "translation-detail", "translation-live"].contains(screen) { session.tab = "translations" }
             if screen == "analytics-empty" { session.tab = "analytics" }
             if screen == "source-chat" { session.tab = "toki" }
+            if screen == "no-project" { session.project = nil; session.tab = "toki" }
         }
         _session = StateObject(wrappedValue: session)
         let state = screen
-        let chat = TokiModel { input in
+        let work = TokiWorkController(liveActivities: state.hasPrefix("activity-"), now: {
+            Date().addingTimeInterval(state == "activity-stale" ? -90 : 0)
+        })
+        if state.hasPrefix("activity-") {
+            work.configure(context: session.projectContext, request: { _ in
+                Self.activityConversation(state == "activity-queued" ? "queued" : "running")
+            }, authorized: { true }, destination: { id in session.destination(.conversation, id: id)?.url })
+        }
+        _work = StateObject(wrappedValue: work)
+        let chat = TokiModel(work: state.hasPrefix("activity-") ? work : nil, context: session.projectContext) { input in
+            if state.hasPrefix("activity-") { return Self.activityConversation(state == "activity-queued" ? "queued" : "running") }
             var result = try await Self.request(input)
             if state == "thinking", input["operation"] as? String == "conversation" {
                 result["conversation"] = ["status": "running"]
@@ -41,6 +54,7 @@ struct GlossiaPreviewApp: App {
         if screen == "thinking" { chat.detail?["conversation"] = ["status": "running"] }
         if screen == "failed" { chat.detail?["conversation"] = ["status": "failed"] }
         if screen == "empty-chat" { chat.detail?["messages"] = [] }
+        if state.hasPrefix("activity-") { chat.detail = Self.activityConversation(state == "activity-queued" ? "queued" : "running") }
         _chat = StateObject(wrappedValue: chat)
     }
 
@@ -48,7 +62,7 @@ struct GlossiaPreviewApp: App {
         WindowGroup {
             Group {
                 if screen == "login" { GlossiaLoginView(session: session) }
-                else if ["chat", "thinking", "failed", "empty-chat"].contains(screen) {
+                else if ["chat", "thinking", "failed", "empty-chat"].contains(screen) || screen.hasPrefix("activity-") {
                     NavigationStack { TokiConversationView(model: chat) }
                 } else if screen == "workspace" {
                     WorkspacePicker(session: session, request: Self.request)
@@ -62,7 +76,8 @@ struct GlossiaPreviewApp: App {
                         }
                         if screen == "analytics-empty" && value["resource"] as? String == "analytics" {
                             return ["summary": ["pageviews": 0, "unique_visitors": 0, "locale_gap_visits": 0,
-                                                "top_country": "", "top_browser_language": ""], "top_pages": []]
+                                                "top_country": "", "top_browser_language": ""], "top_pages": [],
+                                    "traffic": ["granularity": "day", "points": []], "days": value["days"] ?? 30]
                         }
                         return try await Self.request(value)
                     }.id(session.projectContext)
@@ -72,12 +87,23 @@ struct GlossiaPreviewApp: App {
             .modifier(GlossiaLinkNotice(navigation: session.navigation) { Task { await session.resolveNavigation(request: Self.request) } })
             .task { await appearance.configure(server: session.server ?? "https://glossia.ai") }
             .onOpenURL { url in Task { await session.receive(url, request: Self.request) } }
+            .onChange(of: scenePhase, initial: true) { _, phase in work.setForeground(phase == .active) }
             .task {
+                if screen.hasPrefix("activity-") {
+                    work.observe(Self.activityConversation(screen == "activity-queued" ? "queued" : "running"),
+                                 id: chat.selectedID!, context: session.projectContext)
+                    if ["activity-completed", "activity-failed"].contains(screen) {
+                        try? await Task.sleep(for: .seconds(2))
+                        let result = Self.activityConversation(screen == "activity-completed" ? "completed" : "failed")
+                        chat.detail = result
+                        work.observe(result, id: chat.selectedID!, context: session.projectContext)
+                    }
+                }
                 let arguments = ProcessInfo.processInfo.arguments
                 if let index = arguments.firstIndex(of: "--link"), index + 1 < arguments.count,
                    let url = URL(string: arguments[index + 1]) {
                     await session.receive(url, request: Self.request)
-                } else if ["translation-detail", "source-chat"].contains(screen),
+                } else if ["translation-detail", "translation-live", "source-chat"].contains(screen),
                           let destination = session.destination(screen == "source-chat" ? .newConversation : .translation,
                                                                 id: screen == "source-chat" ? nil : Self.translationID,
                                                                 translationID: screen == "source-chat" ? Self.translationID : nil) {
@@ -113,11 +139,57 @@ struct GlossiaPreviewApp: App {
     ]
 
     static var conversationOrigins: [String: String] = [:]
+    static var liveConnections: [String: Int] = [:]
+
+    static func activityConversation(_ phase: String) -> [String: Any] {
+        var conversation = chat["conversation"] as! [String: Any]
+        conversation["status"] = phase
+        var messages = [["id": "aaaaaaaa-802e-4f91-9112-77d8a919efc5", "role": "user",
+                         "content": "Review the Japanese onboarding copy."]]
+        if phase == "completed" { messages.append(["id": "preview-answer", "role": "assistant", "content": "The review is ready."]) }
+        return ["conversation": conversation, "messages": messages]
+    }
+
+    static func translationSnapshot(done: Int, running: Bool) -> [String: Any] {
+        var session = translation
+        session["status"] = running ? "running" : "completed"
+        session["translated_content_count"] = done
+        return ["session": session,
+                "progress": ["seq": 12, "summary": ["total": 4, "checked": 4, "needs_translation": 3,
+                                                     "assessed?": true, "done": done, "skipped": 1,
+                                                     "failed": 0, "cancelled": 0],
+                             "items": [
+                                ["output_path": "locales/es/welcome.json", "locale": "es", "status": "done"],
+                                ["output_path": "locales/de/welcome.json", "locale": "de", "status": running ? "running" : "done"],
+                                ["output_path": "locales/de/pricing.json", "locale": "de", "status": running ? "queued" : "done"],
+                             ], "omitted_items": 0]]
+    }
 
     static func request(_ input: [String: Any]) async throws -> [String: Any] {
         if input["operation"] as? String == "translation" {
             guard input["id"] as? String == translationID else { throw GlossiaFailure(kind: "not_found", message: "This translation is no longer available.") }
-            return ["session": translation]
+            let running = ProcessInfo.processInfo.arguments.contains("translation-live")
+            return translationSnapshot(done: running ? 1 : 3, running: running)
+        }
+        if input["operation"] as? String == "translation_live" {
+            switch input["action"] as? String {
+            case "open":
+                let handle = UUID().uuidString
+                liveConnections[handle] = 0
+                return ["connection": handle]
+            case "next":
+                let handle = input["connection"] as? String ?? ""
+                guard let step = liveConnections[handle] else { return ["state": "closed"] }
+                let running = ProcessInfo.processInfo.arguments.contains("translation-live") && step == 0
+                if step > 0 { try await Task.sleep(for: .seconds(step == 1 ? 8 : 30)) }
+                guard liveConnections[handle] != nil else { return ["state": "closed"] }
+                liveConnections[handle] = step + 1
+                return ["sequence": step + 1, "state": "live",
+                        "snapshot": translationSnapshot(done: running ? 1 : 3, running: running)]
+            default:
+                if let handle = input["connection"] as? String { liveConnections[handle] = nil }
+                return ["closed": true]
+            }
         }
         if input["operation"] as? String == "conversation" {
             if ["create", "send"].contains(input["action"] as? String ?? "") {
@@ -146,8 +218,25 @@ struct GlossiaPreviewApp: App {
                 ["id": "def12345-802e-4f91-9112-77d8a919efc5", "commit_message": "Introduce team workspaces", "source_language": "en", "target_languages": ["es", "de"], "status": "running", "translated_content_count": 8],
             ], "meta": ["has_next_page?": false]]
         case "analytics":
-            return ["summary": ["pageviews": 12480, "unique_visitors": 3206, "locale_gap_visits": 846, "top_country": "Germany", "top_browser_language": "de"],
-                    "top_pages": [["pathname": "/", "pageviews": 6250], ["pathname": "/pricing", "pageviews": 3240], ["pathname": "/docs", "pageviews": 2990]], "days": input["days"] ?? 30]
+            let days = input["days"] as? Int ?? 30
+            // Dated preview records only. Production charts use the server's buckets unchanged.
+            let records = [0: [3300, 1200], 1: [2900, 1100], 2: [1380, 600],
+                           3: [1600, 800], 5: [1000, 450], 6: [800, 300],
+                           24: [1500, 700], 60: [2500, 1000]]
+            let formatter = ISO8601DateFormatter()
+            let end = formatter.date(from: "2026-10-25T00:00:00Z")!
+            let points: [[String: Any]] = (0..<days).reversed().map { age in
+                let counts = records[age] ?? [0, 0]
+                return ["bucket": formatter.string(from: end.addingTimeInterval(-Double(age) * 86_400)),
+                        "pageviews": counts[0], "unique_visitors": counts[1]]
+            }
+            let pageviews = records.filter { $0.key < days }.values.reduce(0) { $0 + $1[0] }
+            let visitors = days == 7 ? 2900 : (days == 30 ? 3206 : 3900)
+            return ["summary": ["pageviews": pageviews, "unique_visitors": visitors,
+                                "locale_gap_visits": days == 7 ? 700 : (days == 30 ? 846 : 1100),
+                                "top_country": "DE", "top_browser_language": "de"],
+                    "top_pages": [["pathname": "/", "pageviews": pageviews - 6230], ["pathname": "/pricing", "pageviews": 3240], ["pathname": "/docs", "pageviews": 2990]],
+                    "traffic": ["granularity": "day", "points": points], "days": days]
         case "profile":
             return ["user": ["id": "person", "name": "Alex Rivera", "email": "alex@example.com", "handle": "alex"], "server_version": "0.1.0-preview"]
         default: return [:]

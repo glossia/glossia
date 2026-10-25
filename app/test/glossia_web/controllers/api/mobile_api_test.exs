@@ -166,6 +166,8 @@ defmodule GlossiaWeb.Api.MobileApiTest do
            }
 
     assert body["top_pages"] == [%{"pathname" => "/inside", "pageviews" => 1}]
+    assert body["traffic"]["granularity"] == "day"
+    assert Enum.sum(Enum.map(body["traffic"]["points"], & &1["pageviews"])) == 1
 
     body =
       auth
@@ -173,6 +175,20 @@ defmodule GlossiaWeb.Api.MobileApiTest do
       |> json_response(200)
 
     assert body["summary"]["pageviews"] == 2
+    assert Enum.sum(Enum.map(body["traffic"]["points"], & &1["pageviews"])) == 2
+
+    for {days, granularity} <- [{1, "hour"}, {7, "day"}, {90, "day"}, {365, "month"}] do
+      body =
+        auth
+        |> get(~p"/api/#{owner.account.handle}/projects/#{project.handle}/analytics?days=#{days}")
+        |> json_response(200)
+
+      assert body["days"] == days
+      assert body["traffic"]["granularity"] == granularity
+
+      assert Enum.sum(Enum.map(body["traffic"]["points"], & &1["pageviews"])) ==
+               body["summary"]["pageviews"]
+    end
 
     for days <- [0, 366, "invalid"] do
       assert auth
@@ -181,6 +197,75 @@ defmodule GlossiaWeb.Api.MobileApiTest do
              )
              |> json_response(400)
     end
+  end
+
+  test "public project analytics exposes real UTC buckets, quiet days and bucket-local visitors",
+       context do
+    %{conn: conn, owner: owner, outsider: outsider, project: project, other_project: other} =
+      context
+
+    Repo.update!(Ecto.Changeset.change(owner.account, visibility: "public"))
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    recent = DateTime.add(now, -60)
+    earlier = DateTime.add(recent, -3 * 86_400)
+    insert_event(project.id, recent, "/inside", "DE", 7)
+    insert_event(project.id, recent, "/inside", "DE", 7)
+    insert_event(project.id, recent, "/second", "DE", 8)
+    insert_event(project.id, earlier, "/inside", "DE", 7)
+    insert_event(project.id, DateTime.add(now, -40 * 86_400), "/old", "FR", 9)
+    insert_event(project.id, DateTime.add(now, 86_400), "/future", "FR", 10)
+    insert_event(other.id, recent, "/foreign", "US", 11)
+
+    body =
+      conn
+      |> TestHelpers.authenticate(outsider, ["analytics:read"])
+      |> get(~p"/api/#{owner.account.handle}/projects/#{project.handle}/analytics?days=7")
+      |> json_response(200)
+
+    assert body["summary"]["pageviews"] == 4
+    assert body["summary"]["unique_visitors"] == 2
+
+    assert body["top_pages"] == [
+             %{"pathname" => "/inside", "pageviews" => 3},
+             %{"pathname" => "/second", "pageviews" => 1}
+           ]
+
+    assert %{"granularity" => "day", "points" => points} = body["traffic"]
+    assert length(points) in [7, 8]
+    assert Enum.map(points, & &1["bucket"]) == Enum.sort(Enum.map(points, & &1["bucket"]))
+
+    for point <- points do
+      assert Enum.sort(Map.keys(point)) == ~w(bucket pageviews unique_visitors)
+      assert {:ok, bucket, 0} = DateTime.from_iso8601(point["bucket"])
+      assert {bucket.hour, bucket.minute, bucket.second} == {0, 0, 0}
+    end
+
+    nonzero = Enum.filter(points, &(&1["pageviews"] > 0))
+
+    assert Enum.map(nonzero, &Map.take(&1, ~w(pageviews unique_visitors))) == [
+             %{"pageviews" => 1, "unique_visitors" => 1},
+             %{"pageviews" => 3, "unique_visitors" => 2}
+           ]
+
+    assert Enum.any?(points, &(&1["pageviews"] == 0 and &1["unique_visitors"] == 0))
+    assert Enum.sum(Enum.map(points, & &1["pageviews"])) == 4
+    assert Enum.sum(Enum.map(points, & &1["unique_visitors"])) == 3
+  end
+
+  test "empty project analytics returns no synthetic traffic points", context do
+    %{conn: conn, owner: owner, project: project, other_project: other} = context
+    insert_event(other.id, DateTime.add(DateTime.utc_now(), -60), "/foreign", "US", 1)
+
+    body =
+      conn
+      |> TestHelpers.authenticate(owner, ["analytics:read"])
+      |> get(~p"/api/#{owner.account.handle}/projects/#{project.handle}/analytics")
+      |> json_response(200)
+
+    assert body["traffic"] == %{"granularity" => "day", "points" => []}
+    assert body["summary"]["pageviews"] == 0
+    assert body["summary"]["unique_visitors"] == 0
+    assert body["top_pages"] == []
   end
 
   test "public account read semantics are preserved, without making Toki histories public",
