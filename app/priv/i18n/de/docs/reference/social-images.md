@@ -1,29 +1,29 @@
 %{
-  title: "Social-Media-Bilder",
-  summary: "Dashboard-Link-Vorschauen, Projektbranding, Bildupdates und Verfügbarkeit.",
+  title: "Socialbilder",
+  summary: "Dashboard-Link-Vorschauen, Projekt-Branding, Bilderupdates und Verfügbarkeit.",
   category: "Referenz",
   section: "analytics",
   order: 30
 }
 ---
 
-Glossia generiert Social-Media-Bilder für Dashboard-Links auf seinem gehosteten Dienst.
+Glossia erstellt soziale Bilder für Dashboard-Links auf seinem gehosteten Dienst.
 
-## Link-Vorschau
+## Linkvorschau
 
-Dashboard-Seiten melden ein Bild von 1200 × 630 über [Open Graph](https://ogp.me/) und Twitter-Daten für große Bilder an. Das Teilen eines Links in einem Dienst, der diese Metadaten liest, kann die Vorschau anzeigen. Der Teiledienst entscheidet, wann er diese abruft oder aktualisiert.
+Dashboard-Seiten werben mit einem 1200 × 630 großen Bild über [offene Graphen](https://ogp.me/) und Twitter-Metadaten für große Bilder. Das Teilen eines Links in einem Dienst, der diese Metadaten liest, kann die Vorschau anzeigen. Der teilsende Dienst entscheidet, wann er diese abgerufen oder aktualisiert wird.
 
-Öffentliche Projekte enthalten ihren Namen, ihre Sektion und das hochgeladene Logo. Öffentliche Konten erhalten eine sektorenbezogene Vorschau. Private Konten und persönliche Einstellungen verwenden die generische Glossia-Branding.
+Öffentliche Projekte enthalten ihren Namen, den Abschnitt und das hochgeladene Logo. Öffentliche Konten erhalten eine abschnittsspezifische Vorschau. Private Konten und persönliche Einstellungen verwenden generisches Glossia-Branding.
 
-## Projekt-Branding
+## Projektbranding
 
-Laden Sie das Projektlogo in Glossia hoch oder ersetzen Sie es, um das Branding in der öffentlichen Vorschau zu ändern. Logos sind auf fünf Millionen Bytes beschränkt, entsprechend Projekt-Uploads.
+Laden Sie das Projektlogo in Glossia hoch oder ersetzen Sie es, um das für die öffentliche Vorschau verwendete Branding zu ändern. Logos sind auf fünf Millionen Bytes beschränkt, passend zu den Projekthochladungen.
 
-Informationen zu privaten Projekten sind nicht in einer öffentlichen Social-Media-Vorschau enthalten. Eine Vorschau gewährt keinen Zugriff auf die verknüpfte Dashboard-Seite.
+Private Projektdaten sind nicht in einer öffentlichen Vorschau für soziale Bilder enthalten. Eine Vorschau gewährt keinen Zugriff auf die verlinkte Dashboard-Seite.
 
-## Bild-Updates
+## Bilderaktualisierungen
 
-Bild-Adressen ändern sich, wenn der angezeigte Inhalt, das Projektlogo, die tägliche Bildversion oder die Glossia-Rendering-Implementierung geändert wird. Ein erfolgreiches Bild kann einen Tag lang zwischengespeichert werden. Teildienste können ihre eigene zwischengespeicherte Vorschau behalten, sodass das Ersetzen eines Logos keine sofortige Aktualisierung überall garantiert.
+Bildadressen ändern sich, wenn der angezeigte Inhalt, das Projektlogo, die tägliche Bildversion oder die Glossia-Rendering-Implementierung geändert wird. Ein erfolgreiches Bild kann für einen Tag zwischengespeichert werden. Teildienste können ihre eigene zwischengespeicherte Vorschau beibehalten, daher garantiert der Austausch eines Logos keine sofortige Aktualisierung überall.
 
 Glossia verwaltet Bildgenerierung, Speicherung, Schriftarten und Caching.
 
@@ -32,8 +32,8 @@ Glossia verwaltet Bildgenerierung, Speicherung, Schriftarten und Caching.
 | Ergebnis | Antwort |
 |---|---|
 | Bild verfügbar | 200 |
-| Ungültige oder abgelaufene Bild-Adresse | 404 |
+| Ungültige oder abgelaufene Bildadresse | 404 |
 | Bild vorübergehend nicht verfügbar | 503, mit einer Wiederholungsverzögerung von 60 Sekunden |
-| Anforderungslimit überschritten | 429, mit einer Wiederholungsverzögerung in der Antwort |
+| Anfragegrenze überschritten | 429, mit einer Wiederholungsverzögerung in der Antwort |
 
-Wenn eine Vorschau fehlt, rufen Sie die Dashboard-Seite auf und teilen Sie den aktuellen Link. Bei einem vorübergehenden Fehler erneut nach der angegebenen Verzögerung versuchen. Wenn das Problem besteht, kontaktieren Sie den Glossia-Support.
+Wenn eine Vorschau fehlt, öffnen Sie die Dashboard-Seite und teilen Sie den aktuellen Link. Bei einem vorübergehenden Fehler wiederholen Sie den Versuch nach der angegebenen Verzögerung. Wenn das Problem weiterhin besteht, wenden Sie sich an den Glossia-Support.

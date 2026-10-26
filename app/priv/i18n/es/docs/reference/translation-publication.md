@@ -1,25 +1,25 @@
 %{
   title: "Publicación de traducción",
   summary:
-    "Reutilización de solicitudes pull, agrupación y el límite de push a nivel de proyecto.",
+    "Reutilización de pull requests, agrupamiento y el límite de envíos a nivel del proyecto.",
   category: "Referencia",
   section: "translation",
   order: 10
 }
 ---
 
-Glossia mantiene una solicitud de extracción de traducción abierta por proyecto. Los nuevos commits de la rama predeterminada continúan su rama en lugar de abrir una solicitud de extracción para cada commit de origen. Se crea una nueva solicitud de extracción después de que se haya fusionado o cerrado la anterior.
+Glossia mantiene una solicitud de extracción de traducción abierta por proyecto. Los nuevos compromisos de la rama por defecto continúan su rama en lugar de abrir una solicitud de extracción para cada compromiso de origen. Una nueva solicitud de extracción se crea después de que la anterior se fusiona o cierra.
 
-La publicación y el reemplazo de sesión comparten un bloqueo de proyecto respaldado por base de datos, incluso cuando se ejecutan en diferentes réplicas de la aplicación o en ejecutores desconectados. Si un ejecutor creó una solicitud de extracción pero no pudo guardar sus metadatos, la siguiente publicación recupera la solicitud de extracción de Glossia abierta de GitHub antes de crear otra. Una solicitud de extracción abierta no se abandona cuando su rama entra en conflicto con el origen o el historial del origen se reescribe: la sesión falla y mantiene la publicación existente para su resolución.
+La publicación y el reemplazo de sesión comparten un bloqueo de proyecto respaldado por base de datos, incluso cuando se ejecutan en réplicas de aplicación diferentes o ejecutores desconectados. Si un ejecutor creó una solicitud de extracción pero no pudo guardar sus metadatos, la próxima publicación recupera la solicitud de extracción de traducción abierta de Glossia de GitHub antes de crear otra. Una solicitud de extracción abierta no se abandona cuando su rama tiene conflictos con el origen o se reescribe el historial del origen: la sesión falla y retiene la publicación existente para su resolución.
 
-## Límite de empujes
+## Límite de empuje
 
-El límite se mantiene fijo en **4 empujes por hora por proyecto**, compartido entre sesiones y réplicas. No es actualmente configurable.
+El límite está fijado en **4 empujes por hora por proyecto**, compartido entre sesiones y réplicas. Actualmente no es configurable.
 
-Los empujes se distribuyen equitativamente, sin contar en bloques de horas fijas del reloj. Las actualizaciones de rama se separan al menos 15 minutos. El próximo intervalo comienza cuando termina un intento de publicación, por lo que un lote lento no puede ser seguido inmediatamente por uno rápido. Las fusiones de la rama de origen, los lotes intermedios, los reintentos y los envíos finales comparten el mismo presupuesto. Los intentos fallidos ambiguos consumen también un cupo, porque GitHub podría haber avanzado la rama antes de fallar la conexión. El presupuesto se almacena en PostgreSQL y no se reinicia con una nueva sesión ni con el reinicio del proceso.
+Los empujes están espaciados uniformemente, no se cuentan en contenedores de hora del reloj. Las actualizaciones de rama están separadas por al menos 15 minutos. El próximo intervalo comienza cuando un intento de publicación termina, por lo que un lote lento no puede seguirse inmediatamente por uno rápido. Las fusiones de rama de origen, los lotes intermedios, los reintentos y los vaciados finales comparten el mismo presupuesto. Los intentos fallidos ambiguos también consumen un hueco, porque GitHub pudo haber avanzado la rama antes de que fallara la conexión. El presupuesto se almacena en PostgreSQL y no se restablece con una nueva sesión o reinicio de proceso.
 
-## Agrupamiento
+## Programación por lotes
 
-Una ejecución recopila cambios de archivos validados y solicita publicación después de 25 archivos o 15 minutos. Estos umbrales no eluden el límite de empujes. Durante un periodo de enfriamiento, los archivos adicionales terminados se unen al lote pendiente; los cambios repetidos a la misma ruta mantienen el contenido más reciente.
+Una ejecución recopila cambios de archivo validados y solicita publicación después de 25 archivos o 15 minutos. Estos umbrales no eluden el límite de empuje. Durante un periodo de enfriamiento, los archivos completados adicionales se unen al lote pendiente; los cambios repetidos a la misma ruta mantienen el contenido más reciente.
 
-Al finalizar la ejecución, el envío final espera el mismo presupuesto. La sesión permanece activa y envía latidos mientras espera. Revisa la cancelación y la admisión periódicamente sin mantener una transacción de base de datos abierta mientras descansa.
+Al final de la ejecución, el vaciado final espera el mismo presupuesto. La sesión permanece activa y envía latidos mientras espera. Revisa periódicamente la cancelación y la admisión sin mantener una transacción de base de datos abierta mientras está en reposo.

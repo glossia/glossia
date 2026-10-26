@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "64fcb930429aa17d32fd61fdf4570aa77d94a2a79f99d46fd8393ba1b040a627",
+  "hash": "b72473b032fb684ed8f48fdf4f2d07f19335c8d9e1d612d0365ecfb17075132e",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
+          "hash": "f5e82ede8d4b0959c24c9ac7e96b6b28f9a912488370cbce5a14521ad7647d86",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "64fcb930429aa17d32fd61fdf4570aa77d94a2a79f99d46fd8393ba1b040a627",
+      "hash": "b72473b032fb684ed8f48fdf4f2d07f19335c8d9e1d612d0365ecfb17075132e",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/public-content.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "75c529a7b7281fda0aa9c4d5b29db87912a37f6fa7e7153c5b6bf3b52e96b3cc",
+  "output_hash": "9126a43d08f92a2eed876c5415ed0acda9ff28a2203130bfa6d3629302a36dba",
   "output_path": "app/priv/i18n/es/docs/reference/public-content.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "4b77452a9ba312dea7a18611a5f1888bd50c233d",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/docs/reference/public-content.md",
-  "translated_at": "2026-10-23T09:13:51.017172Z",
-  "translation_session_id": "01a167f8-3075-7b15-b4d2-bdb3638edb55"
+  "translated_at": "2026-10-26T00:11:13.248345Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }
