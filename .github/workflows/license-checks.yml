@@ -4,8 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - '.github/workflows/enterprise-cla.yml'
-      - '.github/workflows/license-checks.yml'
+      - '.github/workflows/**'
       - '.github/tests/**'
       - 'CLA.md'
       - 'ee/LICENSE.md'
@@ -13,15 +12,12 @@ on:
       - 'app/cliff.toml'
       - 'app/mix.exs'
       - '.github/scripts/*app*.sh'
-      - '.github/workflows/app.yml'
-      - '.github/workflows/deploy.yml'
       - 'deploy/helm/glossia/**'
       - 'infra/k8s/mgmt/flux/glossia-image-automation.yaml'
       - 'infra/k8s/workload-apps/glossia-production/glossia-helmrelease.yaml'
   pull_request:
     paths:
-      - '.github/workflows/enterprise-cla.yml'
-      - '.github/workflows/license-checks.yml'
+      - '.github/workflows/**'
       - '.github/tests/**'
       - 'CLA.md'
       - 'ee/LICENSE.md'
@@ -29,8 +25,6 @@ on:
       - 'app/cliff.toml'
       - 'app/mix.exs'
       - '.github/scripts/*app*.sh'
-      - '.github/workflows/app.yml'
-      - '.github/workflows/deploy.yml'
       - 'deploy/helm/glossia/**'
       - 'infra/k8s/mgmt/flux/glossia-image-automation.yaml'
       - 'infra/k8s/workload-apps/glossia-production/glossia-helmrelease.yaml'

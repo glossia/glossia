@@ -19,7 +19,7 @@ permissions:
 jobs:
   prepare:
     name: Prepare CLI release
-    runs-on: hetzner-docker
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     if: "!startsWith(github.event.head_commit.message, '[Release]')"
     outputs:
@@ -149,7 +149,7 @@ jobs:
     name: Publish CLI release
     needs: [prepare, build]
     if: needs.prepare.outputs.should_release == 'true'
-    runs-on: hetzner-docker
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
