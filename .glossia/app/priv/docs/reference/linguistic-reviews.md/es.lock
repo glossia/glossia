@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "63485cf1fab66168b5adfac590ef9d42ef8a1803c6984ebe0692315243b49545",
+  "hash": "2937a198febc0362513fd155d9922d9c941102a6631fc273de6a67975c69c9f9",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "9381a682523448b1070d37cb0dc0f8a2ac245a84dfa66bfe5b46825fb03ddaa7",
+          "hash": "7b506a6ef817283f57b1834d23daf4123e4040c9d24a4d8c4c055996e8218168",
           "kind": "source",
           "label": "app/priv/docs/reference/linguistic-reviews.md",
           "metadata": {
-            "content_hash": "ddb57c254d760ecced367e8f9e7335ddeb39fd6000c63a1755c47bedd8e66b19"
+            "content_hash": "eed7db2bc2179127d55a55b4d0fd3d23c0234aae0cbb42332f2f3b0c4204b823"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "63485cf1fab66168b5adfac590ef9d42ef8a1803c6984ebe0692315243b49545",
+      "hash": "2937a198febc0362513fd155d9922d9c941102a6631fc273de6a67975c69c9f9",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/linguistic-reviews.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "a924517afc33952cd9d035afc888bc9172b5d2a0f042fdf6fba7b0cdbf7dc920",
+  "output_hash": "cfb8fcd08eb112dded218ea6da1fcc852422747f15d29e8dc4425b5e41b9d7d6",
   "output_path": "app/priv/i18n/es/docs/reference/linguistic-reviews.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
+  "source_commit_sha": "07ec458de27b67405f5483e5735e0896c6538861",
   "source_path": "app/priv/docs/reference/linguistic-reviews.md",
-  "translated_at": "2026-10-25T23:40:28.611305Z",
-  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
+  "translated_at": "2026-10-26T17:35:44.365851Z",
+  "translation_session_id": "01a17929-32ae-7db6-b5ff-862304be0a86"
 }
