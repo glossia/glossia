@@ -47,4 +47,4 @@ Glossia 的渐进式细化模型利用内容哈希避免冗余工作，在变换
 
 Glossia 的代码公开可用，包括其 Phoenix 应用、Rust CLI、Web SDK 和部署基础设施。这使得语言工作的机制成为可检查的，而非黑盒。
 
-仓库当前使用 [O'Saasy 许可](https://github.com/glossia/glossia/blob/main/LICENSE.md)，它允许使用和修改，但限制竞争的托管服务。公开源代码可用性和许可自由是截然不同的；在重新分发或运营服务之前阅读许可。
+Glossia 采用开放核心模式。核心代码使用 [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE)，根据其条款允许商业使用、修改、分发、自托管以及提供竞争性托管服务。`ee/` 中的代码可供查看，但并非开源；它适用单独的 [Enterprise 许可证](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md)，生产使用需要签订书面商业协议。

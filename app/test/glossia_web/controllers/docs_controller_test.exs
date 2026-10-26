@@ -7,6 +7,28 @@ defmodule GlossiaWeb.DocsControllerTest do
     assert_error_sent 404, fn -> get(conn, ~p"/docs/index.html") end
   end
 
+  test "renders the Gettext ecosystem guide and its sidebar section", %{conn: conn} do
+    html =
+      conn
+      |> get(~p"/docs/how-to/elixir-phoenix-gettext")
+      |> html_response(200)
+
+    assert html =~ ~s(data-section="ecosystems")
+    assert html =~ "Ecosystems"
+    assert html =~ "Elixir and Phoenix (Gettext)"
+    assert html =~ "sort_by_msgid"
+  end
+
+  test "serves the ecosystem guide through localized English fallback", %{conn: conn} do
+    html =
+      conn
+      |> get(~p"/es/docs/how-to/elixir-phoenix-gettext")
+      |> html_response(200)
+
+    assert html =~ ~s(data-section="ecosystems")
+    assert html =~ "sort_by_msgid"
+  end
+
   test "returns documentation results for a search query", %{conn: conn} do
     response =
       conn

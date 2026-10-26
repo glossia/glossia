@@ -22,7 +22,7 @@ jobs:
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'main' &&
       github.event.workflow_run.head_repository.full_name == github.repository
-    runs-on: hetzner-docker
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
       packages: write
@@ -63,7 +63,7 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/glossia/glossia
             org.opencontainers.image.description=Glossia internal operations platform
-            org.opencontainers.image.licenses=LicenseRef-O-Saasy
+            org.opencontainers.image.licenses=Apache-2.0
 
       - name: Bump chart image tag for Flux
         env:

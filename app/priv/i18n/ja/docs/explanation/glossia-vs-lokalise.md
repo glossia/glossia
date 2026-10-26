@@ -46,7 +46,7 @@ Structural and repository checks do not prove every sentence is correct. They co
 
 ## Public source and repository-owned outputs
 
-Glossia's implementation is available to inspect, modify, and self-host under [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md). That license restricts competing hosted services and is not an unrestricted open-source license.
+Glossia はオープンコアモデルを採用しています。コアは [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) に基づき、その条件の下で商用利用、変更、配布、セルフホスティング、競合するホスト型サービスの提供が可能です。`ee/` のコードは閲覧できますが、オープンソースではありません。別の [Enterprise ライセンス](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) が適用され、本番環境での利用には書面による商用契約が必要です。
 
 More importantly for daily delivery, your translated outputs stay in Git. You do not need an editing session in another product simply to publish the existing files you own.
 

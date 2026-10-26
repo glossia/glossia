@@ -29,8 +29,7 @@ env:
 jobs:
   test:
     if: github.event.pull_request.draft == false || github.event_name != 'pull_request'
-    # Fork pull requests never need access to the Hetzner runner cluster.
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || 'hetzner-docker' }}
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -57,7 +56,7 @@ jobs:
   build:
     needs: test
     if: github.event_name != 'pull_request'
-    runs-on: hetzner-docker
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
@@ -89,7 +88,7 @@ jobs:
           push: true
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.licenses=LicenseRef-O-Saasy
+            org.opencontainers.image.licenses=Apache-2.0
           tags: ${{ steps.tags.outputs.tags }}
           cache-from: type=gha,scope=cloudflare-operator
           cache-to: type=gha,mode=max,scope=cloudflare-operator

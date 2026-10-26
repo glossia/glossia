@@ -46,7 +46,7 @@ Glossia 는 제공자 API 토큰을 사용하여 지원되는 모델을 구성�
 
 ## 공개 소스와 저장소 소유 출력
 
-Glossia 구현은 [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md) 라이선스에 따라 검토, 수정 및 자체 호스팅할 수 있습니다. 해당 라이선스는 경쟁 호스팅 서비스를 제한하며 무제한 오픈소스 라이선스가 아닙니다.
+Glossia는 오픈 코어 모델을 따릅니다. 코어에는 [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE)이 적용되며, 해당 조건에 따라 상업적 이용, 수정, 배포, 자체 호스팅 및 경쟁 호스팅 서비스를 제공할 수 있습니다. `ee/`의 코드는 열람할 수 있지만 오픈 소스는 아닙니다. 별도의 [Enterprise 라이선스](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md)가 적용되며 프로덕션 사용에는 서면 상업 계약이 필요합니다.
 
 매일 배송을 위해 번역된 출력은 Git 에 남아있습니다. 당신이-existing 파일 소유하더라도 편집 세션을 위해 다른 제품을 방문할 필요가 없습니다.
 

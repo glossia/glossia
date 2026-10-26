@@ -44,8 +44,8 @@ The execution environment still needs the validator's dependencies, and structur
 
 ## Public source is a baseline, not the whole comparison
 
-Glossia's implementation is public and can be inspected, modified, and self-hosted under [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md). The license restricts competing hosted services; it is not the same as Weblate's GPL-based open-source license.
+Glossia's core is public and can be inspected, modified, distributed, and self-hosted under [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), which permits competing hosted services. Enterprise code under `ee/` has a separate [license](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) requiring a written commercial agreement for production use. This open-core model differs from Weblate's GPL-based licensing.
 
-If unrestricted open-source licensing and an established web translation interface are your primary criteria, Weblate deserves consideration. If the goal is **your own model credentials, existing repository checks, and language work that follows software delivery**, Glossia brings those choices together in a language OS.
+If GPL-based licensing and an established web translation interface are your primary criteria, Weblate deserves consideration. If the goal is **your own model credentials, existing repository checks, and language work that follows software delivery**, Glossia brings those choices together in a language OS.
 
 This comparison does not claim that Weblate lacks automation, validation features, or provider integrations, and does not promise automatic migration or feature parity. See [Weblate's documentation](https://docs.weblate.org/) for current capabilities.

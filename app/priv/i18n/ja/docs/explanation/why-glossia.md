@@ -47,4 +47,4 @@ Glossia の progressive-refinement モデルは、コンテンツ ハッシュ�
 
 Glossia のコードは公開されており、Phoenix アプリケーション、Rust CLI、Web SDK、デプロイ インフラストラクチャを含みます。これにより、言語作業のメカニズムはブラックボックスではなく検証可能なものとなります。
 
-リポジトリは現在、[O'Saasy license](https://github.com/glossia/glossia/blob/main/LICENSE.md)を使用しており、これは利用と改変を許可しますが、競合するホストされたサービスを制限します。パブリックソースの公開とライセンスの自由度は異なります。サービスに対し配布や運用する前にライセンスを読んでください。
+Glossia はオープンコアモデルを採用しています。コアは [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) に基づき、その条件の下で商用利用、変更、配布、セルフホスティング、競合するホスト型サービスの提供が可能です。`ee/` のコードは閲覧できますが、オープンソースではありません。別の [Enterprise ライセンス](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) が適用され、本番環境での利用には書面による商用契約が必要です。

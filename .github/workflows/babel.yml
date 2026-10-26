@@ -21,12 +21,11 @@ defaults:
   run:
     working-directory: babel
 
-# Fork pull requests never need access to the Hetzner runner cluster.
 jobs:
   build:
     if: github.event.pull_request.draft != true
     name: Build
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || 'hetzner-docker' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -43,7 +42,7 @@ jobs:
   test:
     if: github.event.pull_request.draft != true
     name: Test
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || 'hetzner-docker' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
       postgres:
@@ -73,7 +72,7 @@ jobs:
   lint:
     if: github.event.pull_request.draft != true
     name: Lint
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || 'hetzner-docker' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5

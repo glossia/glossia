@@ -19,7 +19,7 @@ permissions:
 jobs:
   prepare:
     name: Prepare CLI release
-    runs-on: hetzner-docker
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     if: "!startsWith(github.event.head_commit.message, '[Release]')"
     outputs:
@@ -125,8 +125,8 @@ jobs:
           test -s "$binary"
           package_dir="../release/${{ matrix.label }}"
           mkdir -p "$package_dir"
-          cp "$binary" ../LICENSE.md ../README.md "$package_dir/"
-          tar -C "$package_dir" -czf "../release/${{ matrix.archive_name }}" "${{ matrix.binary_name }}" LICENSE.md README.md
+          cp "$binary" ../LICENSE.md ../LICENSE-APACHE ../README.md "$package_dir/"
+          tar -C "$package_dir" -czf "../release/${{ matrix.archive_name }}" "${{ matrix.binary_name }}" LICENSE.md LICENSE-APACHE README.md
 
       - name: Package archive (Windows)
         if: runner.os == 'Windows'
@@ -137,7 +137,7 @@ jobs:
           if ((Get-Item $binary).Length -eq 0) {
             throw "The release binary is empty."
           }
-          Compress-Archive -Path $binary, "../LICENSE.md", "../README.md" -DestinationPath "../release/${{ matrix.archive_name }}" -Force
+          Compress-Archive -Path $binary, "../LICENSE.md", "../LICENSE-APACHE", "../README.md" -DestinationPath "../release/${{ matrix.archive_name }}" -Force
 
       - uses: actions/upload-artifact@v4
         with:
@@ -149,7 +149,7 @@ jobs:
     name: Publish CLI release
     needs: [prepare, build]
     if: needs.prepare.outputs.should_release == 'true'
-    runs-on: hetzner-docker
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5

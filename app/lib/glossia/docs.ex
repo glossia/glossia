@@ -97,12 +97,13 @@ defmodule Glossia.Docs do
 
   # Sidebar groups inside a category. A page opts in with `section:` in its
   # frontmatter; pages without one are listed first, without a heading.
-  @section_order ~w(translation platform analytics)
+  @section_order ~w(translation platform analytics ecosystems)
 
   @sections %{
     "translation" => %{key: "translation", title: "Translation", icon: "language"},
     "platform" => %{key: "platform", title: "Platform", icon: "users"},
-    "analytics" => %{key: "analytics", title: "Analytics", icon: "chart_column"}
+    "analytics" => %{key: "analytics", title: "Analytics", icon: "chart_column"},
+    "ecosystems" => %{key: "ecosystems", title: "Ecosystems", icon: "devices_code"}
   }
 
   @subcategories %{
@@ -416,6 +417,7 @@ defmodule Glossia.Docs do
   defp translated_section_title("translation"), do: gettext("Translation")
   defp translated_section_title("platform"), do: gettext("Platform")
   defp translated_section_title("analytics"), do: gettext("Analytics")
+  defp translated_section_title("ecosystems"), do: gettext("Ecosystems")
 
   defp translate_meta(%{key: key} = meta) do
     %{meta | title: translated_title(key), summary: translated_summary(key)}

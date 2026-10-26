@@ -1,10 +1,13 @@
-# O'Saasy License Agreement
+# Glossia licensing
 
-Copyright © 2026, Pedro Piñera Buendía.
+Copyright © 2026 Pedro Piñera Buendía.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Except as noted below, the contents of this repository are licensed under the Apache License, Version 2.0. See [LICENSE-APACHE](LICENSE-APACHE) for the complete license text.
 
-1. The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-2. No licensee or downstream recipient may use the Software (including any modified or derivative versions) to directly compete with the original Licensor by offering it to third parties as a hosted, managed, or Software-as-a-Service (SaaS) product or cloud service where the primary value of the service is the functionality of the Software itself.
+- All content under `ee/` is excluded from the Apache-2.0 grant and is governed by [ee/LICENSE.md](ee/LICENSE.md).
+- Third-party components and assets retain their original licenses and notices.
+- This license does not grant rights to Glossia's trademarks, names, or logos, except as required for reasonable attribution under Apache-2.0.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+You may use, modify, distribute, self-host, and offer the Apache-2.0 core as a hosted or commercial service, subject to that license. Enterprise code is source-available, not open source, and requires separate permission for production use.
+
+Previously published versions remain subject to the licenses under which they were distributed.

@@ -8,9 +8,7 @@ Explain the problem this solves and any relevant context.
 
 ## Contributor agreement
 
-External code and documentation contributors must read [CLA.md](https://github.com/glossia/glossia/blob/main/CLA.md). The agreement preserves your ownership while granting commercial hosting and future relicensing rights to the project owner. It is currently a draft pending legal review, and acceptance is checked manually before merge.
-
-- [ ] I agree to the Glossia Contributor License Agreement, Version 1, for my contributions in this pull request and am authorized to grant those rights.
+Core-only changes do not require a CLA. If this pull request touches `ee/`, read the [Enterprise CLA](https://github.com/glossia/glossia/blob/main/CLA.md) and follow the bot's signing instructions. Signatures are recorded in the repository; a checkbox here does not count as signing. The agreement covers only enterprise contributions and remains pending legal review.
 
 ## Validation
 

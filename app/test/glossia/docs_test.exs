@@ -63,6 +63,21 @@ defmodule Glossia.DocsTest do
                Enum.find(explanation.sections, &(&1.key == "translation"))
     end
 
+    test "groups ecosystem how-to guides in every locale" do
+      for locale <- Glossia.I18n.locales() do
+        how_to = category("how-to", locale)
+        ecosystems = Enum.find(how_to.sections, &(&1.key == "ecosystems"))
+
+        assert ecosystems.icon == "devices_code"
+        assert section_pages(how_to, "ecosystems") == ["elixir-phoenix-gettext"]
+
+        page = Docs.get_page!("how-to", nil, "elixir-phoenix-gettext", locale)
+        assert page.section == "ecosystems"
+        assert page.body =~ "sort_by_msgid"
+        assert Enum.any?(Docs.search_index(locale), &(&1.slug == page.slug))
+      end
+    end
+
     test "translated pages keep the English page's section" do
       explanation = category("explanation", "es")
       assert "glossary" in section_pages(explanation, "translation")

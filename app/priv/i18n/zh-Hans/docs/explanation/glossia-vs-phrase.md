@@ -46,7 +46,7 @@ Glossia 可通过 `L10N.md` 验证命令复用这些检查。它将候选项暂�
 
 ## 公开实现，非黑盒
 
-Glossia 的应用程序、CLI、SDK 和部署源是公开的。您可以检查内容处理方式，并在 [O'Saasy license](https://github.com/glossia/glossia/blob/main/LICENSE.md) 下修改或自托管实现。该许可证限制竞争对手的托管服务，并非不受限制的开源代码许可证。
+Glossia 的应用程序、CLI、SDK 和基础设施源码均为公开。核心代码使用 [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE)，根据其条款允许商业使用、修改、分发、自托管以及提供竞争性托管服务。`ee/` 中的代码适用单独的 [Enterprise 许可证](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md)，生产使用需要签订书面商业协议。
 
 更广泛的翻译套件适合专业翻译运营和复杂协调。如果您的优先级是 **用自有凭证和存储库检查匹配软件交付速度**，Glossia 旨在保持该工作流直接。
 

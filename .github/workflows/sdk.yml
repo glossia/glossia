@@ -21,12 +21,11 @@ on:
 permissions:
   contents: read
 
-# Fork pull requests never need access to the Hetzner runner cluster.
 jobs:
   test:
     if: github.event.pull_request.draft != true
     name: Test
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || 'hetzner-docker' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
       run:
@@ -47,7 +46,7 @@ jobs:
   build:
     if: github.event.pull_request.draft != true
     name: Build
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || 'hetzner-docker' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
       run:

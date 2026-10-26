@@ -47,7 +47,7 @@ Les vérifications structurelles et de dépôt ne prouvent pas que chaque phrase
 
 ## Source publique et sorties appartenant au dépôt
 
-L'implémentation de Glossia est disponible pour examen, modification et auto-hébergement sous [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md). Cette licence restreint les services hébergés concurrents et n'est pas une licence open source non restreinte.
+Glossia suit un modèle open core. Le cœur utilise [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), qui autorise l'utilisation commerciale, la modification, la distribution, l'auto-hébergement et les services hébergés concurrents selon ses conditions. Le code de `ee/` est consultable, mais n'est pas open source. Il relève d'une [licence Enterprise](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) distincte et son utilisation en production nécessite un accord commercial écrit.
 
 Plus important encore pour la livraison quotidienne, vos sorties traduites restent dans Git. Vous n'avez pas besoin d'une session d'édition dans un autre produit simplement pour publier les fichiers existants que vous possédez.
 
