@@ -1,28 +1,28 @@
 %{
   title: "Modellanbieter konfigurieren",
-  summary: "Fügen Sie ein Account-Modell hinzu und verweisen Sie es sicher aus Repositories.",
-  category: "Anleitungen",
+  summary: "Fügen Sie ein Account-Modell hinzu und referenzieren Sie es sicher aus Repositorien.",
+  category: "Anleitung",
   section: "translation",
   order: 3
 }
 ---
 
-Die Projekteinrichtung und Translationsläufe verwenden Modelle, die für das aktuelle Glossia-Konto konfiguriert sind. Konfiguriere mindestens ein Modell, bevor du ein Projekt erstellst.
+Projekt-Einrichtung und Übersetzungsläufe verwenden Modelle, die für das aktuelle Glossia-Konto konfiguriert sind. Konfigurieren Sie mindestens ein Modell, bevor Sie ein Projekt erstellen.
 
 ## Modell hinzufügen
 
-1. Öffne **Einstellungen** und wähle **Modelle** aus.
-2. Wähle **Neues Modell** aus.
-3. Geben Sie einen eindeutigen Handle ein, wie z. B. `translation-default`.
-4. Öffne den Modellauswahl-Menü und gib einen Teil des Provider-Namens ein, um die Liste zu filtern.
-5. Wähle ein Modell aus und gib seinen Provider-Schlüssel ein.
-6. Speichere das Modell.
+1. Öffnen **Einstellungen** und wählen Sie **Modelle** aus.
+2. Wählen Sie **Neues Modell** aus.
+3. Geben Sie einen eindeutigen Handle ein, z. B. `translation-default`.
+4. Öffnen Sie den Modell-Selektor und geben Sie einen Teil des Namens des Anbieters oder Modells ein, um die Liste zu filtern.
+5. Wählen Sie ein Modell aus und geben Sie dessen Anbieterschlüssel ein.
+6. Speichern Sie das Modell.
 
-Der Handle bleibt stabil, auch wenn du später das zugrunde liegende Provider-Modell änderst. Das zuerst im Konto hinzugefügte Modell wird zum Standardmodell.
+Der Handle bleibt stabil, selbst wenn Sie später das dahinterliegende Anbietermodell ändern. Das erste hinzugefügte Modell eines Kontos wird dessen Standardmodell.
 
-## Modell im Repository referenzieren
+## Referenzieren Sie das Modell aus einem Repository
 
-Definiere `model` im relevanten `L10N.md` Frontmatter:
+Geben Sie `model` in das relevante `L10N.md` frontmatter ein:
 
 ```yaml
 ---
@@ -30,30 +30,30 @@ model: translation-default
 ---
 ```
 
-Das Repository speichert nur den Handle. Der Provider-Schlüssel bleibt in den Kontoeinstellungen erhalten.
+Das Repository speichert nur den Handle. Der Anbieterschlüssel verbleibt in den Kontoeinstellungen.
 
-## Wählen Sie das Standardmodell
+## Wählen Sie das Standardmodell aus
 
-Wenn `L10N.md` `model` nicht enthält, verwendet Glossia das Standardmodell des Kontos. Um dies zu ändern, öffne das Modell, das Standard werden soll, und wähle **Als Standard festlegen** aus.
+Wenn `L10N.md` `model` weglässt, verwendet Glossia das Standardmodell des Kontos. Um dies zu ändern, öffnen Sie das Modell, das als Standard dienen soll, und wählen Sie **Als Standard festlegen**.
 
-Um das Verhalten über mehrere Modelle hinweg vorhersehbar zu gestalten, verweise explizit auf einen Handle in `L10N.md`.
+Um ein konsistentes Verhalten über mehrere Modelle sicherzustellen, verweisen Sie explizit auf einen Handle in `L10N.md`.
 
-Sie können einen anderen `model`-Handle in einem verschachtelten `L10N.md` für einen Inhaltsbereich oder in `L10N/<locale>.md` für eine Zielsprache platzieren. Glossia verwendet die passendste Einstellung für jedes Dokument und jede Sprache. Es teilt die Arbeit nicht automatisch zwischen den konfigurierten Modellen auf.
+Sie können einen anderen `model`-Handle in einem verschachtelten `L10N.md` für einen Inhaltsbereich oder in `L10N/<locale>.md` für eine Zielsprache platzieren. Glossia verwendet die passendste verfügbare Einstellung für jedes Dokument und jede lokale. Es teilt die Arbeit nicht automatisch zwischen den konfigurierten Modellen auf.
 
-Wenn kein expliziter Handle im Konto existiert, bricht die Übersetzung mit einem Fehler ab. Es wird nicht auf ein anderes Modell zurückgegriffen.
+Wenn ein expliziter Handle im Konto nicht existiert, stoppt die Übersetzung mit einem Fehler. Es wird nicht auf ein anderes Modell zurückgefallen.
 
-## Provider-Schlüssel ändern oder rotieren
+## Ändern Sie oder rotieren Sie einen Anbieterschlüssel
 
-Öffne **Einstellungen**, wähle **Modelle** und öffne den Modell-Handle. Gib einen neuen Provider-Schlüssel ein und speichere. Lasst das Schlüsselfeld leer, um den aktuellen Schlüssel zu behalten.
+Öffnen **Einstellungen**, wählen **Modelle** und öffnen Sie den Modell-Handle. Geben Sie einen neuen Anbieterschlüssel ein und speichern Sie. Lassen Sie das Schlüsselfeld leer, um den aktuellen Schlüssel beizubehalten.
 
-Repositorys, die den Handle referenzieren, müssen sich nicht ändern.
+Repositorys, die sich auf den Handle beziehen, müssen sich nicht ändern.
 
-## Jev für Übersetzungsqualitätsentscheidungen hinzufügen
+## Fügen Sie Jev für Übersetzungsqualitätsentscheidungen hinzu
 
-1. Öffne **Einstellungen → Modelle → Neues Modell** und wähle **Entscheidung** als Kategorie aus.
-2. Verwende einen Handle wie `translation-quality`. Lass `typesafe/jev-latest`, oder gib eine festgelegte TypeSafe Jev-Modellversion ein.
-3. Gib deinen TypeSafe-Provider-Schlüssel ein. Lass die Basisadresse leer, um den nativen TypeSafe-Endpunkt zu verwenden; eine benutzerdefinierte Adresse muss dessen Versionspräfix enthalten, wie z. B. `https://api.typesafe.ai/v1`.
-4. Stelle den Mindestqualitätswert von 1 bis 10 ein und speichere. Das erste Entscheidungsmodell wird zum Standard-Entscheidungsmodell und ermöglicht die Bewertung automatisch.
-5. Starte die Übersetzung. Fehlgeschlagene Qualitätsdimensionen bitten innerhalb der `retries` Budgets, die in deinem Repository konfiguriert sind, um Korrektur.
+1. Öffnen **Einstellungen → Modelle → Neues Modell** und wählen Sie **Entscheidung** als Kategorie.
+2. Verwenden Sie einen Handle wie `translation-quality`. Halten Sie `typesafe/jev-latest` oder geben Sie eine feste TypeSafe Jev-Modellversion ein.
+3. Geben Sie Ihren TypeSafe-Anbieterschlüssel ein. Lassen Sie die Basisadresse leer, um das native TypeSafe-Endpunkt zu verwenden; eine benutzerdefinierte Adresse muss ihren Versionsprfix enthalten, wie z. B. `https://api.typesafe.ai/v1`.
+4. Stellen Sie die Mindestqualitätsnote von 1 bis 10 ein und speichern Sie. Das erste Entscheidungsmodell wird zum Standard-Entscheidungsmodell und ermöglicht die automatische Auswertung.
+5. Starten Sie die Übersetzung. Fehlgeschlagene Qualitätsdimensionen beantragen eine Korrektur innerhalb des `retries` Budgets, das in Ihrem Repository konfiguriert ist.
 
-Generative und Entscheidungsmodelle haben eigene Standards. Lass deine Translationsmodell-Handles unverändert. Entscheidungsmodelle können nicht über Repository-Übersetzungs-Handles oder Lokalisierungs-Routing-Regeln ausgewählt werden. Entferne alle Entscheidungsmodelle, um die Bewertung zu deaktivieren.
+Generative und Entscheidungsmodelle haben separate Standards. Halten Sie Ihre Übersetzungsmodell-Handles unverändert. Entscheidungsmodelle können nicht über Repository-Übersetzungs-Handles oder Locale-Weiterleitungsregeln ausgewählt werden. Entfernen Sie alle Entscheidungsmodelle, um die Auswertung zu deaktivieren.
