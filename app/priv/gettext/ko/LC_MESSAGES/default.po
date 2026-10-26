@@ -5285,16 +5285,6 @@ msgstr "방문 기록이 지원되지 않는 언어의 국가 및 언어 정보�
 msgid "Visitor countries appear when geolocation succeeds. Visits without a resolved country are not shown."
 msgstr "지오 위치 확인 시 방문자 국가가 표시됩니다. 국가가 확인되지 않은 방문은 표시되지 않습니다."
 
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "Not reported"
-msgstr "보고되지 않음"
-
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "The tracker did not report a page language. Older tracker versions and pages without an HTML lang attribute can cause this."
-msgstr "트래커가 페이지 언어를 보고하지 않았습니다. 이전 버전의 트래커 및 HTML lang 속성이 없는 페이지는 이를 유발할 수 있습니다."
-
 #: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Cached input"

@@ -124,7 +124,8 @@ defmodule Glossia.Analytics.Queries do
   @doc """
   Browser languages by visit count, with the localization gap flagged. Used
   by the dashboard to show which languages the project's audience speaks
-  vs. which ones the project serves.
+  vs. which ones the project serves. Visits without a reported page language
+  are omitted.
   """
   def browser_languages(project_id, target_languages, opts \\ []) do
     limit = Keyword.get(opts, :limit, 20)
@@ -138,7 +139,8 @@ defmodule Glossia.Analytics.Queries do
         e.project_id == ^to_string(project_id) and
           e.inserted_at >= ^DateTime.truncate(since, :second) and
           e.inserted_at < ^DateTime.truncate(until, :second) and
-          e.browser_language != "",
+          e.browser_language != "" and
+          e.served_locale != "",
       group_by: [e.browser_language, e.has_locale_gap, e.served_locale],
       order_by: [desc: count(e.id)],
       limit: ^limit,

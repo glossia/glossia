@@ -3,9 +3,9 @@
  *
  * The SDK collects only what is needed to surface localization opportunities:
  * the page URL, referrer, browser languages, timezone, and screen width. It
- * stores nothing on the device (no cookies, no fingerprinting). A per-tab
- * session id (kept in `sessionStorage`, cleared on close) is sent so a single
- * visit can group pageviews, but no identifier persists across sessions.
+ * sets no cookies and does no fingerprinting. A per-tab session id and an
+ * explicitly selected language are kept in `sessionStorage` (cleared on close),
+ * but no identifier or preference persists across sessions.
  *
  * The server derives the unique visitor (a daily-rotated hash of IP + UA) and
  * the country from GeoIP, so neither the IP nor the User-Agent is ever stored.
@@ -32,16 +32,20 @@
  * @property {string} l
  * @property {string} sl - Actual page language from `<html lang>`.
  * @property {string} al - Available translations advertised with `hreflang`.
+ * @property {string} cl - Explicitly chosen language, or empty when unknown.
  * @property {string} tz
  * @property {number} sw
  * @property {string} sid
  */
 
 const SESSION_KEY = "__glossia_sid";
+const SELECTED_LANGUAGE_KEY = "__glossia_selected_language";
 
 let endpoint = "/v1/collect";
 let siteDomain = null;
 let sessionId = null;
+let selectedLanguage;
+let languageSelectionHooked = false;
 
 function detectEndpoint() {
   if (typeof document === "undefined") return "/v1/collect";
@@ -75,6 +79,61 @@ function availableLanguages() {
     .map((link) => link.getAttribute("hreflang"))
     .filter((language) => language && language.toLowerCase() !== "x-default")
     .join(",");
+}
+
+function normalizeLanguage(language) {
+  if (typeof language !== "string" || language.length > 64) return "";
+  try {
+    return Intl.getCanonicalLocales(language.trim())[0] || "";
+  } catch {
+    return "";
+  }
+}
+
+function chosenLanguage() {
+  if (selectedLanguage !== undefined) return selectedLanguage;
+  try {
+    selectedLanguage = normalizeLanguage(window.sessionStorage.getItem(SELECTED_LANGUAGE_KEY));
+  } catch {
+    selectedLanguage = "";
+  }
+  return selectedLanguage;
+}
+
+function hookLanguageSelection() {
+  if (languageSelectionHooked || typeof document === "undefined") return;
+  languageSelectionHooked = true;
+
+  // Capture before a router can stop propagation or navigate. This records
+  // intent, not proof that navigation succeeded; `sl` remains the measured
+  // page language on every event. Never infer intent from script-driven clicks.
+  document.addEventListener("click", (event) => {
+    if (
+      !event.isTrusted || event.defaultPrevented || event.button !== 0 ||
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
+    ) return;
+
+    const target = event.target?.nodeType === 3 ? event.target.parentElement : event.target;
+    const link = target?.closest?.("a[href][data-glossia-language]");
+    if (!link || link.hasAttribute("download")) return;
+
+    // Do not change this tab's preference for another tab or origin. Storage
+    // cannot follow cross-origin links, and modified clicks open other tabs.
+    const linkTarget = link.getAttribute("target") ||
+      document.querySelector("base[target]")?.getAttribute("target") || "_self";
+    if (linkTarget.toLowerCase() !== "_self") return;
+    try {
+      const destination = new URL(link.getAttribute("href"), document.baseURI);
+      if (
+        !["http:", "https:"].includes(destination.protocol) ||
+        destination.origin !== window.location.origin
+      ) return;
+    } catch {
+      return;
+    }
+
+    selectLanguage(link.getAttribute("data-glossia-language"));
+  }, true);
 }
 
 function timezone() {
@@ -174,6 +233,7 @@ function build(name) {
     l: browserLanguages(),
     sl: pageLanguage(),
     al: availableLanguages(),
+    cl: chosenLanguage(),
     tz: timezone(),
     sw: screenWidth(),
     sid: readOrCreateSessionId(),
@@ -181,11 +241,31 @@ function build(name) {
 }
 
 /**
- * Record a custom event (e.g. `glossia("track", "signup")`).
+ * Record a custom event (e.g. `glossia.track("signup")`).
  * @param {string} name
  */
 export function track(name) {
   send(build(name));
+}
+
+/**
+ * Record an explicit language choice from a user-action handler. Call before
+ * navigation; subsequent events keep the choice without changing `sl` or `l`.
+ * Invalid language tags and calls before init() are ignored.
+ * @param {string} language - BCP 47 language tag, e.g. "zh-Hans".
+ */
+export function selectLanguage(language) {
+  if (!siteDomain) return;
+  const normalized = normalizeLanguage(language);
+  if (!normalized) return;
+
+  selectedLanguage = normalized;
+  try {
+    window.sessionStorage.setItem(SELECTED_LANGUAGE_KEY, normalized);
+  } catch {
+    // Keep the choice in memory when storage is blocked or full.
+  }
+  send(build("language_selection"));
 }
 
 /**
@@ -210,6 +290,7 @@ export function init(config = {}) {
   siteDomain = domain;
   endpoint = config.endpoint || detectEndpoint();
   readOrCreateSessionId();
+  hookLanguageSelection();
 
   if (config.autoPageviews !== false) {
     pageview();
@@ -255,4 +336,4 @@ if (typeof document !== "undefined") {
   }
 }
 
-export default { init, track, pageview };
+export default { init, track, pageview, selectLanguage };

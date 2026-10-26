@@ -5292,16 +5292,6 @@ msgstr "Las oportunidades de traducción aparecen cuando las visitas incluyen da
 msgid "Visitor countries appear when geolocation succeeds. Visits without a resolved country are not shown."
 msgstr "Los países de los visitantes aparecen cuando la geolocalización tiene éxito. Las visitas sin un país resuelto no se muestran."
 
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "Not reported"
-msgstr "No reportado"
-
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "The tracker did not report a page language. Older tracker versions and pages without an HTML lang attribute can cause this."
-msgstr "El rastreador no reportó un idioma de página. Las versiones antiguas del rastreador y las páginas sin un atributo lang de HTML pueden causar esto."
-
 #: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Cached input"
