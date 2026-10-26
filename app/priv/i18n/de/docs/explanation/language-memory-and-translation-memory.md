@@ -1,7 +1,7 @@
 %{
-  title: "Sprachenspeicher und Übersetzungsspeicher",
+  title: "Sprachgedächtnis und Übersetzungsgedächtnis",
   summary:
-    "Wie Stimme und Terminologie geprüfte Übersetzungen ergänzen, ohne die Lieferung an einen proprietären Speicher zu binden.",
+    "Wie Stimme und Terminologie geprüfte Übersetzungen ergänzen, ohne die Übergabe an ein proprietäres Gedächtnis zu binden.",
   category: "Erklärung",
   markdown_only: true,
   section: "translation",
@@ -9,29 +9,29 @@
 }
 ---
 
-Ein Übersetzungsspeicher erfasst normalerweise zuvor übersetzte Quellzielabschnitte. Ein passender oder ähnlicher Quellabschnitt kann frühere Arbeit wiederverwenden. Dies ist wertvoll für wiederkehrendes Material und zum Bewahren geprüfter Übersetzungen.
+Ein Übersetzungsspeicher protokolliert in der Regel zuvor übersetzte Quelltext-Zielabschnitte. Ein passender oder ähnlicher Quelltextabschnitt kann frühere Arbeit wiederverwenden. Dies ist wertvoll für wiederkehrendes Material und für den Erhalt geprüfter Übersetzungen.
 
-Das Sprachgedächtnis von Glossia begegnet einem anderen Bedarf: den Prinzipien, die neuem Texten den Klang der Organisation verleihen, selbst wenn der Satz noch nie zuvor aufgetaucht ist.
+Glossias Sprachgedächtnis geht auf einen anderen Bedarf ein: die Prinzipien, die neuen Text so klingen lassen wie die Organisation, selbst wenn der Satz zuvor noch nie vorgekommen ist.
 
-## Ausgabe im Gedächtnis versus Intention im Gedächtnis
+## Erinnern an Ergebnisse versus Erinnern an Absicht
 
-Eine geprüfte Übersetzung antwortet: „Wie haben wir das zuvor übersetzt?' Sprachführung und ein Glossar beantworten Fragen wie:
+Eine geprüfte Übersetzung beantwortet: "Wie haben wir das zuvor übersetzt?" Tonrichtlinien und ein Fachwörterbuch beantworten Fragen wie:
 
-- Welche Produktbegriffe sollen unverändert bleiben?
-- Welche Terminologie sollten wir einheitlich verwenden?
-- Welcher Ton passt zu diesem Publikum?
-- Welche Sprachentscheidungen sollte ein Agent respektieren bei der Erstellung neuen Materials?
+- Welche Produktbegriffe sollten unverändert bleiben?
+- Welche Terminologie sollten wir konsistent verwenden?
+- Welche Tonalität passt dieser Zielgruppe an?
+- Welche Sprachentscheidungen sollte ein Agent bei der Erstellung neuen Materials respektieren?
 
-Diese Eingaben können bei der Lokalisierung und bei der Inhaltserstellung in der Quellsprache helfen. Sie beschränken sich nicht nur auf das Abrufen eines passenden Zielsegments.
+Diese Eingaben können bei der Lokalisierung und bei der Inhaltserstellung in der Ursprungssprache helfen. Sie sind nicht auf das Abrufen eines passenden Zieltextsegments beschränkt.
 
 ## Ergänzende Werkzeuge
 
-Übersetzungsspeicher und Sprachführung lösen überlappende, aber unterschiedliche Probleme. Ein Team kann von beiden profitieren. Glossia verspricht nicht, dass modellgenerierter Text jedes geprüfte Segment ersetzen kann, oder dass Prompting sprachliche Korrektheit garantiert.
+Übersetzungsspeicher und Sprachrichtlinien lösen überlappende, aber unterschiedliche Probleme. Ein Team kann von beiden profitieren. Glossia verspricht nicht, dass modellgenerierter Text jedes überprüfte Segment ersetzen kann, oder dass Prompting linguistische Korrektheit garantiert.
 
-Die wichtige Architekturwahl besteht darin, einen proprietären Speicher nicht als einzige Autorität für die Sprache des Unternehmens zu machen. Repository-bezogener Inhalt, wiederverwendbarer Kontext, Versionsverlauf und Überprüfung tragen alle zu einem Prozess bei, den das Team verstehen und pflegen kann.
+Die wichtige architektonische Entscheidung besteht nicht darin, einen proprietären Speicher als die einzige Autorität für die Unternehmenssprache zu machen. Repository-eigene Inhalte, wiederverwendbarer Kontext, Versionshistorie und Überprüfung tragen alle zu einem Prozess bei, den das Team verstehen und verwalten kann.
 
-## Kontext benötigt immer noch Überprüfung
+## Der Kontext benötigt weiterhin eine Überprüfung
 
-Sprachhinweise können unvollständig oder widersprüchlich sein. Ein Begriff kann in verschiedenen Produkten unterschiedliche Bedeutungen haben. Menschen bleiben dafür verantwortlich, zu entscheiden, ob das Ergebnis genau und angemessen ist; Validierung kann strukturelle Fehler erkennen, kann aber nicht beweisen, dass jeder Satz richtig ist.
+Richtlinien können unvollständig oder widersprüchlich sein. Ein Begriff kann in verschiedenen Produkten unterschiedliche Bedeutungen haben. Menschen bleiben verantwortlich für die Entscheidung, ob das Ergebnis genau und angemessen ist; Validierungen können strukturelle Fehler erkennen, können aber nicht beweisen, dass jeder Satz richtig ist.
 
-Lesen Sie [Warum Glossia](./why-glossia) für das breitere Modell und [Kontinuierliche Lokalisierung](./continuous-localization) für die Beziehung zur Lieferung.
+Lesen Sie [Warum Glossia](./why-glossia) für das umfassendere Modell und [Kontinuierliche Lokalisierung](./continuous-localization) für dessen Verhältnis zur Auslieferung.

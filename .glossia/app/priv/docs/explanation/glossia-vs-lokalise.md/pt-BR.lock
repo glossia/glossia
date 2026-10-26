@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "0898698631714a7cbbbbda457b5f623af47c1af9f19bcee66927a9c406d38d30",
+  "hash": "ff5b2639ca663d2ad6e4ea0f991b0cf53ad220092f2eab839b9ccdd796d569de",
   "hash_tree": {
     "root": {
       "children": [
@@ -15,7 +15,7 @@
         },
         {
           "children": [],
-          "hash": "c026d8712383029009d95e5a9b53588fc4d1d713b60dc020ea0f9880685052d1",
+          "hash": "7728e957f901c693a4181111fadcd543da569049f9c9f59ed07693bd044025f6",
           "kind": "translation_config",
           "label": "generation",
           "metadata": {
@@ -31,7 +31,7 @@
             "retries": 3,
             "segmentation_version": 1,
             "source_language": "en",
-            "validation_hash": "064760dc472b525acbc80c5ce08973a94fc7a5b06ba42cfab835324c7c048924"
+            "validation_hash": "ae3606ed9b1629c1a55145739b0db6174aa75ed71272a6af6089832cad7abbfc"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "0898698631714a7cbbbbda457b5f623af47c1af9f19bcee66927a9c406d38d30",
+      "hash": "ff5b2639ca663d2ad6e4ea0f991b0cf53ad220092f2eab839b9ccdd796d569de",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/glossia-vs-lokalise.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "3d2f8b37a44de54d6df483931dd1491396c32f02007f1bc3c1ecee8879e3e0c8",
+  "output_hash": "70635f2a4f64dc8ee70c7a9ff1a9892606455b2df74a1f9de5a9f4fbf97f4492",
   "output_path": "app/priv/i18n/pt-BR/docs/explanation/glossia-vs-lokalise.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "4af8e3d7b56d9aa30ea1f330b414ee3a1ed1fec1",
+  "source_commit_sha": "57f484cf34215985850f4b24b427584a3c434b64",
   "source_path": "app/priv/docs/explanation/glossia-vs-lokalise.md",
-  "translated_at": "2026-10-25T20:37:19.348558Z",
-  "translation_session_id": "01a174ad-9815-72eb-be16-f16f32338de0"
+  "translated_at": "2026-10-26T11:24:34.289942Z",
+  "translation_session_id": "01a177c8-691e-7edb-9e0a-7e6eeb58673d"
 }
