@@ -272,6 +272,14 @@ defmodule GlossiaWeb.MobileOpenApiSpec do
           "resolution_message_id" => nullable_uuid(),
           "conversation_id" => nullable_uuid(),
           "participants" => array(object(%{"id" => uuid(), "name" => nullable_string()})),
+          "answered_by" => %{
+            "anyOf" => [
+              object(%{"id" => uuid(), "name" => nullable_string()}),
+              %{"type" => "null"}
+            ],
+            "description" =>
+              "Human who approved the decision, or null if not answered or unavailable"
+          },
           "inserted_at" => timestamp()
         }),
       "LinguisticReviewRequest" =>

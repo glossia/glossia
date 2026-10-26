@@ -70,10 +70,30 @@ struct TranslationReviewsTests {
         turns.append(["id": "ccc12345-802e-4f91-9112-77d8a919efc5", "role": "user", "content": "A newer turn"])
         model.detail?["messages"] = turns; #expect(!model.canResolve)
         model.detail = thread(); model.beginResolution()
+        #expect(model.proposalReplyID == replyID)
         model.detail = thread(reply: "ccc12345-802e-4f91-9112-77d8a919efc5")
-        #expect(!model.canSaveDecision && model.hasProtectedWork)
+        #expect(!model.canSaveDecision && model.hasProtectedWork && model.proposalReplyID == replyID)
         model.close(); #expect(model.selectedID == chatID)
-        model.discardDecision(); #expect(model.canResolve)
+        model.discardDecision(); #expect(model.canResolve && model.proposalReplyID == "ccc12345-802e-4f91-9112-77d8a919efc5")
+    }
+
+    @Test func contextualPromptsOnlyPrepareEditableDraftsAndNeverReplaceProtectedWork() async {
+        var writes = 0
+        let model = TokiModel { input in
+            if input["operation"] as? String != "conversation" { writes += 1 }
+            return thread()
+        }
+        await model.open(chatID)
+        model.prepareGoalPrompt("Compare tú with usted.")
+        #expect(model.draft == "Compare tú with usted." && model.decision == nil)
+        model.prepareGoalPrompt("A different prompt")
+        #expect(model.draft == "Compare tú with usted.")
+        model.draft = ""; model.beginResolution()
+        model.prepareGoalPrompt("Do not replace this decision")
+        #expect(model.draft.isEmpty && model.decision?.answer == "Use informal tú.")
+        model.discardDecision(); model.detail = thread("answered")
+        model.prepareGoalPrompt("Do not reopen a resolved conversation")
+        #expect(model.draft.isEmpty && writes == 0)
     }
 
     @Test func authoritativeReloadExposesResumedIdentityAndAccessLossClearsDraft() async {

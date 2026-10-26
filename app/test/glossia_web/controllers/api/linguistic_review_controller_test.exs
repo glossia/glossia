@@ -8,6 +8,7 @@ defmodule GlossiaWeb.Api.LinguisticReviewControllerTest do
   test "scoped shared reviews accept one decision and return its continuation", %{conn: conn} do
     unique = System.unique_integer([:positive])
     user = TestHelpers.create_user("review-api-#{unique}@test.com", "review-api-#{unique}")
+    {:ok, user} = Glossia.Accounts.update_user_profile(user, %{name: "Review Approver"})
     outsider = TestHelpers.create_user("review-outsider-#{unique}@test.com", "outsider-#{unique}")
     {:ok, project} = Projects.create_project(user.account, %{handle: "docs", name: "Docs"})
     project = Repo.preload(project, :account)
@@ -53,7 +54,7 @@ defmodule GlossiaWeb.Api.LinguisticReviewControllerTest do
            |> get(list)
            |> json_response(403)
 
-    assert [%{"id" => id, "question" => "Which kind of branch?"}] =
+    assert [%{"id" => id, "question" => "Which kind of branch?", "answered_by" => nil}] =
              read |> get(list) |> json_response(200) |> Map.fetch!("reviews")
 
     assert id == review.id
@@ -97,6 +98,7 @@ defmodule GlossiaWeb.Api.LinguisticReviewControllerTest do
 
       assert detail["conversation"]["linguistic_review"]["id"] == review.id
       assert detail["conversation"]["linguistic_review"]["conversation_id"] == conversation.id
+      assert Map.fetch!(detail["conversation"]["linguistic_review"], "answered_by") == nil
       assert [_, human, assistant] = detail["messages"]
       assert human["user_id"] == user.id
       assert human["status"] == "completed"
@@ -108,14 +110,30 @@ defmodule GlossiaWeb.Api.LinguisticReviewControllerTest do
         resolution_message_id: resolution.id,
         guidance: "Branch means a source-control branch.",
         context_scope: "locale",
-        context_path: "../../secret"
+        context_path: "../../secret",
+        answered_by_id: outsider.id,
+        answered_by: %{id: outsider.id, name: "Not the approver"}
       }
 
       body = write |> post(answer, attrs) |> json_response(200)
       assert body["review"]["status"] == "answered"
       assert body["review"]["context_path"] == "L10N/es.md"
+      assert body["review"]["answered_by"] == %{"id" => user.id, "name" => user.name}
+      refute Map.has_key?(body["review"], "answered_at")
       assert is_binary(body["review"]["resumed_session_id"])
       assert write |> post(answer, attrs) |> json_response(200) == body
+
+      assert read |> get(list) |> json_response(200) |> Map.fetch!("reviews") == [body["review"]]
+
+      resolved =
+        conn
+        |> TestHelpers.authenticate(user, ~w(toki:read translation:read))
+        |> get(
+          ~p"/api/#{user.account.handle}/projects/#{project.handle}/toki/conversations/#{conversation.id}"
+        )
+        |> json_response(200)
+
+      assert resolved["conversation"]["linguistic_review"] == body["review"]
 
       assert write |> post(answer, %{answer: "A tree limb."}) |> json_response(409) == %{
                "error" => "already_answered"
