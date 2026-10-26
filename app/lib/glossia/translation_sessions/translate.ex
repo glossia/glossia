@@ -305,6 +305,9 @@ defmodule Glossia.TranslationSessions.Translate do
 
       # An open PR must not be abandoned just because its branch conflicts
       # with the source. Fail visibly rather than opening a second PR.
+      {:error, {:api_error, 409, _body}} ->
+        {:error, :translation_branch_conflict}
+
       {:error, _reason} = error ->
         error
     end
@@ -956,6 +959,9 @@ defmodule Glossia.TranslationSessions.Translate do
         failure_metadata({:translation_publication_failed, publication_reason})
     }
   end
+
+  defp failure_metadata(:translation_branch_conflict),
+    do: %{"failure_kind" => "translation_branch_conflict"}
 
   defp failure_metadata(_reason), do: %{"failure_kind" => "translation_failed"}
 

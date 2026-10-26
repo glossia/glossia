@@ -16,6 +16,10 @@ defmodule Glossia.TranslationSessions.Error do
     "The translation plan could not be created. Check the configuration in L10N.md and any locale overlays, then retry."
   end
 
+  def describe(:translation_branch_conflict) do
+    "The translation pull request branch conflicts with the latest source commit. Resolve the conflicts in the existing pull request, then retry."
+  end
+
   def describe(_reason) do
     "The translation could not be completed. Please retry. If the problem persists, contact support with the session ID."
   end

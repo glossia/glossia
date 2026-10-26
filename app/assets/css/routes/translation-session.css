@@ -127,7 +127,8 @@
     font-weight: var(--noora-font-weight-semibold);
   }
 
-  & [data-part="metadata"] [data-part="label"] {
+  & [data-part="metadata"] [data-part="label"],
+  & #translation-engine-image [data-part="trigger"] {
     color: var(--color-text);
     font-size: var(--text-sm);
     overflow-wrap: anywhere;
