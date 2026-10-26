@@ -20,7 +20,7 @@ spec:
   imageRepositoryRef:
     name: glossia
   filterTags:
-    pattern: "^main$"
+    pattern: "^main-enterprise$"
   policy:
     alphabetical:
       order: asc

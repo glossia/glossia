@@ -33,10 +33,10 @@ msgstr "Páginas principales"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
-msgid "Where to translate next"
-msgstr "Dónde traducir a continuación"
+msgid "Traffic"
+msgstr "Tráfico"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
-msgid "Traffic"
-msgstr "Tráfico"
+msgid "Where to translate next"
+msgstr "Dónde traducir a continuación"

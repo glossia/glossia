@@ -57,9 +57,38 @@ defmodule GlossiaWeb.TokiLiveTest do
     {:ok, detail, _} =
       live(c.conn, ~p"/#{c.user.account.handle}/#{c.project.handle}/-/toki/#{conversation.id}")
 
+    assert has_element?(detail, "#toki-page[data-view='conversation']")
     assert has_element?(detail, "#toki-discussion", "Talk it through with Toki")
+    assert has_element?(detail, "#toki-discussion > [data-part='empty'].noora-table")
+    assert has_element?(detail, "#toki-content[aria-label='Message']:not([disabled])")
+    assert has_element?(detail, "#toki-send[disabled]")
+    assert has_element?(detail, "#toki-composer", "Only you and Toki")
+    refute has_element?(detail, "#new-toki-conversation")
     refute has_element?(detail, "#toki-approval")
     refute has_element?(detail, "#toki-page input[type='file']")
+  end
+
+  test "conversation starters fill a draft without sending or replacing existing text", c do
+    {:ok, %{conversation: conversation}} =
+      Toki.create_conversation(c.user, c.project, %{"id" => Ecto.UUID.generate()})
+
+    {:ok, view, _} =
+      live(c.conn, ~p"/#{c.user.account.handle}/#{c.project.handle}/-/toki/#{conversation.id}")
+
+    view |> element("button[phx-value-prompt='terminology']") |> render_click()
+    assert has_element?(view, "#toki-content", "find the right term")
+    refute has_element?(view, "#toki-send[disabled]")
+    assert_push_event(view, "toki-draft-suggested", %{content: content})
+    assert content == "Can you help me find the right term for this context?\n\n"
+    refute Repo.get_by(Message, conversation_id: conversation.id)
+
+    view |> form("#toki-composer", message: %{content: "Keep my draft"}) |> render_change()
+    render_click(view, "suggest_prompt", %{"prompt" => "tone"})
+    assert has_element?(view, "#toki-content", "Keep my draft")
+
+    view |> form("#toki-composer", message: %{content: ""}) |> render_change()
+    render_click(view, "suggest_prompt", %{"prompt" => "unknown"})
+    assert has_element?(view, "#toki-send[disabled]")
   end
 
   test "shared goal appears in history and translation detail, with fluent participants", c do
@@ -115,6 +144,11 @@ defmodule GlossiaWeb.TokiLiveTest do
     assert message.user_id == c.user.id
     assert message.content == "This is source control."
     assert has_element?(view, "#toki-messages", "Ana")
+    refute has_element?(view, "#toki-messages[data-empty]")
+    refute has_element?(view, "#toki-discussion > [data-part='empty']")
+    refute has_element?(view, "[data-part='conversation-starters']")
+    assert has_element?(view, "#new-toki-conversation")
+    assert has_element?(view, "#toki-composer", "Shared with invited teammates")
 
     Oban.Testing.with_testing_mode(:manual, fn ->
       {:ok, _} =

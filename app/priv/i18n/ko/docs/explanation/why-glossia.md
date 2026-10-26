@@ -47,4 +47,4 @@ Glossia 의 점진적 개선 모델은 중복 작업을 피하기 위해 콘텐�
 
 Glossia 의 코드는 Phoenix 애플리케이션, Rust CLI, 웹 SDK, 배포 인프라를 포함한 공개적으로 이용 가능합니다. 이는 언어 작업의 메커니즘을 블랙박스보다는 검사 가능하게 만듭니다.
 
-저장소는 현재 [O'Saasy 라이선스](https://github.com/glossia/glossia/blob/main/LICENSE.md) 를 사용하며, 이는 사용과 수정을 허용하지만 경쟁 호스팅 서비스를 제한합니다. 공개 소스 가용성과 라이선스 자유는 구별되며, 서비스를 재분배하거나 운영하기 전에 라이선스를 읽으세요.
+Glossia는 오픈 코어 모델을 따릅니다. 코어에는 [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE)이 적용되며, 해당 조건에 따라 상업적 이용, 수정, 배포, 자체 호스팅 및 경쟁 호스팅 서비스를 제공할 수 있습니다. `ee/`의 코드는 열람할 수 있지만 오픈 소스는 아닙니다. 별도의 [Enterprise 라이선스](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md)가 적용되며 프로덕션 사용에는 서면 상업 계약이 필요합니다.

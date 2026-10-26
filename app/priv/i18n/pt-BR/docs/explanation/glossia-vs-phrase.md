@@ -47,7 +47,7 @@ Isso permite ao time extender sua fronteira de qualidade existente em vez de man
 
 ## Implementação pública, não uma caixa preta
 
-A aplicação do Glossia, CLI, SDK e fontes de implantação são públicas. Você pode inspecionar como o conteúdo é tratado e modificar ou auto-hospedar a implementação sob a licença [O'Saasy license](https://github.com/glossia/glossia/blob/main/LICENSE.md). A licença restringe serviços hospedados concorrentes e não é uma licença open-source sem restrições.
+Os fontes da aplicação, CLI, SDK e infraestrutura do Glossia são públicos. O núcleo utiliza [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), que permite uso comercial, modificação, distribuição, auto-hospedagem e serviços hospedados concorrentes conforme seus termos. O código em `ee/` possui uma [licença Enterprise](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) separada e seu uso em produção exige um acordo comercial por escrito.
 
 Um conjunto de tradução mais amplo pode fazer sentido para operações de tradução especializadas e coordenação complexa. Se sua prioridade é **correspondência de velocidade de entrega de software com seus próprios tokens e verificações do repositório**, o Glossia é projetado para manter aquele fluxo de trabalho direto.
 

@@ -55,7 +55,7 @@ Der Validator empfängt den Kandidaten am tatsächlichen Zielpfad, gibt bei eine
 
 Sie können überprüfen, wie Glossia-Pläne funktionieren, Credentials verarbeiten, Markdown bewahren und Ergebnisse validieren. Bestehende übersetzte Dateien können auch dann weiterhin über Ihre Repository-Pipeline veröffentlicht werden, wenn der Sprachdienst nicht verfügbar ist.
 
-Glossia ist unter [O'Saasy-Lizenz](https://github.com/glossia/glossia/blob/main/LICENSE.md) als Quelle verfügbar, was Self-Hosting erlaubt, aber konkurrierende gehostete Dienste einschränkt. Es ist keine unbeschränkte Open-Source-Lizenz.
+Glossia folgt einem Open-Core-Modell. Der Kern steht unter [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), die kommerzielle Nutzung, Änderungen, Weitergabe, Self-Hosting und konkurrierende gehostete Dienste gemäß ihren Bedingungen erlaubt. Der Code unter `ee/` ist einsehbar, aber nicht Open Source. Er unterliegt einer separaten [Enterprise-Lizenz](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md); der Produktionseinsatz erfordert eine schriftliche kommerzielle Vereinbarung.
 
 Crowdin kann auch weiterhin geeignet sein für ein Programm, das sich auf Mitwirkenden-Koordination und einen dedizierten Übersetzungsredakteur konzentriert. Für ein Software-Team, dessen Priorität **Inhalt im Git-Eigentum, bestehende Validierung und Lokalisierung sind, die der Lieferung folgen**, ist Glossia für diese Aufgabe konzipiert.
 

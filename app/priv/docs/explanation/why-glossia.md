@@ -47,4 +47,4 @@ Glossia is especially relevant when developers, linguists, and product teams wan
 
 Glossia's code is publicly available, including its Phoenix application, Rust CLI, web SDK, and deployment infrastructure. That makes the mechanics of language work inspectable rather than a black box.
 
-The repository currently uses the [O'Saasy license](https://github.com/glossia/glossia/blob/main/LICENSE.md), which allows use and modification but restricts competing hosted services. Public source availability and licensing freedoms are distinct; read the license before redistributing or operating a service.
+Glossia follows an open-core model. The core uses [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), which permits commercial use, self-hosting, and competing hosted services. The `ee/` directory has a separate [Enterprise License](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) requiring a written commercial agreement for production use. Read the applicable license before redistributing or operating enterprise features.

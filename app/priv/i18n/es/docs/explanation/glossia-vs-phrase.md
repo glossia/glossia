@@ -47,7 +47,7 @@ Esto permite al equipo ampliar su límite de calidad existente en lugar de mante
 
 ## Implementación pública, no una caja negra
 
-La aplicación de Glossia, la CLI, el SDK y las fuentes de despliegue son públicas. Puede inspeccionar cómo se maneja el contenido y modificar o auto-alojar la implementación bajo la [O'Saasy licencia](https://github.com/glossia/glossia/blob/main/LICENSE.md). La licencia restringe servicios alojados competidores y no es una licencia de código abierto sin restricciones.
+Las fuentes de la aplicación, la CLI, el SDK y la infraestructura de Glossia son públicas. El núcleo utiliza [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), que permite el uso comercial, la modificación, la distribución, el autoalojamiento y los servicios alojados competidores conforme a sus términos. El código de `ee/` tiene una [licencia Enterprise](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) independiente: su código es visible, pero no es de código abierto, y su uso en producción requiere un acuerdo comercial por escrito.
 
 Una suite de traducción más amplia puede tener sentido para operaciones especializadas de traducción y coordinación compleja. Si su prioridad es **igualar la velocidad de entrega del software con sus propios tokens y comprobaciones del repositorio**, Glossia está diseñado para mantener ese flujo de trabajo directo.
 

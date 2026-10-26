@@ -47,7 +47,7 @@ Las comprobaciones estructurales y del repositorio no demuestran que todas las o
 
 ## Fuente pública y salidas propiedad del repositorio
 
-La implementación de Glossia está disponible para inspeccionar, modificar y autoalojar bajo [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md). Esa licencia restringe los servicios alojados en competencia y no es una licencia de código abierto sin restricciones.
+Glossia sigue un modelo de núcleo abierto. El núcleo utiliza [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), que permite el uso comercial, la modificación, la distribución, el autoalojamiento y los servicios alojados competidores conforme a sus términos. El código de `ee/` tiene una [licencia Enterprise](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) independiente: su código es visible, pero no es de código abierto, y su uso en producción requiere un acuerdo comercial por escrito.
 
 Más importante para la entrega diaria, tus salidas traducidas permanecen en Git. No necesitas una sesión de edición en otro producto simplemente para publicar los archivos existentes que posees.
 

@@ -47,7 +47,7 @@ Dadurch kann das Team seine bestehende Qualitätsgrenze erweitern, anstatt eine 
 
 ## Öffentliche Implementierung, keine Blackbox
 
-Die Anwendung, CLI, SDK und Deploymentsources von Glossia sind öffentlich. Sie können prüfen, wie der Inhalt verarbeitet wird, und die Implementierung ändern oder selbst hosten, gemäß der [O'Saasy license](https://github.com/glossia/glossia/blob/main/LICENSE.md). Die Lizenz beschränkt konkurrierende gehostete Dienste und ist keine uneingeschränkte Open-Source-Lizenz.
+Glossias Anwendung, CLI, SDK und Infrastrukturquellen sind öffentlich. Der Kern steht unter [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), die kommerzielle Nutzung, Änderungen, Weitergabe, Self-Hosting und konkurrierende gehostete Dienste gemäß ihren Bedingungen erlaubt. Der Code unter `ee/` unterliegt einer separaten [Enterprise-Lizenz](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md); der Produktionseinsatz erfordert eine schriftliche kommerzielle Vereinbarung.
 
 Eine umfassende Lokalisierungssuite kann Sinn für spezialisierte Übersetzungsoperationen und komplexe Koordination ergeben. Wenn Ihre Priorität **das Angleichen der Software-Liefergeschwindigkeit an eigene Token und Repository-Prüfungen** ist, ist Glossia so konzipiert, dass dieser Workflow direkt ist.
 

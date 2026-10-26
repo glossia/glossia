@@ -44,7 +44,7 @@ Glossia に組み込まれている構造的チェックは品質境界の一部
 
 ## 公開ソースは、基準であって完全な比較ではありません
 
-Glossia の実装は公開されており、[O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md) の元 inspect、変更、およびセルフホスティングが可能である。ライセンスは競合するホスティングサービスに制限されます、それは Weblate の GPL ベースのオープンソースライセンスと同じではありません。
+Glossia のコアは [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) に基づき、その条件の下で商用利用、変更、配布、セルフホスティング、競合するホスト型サービスの提供が可能です。`ee/` のコードには別の [Enterprise ライセンス](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) が適用され、本番環境での利用には書面による商用契約が必要です。このオープンコアモデルは、Weblate の GPL ベースのライセンスとは異なります。
 
 制限のないオープンソースライセンスと確立された Web 翻訳インターフェースが主要な基準であれば、Weblate は考慮に値します。目標が **ご自身のモデル認証情報、既存のレポジトリチェック、ソフトウェア配送に続く言語作業** である場合、Glossia はそれらの選択肢を言語 OS にまとめます。
 

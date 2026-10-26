@@ -44,7 +44,7 @@ Glossia 의 내장 구조적 체크는 품질 경계의 일부일 뿐입니다. 
 
 ## 공용 소스는 전체 비교가 아닌 기준선입니다.
 
-Glossia 구현은 공개되어 상호 검별과 수정, [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md) 하에 자체 호스팅이 가능합니다. 라이선스는 경쟁 호스팅 서비스를 제한하며 Weblate 의 GPL 기반 오픈소스 라이선스와는 다릅니다.
+Glossia의 코어에는 [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE)이 적용되며, 해당 조건에 따라 상업적 이용, 수정, 배포, 자체 호스팅 및 경쟁 호스팅 서비스를 제공할 수 있습니다. `ee/`의 코드에는 별도의 [Enterprise 라이선스](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md)가 적용되며 프로덕션 사용에는 서면 상업 계약이 필요합니다. 이 오픈 코어 모델은 Weblate의 GPL 기반 라이선스와 다릅니다.
 
 무제한 오픈소스 라이선스 및 확립된 웹 번역 인터페이스가 주요 기준이라면 Weblate 가 고려될 가치가 있습니다. 목표가 **자신의 모델 자격증명, 기존 저장소 체크 및 소프트웨어 배포를 따르는 언어 작업**이라면 Glossia 는 언어 OS 를 통해 이러한 선택을 하나로 모읍니다.
 

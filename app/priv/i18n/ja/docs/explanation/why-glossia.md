@@ -47,4 +47,4 @@ Glossia は、開発者、言語専門家、プロダクトチームがリポジ
 
 Glossia のコードは公開されており、Phoenix アプリケーション、Rust CLI、Web SDK、デプロイインフラを含みます。言語作業のメカニズムはブラックボックスではなく、検査可能になります。
 
-リポジトリは現在 [O'Saasy ライセンス](https://github.com/glossia/glossia/blob/main/LICENSE.md) を使用しており、使用と変更を許可しますが、競合するホスティングサービスを制限します。公開ソースの提供とライセンスの自由は異なります。サービスを再配布または運用する前にライセンスを読んでください。
+Glossia はオープンコアモデルを採用しています。コアは [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) に基づき、その条件の下で商用利用、変更、配布、セルフホスティング、競合するホスト型サービスの提供が可能です。`ee/` のコードは閲覧できますが、オープンソースではありません。別の [Enterprise ライセンス](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) が適用され、本番環境での利用には書面による商用契約が必要です。

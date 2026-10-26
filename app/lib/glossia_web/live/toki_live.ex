@@ -69,6 +69,20 @@ defmodule GlossiaWeb.TokiLive do
   def handle_event("draft", %{"message" => %{"content" => content}}, socket),
     do: {:noreply, assign(socket, draft: content)}
 
+  def handle_event("suggest_prompt", %{"prompt" => id}, socket) do
+    starter = Enum.find(conversation_starters(), &(&1.id == id))
+
+    if starter && socket.assigns.conversation && socket.assigns.can_chat && !socket.assigns.closed &&
+         socket.assigns.messages == [] && String.trim(socket.assigns.draft) == "" do
+      {:noreply,
+       socket
+       |> assign(draft: starter.content)
+       |> push_event("toki-draft-suggested", %{content: starter.content})}
+    else
+      {:noreply, socket}
+    end
+  end
+
   def handle_event("guidance_scope", %{"scope" => scope}, socket)
       when scope in ["locale", "project"],
       do: {:noreply, assign(socket, context_scope: scope)}
@@ -260,18 +274,44 @@ defmodule GlossiaWeb.TokiLive do
   defp author(%{user: %{name: name}}) when is_binary(name) and name != "", do: name
   defp author(_), do: gettext("Teammate")
 
+  defp conversation_starters do
+    [
+      %{
+        id: "translation",
+        label: gettext("Review a translation"),
+        content: gettext("Can you help me review this translation?\n\n")
+      },
+      %{
+        id: "terminology",
+        label: gettext("Find the right term"),
+        content: gettext("Can you help me find the right term for this context?\n\n")
+      },
+      %{
+        id: "tone",
+        label: gettext("Adapt the tone"),
+        content: gettext("How can I make this translation sound more natural?\n\n")
+      }
+    ]
+  end
+
   def render(assigns) do
+    assigns = assign(assigns, :conversation_starters, conversation_starters())
+
     ~H"""
-    <div id="toki-page">
+    <div id="toki-page" data-view={if @conversation_id, do: "conversation", else: "history"}>
       <.page_header
         title={gettext("Toki")}
         description={
-          gettext("Work through translation decisions together, with Toki and your fluent teammates.")
+          if !@conversation_id,
+            do:
+              gettext(
+                "Work through translation decisions together, with Toki and your fluent teammates."
+              )
         }
       >
         <:actions>
           <Noora.Button.button
-            :if={@can_chat}
+            :if={@can_chat && (!@conversation_id || @messages != [])}
             id="new-toki-conversation"
             label={gettext("New private conversation")}
             variant="secondary"
@@ -282,7 +322,9 @@ defmodule GlossiaWeb.TokiLive do
             navigate={~p"/#{@handle}/#{@project.handle}/-/toki"}
             label={gettext("All conversations")}
             variant="secondary"
-          />
+          >
+            <:icon_left><Noora.Icon.arrow_left /></:icon_left>
+          </Noora.Button.button>
         </:actions>
       </.page_header>
 
@@ -420,7 +462,14 @@ defmodule GlossiaWeb.TokiLive do
           </Noora.Card.card_section>
         </Noora.Card.card>
 
-        <Noora.Card.card id="toki-discussion" title={title(@conversation)} icon="message_circle">
+        <Noora.Card.card
+          id="toki-discussion"
+          title={if @messages == [], do: gettext("New conversation"), else: title(@conversation)}
+          icon="message_circle"
+        >
+          <:actions>
+            <Noora.Tag.tag :if={!@review} label={gettext("Private conversation")} icon="lock" />
+          </:actions>
           <Noora.Card.card_section :if={@messages == []} class="noora-table" data-part="empty">
             <Noora.Table.table_empty_state
               icon="message_circle"
@@ -429,9 +478,25 @@ defmodule GlossiaWeb.TokiLive do
                 gettext("Ask about your project's translations, terminology, or cultural context.")
               }
             />
+            <div
+              :if={@can_chat && !@closed}
+              data-part="conversation-starters"
+              aria-label={gettext("Conversation starters")}
+            >
+              <Noora.Button.button
+                :for={starter <- @conversation_starters}
+                label={starter.label}
+                variant="secondary"
+                size="small"
+                phx-click="suggest_prompt"
+                phx-value-prompt={starter.id}
+                disabled={String.trim(@draft) != ""}
+              />
+            </div>
           </Noora.Card.card_section>
           <div
             id="toki-messages"
+            data-empty={@messages == []}
             role="log"
             aria-label={gettext("Conversation history")}
             aria-live="polite"
@@ -475,27 +540,29 @@ defmodule GlossiaWeb.TokiLive do
                 id="toki-content"
                 name="message[content]"
                 value={@draft}
-                label={gettext("Message")}
+                aria-label={gettext("Message")}
                 placeholder={gettext("Work through a decision with Toki…")}
-                rows={2}
+                rows={3}
                 max_length={8_000}
                 show_character_count={false}
                 disabled={!@can_chat || !!@closed}
               />
-              <Noora.Button.button
-                id="toki-send"
-                label={gettext("Send message")}
-                type="submit"
-                disabled={@busy || !!@closed || !@can_chat || String.trim(@draft) == ""}
-              >
-                <:icon_left><Noora.Icon.square_rounded_arrow_up /></:icon_left>
-              </Noora.Button.button>
+              <div data-part="composer-actions">
+                <span data-part="muted">
+                  {if @review,
+                    do: gettext("Shared with invited teammates"),
+                    else: gettext("Only you and Toki can see this conversation")}
+                </span>
+                <Noora.Button.button
+                  id="toki-send"
+                  label={gettext("Send message")}
+                  type="submit"
+                  disabled={@busy || !!@closed || !@can_chat || String.trim(@draft) == ""}
+                >
+                  <:icon_right><Noora.Icon.square_rounded_arrow_up /></:icon_right>
+                </Noora.Button.button>
+              </div>
             </.form>
-            <span data-part="muted">
-              {gettext(
-                "Text messages only. Attachments and voice input are not available on the web yet."
-              )}
-            </span>
           </Noora.Card.card_section>
         </Noora.Card.card>
 

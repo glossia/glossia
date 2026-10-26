@@ -55,7 +55,7 @@ Le validateur reçoit le candidat à son chemin cible réel, retourne un statut 
 
 Vous pouvez inspecter comment les plans Glossia fonctionnent, traitent les identifiants, préservent Markdown, et valident un résultat. Les fichiers traduits existants restent publiables par la pipeline de votre dépôt même si le service linguistique est indisponible.
 
-Glossia est disponible pour la source sous la [licence O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md), ce qui autorise l'auto-hébergement mais restreint les services hébergés concurrents. Ce n'est pas une licence open-source sans restriction.
+Glossia suit un modèle open core. Le cœur utilise [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), qui autorise l'utilisation commerciale, la modification, la distribution, l'auto-hébergement et les services hébergés concurrents selon ses conditions. Le code de `ee/` est consultable, mais n'est pas open source. Il relève d'une [licence Enterprise](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) distincte et son utilisation en production nécessite un accord commercial écrit.
 
 Crowdin peut quand même être approprié pour un programme centré sur la coordination des contributeurs et un éditeur de traduction dédié. Pour une équipe logiciels dont la priorité est **Contenu propriétaire Git, validation existante et localisation qui suit la livraison**, Glossia est conçu pour ce travail.
 

@@ -79,7 +79,7 @@ config :esbuild,
     args:
       ~w(#{Path.expand("../../sdk/web/src/index.js", __DIR__)} --bundle --format=iife --global-name=glossia --target=es2020 --outfile=../priv/static/assets/glossia-web.js) ++
         [
-          "--banner:js=/*! @glossia/web | O'Saasy License | Source: https://github.com/glossia/glossia/tree/main/sdk/web */"
+          "--banner:js=/*! @glossia/web | Apache-2.0 | Source: https://github.com/glossia/glossia/tree/main/sdk/web */"
         ],
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
@@ -121,6 +121,13 @@ config :glossia, Glossia.Github, webhook_secret: nil
 config :glossia, Glossia.Gitlab, webhook_secret: nil
 
 config :glossia, :event_handler, Glossia.Analytics.Smolanalytics
+
+config :glossia,
+       :audit_extension,
+       if(System.get_env("GLOSSIA_EDITION", "core") == "enterprise",
+         do: GlossiaEnterprise.Audit,
+         else: nil
+       )
 
 config :glossia, Glossia.Analytics.Smolanalytics,
   enabled: false,
