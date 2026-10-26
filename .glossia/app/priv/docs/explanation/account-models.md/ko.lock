@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "99ad882e9ad75b6a069ee9a3b8d6f9511ab477dd8a821de24e6b28fc00735a62",
+  "hash": "f208796ed7ef97ed282b144bb3cb1418efeedcd88c08e42a4dc5182c1afef0dd",
   "hash_tree": {
     "root": {
       "children": [
@@ -15,7 +15,7 @@
         },
         {
           "children": [],
-          "hash": "d25621d7e46513a03253f1f559a2b55b7842384469a895892b17f8366f17e37a",
+          "hash": "a7509511e8ee7585ea2c749d1b5e62df1cb55c4a9185b7518614e21d47226e16",
           "kind": "translation_config",
           "label": "generation",
           "metadata": {
@@ -31,7 +31,7 @@
             "retries": 3,
             "segmentation_version": 1,
             "source_language": "en",
-            "validation_hash": "064760dc472b525acbc80c5ce08973a94fc7a5b06ba42cfab835324c7c048924"
+            "validation_hash": "ae3606ed9b1629c1a55145739b0db6174aa75ed71272a6af6089832cad7abbfc"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "99ad882e9ad75b6a069ee9a3b8d6f9511ab477dd8a821de24e6b28fc00735a62",
+      "hash": "f208796ed7ef97ed282b144bb3cb1418efeedcd88c08e42a4dc5182c1afef0dd",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/account-models.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "238a9d277acb1fd3bf9bfc2fd899770a9486b0d14f625a354c4701d2366c5724",
+  "output_hash": "e0050b3bd798d122b363739342ebd6cfb1f05eb5f77654c6afcb81efcf18ca87",
   "output_path": "app/priv/i18n/ko/docs/explanation/account-models.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "c33204ce58c039efb0399d698b8df3c53a1f9fa3",
+  "source_commit_sha": "57f484cf34215985850f4b24b427584a3c434b64",
   "source_path": "app/priv/docs/explanation/account-models.md",
-  "translated_at": "2026-10-25T19:57:17.072113Z",
-  "translation_session_id": "01a17495-c385-7245-90c7-4dc8db7e5c7f"
+  "translated_at": "2026-10-26T10:56:35.640028Z",
+  "translation_session_id": "01a177c8-691e-7edb-9e0a-7e6eeb58673d"
 }

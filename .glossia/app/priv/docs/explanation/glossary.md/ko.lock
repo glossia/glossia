@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "3ddae6a3e42316cc412854e726266a0a316206deee8506a0b49309255ff81cbf",
+  "hash": "38c570eec477cf72abc1fa69d22130464ae12488532036be1f096a8dc7a11de3",
   "hash_tree": {
     "root": {
       "children": [
@@ -15,7 +15,7 @@
         },
         {
           "children": [],
-          "hash": "d25621d7e46513a03253f1f559a2b55b7842384469a895892b17f8366f17e37a",
+          "hash": "a7509511e8ee7585ea2c749d1b5e62df1cb55c4a9185b7518614e21d47226e16",
           "kind": "translation_config",
           "label": "generation",
           "metadata": {
@@ -31,7 +31,7 @@
             "retries": 3,
             "segmentation_version": 1,
             "source_language": "en",
-            "validation_hash": "064760dc472b525acbc80c5ce08973a94fc7a5b06ba42cfab835324c7c048924"
+            "validation_hash": "ae3606ed9b1629c1a55145739b0db6174aa75ed71272a6af6089832cad7abbfc"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "3ddae6a3e42316cc412854e726266a0a316206deee8506a0b49309255ff81cbf",
+      "hash": "38c570eec477cf72abc1fa69d22130464ae12488532036be1f096a8dc7a11de3",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/glossary.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "803b5ac332159ecaf5d9f54a21e819abadec0bb5bcbc83466ed719042c264c40",
+  "output_hash": "ab34f8d8a6dfde6cfb22611b0341d178ae8e2ca1e4cdeee333187fdcff3c5830",
   "output_path": "app/priv/i18n/ko/docs/explanation/glossary.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "4af8e3d7b56d9aa30ea1f330b414ee3a1ed1fec1",
+  "source_commit_sha": "57f484cf34215985850f4b24b427584a3c434b64",
   "source_path": "app/priv/docs/explanation/glossary.md",
-  "translated_at": "2026-10-25T20:29:50.486431Z",
-  "translation_session_id": "01a174ad-9815-72eb-be16-f16f32338de0"
+  "translated_at": "2026-10-26T11:08:17.630188Z",
+  "translation_session_id": "01a177c8-691e-7edb-9e0a-7e6eeb58673d"
 }

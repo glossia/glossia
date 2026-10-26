@@ -1,35 +1,35 @@
 %{
   title: "Inhaltseigentum und Portabilität",
   summary:
-    "Warum Repository-eigener Inhalt wichtig ist und welche Abhängigkeiten die öffentliche Quelle entfernt oder nicht entfernt.",
+    "Warum Inhalte, die dem Repository gehören, wichtig sind und welche Abhängigkeiten die öffentliche Quelle entfernt und nicht entfernt.",
   category: "Erklärung",
   section: "translation",
   order: 3
 }
 ---
 
-Ein Unternehmen sollte seine Sprachwerkzeuge wechseln können, ohne den bereits produzierten Inhalt oder die Fähigkeit, diesen Inhalt zu veröffentlichen, zu verlieren.
+Ein Unternehmen sollte in der Lage sein, seine Sprachwerkzeuge zu ändern, ohne den Inhalt zu verlieren, den es bereits produziert hat, oder die Fähigkeit, diesen Inhalt zu verteilen.
 
-## Eigentum geht über einenExport-Button hinaus.
+## Eigentum ist mehr als ein Export-Button
 
-Das Exportieren übersetzter Dateien ist nützlich, aber Portabilität umfasst auch die Review-Historie, Sprachrichtlinien, Terminologie und die Konfiguration, die benötigt wird, um die Arbeit fortzusetzen. Wenn diese einzig in einem proprietären Arbeitsbereich existieren, kann das Unternehmen seinen Output behalten, während es den Prozess, der ihn erzeugt hat, verliert.
+Das Exportieren übersetzter Dateien ist nützlich, aber Portabilität umfasst auch den Prüfverlauf, die Sprachanweisungen, die Terminologie und die Konfiguration, die zum Weiterschreiten der Arbeit benötigt werden. Wenn diese nur in einem proprietären Arbeitsbereich untergebracht sind, kann das Unternehmen sein Ergebnis behalten, während es den Prozess verliert, der diesen hervorgebracht hat.
 
-Der Repository-Workflow von Glossia bewahrt veröffentlichte Quelldateien und übersetzte Dateien in Git. Die Pull-Request-Historie bleibt beim Repository, und die an dateibasierten Konfiguration beschreibt die Transformation unabhängig von einer Browser-Bearbeitungssitzung.
+Der Repositories-Workflow von Glossia speichert veröffentlichte Quelldateien und übersetzte Dateien in Git. Der Pull-Request-Verlauf bleibt beim Repository, und die dateibasierte Konfiguration beschreibt die Transformation unabhängig von einer Browser-Bearbeitungssitzung.
 
-## Sprachentscheidungen sollten wiederverwendbar sein.
+## Sprachentscheidungen sollten wiederverwendbar sein
 
-Voice- und Glossarhinweise erfassen die organisatorische Absicht. Glossia macht diesen Kontext für Menschen und Integrationen verfügbar, einschließlich Agenten über MCP. Dies ist eine andere Art der Wiederverwendung als das Aufsuchen eines bereits übersetzten Segments: Es kann neuen Inhalt führen, selbst wenn es keinen passenden Satz in einem Speicher gibt.
+Stimme und Glossar-Anweisungen erfassen die Organisationsabsicht. Glossia macht diesen Kontext für Menschen und Integrationen verfügbar, einschließlich Agenten über MCP. Dies ist eine andere Art der Wiederverwendung als das Abrufen eines zuvor übersetzten Segments: Er kann neuen Inhalt leiten, selbst wenn kein passender Satz in einem Speicher liegt.
 
-Das macht segmentbasierte Übersetzungsspeicher nicht unbrauchbar. Teams können wertvoll überprüfte Übersetzungen und spezialisierte Arbeitsabläufe besitzen, die sie behalten möchten. Die Position von Glossia ist, dass solche Ressourcen den Lieferprozess eines Unternehmens ergänzen sollten, statt zu einer zwingenden proprietären Autorität darüber zu werden.
+Das macht segmentbasierte Übersetzungsspeicher nicht überflüssig. Teams können wertvolle geprüfte Übersetzungen und spezialisierte Abläufe haben, die sie erhalten möchten. Die Haltung von Glossia ist, dass solche Ressourcen den Lieferprozess eines Unternehmens ergänzen sollten, statt eine verbindliche proprietäre Autorität darüber zu werden.
 
-## Offener Quellcode hilft, ist aber kein magischer Ausweg.
+## Öffentlicher Quellcode hilft, ist aber kein magischer Ausstieg
 
-Die Fähigkeit, die Implementierung zu prüfen und zu modifizieren, hilft Teams, zu verstehen, wie ihr Inhalt verarbeitet wird. Es bedeutet nicht, dass jede betriebliche Abhängigkeit verschwindet. Eine bereitgestellte Glossia-Instanz benötigt weiterhin Datenbanken, Zugang zu Model-Providern für relevante Workflows, Credentials und Infrastruktur. Kontext, der über ein Dashboard verwaltet wird, benötigt ebenfalls einen expliziten Migrationsplan, wenn ein Team Systeme ändert.
+Die Möglichkeit, die Implementierung zu inspizieren und zu ändern, hilft Teams zu verstehen, wie ihr Inhalt verarbeitet wird. Das bedeutet nicht, dass jede operative Abhängigkeit verschwindet. Eine bereitgestellte Glossia-Instanz benötigt weiterhin Datenbanken, Modell-Anbieter-Zugänge für relevante Prozesse, Anmeldeinformationen und Infrastruktur. Vom Dashboard verwalteter Sprachkontext braucht ebenfalls einen expliziten Migrationsplan, wenn ein Team Systeme wechselt.
 
-Die aktuelle O'Saasy-Lizenz begrenzt konkurrierende gehostete Dienste. Die Verfügbarkeit von offenem Quellcode ist nicht das Gleiche wie eine unbeschränkte Open-Source-Lizenz oder eine Garantie, dass ein Ersatzdienst unter jedem Geschäftsmodell betrieben werden kann. Siehe die [Lizenz](https://github.com/glossia/glossia/blob/main/LICENSE.md) des Repositorys.
+Die aktuelle O'Saasy-Lizenz schränkt konkurrierende gehostete Dienste ein. Die Verfügbarkeit von öffentlichem Quellcode ist nicht dasselbe wie eine unbegrenzte Open-Source-Lizenz oder eine Garantie, dass ein Ersatzdienst unter jedem Geschäftsmodell betrieben werden kann. Sehen Sie sich die [lizenz](https://github.com/glossia/glossia/blob/main/LICENSE.md) des Repositories an.
 
 ## Ein nützlicher Portabilitätstest
 
-Fragen Sie, ob das Team seinen bestehenden übersetzten Inhalt prüfen, überarbeiten und veröffentlichen kann, wenn der Sprachdienst nicht verfügbar ist. Bei Repository-besitzten Outputs erfordert die Veröffentlichung nicht das Wiederaufschließen eines proprietären Editors, nur um die neueste Datei wiederherzustellen.
+Prüfen Sie, ob das Team seinen bestehenden übersetzten Inhalt weiter untersuchen, prüfen und veröffentlichen kann, falls der Sprachdienst nicht verfügbar ist. Bei Repository-basierten Ausgaben erfordert die Veröffentlichung nicht das Wiederöffnen eines proprietären Editors, nur um die aktuellste Datei wiederherzustellen.
 
-Dann fragen Sie, wie sich Sprachrichtlinien, Credentials und Automatisierung zu einem anderen System bewegen würden. Das sind separate Fragen, und es ist nützlicher, sie explizit zu halten, als unbegrenzt "kein Lock-in" zu versprechen.
+Dann fragen Sie, wie Sprachanweisungen, Authentifizierungsdaten und Automatisierungen in ein anderes System übertragen werden würden. Das sind separate Fragen, und es ist nützlicher, sie explizit zu halten, als "kein Lock-In" zu versprechen, ohne Einschränkung.
