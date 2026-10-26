@@ -1,38 +1,40 @@
 %{
   title: "Revisões linguísticas",
   summary:
-    "Decisões humanas vinculadas à fonte, continuações de tradução e orientações do repositório revisadas.",
+    "Decisões humanas vinculadas à fonte, continuações de tradução e orientações revisadas do repositório.",
   category: "referência",
   section: "translation",
   order: 31
 }
 ---
 
-## Escalação
+## Escalonamento
 
-As execuções de tradução do repositório com um modelo de decisão configurado podem solicitar entrada linguística para significado da fonte ausente ou contexto de domínio, diretrizes conflitantes, ou adaptação cultural conseqüente. A baixa confiança por si só não aciona uma pergunta. Os erros corrigíveis a partir do contexto existente utilizam o orçamento de correção comum; falhas de qualidade remanescentes após esse orçamento também podem solicitar entrada. Sem um modelo de decisão, o escalonamento linguístico automático está desabilitado.
+Execuções de tradução de repositório com um modelo de decisão configurado podem solicitar input lingüístico para significado fonte ausente ou contexto de domínio, orientação conflitante, ou adaptação cultural consequente. Apenas a baixa confiança não aciona uma questão. Erros corrigíveis a partir do contexto existente consomem o orçamento de correção ordinário; falhas de qualidade que persistem após esse orçamento podem também solicitar input. Sem um modelo de decisão, o escalonamento lingüístico automático está desativado.
 
-Apenas o arquivo ou localidade afetada é suspenso. Seu candidato não aprovado não é publicado. Arquivos independentes completam e podem publicar normalmente. Após a conclusão da publicação, a sessão se torna `awaiting_input` e libera seu runner. Não consome um worker enquanto um humano está respondendo.
+Apenas o arquivo ou/locale afetado pára. Seu candidato não aprovado não é publicado. Arquivos independentes completam e podem publicar normalmente. Após a conclusão da publicação, a sessão adota `awaiting_input` e libera seu runner. Ela não consome um worker enquanto um humano está respondendo.
 
-Cada escalonamento abre uma **conversa compartilhada no Toki com um objetivo linguístico definido**, vinculada à sessão de tradução. Os participantes discutem o significado, fazem perguntas de acompanhamento e refinam uma decisão proposta. A discussão por si só nunca aprova uma tradução ou escreve contexto de repositório. As conversas comuns no Toki permanecem privadas para seu proprietário, inclusive para administradores.
+Cada escalonação abre uma **conversa compartilhada Toki com um objetivo lingüístico definido**, vinculada à sessão de tradução. Participantes discutem o significado, exigem perguntas de acompanhamento e refinam uma decisão proposta. A discussão sozinha nunca aprova uma tradução ou escreve contexto de repositório. Conversas Toki comuns permanecem privadas para seu proprietário, incluindo administradores.
 
-Todos os colegas atualmente autorizados cujos idiomas fluentes declarados correspondem ao localidade-alvo são convidados para a mesma conversa. A fluência é separada da linguagem de exibição e não concede acesso ao projeto ou permissão para aprovar decisões. Um idioma amplo como `es` corresponde a variantes regionais, como `es-MX`; scripts explícitos incompatíveis não correspondem. Declarações regionais como `zh-TW` usam seu script CLDR costumeiro, enquanto `zh` amplo permanece não restringido por script.
+Todos os colegas autorizados atualmente cujas linguagens fluentes declaradas correspondem ao local-alvo são convidados para a mesma conversa. A fluência é separada da linguagem de exibição e não concede acesso ao projeto ou permissão para aprovar decisões. Uma linguagem ampla como `es` coincide com variantes regionais como `es-MX`; scripts explícitos incompatíveis não correspondem. Declarações regionais como `zh-TW` usam seu script CLDR costumeiro, enquanto a `zh` ampla permanece ilimitada por script.
 
-Os participantes elegíveis recebem notificações push genéricas móveis apenas quando optaram por receber; o serviço de entrega verifica atual fluentemente, membros, acesso ao projeto e o objetivo aberto. As notificações abrem a conversa compartilhada. Conversas e aprovações estão disponíveis tanto em aplicativos nativos quanto no painel web. Veja [Notificações push nativas](/docs/reference/native-push-notifications) para configuração de provedor e política de entrega.
+Participantes elegíveis recebem notificações push genéricas de celular apenas quando optaram por isso; a entrega reconfere a fluência atual, associação, acesso ao projeto e o objetivo aberto. Notificações abrem a conversa compartilhada. Conversas e aprovações estão disponíveis tanto em s apps nativos quanto no dashboard web. Veja [Notificações push nativas](/docs/reference/native-push-notifications) para configuração do provedor e política de entrega.
 
-## Perfil de idioma fluente
+## Perfil de linguagem fluente
 
-`GET /api/me` inclui `user.fluent_languages`. `PUT /api/me/fluent-languages` requer `user:write` e aceita apenas `{"fluent_languages": ["es", "ar", "zh-Hant"]}`. Ele substitui a lista do usuário autenticado e retorna o envelope do perfil. As tags CLDR BCP47 compatíveis mantêm especificidade explícita de região/escrita e usam maiúsculas canônicas; duplicatas são suprimidas. Um array vazio limpa a fluência. Tags inválidas, campos não relacionados ou mais de 50 entradas submetidas retornam 422. Isso nunca muda o idioma da interface do usuário.
+`GET /api/me` inclui `user.fluent_languages`. `PUT /api/me/fluent-languages` requer `user:write` e aceita apenas `{"fluent_languages": ["es", "ar", "zh-Hant"]}`. Ele substitui a lista do usuário autenticado e retorna o envelope de perfil. Tags CLDR BCP47 suportadas mantêm especificidade explícita de região/script e usam casing canônico; duplicatas colapsam. Um array vazio limpa a fluência. Tags inválidas, campos sem relevância ou mais de 50 entradas enviadas retornam 422. Isso nunca altera o idioma de interface.
 
-## API de Revisão
+## API de revisão
 
-`GET /api/:handle/projects/:project/translations/:id/reviews` requer `translation:read` e acesso ao projeto. Ele retorna `{"reviews": [...]}`, com perguntas abertas primeiro e depois as mais antigas, limitado a 500 entradas. Atualize após responder para revelar quaisquer perguntas restantes; o histórico respondido nunca esconde uma pergunta aberta atrás do limite.
+`GET /api/:handle/projects/:project/translations/:id/reviews` requer `translation:read` e acesso ao projeto. Ele retorna `{"reviews": [...]}`, com perguntas abertas primeiro e depois as mais antigas, limitado a 500 entradas. Atualize após responder para revelar quaisquer perguntas restantes; o histórico respondido nunca oculta uma pergunta aberta atrás do limite.
 
-Cada revisão inclui `id`, `translation_session_id`, `conversation_id`, `participants` (`id` e nullable `name`), `status`, `source_path`, `output_path`, `locale`, `question`, limitado `source_excerpt` e `translation_excerpt`, `answer`, `guidance`, `context_path`, `resolution_message_id`, `resumed_session_id`, e `inserted_at`. O status é `open`, `answered`, ou `stale`.
+Cada revisão inclui `id`, `translation_session_id`, `conversation_id`, `participants` (`id` e `name` opcional), `status`, `source_path`, `output_path`, `locale`, `question`, limitado `source_excerpt` e `translation_excerpt`, `answer`, `guidance`, `context_path`, `resolution_message_id`, `resumed_session_id`, e `inserted_at`. O status é `open`, `answered`, ou `stale`.
 
-Use os endpoints de conversa e mensagem de projeto Toki existentes para discussão. Conversas de objetivo compartilhado aparecem ao lado das conversas privadas do ator no histórico do Toki. Histórias compartilhadas exigem permissão de política de leitura/escrita atual do Toki e acesso de leitura de tradução; histórias comuns permanecem apenas para o proprietário. Mensagens humanas incluem sua identidade de autor, e respostas incluem `status` e `reply_to_id`. O Toki recebe trechos limitados de fonte/candidato e o objetivo, não acesso de escrita ao repositório.
+`answered_by` identifica a pessoa que aprovou a decisão como `{"id": "<user UUID>", "name": "<current display name>"}`; `name` pode ser nulo. O campo é nulo antes da aprovação ou quando o aprovador está indisponível. Não contém e-mail ou outros campos de perfil privado, e reexcutar uma aprovação não altera o aprovador. O mesmo campo é incluído na `linguistic_review` aninhada em conversas Toki compartilhadas. Nenhuma marca de tempo de aprovação é exposta; `inserted_at` é o tempo de criação da revisão, não o tempo de aprovação.
 
-`POST /api/:handle/projects/:project/translations/:id/reviews/:review_id/answer` requer tanto `translation:read` quanto `translation:write`, além de acesso ao projeto:
+Utilize os endpoints de conversa e mensagem do projeto Toki existentes para discussão. Conversas de objetivos compartilhados aparecem ao lado das conversas privadas do ator no histórico do Toki. Históricos compartilhados exigem permissão de política atual de leitura/escrita do Toki e acesso de leitura de tradução; históricos comuns permanecem restritos ao proprietário. Mensagens humanas incluem sua identidade de autor, e as respostas incluem `status` e `reply_to_id`. O Toki recebe trechos limitados de fonte/candidato e o objetivo, não acesso de escrita do repositório.
+
+`POST /api/:handle/projects/:project/translations/:id/reviews/:review_id/answer` exige tanto `translation:read` quanto `translation:write`, além de acesso ao projeto:
 
 ```json
 {
@@ -43,20 +45,20 @@ Use os endpoints de conversa e mensagem de projeto Toki existentes para discuss�
 }
 ```
 
-`resolution_message_id` deve identificar a **resposta** mais recente concluída do assistente na conversa de objetivo, não a pergunta inicial dele. `answer` é a decisão aprovada pelo humano e é obrigatória e não em branco. `guidance` e `context_scope` são opcionais; o escopo padrão é `locale` e também pode ser `project`. Resposta e orientação permitem até 8.000 caracteres e 32.000 bytes UTF-8. A orientação não pode conter comentários reservados de marcador de revisão do Glossia. O servidor escolhe os caminhos do repositório; um caminho fornecido pelo cliente nunca é usado.
+`resolution_message_id` deve identificar a **resposta** de assistente mais recente concluída na conversa de objetivo, não sua pergunta de abertura. `answer` é a decisão aprovada pelo humano e é obrigatória e não vazia. `guidance` e `context_scope` são opcionais; o âmbito padrão é `locale` e também pode ser `project`. Resposta e orientação permitem até 8.000 caracteres e 32.000 bytes UTF-8. Orientação não pode conter comentários de marcador de revisão reservados do Glossia. O servidor escolhe os caminhos do repositório; um caminho fornecido pelo cliente nunca é usado.
 
-Uma resposta bem-sucedida é `{"review": {...}}`. Reexecutar a mesma decisão, mensagem de resolução, orientação e escopo é idempotente. Uma conversa ocupada retorna `409 conversation_busy`; uma mensagem mais recente ou referência de resolução inválida retorna `409 resolution_outdated`. Recarregue e revise a discussão atual antes de aprovar novamente. Uma decisão diferente em um objetivo resolvido retorna `409 already_answered`; aprovar um objetivo cancelado ou substituído retorna `409 stale`. Texto inválido ou escopo indisponível retorna 422. Identificadores ausentes e de projetos estrangeiros retornam 404. Autenticação e autorização normais do projeto se aplicam a cada solicitação, incluindo reexecuções. Objetivos fechados rejeitam novas mensagens de discussão com `409 goal_closed`.
+Uma resposta bem-sucedida é `{"review": {...}}`. Reproduzir a mesma decisão, mensagem de resolução, orientação e âmbito é idempotente. Uma conversa ocupada retorna `409 conversation_busy`; uma mensagem mais recente ou referência de resolução inválida retorna `409 resolution_outdated`. Carregue e revise a discussão atual antes de aprovar novamente. Uma decisão diferente em um objetivo resolvido retorna `409 already_answered`; aprovar um objetivo cancelado ou substituído retorna `409 stale`. Texto inválido ou âmbito indisponível retorna 422. IDs ausentes e de outro projeto retornam 404. Autenticação normal e autorização do projeto aplicam-se a cada requisição, incluindo reproduções. Objetivos fechados rejeitam novas mensagens de discussão com `409 goal_closed`.
 
 ## Continuações e contexto obsoleto
 
-Decisões podem ser aprovadas enquanto o trabalho independente ainda está em execução. Nunca iniciam um segundo runner. Uma vez que o runner foi liberado e todo o objetivo naquela execução foi resolvido, o Glossia filas atomicamente uma sessão de continuação. `resumed_session_id` a identifica; a sessão original permanece histórica `awaiting_input`. Ambos os painéis e conversas nativas vinculam à continuação.
+Decisões podem ser aprovadas enquanto o trabalho independente ainda está em execução. Elas nunca iniciam um segundo runner naquela altura. Uma vez que o runner libere e todo objetivo nessa execução esteja resolvido, o Glossia enfileira atomicamente uma sessão de continuação. `resumed_session_id` o identifica; a sessão original permanece histórica `awaiting_input`. Tanto o dashboard quanto conversas nativas vinculam-se à continuação.
 
-A continuação possui uma identidade de execução fresca e mantém o ramo de publicação de tradução e saídas validadas. Cada resposta se aplica apenas à fonte idêntica e à impressão digital de contexto de tradução resolvida. Alteração na fonte, voz, glossário, modelo ou instruções do repositório impede a reutilização da resposta. Um commit da ramagem padrão mais recente invalida sessões de espera e marca perguntas abertas como obsoletas. O cancelamento também marca perguntas abertas como obsoletas.
+A continuação possui identidade de execução nova e mantém o branch de publicação de tradução e os outputs validados. Cada resposta se aplica apenas à fonte idêntica e à impressão digital de contexto de tradução resolvida. Fonte alterada, voz, glossário, modelo ou instruções do repositório impedem reuso da resposta. Um commit mais recente do branch padrão suplanta sessões pendentes e marca perguntas abertas como obsoletas. Cancelamento também marca perguntas abertas como obsoletas.
 
-## Diretrizes de repositório reutilizáveis
+## Orientação de repositório reutilizável
 
-Diretrizes reutilizáveis são uma edição explícita e separada do humano. Uma resposta sozinha não se torna contexto do repositório, e as transcrições de chat privadas nunca são copiadas automaticamente.
+A orientação de repositório reutilizável é uma edição humana separada e explícita. Uma resposta isolada não se torna contexto de repositório, e transcrições de chat privado nunca são copiadas automaticamente.
 
-locale `locale` direciona o overlay de localidade aplicável, como `L10N/es.md`; project `project` direciona o `L10N.md` aplicável. Arquivos de contexto de escopo existentes são respeitados. Overlays de localidade ausentes recebem seu frontmatter de localidade. Frontmatter e prosa existentes são preservados, e cada decisão é anexada com seu UUID de revisão para proveniência e idempotência.
+`locale` visa o overlay de locale aplicável, como `L10N/es.md`; `project` visa o `L10N.md` aplicável. Arquivos de contexto com escopo existentes são respeitados. Overlays de locale ausentes recebem seu frontmatter de locale. Frontmatter e texto existentes são preservados, e cada decisão é anexada com seu UUID de revisão para procedência e idempotência.
 
-As diretrizes são propostas no pull request de tradução normal, não escritas silenciosamente na ramagem padrão. O repositório deve ainda corresponder ao digesto de contexto registrado; uma edição conflitante falha na publicação em vez de sobrescrevê-lo. Os caminhos devem ser documentos de localização relativos ao repositório, sem travessia ou links simbólicos. Cada documento de contexto é limitado a 1 MiB. A fusão do pull request torna as diretrizes um contexto de localização comum e versionado para execuções futuras.
+A orientação é proposta no pull request de tradução normal, sem ser escrita silenciosamente no default branch. O repositório deve ainda corresponder ao digest de contexto registrado; uma edição conflitante falha na publicação em vez de substituí-la. Os caminhos devem ser documentos de localização relativos ao repositório, sem traversal ou symlinks. Cada documento de contexto é limitado a 1 MiB. Integrar o pull request torna a orientação um contexto de localização versionado comum para execuções futuras.

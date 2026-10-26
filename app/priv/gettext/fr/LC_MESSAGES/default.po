@@ -276,7 +276,7 @@ msgstr "Activité"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Adapt the tone"
-msgstr ""
+msgstr "Adaptez le ton"
 
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format
@@ -447,7 +447,7 @@ msgstr "Toute localisation"
 #: lib/glossia_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "Apache-2.0 core + Enterprise License"
-msgstr ""
+msgstr "Apache-2.0 Cœur + Licence Entreprise"
 
 #: lib/glossia_web/controllers/oauth/device_html/verify.html.heex
 #, elixir-autogen, elixir-format
@@ -751,12 +751,12 @@ msgstr "Tokens d'entrée en cache"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Can you help me find the right term for this context?\n\n"
-msgstr ""
+msgstr "Pouvez-vous m'aider à trouver le bon terme pour ce contexte ?\n\n"
 
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Can you help me review this translation?\n\n"
-msgstr ""
+msgstr "Pouvez-vous m'aider à relire cette traduction ?\n\n"
 
 #: lib/glossia_web/components/dashboard_components.ex
 #: lib/glossia_web/live/admin_live.ex
@@ -1126,9 +1126,9 @@ msgid "Conversation history"
 msgstr "Historique des conversations"
 
 #: lib/glossia_web/live/toki_live.ex
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Conversation starters"
-msgstr "Conversations"
+msgstr "Démarrage de conversation"
 
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
@@ -1678,7 +1678,7 @@ msgstr "La priorité de chaque paire (pays, langue) concerne les visiteurs avec 
 #: lib/glossia/docs.ex
 #, elixir-autogen, elixir-format
 msgid "Ecosystems"
-msgstr ""
+msgstr "Écosystèmes"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -1885,7 +1885,7 @@ msgstr "Filtrer"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Find the right term"
-msgstr ""
+msgstr "Trouvez le bon terme"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -2186,7 +2186,7 @@ msgstr "URL de la page d'accueil"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "How can I make this translation sound more natural?\n\n"
-msgstr ""
+msgstr "Comment puis-je rendre cette traduction plus naturelle ?\n\n"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3225,7 +3225,7 @@ msgstr "Seuls les chiffres rapportés par le fournisseur sont affichés. Les tra
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Only you and Toki can see this conversation"
-msgstr ""
+msgstr "Seuls vous et Toki peuvent voir cette conversation"
 
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
@@ -3885,7 +3885,7 @@ msgstr "Guidance réutilisable"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Review a translation"
-msgstr ""
+msgstr "Réviser une traduction"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -4326,7 +4326,7 @@ msgstr "Les objectifs de traduction partagés apparaîtront ici lorsque de l'aid
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Shared with invited teammates"
-msgstr ""
+msgstr "Partagé avec des collaborateurs invités"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format

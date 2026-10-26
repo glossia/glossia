@@ -270,7 +270,7 @@ msgstr "활동"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Adapt the tone"
-msgstr ""
+msgstr "어조 조정"
 
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format
@@ -441,7 +441,7 @@ msgstr "모든 로케일"
 #: lib/glossia_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "Apache-2.0 core + Enterprise License"
-msgstr ""
+msgstr "Apache-2.0 코어 + 엔터프라이즈 라이선스"
 
 #: lib/glossia_web/controllers/oauth/device_html/verify.html.heex
 #, elixir-autogen, elixir-format
@@ -745,12 +745,12 @@ msgstr "캐시된 입력 토큰"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Can you help me find the right term for this context?\n\n"
-msgstr ""
+msgstr "이 컨텍스트에 맞는 적절한 용어를 찾아주실 수 있나요?\n\n"
 
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Can you help me review this translation?\n\n"
-msgstr ""
+msgstr "이 번역을 검토해 주실 수 있나요?\n\n"
 
 #: lib/glossia_web/components/dashboard_components.ex
 #: lib/glossia_web/live/admin_live.ex
@@ -1119,9 +1119,9 @@ msgid "Conversation history"
 msgstr "대화 이력"
 
 #: lib/glossia_web/live/toki_live.ex
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Conversation starters"
-msgstr "대화"
+msgstr "대화 시작 프롬프트"
 
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
@@ -1671,7 +1671,7 @@ msgstr "각 (국가, 언어) 쌍의 우선 순위는 로케일 격차 (locale ga
 #: lib/glossia/docs.ex
 #, elixir-autogen, elixir-format
 msgid "Ecosystems"
-msgstr ""
+msgstr "에코시스템"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -1878,7 +1878,7 @@ msgstr "필터"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Find the right term"
-msgstr ""
+msgstr "적절한 용어 찾기"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -2179,7 +2179,7 @@ msgstr "홈페이지 URL"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "How can I make this translation sound more natural?\n\n"
-msgstr ""
+msgstr "이 번역을 더 자연스럽게 만들 수 있나요?\n\n"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3218,7 +3218,7 @@ msgstr "제공업체 보고 건수만 표시됩니다. 기존 번역, 로컬 Pi 
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Only you and Toki can see this conversation"
-msgstr ""
+msgstr "이 대화는 오직 당신과 Toki 만 볼 수 있습니다"
 
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
@@ -3878,7 +3878,7 @@ msgstr "재사용 가능한 안내"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Review a translation"
-msgstr ""
+msgstr "번역 검토"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -4319,7 +4319,7 @@ msgstr "도움이 필요한 경우 여기에 공유 번역 목표가 표시됩�
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Shared with invited teammates"
-msgstr ""
+msgstr "초대된 동료들과 공유됨"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
