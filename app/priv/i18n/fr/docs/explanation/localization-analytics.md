@@ -1,33 +1,33 @@
 %{
-  title: "Pourquoi l'analyse de localisation",
+  title: "Pourquoi les analyses de localisation",
   summary:
-    "Comment les signaux collectés se transforment en décisions de localisation et pourquoi la métrique d'écart est importante.",
+    "Comment les signaux collectés se traduisent en décisions de localisation, et pourquoi la métrique d'écart compte.",
   category: "explication",
   section: "analytics",
   order: 2
 }
 ---
 
-Choisir quelle langue traduire ensuite est un pari : cela coûte du temps et de l'argent, et le rendement dépend de la demande que vous ne pouvez généralement pas voir. Les analyses de localisation rendent cette demande visible.
+Choisir la langue pour laquelle traduire ensuite est un pari : cela coûte du temps et de l'argent, et le gain dépend d'une demande que vous ne pouvez généralement pas voir. L'analyse de localisation rend cette demande visible.
 
 ## La décision, pas le tableau de bord
 
-L'objectif de la collecte d'analyses ici est limité et délibéré : répondre à « devrions-nous traduire dans la langue X ? ». Les signaux sont choisis pour servir cette question, pas pour former une suite d'analyse à usage général.
+Le but de la collecte d'analyses ici est restreint et délibéré : répondre à « devrions-nous localiser dans la langue X ? » ? Les signaux sont choisis pour nourrir cette question, pas pour former une suite d'analyse générale.
 
-Trois entrées pilotent la décision :
+Trois entrées conduisent la décision :
 
-1. **Demande.** Combien de visiteurs souhaitent cette langue ? Les langues des navigateurs et le pays vous indiquent où se situe l'intérêt.
-2. **L'écart.** Cette demande est-elle déjà desservie ? La comparaison des langues préférées avec les langues cibles de votre projet, la langue de la page et ses traductions annoncées révèle la part de trafic qui se heurte à un mur.
-3. **Valeur.** La localisation rentabilisera-t-elle ? L'engagement par écart de localisation, les pages sur lesquelles atterrit le trafic non desservi, et l'origine de ce trafic indiquent si une nouvelle localisation est rentable.
+1. **Demande.** Combien de visiteurs souhaitent cette langue ? Les langues du navigateur et le pays vous indiquent où se situe l'intérêt.
+2. **L'écart.** Cette demande est-elle déjà servie ? En comparant les langues préférées avec les langues cibles de votre projet, la langue de la page et ses traductions annoncées, on révèle la part du trafic heurtant un mur.
+3. **Valeur.** La localisation serait-elle rentable ? L'engagement par écart local, les pages sur lesquelles se retrouve le trafic non servi, et l'origine de ce trafic indiquent si une nouvelle langue convertit.
 
-## Pourquoi le décalage est calculé à l'ingestion
+## Pourquoi l'écart est calculé au moment de l'ingestion
 
-`served_locale` enregistre la langue réelle de la page déclarée dans `<html lang>`, pas la langue que nous supposons reçue. `has_locale_gap` compare les préférences du navigateur avec les cibles de votre projet, la langue de la page et les traductions annoncées via `hreflang` liens. Les deux sont stockés par événement tel qu'ils étaient au moment de la visite. Cela signifie que les données historiques reflètent l'opportunité que vous affrontiez alors, pas un recalcul contre les cibles de ce jour. Si vous ajoutez le portugais ce mois-ci, le décalage du dernier mois ne rétrécit pas rétroactivement ; vous gardez un enregistrement honnête de combien de demande était non desservie.
+`served_locale` enregistre la langue réelle de la page déclarée dans `<html lang>`, pas la langue que nous supposons avoir été reçue. `has_locale_gap` compare les préférences du navigateur avec les langues cibles de votre projet, la langue de la page et les traductions annoncées via `hreflang`. Les deux sont stockés par événement tels qu'ils étaient au moment de la visite. Cela signifie que les données historiques reflètent l'opportunité que vous facez alors, pas une recomputation par rapport aux cibles d'aujourd'hui. Si vous ajoutez le portugais le mois prochain, l'écart du mois dernier ne se rétrécit pas rétroactivement ; vous conservez une trace honnête de la quantité de demande qui restait non servie.
 
 ## Pourquoi sans cookie, spécifiquement
 
-L'instinct quand vous voulez des « visiteurs uniques » est de créer un cookie ou d'identifier le navigateur. Les deux créent des identifiants persistants, et l'identification par empreinte est, dans la plupart des régimes de confidentialité, plus difficile à effacer qu'un cookie. L'un ni l'autre n'est nécessaire ici.
+L'instinct quand on veut des « visiteurs uniques » est de configurer un cookie ou d'identifier le navigateur par empreinte. Les deux créent des identifiants à longue durée de vie, et l'identification par empreinte est, sous la plupart des régimes de confidentialité, plus difficile à effacer qu'un cookie. Aucun n'est nécessaire ici.
 
-Les visiteurs uniques pour une journée nécessitent uniquement un identifiant stable *dans la journée*. Un hash de l'IP et de User-Agent, généré quotidiennement et limité par projet, permet les comptes quotidiens de visiteurs tout en rendant impossible de relier un visiteur entre les jours ou entre les sites. Ce design ne fournit pas le suivi à long terme des visiteurs revenants.
+Les visiteurs uniques pour un jour ne nécessitent qu'un identifiant qui est stable *au cours de la journée*. Un hachage de l'IP et du User-Agent, renouvelé quotidiennement et configuré par projet, prend en charge les comptes de visiteurs quotidiens tout en rendant impossible de relier un visiteur d'un jour à l'autre ou entre sites. Cela ne permet pas le suivi des visiteurs repliants à long terme.
 
-Ce design limite les identifiants conservés par les analyses. Il ne détermine pas si un site particulier nécessite un consentement ; cela dépend de la manière dont le site utilise les analyses et des règles qui s'y appliquent.
+Cette conception limite les identifiants retenus par les analyses. Elle ne détermine pas si un site web spécifique nécessite un consentement ; cela dépend de la manière dont le site utilise les analyses et des règles qui s'y appliquent.

@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "fff9b70f9a57eb4d7b9dcd535ac44ac0c78f417f892445e7e1c2aa590ff60cc9",
+  "hash": "9470a0b4cf9da9bee669cdfd64754eaef15cf759696e04295b03beba5e1d70f6",
   "hash_tree": {
     "root": {
       "children": [
@@ -15,7 +15,7 @@
         },
         {
           "children": [],
-          "hash": "721fca88898d7c935026f366d013255ac8c3f94fa231fffee457edb49d965898",
+          "hash": "b497a71712bb9c42c21285b640cf9c32208d16899f6a4eac1813fea54c691388",
           "kind": "translation_config",
           "label": "generation",
           "metadata": {
@@ -31,7 +31,7 @@
             "retries": 3,
             "segmentation_version": 1,
             "source_language": "en",
-            "validation_hash": "064760dc472b525acbc80c5ce08973a94fc7a5b06ba42cfab835324c7c048924"
+            "validation_hash": "ae3606ed9b1629c1a55145739b0db6174aa75ed71272a6af6089832cad7abbfc"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "fff9b70f9a57eb4d7b9dcd535ac44ac0c78f417f892445e7e1c2aa590ff60cc9",
+      "hash": "9470a0b4cf9da9bee669cdfd64754eaef15cf759696e04295b03beba5e1d70f6",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/localization-analytics.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "fcb6d69c740ad7cc2a03326ba2d5461eccedd2db493f14a1ae8b35985dfb1ba3",
+  "output_hash": "57afe81a1bf4b95e813d29aacacbcbe46f355093efca9f493fe85d9645b5010b",
   "output_path": "app/priv/i18n/fr/docs/explanation/localization-analytics.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
+  "source_commit_sha": "57f484cf34215985850f4b24b427584a3c434b64",
   "source_path": "app/priv/docs/explanation/localization-analytics.md",
-  "translated_at": "2026-10-25T21:12:22.895285Z",
-  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
+  "translated_at": "2026-10-26T11:41:11.809964Z",
+  "translation_session_id": "01a177c8-691e-7edb-9e0a-7e6eeb58673d"
 }
