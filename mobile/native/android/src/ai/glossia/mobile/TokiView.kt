@@ -302,7 +302,7 @@ internal class TokiView(context: Context, private val model: TokiModel,
         model.history.items.forEach { item ->
             historyRow(item.getString("id"), item.optionalString("title") ?: context.nativeText("New conversation").toString(),
                 listOfNotNull(draftDetail(model.threads[item.getString("id")]), item.optionalString("status")?.let { context.nativeText(translationStatus(it)) },
-                    item.optionalString("updated_at")?.let(::displayDate)).joinToString(" · "))
+                    item.optionalString("updated_at")?.let { context.displayDate(it) }).joinToString(" · "))
         }
         if (model.history.busy) body.loading("Loading conversations…")
         if (model.history.loaded && model.history.items.isEmpty() && drafts.isEmpty()) {
@@ -330,6 +330,6 @@ internal class TokiView(context: Context, private val model: TokiModel,
     }
 }
 
-internal fun displayDate(value: String): String = try {
-    java.time.OffsetDateTime.parse(value).toLocalDate().format(java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM))
+internal fun Context.displayDate(value: String): String = try {
+    java.time.OffsetDateTime.parse(value).toLocalDate().format(java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(nativeLocale))
 } catch (_: Exception) { value }

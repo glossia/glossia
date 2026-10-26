@@ -6,6 +6,7 @@ struct TokiWorkStatusView: View {
     let state: TokiActivityAttributes.ContentState
     var refresh: (() -> Void)?
     @Environment(\.glossiaTokens) private var tokens
+    @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
     @State private var expanded = false
@@ -41,7 +42,7 @@ struct TokiWorkStatusView: View {
                 if expanded {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(explanation(phase)).font(.caption).foregroundStyle(tokens.muted)
-                        Text("Last checked \(state.observedAt.formatted(date: .omitted, time: .shortened))")
+                        Text("Last checked \(state.observedAt.formatted(Date.FormatStyle(date: .omitted, time: .shortened).locale(locale)))")
                             .font(.caption).foregroundStyle(tokens.muted)
                         if phase == .disconnected, let refresh {
                             Button("Check status", action: refresh).font(.callout)

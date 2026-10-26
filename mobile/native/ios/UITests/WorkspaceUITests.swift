@@ -145,6 +145,56 @@ final class WorkspaceUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Sign in with Glossia"].exists)
     }
 
+    func testAppLanguageOverridePreservesDraftsAndPersistsAfterRelaunch() {
+        let app = XCUIApplication(bundleIdentifier: "ai.glossia.mobile.preview")
+        app.launchArguments = ["language-rtl", "--reset-app-language", "-AppleLocale", "de_DE"]
+        app.launch()
+        XCTAssertTrue(app.buttons["new-conversation"].waitForExistence(timeout: 10))
+        app.buttons["new-conversation"].tap()
+        let composer = app.descendants(matching: .any)["toki-composer"].firstMatch
+        XCTAssertTrue(composer.waitForExistence(timeout: 5))
+        composer.tap(); composer.typeText("Keep this unsent draft")
+        app.navigationBars.buttons["Toki"].tap()
+        app.tabBars.buttons["Profile"].tap()
+        let picker = app.buttons["app-language"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        XCTAssertLessThan(app.tabBars.buttons["Profile"].frame.midX, app.tabBars.buttons["Toki"].frame.midX)
+        captureLanguage(app, "ios-language-system-default-rtl")
+        picker.tap()
+        XCTAssertTrue(app.buttons["English"].waitForExistence(timeout: 5))
+        captureLanguage(app, "ios-language-choices")
+        app.buttons["English"].tap()
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        XCTAssertTrue(picker.label.contains("English") || (picker.value as? String)?.contains("English") == true)
+        XCTAssertLessThan(app.tabBars.buttons["Toki"].frame.midX, app.tabBars.buttons["Profile"].frame.midX)
+        captureLanguage(app, "ios-language-english-ltr")
+        app.tabBars.buttons["Toki"].tap()
+        app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Draft conversation")).firstMatch.tap()
+        XCTAssertTrue(composer.waitForExistence(timeout: 5))
+        XCTAssertEqual(composer.value as? String, "Keep this unsent draft")
+        app.navigationBars.buttons["Toki"].tap()
+        app.tabBars.buttons["Analytics"].tap()
+        let summary = app.staticTexts["analytics-traffic-summary"]
+        XCTAssertTrue(summary.waitForExistence(timeout: 10))
+        XCTAssertTrue(summary.label.contains("12,480 pageviews"))
+        XCTAssertTrue(summary.label.contains("3,206 unique visitors"))
+        captureLanguage(app, "ios-language-english-numbers-on-german-device")
+        app.terminate()
+        app.launchArguments = ["profile", "-AppleLocale", "de_DE"]
+        app.launch()
+        XCTAssertTrue(picker.waitForExistence(timeout: 10))
+        XCTAssertTrue(picker.label.contains("English") || (picker.value as? String)?.contains("English") == true)
+        captureLanguage(app, "ios-language-english-restored")
+        picker.tap()
+        app.buttons["System default"].tap()
+        XCTAssertTrue(picker.label.contains("System default") || (picker.value as? String)?.contains("System default") == true)
+    }
+
+    private func captureLanguage(_ app: XCUIApplication, _ name: String) {
+        let capture = XCTAttachment(screenshot: app.screenshot())
+        capture.name = name; capture.lifetime = .keepAlways; add(capture)
+    }
+
     func testChatOpensAtLatestReplyAndShowsGenerationStatus() {
         let app = XCUIApplication(bundleIdentifier: "ai.glossia.mobile.preview")
         for (screen, text) in [

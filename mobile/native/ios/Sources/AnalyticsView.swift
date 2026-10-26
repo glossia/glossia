@@ -63,6 +63,7 @@ final class AnalyticsModel: ObservableObject {
 struct AnalyticsView: View {
     @StateObject private var model: AnalyticsModel
     @Environment(\.glossiaTokens) private var tokens
+    @Environment(\.locale) private var locale
     let hasProject: Bool
 
     init(request: @escaping GlossiaRequest, hasProject: Bool) {
@@ -106,7 +107,7 @@ struct AnalyticsView: View {
                         Section("Top pages") {
                             ForEach(pages.indices, id: \.self) { index in
                                 LabeledContent(pages[index]["pathname"] as? String ?? "/",
-                                               value: String(pages[index]["pageviews"] as? Int ?? 0))
+                                               value: (pages[index]["pageviews"] as? Int ?? 0).formatted(.number.locale(locale)))
                             }
                         }.listRowBackground(tokens.surface)
                     }
@@ -132,22 +133,22 @@ struct AnalyticsView: View {
                     .foregroundStyle(by: .value("Metric", "Pageviews"))
                     .symbol(.circle)
                     .interpolationMethod(.linear)
-                    .accessibilityLabel(point.bucket.formatted(traffic.dateFormat))
-                    .accessibilityValue("\(point.pageviews.formatted()) pageviews")
+                    .accessibilityLabel(point.bucket.formatted(traffic.dateFormat.locale(locale)))
+                    .accessibilityValue("\(point.pageviews.formatted(.number.locale(locale))) pageviews")
                 LineMark(x: .value("Date", point.bucket), y: .value("Unique visitors", point.uniqueVisitors))
                     .foregroundStyle(by: .value("Metric", "Unique visitors"))
                     .lineStyle(StrokeStyle(lineWidth: 2, dash: [4, 3]))
                     .symbol(.square)
                     .interpolationMethod(.linear)
-                    .accessibilityLabel(point.bucket.formatted(traffic.dateFormat))
-                    .accessibilityValue("\(point.uniqueVisitors.formatted()) unique visitors")
+                    .accessibilityLabel(point.bucket.formatted(traffic.dateFormat.locale(locale)))
+                    .accessibilityValue("\(point.uniqueVisitors.formatted(.number.locale(locale))) unique visitors")
             }
             .chartForegroundStyleScale(domain: ["Pageviews", "Unique visitors"], range: [tokens.accent, tokens.muted])
             .chartYScale(domain: 0...max(1, traffic.points.map(\.pageviews).max() ?? 0))
             .chartXAxis {
                 AxisMarks(values: .automatic(desiredCount: 4)) { _ in
                     AxisGridLine().foregroundStyle(tokens.border)
-                    AxisValueLabel(format: traffic.dateFormat).foregroundStyle(tokens.muted)
+                    AxisValueLabel(format: traffic.dateFormat.locale(locale)).foregroundStyle(tokens.muted)
                 }
             }
             .chartYAxis {
@@ -161,7 +162,7 @@ struct AnalyticsView: View {
             .frame(height: 220)
             .accessibilityLabel("Traffic over the last \(model.days) days")
             .accessibilityIdentifier("analytics-traffic-chart")
-            Text("\((summary["pageviews"] as? Int ?? 0).formatted()) pageviews · \((summary["unique_visitors"] as? Int ?? 0).formatted()) unique visitors in this period")
+            Text("\((summary["pageviews"] as? Int ?? 0).formatted(.number.locale(locale))) pageviews · \((summary["unique_visitors"] as? Int ?? 0).formatted(.number.locale(locale))) unique visitors in this period")
                 .font(.footnote).foregroundStyle(tokens.muted)
                 .accessibilityIdentifier("analytics-traffic-summary")
             Text("Visitors are counted separately in each time bucket.")
@@ -176,6 +177,6 @@ struct AnalyticsView: View {
     }
 
     private func metric(_ title: String, value: Any?) -> some View {
-        LabeledContent(title) { Text((value as? Int ?? 0).formatted()).font(.title3.monospacedDigit()) }
+        LabeledContent(title) { Text((value as? Int ?? 0).formatted(.number.locale(locale))).font(.title3.monospacedDigit()) }
     }
 }

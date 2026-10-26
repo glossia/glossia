@@ -17,6 +17,9 @@ struct GlossiaPreviewApp: App {
         screen = ProcessInfo.processInfo.arguments.dropFirst().first
             ?? UserDefaults.standard.string(forKey: "glossia.preview.screen") ?? "login"
         UserDefaults.standard.set(screen, forKey: "glossia.preview.screen")
+        if ProcessInfo.processInfo.arguments.contains("--reset-app-language") {
+            UserDefaults.standard.removeObject(forKey: GlossiaLanguage.preferenceKey)
+        }
         let session = GlossiaSession(push: Self.previewPush(screen))
         session.restoring = false
         if screen != "login" {
@@ -25,6 +28,7 @@ struct GlossiaPreviewApp: App {
             session.organizations = [["handle": "acme", "name": "Acme"], ["handle": "other", "name": "Other team"]]
             session.projects = [["handle": "website", "name": "Website"]]
             session.tab = screen == "empty" ? "toki" : screen
+            if screen == "language-rtl" { session.tab = "toki" }
             if screen.hasPrefix("profile-push-") { session.tab = "profile" }
             if ["translations-empty", "translation-detail", "translation-live"].contains(screen) { session.tab = "translations" }
             if screen == "analytics-empty" { session.tab = "analytics" }
@@ -90,6 +94,8 @@ struct GlossiaPreviewApp: App {
             }
             .modifier(GlossiaThemeScope(appearance: appearance))
             .modifier(GlossiaLinkNotice(navigation: session.navigation) { Task { await session.resolveNavigation(request: Self.request) } })
+            .modifier(GlossiaLanguageScope())
+            .environment(\.layoutDirection, screen == "language-rtl" ? .rightToLeft : .leftToRight)
             .task { await appearance.configure(server: session.server ?? "https://glossia.ai") }
             .onOpenURL { url in Task { await session.receive(url, request: Self.request) } }
             .onChange(of: scenePhase, initial: true) { _, phase in work.setForeground(phase == .active) }

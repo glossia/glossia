@@ -10,7 +10,8 @@ def _glossia_android_impl(ctx):
             "-PonceNativeAbi=" + native["abi"],
             "-PonceOutputApk=" + execution_path(apk),
         ],
-        inputs = glob(ctx["srcs"]) + [native["path"]],
+        # Generated catalogs are optional until the first translation is available.
+        inputs = glob(ctx["srcs"]) + glob(["locales/*/android/strings.xml"]) + [native["path"]],
         outputs = [apk],
         # Gradle manages its incremental outputs and dependency cache locally.
         # Do not represent that mutable cache as a hermetic Once action.

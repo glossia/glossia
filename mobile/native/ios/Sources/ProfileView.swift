@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileView: View {
     @ObservedObject var session: GlossiaSession
     @Environment(\.glossiaTokens) private var tokens
+    @Environment(\.locale) private var locale
     let request: GlossiaRequest
     @State private var value: [String: Any]?
     @State private var error: String?
@@ -21,6 +22,11 @@ struct ProfileView: View {
                     LabeledContent("Handle", value: user["handle"] as? String ?? "")
                 }.listRowBackground(tokens.surface)
             }
+            Section("Language") {
+                GlossiaLanguagePicker()
+                Text("Choose the language for this app. Fluent languages and your device language stay unchanged.")
+                    .font(.caption)
+            }.listRowBackground(tokens.surface)
             GlossiaPushSettingsView(notifications: session.push)
                 .listRowBackground(tokens.surface)
             Section("Linguistic reviews") {
@@ -43,6 +49,9 @@ struct ProfileView: View {
             }.listRowBackground(tokens.surface)
             if let message = session.errorMessage { Text(message).foregroundStyle(.red) }
         }
+        // Recreate list cells when direction changes; reusing RTL cells can
+        // mirror their text after switching to LTR. Session and drafts stay owned above this list.
+        .id(locale.identifier)
         .scrollContentBackground(.hidden).background(tokens.canvas)
         .task { await load() }.refreshable { await load() }
         .confirmationDialog("Sign out of Glossia? Unsaved Toki drafts will be removed.", isPresented: $confirmingSignOut, titleVisibility: .visible) {

@@ -23,6 +23,29 @@ val stageTranslations by tasks.registering(Sync::class) {
     into(layout.buildDirectory.dir("translated-resources"))
 }
 
+val generateAppLocales by tasks.registering {
+    val catalogs = fileTree("../locales") { include("*/android/strings.xml") }
+    val output = layout.buildDirectory.file("locale-config/xml/app_locales.xml")
+    inputs.files(catalogs)
+    outputs.file(output)
+    doLast {
+        // Discover Glossia catalogs, not the translations shipped by UI dependencies.
+        // This single packaged list drives both Android Settings and our picker.
+        val locales = (listOf("en") + catalogs.files.map { it.parentFile.parentFile.name }).distinct().sorted()
+        locales.forEach { locale ->
+            require(locale.matches(Regex("[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*"))) { "Invalid native translation locale" }
+        }
+        output.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText("""<?xml version="1.0" encoding="utf-8"?>
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+${locales.joinToString("\n") { "    <locale android:name=\"$it\" />" }}
+</locale-config>
+""")
+        }
+    }
+}
+
 android {
     namespace = "ai.glossia.mobile"
     compileSdk = 35
@@ -46,6 +69,7 @@ android {
         java.setSrcDirs(listOf("src"))
         res.setSrcDirs(listOf("res"))
         res.srcDir(layout.buildDirectory.dir("translated-resources"))
+        res.srcDir(layout.buildDirectory.dir("locale-config"))
         jniLibs.srcDir(layout.buildDirectory.dir("jniLibs"))
     }
     // Fixtures and fake transports are JVM-test-only, never part of an APK.
@@ -79,7 +103,7 @@ dependencies {
 
 dependencyLocking { lockAllConfigurations() }
 
-tasks.named("preBuild") { dependsOn(stageNative, stageTranslations) }
+tasks.named("preBuild") { dependsOn(stageNative, stageTranslations, generateAppLocales) }
 tasks.register<Copy>("packageOnce") {
     dependsOn("assembleDebug")
     from(layout.buildDirectory.file("outputs/apk/debug/GlossiaAndroid-debug.apk"))

@@ -88,6 +88,9 @@ class MainActivity : AppCompatActivity(), AppearanceOwner {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_main)
+        // The framework can retain the previous layout-direction bit when
+        // clearing an English override on an untranslated RTL device locale.
+        window.decorView.layoutDirection = android.text.TextUtils.getLayoutDirectionFromLocale(nativeLocale)
         toolbar = findViewById(R.id.toolbar)
         navigation = findViewById(R.id.navigation)
         for (index in 0 until toolbar.menu.size()) toolbar.menu.getItem(index).let { it.title = nativeText(it.title ?: "") }

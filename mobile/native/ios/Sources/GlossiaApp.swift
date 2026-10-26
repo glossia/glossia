@@ -19,6 +19,7 @@ struct GlossiaApp: App {
             }
             .modifier(GlossiaThemeScope(appearance: appearance))
             .modifier(GlossiaLinkNotice(navigation: session.navigation) { Task { await session.resolveNavigation() } })
+            .modifier(GlossiaLanguageScope())
             .task { await session.restore() }
             .task(id: session.server) { await session.configurePush() }
             .task(id: session.appearanceServer) { await appearance.configure(server: session.appearanceServer) }

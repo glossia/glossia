@@ -485,8 +485,11 @@ struct TokiConversationView: View {
                             Text("Ask about this project's languages or recent translations. Replies use your organization's configured AI provider.")
                                 .font(.callout).foregroundStyle(tokens.muted).multilineTextAlignment(.center)
                             ForEach(["Which languages does this project support?", "Summarize my recent translations", "Help me plan our next language"], id: \.self) { suggestion in
-                                Button(NSLocalizedString(suggestion, comment: "Toki suggestion")) { model.draft = NSLocalizedString(suggestion, comment: "Toki suggestion") }
-                                    .buttonStyle(.bordered).disabled(model.sending)
+                                Button {
+                                    model.draft = GlossiaLanguage.localized(key: suggestion)
+                                } label: {
+                                    Text(LocalizedStringKey(suggestion))
+                                }.buttonStyle(.bordered).disabled(model.sending)
                             }
                         }.frame(maxWidth: .infinity).padding(.vertical, 24)
                     }
