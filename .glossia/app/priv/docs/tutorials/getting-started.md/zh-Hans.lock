@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "668dc14b0f3a7a969b9efce87fed1a11cc2868fce44212d3a6f5eb76522e1664",
+  "hash": "1b97a9d710b0266326a15d29509deb0e12bde6a7bda9f007befc936a886b9fc2",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
+          "hash": "f80c234aa8b77bbb91f7d7d99698183dc8fe9113d9066582b99f7012a7f19e58",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "668dc14b0f3a7a969b9efce87fed1a11cc2868fce44212d3a6f5eb76522e1664",
+      "hash": "1b97a9d710b0266326a15d29509deb0e12bde6a7bda9f007befc936a886b9fc2",
       "kind": "translation_input",
       "label": "app/priv/docs/tutorials/getting-started.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "eb79aa962f643fce4182f0ca4dcc3e05229f64e5505437785418e92e232a5a63",
+  "output_hash": "0c33efa5a5d4f5a99ccb83bd483c8cf6da6cc27aec29e8f1ef7fad7eefc2850d",
   "output_path": "app/priv/i18n/zh-Hans/docs/tutorials/getting-started.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/docs/tutorials/getting-started.md",
-  "translated_at": "2026-10-20T07:48:16.290170Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-26T00:41:08.853876Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

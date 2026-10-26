@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Verwenden Sie Ihr Mikrofon, um Diktate direkt auf diesem Gerät in einen bearbeitbaren Toki-Entwurf zu erstellen. Audio wird nicht hochgeladen.";
+"NSSpeechRecognitionUsageDescription" = "Transkribieren Sie Sprache direkt auf diesem Gerät in einen bearbeitbaren Toki-Entwurf. Nichts wird automatisch gesendet.";

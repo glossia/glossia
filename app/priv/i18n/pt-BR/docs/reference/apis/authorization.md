@@ -1,70 +1,74 @@
 %{
   title: "Autorização",
   summary:
-    "Escopos de permissão, papéis da organização e verificações de acesso no nível de recurso.",
-  category: "Referência",
+    "Escopos de permissão, papéis organizacionais e verificações de acesso a nível de recurso.",
+  category: "referência",
   subcategory: "APIs",
   order: 2
 }
 ---
 
-A autenticação estabelece uma identidade; a autorização decide quais ações essa identidade pode executar. Consulte [Autenticação](/docs/reference/apis/authentication) para fluxos de login e de token.
+Autenticação estabelece uma identidade; a autorização determina quais ações essa identidade pode executar. Veja [Autenticação](/docs/reference/apis/authentication) para fluxos de login e tokens.
 
 ## Escopos
 
-Os escopos controlam quais ações um token pode executar. Seguem o `object:action` padrão.
+Os escopos controlam quais ações um token pode executar. Eles seguem o `object:action` padrão.
 
 | Escopo | Descrição |
 |-------|-------------|
-| `admin:read` | Ler dados de administração de plataforma (apenas administradores de plataforma) |
-| `admin:write` | Atualizar dados de administração de plataforma (apenas administradores de plataforma) |
-| `ops:read` | Ler dados de operação de plataforma (apenas administradores de plataforma) |
+| `admin:read` | Ler dados de administração da plataforma (apenas administradores da plataforma) |
+| `admin:write` | Atualizar dados de administração da plataforma (apenas administradores da plataforma) |
+| `ops:read` | Ler dados de operações da plataforma (apenas administradores da plataforma) |
 | `user:read` | Ler informações de perfil de usuário |
 | `user:write` | Atualizar perfil de usuário |
-| `account:read` | Listar contas de organização às quais você tem acesso |
+| `account:read` | Listar contas da organização às quais você tem acesso |
 | `organization:read` | Ler detalhes da organização (e listar suas organizações) |
 | `organization:write` | Criar ou atualizar organizações |
 | `organization:claim` | Reivindicar uma organização |
 | `organization:delete` | Excluir organizações |
-| `organization:admin` | Ações administrativas da organização |
+| `organization:admin` | Ações administrativas de organização |
 | `members:read` | Ler membros da organização e convites |
 | `members:write` | Gerenciar membros da organização e convites |
 | `project:read` | Ler projetos |
 | `project:write` | Criar ou atualizar projetos |
-| `project:admin` | Ações administrativas do projeto |
+| `project:admin` | Ações administrativas de projeto |
 | `project:delete` | Excluir projetos |
 | `voice:read` | Ler configuração de voz |
 | `voice:write` | Criar ou atualizar configuração de voz |
 | `voice:admin` | Ações administrativas de voz |
-| `glossary:read` | Ler entradas de glossário |
-| `glossary:write` | Criar ou atualizar entradas de glossário |
-| `glossary:admin` | Gerenciar configurações de glossário |
+| `glossary:read` | Ler entradas do glosário |
+| `glossary:write` | Criar ou atualizar entradas do glosário |
+| `glossary:admin` | Gerenciar configurações do glosário |
 | `discussion:read` | Ler discussões |
 | `discussion:write` | Criar ou atualizar discussões |
 | `discussion:admin` | Ações administrativas de discussão |
-| `ticket:read` | Ler tickets |
-| `ticket:write` | Criar ou atualizar tickets |
-| `ticket:admin` | Ações administrativas de tickets |
-| `llm_model:read` | Ler modelos de linguagem de conta |
-| `llm_model:write` | Gerenciar modelos de linguagem de conta |
+| `ticket:read` | Ler chamados |
+| `ticket:write` | Criar ou atualizar chamados |
+| `ticket:admin` | Ações administrativas de chamado |
+| `llm_model:read` | Ler modelos de linguagem da conta |
+| `llm_model:write` | Gerenciar modelos de linguagem da conta |
+| `translation:read` | Ler atividade de tradução do projeto |
 | `translation:write` | Gravar dados de tradução |
+| `analytics:read` | Ler análises do site do projeto |
+| `toki:read` | Ler suas conversas privadas do projeto |
+| `toki:write` | Criar conversas privadas e enfileirar respostas do companheiro |
 | `api_credentials:read` | Ler credenciais de acesso |
 | `api_credentials:write` | Gerenciar credenciais de acesso |
 
-Os [metadados de descoberta](/docs/reference/apis/authentication#discovery-endpoints) do servidor de autenticação publicam os escopos disponíveis para os clientes. O simples fato de um escopo estar disponível não concede acesso por si só.
+Os metadados de [descoberta](/docs/reference/apis/authentication#discovery-endpoints) do servidor de autenticação publicam os escopos disponíveis aos clientes. O status de um escopo não concede acesso por si só.
 
 ## Modelo de autorização
 
-O Glossia aplica **duas camadas** para a interface de programação de aplicações [Representational State Transfer](https://developer.mozilla.org/en-US/docs/Glossary/REST) e o servidor [Model Context Protocol](https://modelcontextprotocol.io):
+Glossia impõe **duas camadas** para a interface de programação de aplicações [Transferência de Estado Representacional](https://developer.mozilla.org/en-US/docs/Glossary/REST) e para o servidor [Protocolo de Modelo de Contexto](https://modelcontextprotocol.io):
 
-1. **Verificação de escopo**: o token de acesso deve incluir o escopo `object:action` necessário.
-2. **Política no nível de recurso**: o usuário atual deve ser autorizado para o recurso específico por meio de permissões de membro explícitas ou pela política baseada em funções.
+1. **Verificação de escopo**: o token de acesso deve incluir o `object:action` escopo necessário.
+2. **Política em nível de recurso**: o usuário atual deve ser autorizado para o recurso específico por meio de permissões de membro explícitas ou da política baseada em papel.
 
-Os escopos representam a *máxima* capacidade de um token. As verificações no nível de recurso impõem a *efetiva* permissão para um recurso específico.
+Os escopos representam a capacidade *máxima* de um token. As verificações em nível de recurso impõem a permissão *efetiva* para um recurso específico.
 
-### Funções
+### Papéis
 
-| Função | Descrição |
+| Papel | Descrição |
 |------|-------------|
 | `self` | O usuário acessando seus próprios recursos |
 | `organization_member` | Um membro da organização que possui o recurso |
@@ -73,13 +77,15 @@ Os escopos representam a *máxima* capacidade de um token. As verificações no 
 
 ### Permissões de membro
 
-As associações de organização não-administradoras podem transportar escopos de permissão explícitos. Os novos membros começam com acesso de leitura à conta, organização, projetos, voz, glossário, discussões e tickets. Um administrador de organização pode substituir esses escopos através de [Membros → Permissões](/docs/how-to/member-permissions). Quando usando um token, a ação solicitada deve estar incluída nos escopos permitidos do membro bem como nos escopos do token.
+Membros de organização que não são administradores podem ter escopos de permissão explícitos. Novos membros começam com acesso de leitura à conta, organização, projetos, voz, glosário, discussões, chamados, atividade de tradução e análises, além de acesso às suas próprias conversas Toki privadas. Um administrador de organização pode substituir esses escopos através de [Membros → Permissões](/docs/how-to/member-permissions). Uma ação solicitada deve estar incluída nos escopos permitidos do membro, bem como nos escopos do token ao usá-lo.
 
-Os administradores de organização mantêm sua função de administrador. As associações existentes sem escopos explícitos continuam a utilizar a política baseada em funções abaixo até que as permissões sejam salvas.
+A propriedade de conversas Toki privadas é verificada antes da sobreescrição de escopo de membro de organização. Nem as afiliações nem os papéis administradores permitem acesso às conversas de outro usuário. A visibilidade do projeto é verificada separadamente. Consulte a [API móvel e de companheiro](/docs/reference/apis/mobile) para os escopos e limites dos endpoints.
 
-### Permissões por função
+Administradores de organização mantêm sua função administrativa. Afiliaturas existentes sem escopos explícitos continuam a usar a política baseada em papel abaixo até que as permissões sejam salvas.
 
-A tabela abaixo mostra regras comuns baseadas em função para associações sem escopos explícitos. Esta não é a política completa: solicitações de coleta, acesso temporário e administradores de plataforma têm regras adicionais.
+### Permissões de papel
+
+A tabela abaixo mostra regras comuns baseadas em papel para afiliações sem escopos explícitos. Não é a política completa: solicitações de coleção, acesso temporário e administradores da plataforma possuem regras adicionais.
 
 | Escopo | Próprio | Membro da organização | Administrador da organização | Conta pública |
 |-------|------|----------------------|--------------------|----------------|

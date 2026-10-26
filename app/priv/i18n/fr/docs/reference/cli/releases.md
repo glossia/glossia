@@ -1,8 +1,8 @@
 %{
-  title: "Sorties",
-  summary: "Historique des sorties CLI.",
+  title: "Versions",
+  summary: "Historique des versions CLI.",
   category: "Référence",
-  subcategory: "CLI",
+  subcategory: "cli",
   order: 2
 }
 ---
@@ -11,65 +11,65 @@
 
 *2026-02-14*
 
-#### Corrections de bogues
-- Renommer le binaire contenu dans les archives de distribution du nom spécifique à la plateforme à simplement `glossia`.
-- Supprimer l'attribut xattr de quarantaine macOS des binaires avant l'emballage.
+#### Corrections de bugs
+- Renommez le binaire dans les archives de publication du nom spécifique à la plateforme vers simplement `glossia`.
+- Éliminez l'attribut xattr de quarantaine de macOS des binaires avant l'emballage.
 
 ## 0.14.0
 
 *2026-02-14*
 
 #### Fonctionnalités
-- Ajouter un script de publication local et un workflow de journal de modification maintenu manuellement.
+- Ajout d'un script de publication local et d'un flux de travail de journal des modifications maintenu manuellement.
 
 ## 0.2.0
 
 *2026-02-14*
 
-#### Corrections de bogues
-- Corriger la gestion de la configuration du fournisseur d'identification hébergé.
-- Corriger les vérifications de santé du service hébergé.
+#### Corrections de bugs
+- Correction du traitement de la configuration de la connexion hébergée.
+- Correction des vérifications de santé du service hébergé.
 
 #### Fonctionnalités
-- Ajouter l'application Phoenix avec connexion OAuth, améliorations de la documentation et améliorations de l'interface utilisateur.
-- Utiliser le logo arrondi comme favicon.
-- Migrer l'interface en ligne de commande vers Bun et mettre à jour les builds d'exécutables CI.
+- Ajout de l'application Phoenix avec la connexion OAuth, les améliorations de la documentation et les améliorations de l'interface utilisateur.
+- Utilisez le logo arrondi comme favicon.
+- Migration du CLI vers Bun et mise à jour des builds exécutables de CI.
 
 ## 0.1.0
 
 *2026-02-12*
 
-#### Corrections de bogues
-- Prévenir le débordement horizontal des extraits de code sur mobile.
+#### Corrections de bugs
+- Empêchez le débordement horizontal des extraits de code sur mobile.
 - Ajouter une marge droite appropriée aux extraits de code sur mobile.
-- Améliorer la disposition réactive sur mobile pour éviter le débordement horizontal.
+- Améliorer la mise en page responsive mobile pour éviter le débordement horizontal.
 - Appliquer le formatage Biome.
-- Ajouter des en-têtes de groupe au modèle des notes de version.
-- Mettre à jour le flux de traduction de Bun vers Rust.
-- Aligner le corps du message avec la disposition Hero et améliorer le contenu du message de blog.
-- Centrer le contenu du message de blog horizontalement.
-- Corriger la panique lors de la troncature des résultats d'outils multi-octets UTF-8.
+- Ajouter des titres de groupe au modèle de notes de publication.
+- Mettre à jour le flux de travail de traduction de Bun vers Rust.
+- Aligner le corps du message avec la mise en page Hero et améliorer le contenu du post de blog.
+- Centrer le contenu du post de blog horizontalement.
+- Correction de la panique lors du tronçonnage des résultats d'outils multi-octets UTF-8.
 
 #### Fonctionnalités
-- Ajouter les outils de première partie et la section de site web.
-- Afficher les étapes de vérification des outils.
+- Ajout des outils de premier parti et de la section du site web.
+- Présenter les étapes de vérification des outils.
 - Simplifier la sortie de progression.
-- Appliquer une teinte aux lignes de progression.
+- Appliquer une couleur par défaut aux lignes de progression.
 - Afficher l'activité de traduction et de validation.
 - Formater les lignes d'outils.
-- Rendre le site web réactif avec un menu mobile et une disposition multi-point de rupture.
-- Réimplémenter CLI en Bun/TypeScript.
-- Ajouter un workflow CI et des tests.
+- Rendre le site web responsive avec un menu mobile et une mise en page multi-point de rupture.
+- Reimplémenter le CLI dans Bun/TypeScript.
+- Ajouter le flux de travail CI et les tests.
 - Ajouter la vérification de format avec Biome.
-- Ajouter la section Affinement progressif à la page d'accueil.
-- Ajouter une section de blog avec support SEO et premier message de blog.
-- Unifier la sortie CLI avec le format de verbe aligné à droite.
-- Coloriser la sortie CLI avec un formatage de message plus riche.
-- Ajouter une image OG carrée et les balises meta de carte Twitter.
-- Rendre l'agent coordinateur agentic avec utilisation d'outils.
-- Réécrire `glossia init` avec le Protocole Agent Client (ACP).
-- Ajouter le support Gemini, la validation automatique, le suivi des jetons et les améliorations de la fiabilité.
+- Ajouter la section Progressive Refinement à la page d'accueil.
+- Ajouter une section blog avec support SEO et premier post de blog.
+- Unifier la sortie du CLI avec un format de verbe aligné à droite.
+- Colorier la sortie du CLI avec un formatage de message plus riche.
+- Ajouter une image carrée OG et des balises meta de cartes Twitter.
+- Rendre l'agent coordinateur autonome avec l'utilisation d'outils.
+- Réécrire `glossia init` avec le Protocole Client Agent (ACP).
+- Ajout du support Gemini, de la validation automatique, du suivi des jetons et des améliorations de fiabilité.
 
-#### Réaménagements
-- Diviser CI en tâches distinctes de formatage, vérification de type, test et builds.
-- Réécrire l'interface en ligne de commande de TypeScript/Bun vers Rust.
+#### Améliorations d'architecture
+- Diviser CI en tâches séparées de formatage, de vérification de type, de test et de build.
+- Réécrire le CLI de TypeScript/Bun vers Rust.

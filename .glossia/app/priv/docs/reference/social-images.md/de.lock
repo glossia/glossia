@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "39cf722f6e35d0932f90840114337ca07706feb37d7942c1f3313e04abf066c7",
+  "hash": "812aee288432add24beb4d5d26a97d1346ea5948eb208128927d6d9bf68998da",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
+          "hash": "f80c234aa8b77bbb91f7d7d99698183dc8fe9113d9066582b99f7012a7f19e58",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "39cf722f6e35d0932f90840114337ca07706feb37d7942c1f3313e04abf066c7",
+      "hash": "812aee288432add24beb4d5d26a97d1346ea5948eb208128927d6d9bf68998da",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/social-images.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "f337fb1f28ffa10f6a885a77150859fe8496ca004df97d7f248116de9423706b",
+  "output_hash": "a0e8c85ab083614aa8c50c4a72bad92798cc98ee8e9ec08dbf75f4e573bcc821",
   "output_path": "app/priv/i18n/de/docs/reference/social-images.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/docs/reference/social-images.md",
-  "translated_at": "2026-10-20T07:47:43.868728Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-26T00:13:22.536625Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

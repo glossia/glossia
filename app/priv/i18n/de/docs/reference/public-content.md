@@ -1,66 +1,66 @@
 %{
   title: "Öffentliche Inhalte und Crawler-Schnittstellen",
-  summary: "HTML, Markdown, Entdeckung, Caching und Crawler-Grenzen für die öffentliche Website.",
+  summary: "HTML, Markdown, Discovery, Caching und Crawler-Grenzen für die öffentliche Website.",
   category: "Referenz",
   section: "platform",
   order: 10
 }
 ---
 
-Glossia stellt veröffentlichte Website-Inhalte getrennt von Konto- und Projektanwendungsoberflächen zur Verfügung.
+Glossia stellt veröffentlichten Website-Inhalt getrennt von Konto- und Projektanwendungsoberflächen bereit.
 
 ## Darstellungen
 
 | Schnittstelle | Verhalten |
 |---|---|
-| Eine veröffentlichte HTML-URL | Die browserseitige Darstellung, mit kanonischen Metadaten und einem Markdown-`Link`-Antwort-Header. |
+| Eine veröffentlichte HTML-URL | Die Browserdarstellung, mit kanonischem Metadaten und einem Markdown-Alternativ-`Link`-Response-Header. |
 | `Accept: text/markdown` an dieser URL | Eine Markdown-Darstellung, wenn der explizite Medientyp positive Qualität aufweist und nicht weniger bevorzugt ist als `text/html`. |
-| Die Seiten-URL mit angehängtem `.md` | Eine explizite Markdown-Darstellung, unabhängig von der Browser-Spracheinstellung. |
-| `/index.md` | Die Markdown-Übersicht der Startseite. |
-| `/docs.md`, `/blog.md`, `/features.md` | Markdown-Indizes von veröffentlichtem Inhalt. |
+| Die Seiten-URL mit angefügtem `.md` | Eine explizite Markdown-Darstellung, unabhängig von der Sprache-Präferenz des Browsers. |
+| `/index.md` | Die Markdown-Zusammenfassung der Startseite. |
+| `/docs.md`, `/blog.md`, `/features.md` | Markdown-Indizes des veröffentlichten Inhalts. |
 | `/changelog.md` | Veröffentlichte Changelog-Einträge in einem einzigen Markdown-Dokument. |
-| `/terms.md`, `/privacy.md`, `/cookies.md` | Die aktuellsten veröffentlichten Rechtsdokumente. Datumsbezogene rechtliche URLs unterstützen ebenfalls `.md`. |
+| `/terms.md`, `/privacy.md`, `/cookies.md` | Die aktuellsten veröffentlichten Rechtsdokumente. Mit Datum versehene rechtliche URLs unterstützen ebenfalls `.md`. |
 
-Allein `*/*` führt nicht zu Markdown. HTML- und Markdown-Antworten teilen `Vary: Accept` auf, sodass Caches die Darstellungen nicht vermischen.
+`*/*` allein ist kein Opt-in für Markdown. HTML- und Markdown-Antworten teilen `Vary: Accept` so, dass Caches die Darstellungen nicht mischen.
 
-Einzelne Dokumentationen, Blog-, Feature- und Rechtsinhalte verwenden verfasste Markdown-Formate statt einer Konvertierung des gerenderten HTMLs. Indexseiten werden aus dem veröffentlichten Inventar generiert; die Startseite bietet eine kuratierte Markdown-Übersicht. Die interaktiven REST-Referenzen verweisen Leser auf die OpenAPI-Spezifikation anstatt ein browser-only API-Widget einzubetten.
+Individuelle Dokumentationen, Blog-, Feature- und Rechtsinhalte verwenden verfasste Markdown-Dokumente statt einer Konversion des gerenderten HTMLs. Index-Seiten werden aus dem veröffentlichten Inventar generiert; die Startseite hat eine zusammengestellte Markdown-Zusammenfassung. Die interaktive REST-Referenz verweist Leser auf die OpenAPI-Spezifikation statt einer browser-einigen API-Widget einishment.
 
-## Lokale
+## Sprachen
 
-Englisch ist nicht vorangestellt. Übersetzte Marketing-URLs verwenden wörtliche Präfixe: `/de`, `/es`, `/fr`, `/ja`, `/ko`, `/pt-br`, und `/zh-hans`. Zum Beispiel dient `/es/docs/tutorials/getting-started.md` der spanischen Version, wenn diese veröffentlicht ist.
+Englisch ist unprefixed. Übersetzte Marketing-URLs verwenden wörtliche Präfixe: `/de`, `/es`, `/fr`, `/ja`, `/ko`, `/pt-br`, und `/zh-hans`. Zum Beispiel dient `/es/docs/tutorials/getting-started.md` der spanischen Version, wenn diese veröffentlicht ist.
 
-Die URL wählt die Sprache des Markdown-Inhalts. `Accept-Language` leitet keine Markdown-Anfrage um. Eine fehlende Inhalts-Übersetzung greift auf die englische Quelle zurück. Die Startseite-Übersicht wurde bisher auf Englisch verfasst.
+Die URL wählt die Sprache des Markdown-Inhalts aus. `Accept-Language` leitet keine Markdown-Anfrage um. Eine fehlende Inhaltsübersetzung greift auf ihre englische Quelle zurück. Die Startseite-Zusammenfassung wird derzeit auf Englisch verfasst.
 
 ## Entdeckung
 
-- `/robots.txt` verbietet Crawling standardmäßig und ermöglicht die endliche veröffentlichte HTML- und Markdown-Inventare, lokalisierte Feeds, Rendering-Assets unter `/assets/`, `/fonts/`, und `/images/`, das Favicon, und öffentliche Marketing-Previews unter `/og/marketing/`. Account-Preview-Bilder unter `/og/app/` bleiben verboten. Es dient als Leitfaden für kooperative Crawler, nicht als Autorisierungsmaschine.
-- `/sitemap.xml` listet kanonische öffentlichen Inhalt mit Lokale-Alternativen auf, einschließlich Markdown-URLs für Markdown-nur-Seiten. Changelog-Fragmente sind keine separaten URLs.
-- `/llms.txt` stellt Glossia vor und verlinkt auf öffentliche Dokumentation, Feature-Leitfäden und jüngste Texte, einschließlich expliziter Markdown-Links.
-- `/llms-full.txt` exportiert die Startseite-Übersicht, Dokumentation und Markdown-nur-Vergleichsinhalt in einem einzigen Textdokument, das Markdown enthält.
+- `/robots.txt` verbietet standardmäßig Crawling und umfasst das endliche veröffentlichte HTML- und Markdown-Inventar, lokalisierte Feeds, Rendering-Assets unter `/assets/`, `/fonts/`, und `/images/`, das Favicon und öffentliche Marketing-Vorschauen unter `/og/marketing/`. Konto-Vorschaubilder unter `/og/app/` bleiben verboten.
+- `/sitemap.xml` verzeichnet kanonische öffentliche Inhalte mit Lokalisierungs-Alternativen, einschließlich Markdown-URLs für Markdown-nur-Seiten. Changelog-Fragmente sind keine separaten URLs.
+- `/llms.txt` führt Glossia ein und verlinkt auf öffentliche Dokumentation, Feature-Leitfäden und kürzliche Veröffentlichungen, einschließlich expliziter Markdown-Links.
+- `/llms-full.txt` exportiert die Startseite-Zusammenfassung, Dokumentation und Markdown-nur-Vergleichsinhalte in einem einzigen Textdokument, das Markdown enthält.
 
-Vergleichsinhalt wird als Markdown nur veröffentlicht. Er bleibt außerhalb der HTML-Dokumentation, -navigation, -suche, und Dokumentations-Indizes, aber Agenten können ihn entdecken durch `/llms.txt` und die Sitemap. Seine kanonische URL endet in `.md`; die frühere HTML-URL reagiert auch auf `Accept: text/markdown`, fantastme aber keine Browserseite mehr.
+Vergleichsinhalte werden nur als Markdown veröffentlicht. Sie bleiben aus HTML-Dokumentation, Navigation, Suche und Dokumentationsindizes aus, aber Agenten können sie über `/llms.txt` und die Sitemap entdecken. Seine kanonische URL endet mit `.md`; die frühere HTML-URL antwortet ebenfalls auf `Accept: text/markdown`, rendert aber keine Browserseite mehr.
 
-Authentifizierung, Konto-Dashboards, APIs und andere Anwendungsanworten sind mit `noindex, nofollow` markiert. Veröffentlichter erfolgreicher Inhalt ist mit `index, follow` markiert; Fehler bleiben nichtindizierbar. Entdeckungstexte (`/robots.txt`, `/llms.txt`, und `/llms-full.txt`) verwenden `noindex, follow`: Leser können sie abrufen und ihre Links befolgen, aber Suchmaschinen sollten die kanonischen Seiten auflisten anstatt einer doppelten Dokumentation.
+Authentifizierung, Kontodashboards, APIs und andere Anwendungsantworten sind mit `noindex, nofollow` markiert. Veröffentlichter erfolgreicher Inhalt ist mit `index, follow` markiert; Fehler bleiben nichtindizierbar. Discovery-Textdateien (`/robots.txt`, `/llms.txt`, und `/llms-full.txt`) verwenden `noindex, follow`: Leser können diese abrufen und ihre Links folgen, aber Suchmaschinen sollten die kanonischen Seiten indexieren statt einer doppelten Dokumententzung.
 
-## Cache-Nutzung und Ressourcenverbrauch
+## Caching und Ressourcennutzung
 
-Markdown- und Entdeckungstext-Antworten umfassen:
+Markdown- und Text-Entdeckungsantworten umfassen:
 
-| Header | Wert oder Bedeutung |
+| Kopfzeile | Wert oder Bedeutung |
 |---|---|
-| `Content-Type` | `text/markdown; charset=utf-8`, oder `text/plain; charset=utf-8` für Entdeckungstexte. |
+| `Content-Type` | `text/markdown; charset=utf-8` oder `text/plain; charset=utf-8` für Entdeckungstext. |
 | `Cache-Control` | `public, max-age=300, stale-while-revalidate=60`. |
-| `ETag` | Ein zitiertes SHA-256-Digest der Darstellung. |
-| `X-Markdown-Tokens` | Eine ungefähre Schätzung von Zeichen, geteilt durch vier, gerundet auf; keine modellabhängige Tokenizer-Zählung. |
+| `ETag` | Ein zitierter SHA-256-Digest der Darstellung. |
+| `X-Markdown-Tokens` | Eine grobe Schätzung von Zeichen, geteilt durch vier, aufgerundet; keine modellspezifische Tokenizer-Anzahl. |
 
-`If-None-Match` unterstützt das Abgleichen starker oder schwacher Validatoren, mehrere Validatoren und `*`. Eine Übereinstimmung sendet `304` ohne Körper. `HEAD` gibt Header der Darstellung ohne Körper zurück.
+`If-None-Match` unterstützt das Matching starker oder schwacher Validatoren, mehrere Validatoren und `*`. Ein Match gibt `304` ohne Körper zurück. `HEAD` liefert Darstellungs-Köpfe ohne Körper.
 
-Das veröffentlichte Markdown-Inventar wird in die Veröffentlichung kompiliert. Anfragen führen keine Inhaltübersetzung, das Lesen von Quelldateien, Laden eines authentifizierten Kontos oder das Erzeugen eines LiveViews aus. Keine User-Agent-Umnormung ist notwendig, um diese öffentlichen Darstellungen zu erreichen.
+Das veröffentlichte Markdown-Inventar wird zum Release kompiliert. Anfragen führen keine Inhaltübersetzungen, Quelldateien lesen, ein鉴entifiziertes Konto laden oder ein LiveView rendern.
 
 ## Operative Grenzen
 
-Markdown-Negotiation gewährt keinen Zugang zu Konto- oder Projektdashboards. Bestehende Konten-Browsing-Ratenbegrenzungen und Turnstile-Überprüfungen bleiben separate Schutzmaßnahmen.
+Markdown-Inhaltsverhandlung bietet keinen Zugriff auf Konto- oder Projektdashboards. Bestehende Kontobrowsing-Rate-Limits und Turnstile-Prüfungen bleiben separate Schutzmaßnahmen.
 
-Produktions-Edge-Ratenbegrenzungen gelten für sowohl `GET` und `HEAD`. Verifizierte Crawler werden weiter rate-limitiert. Übermäßige Anfragen erhalten eine Ratenbegrenzung-Antwort statt einer Browser-Herausforderung; Leser sollten langsamer werden und später erneut versuchen. Gemeinsame Caching- und Konditional-Anfragen entbinden Clients nicht von Ratenlimits.
+Produktionskante-Rate-Limits gelten für beide `GET` und `HEAD`. Verifizierte Crawler sind immer noch Rate-Limit. Überschüssige Anfragen erhalten eine Rate-Limit-Antwort statt einer Browser-Challenge; Leser sollten sich verlangsamen und später erneut versuchen. Geteiltes Caching und bedingte Anfragen entbinden Clients nicht von Rate-Limits.
 
-Crawler-Politik-Änderungen in dem Repository treten nur nach der Bereitstellung der Anwendung und der relevanten Infrastruktur-Konfiguration in Kraft.
+Crawler-Policy-Änderungen im Repository werden erst nach der Bereitstellung der Anwendung und der relevanten Infrastrukturkonfiguration wirksam.

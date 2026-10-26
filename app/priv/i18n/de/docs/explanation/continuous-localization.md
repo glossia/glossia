@@ -1,43 +1,43 @@
 %{
   title: "Kontinuierliche Lokalisierung",
   summary:
-    "Machen Sie Sprachänderungen Teil des versionierten Lieferprozesses des Produkts, nicht eines separaten Export- und Import-Zyklus.",
+    "Integrieren Sie Sprachänderungen in den versionierten Bereitstellungszyklus des Produkts, statt einen separaten Export- und Import-Zyklus zu nutzen.",
   category: "Erklärung",
   section: "translation",
   order: 2
 }
 ---
 
-Kontinuierliche Bereitstellung funktioniert, weil kleine Änderungen eine wiederholbare Pipeline durchlaufen: Versionskontrolle, Überprüfung, Validierung und Deployment. Lokalisierung sollte in diese Pipeline passen, statt ein unbezogenes Referenzsystem einzuführen.
+Continuous Delivery funktioniert, weil kleine Änderungen durch eine wiederholbare Pipeline fließen: Versionskontrolle, Überprüfung, Validierung und Bereitstellung. Lokalisierung sollte zu dieser Pipeline passen, statt ein unabhängiges System der Aufzeichnung einzuführen.
 
-## Der getrennte Zyklus
+## Der abgekoppelte Kreislauf
 
-In einem getrennten Workflow löst eine Produktänderung einen Export aus, die Bearbeitung erfolgt in einem anderen Tool, und der übersetzte Inhalt kehrt schließlich zurück. Zwischen diesen Schritten kann sich der Quelltext erneut ändern. Teams müssen Versionen bereinigen, entscheiden, ob Übersetzungen veraltet sind, und eine weitere Version koordinieren.
+In einem abgekoppelten Workflow löst eine Produktänderung einen Export aus, die Arbeit findet in einem anderen Tool statt, und die übersetzten Inhalte kehren schließlich zurück. Zwischen diesen Schritten kann sich der Quelltext erneut ändern. Teams müssen Versionen aufeinander abstimmen, entscheiden, ob Übersetzungen veraltet sind, und eine weitere Freigabe koordinieren.
 
-Das Problem ist nicht, dass ein Web-Editor inhärent falsch ist. Vielmehr kann ein unabhängig autoritatives Bearbeitungssystem sprachliche Entscheidungen vom Code und der Inhaltrevision trennen, die er beschreibt.
+Das Problem ist nicht, dass ein Web-Editor von Grund auf falsch ist. Es ist vielmehr, dass ein unabhängig autoritatives Bearbeitungssystem Sprachentscheidungen von der Code- und Inhaltsrevision trennen kann, die sie beschreiben.
 
-## Der Repository-Zyklus
+## Der Repository-Kreislauf
 
-Der Repository-Workflow von Glossia hält Quelldateien und Lokalisierungs-Konfiguration in Git. Ein verbundenes Repository liefert den Inhalt und Zielsprachen. Übersetzungsänderungen kehren als überprüfbare Repository-Änderungen zurück, sodass Teams ihre bestehenden Pull-Request- und Veröffentlichungs-Konventionen anwenden können.
+Der Repository-Workflow von Glossia bewahrt Quelldateien und Lokalisierungs-Konfiguration in Git. Ein verbundenes Repository liefert den Inhalt und Zielsprachen. Übersetzungsänderungen kehren als überprüfbare Repository-Änderungen zurück, sodass Teams ihre bestehenden Pull-Request- und Veröffentlichungskonventionen anwenden können.
 
-Ein typischer Zyklus ist:
+Ein typischer Kreislauf ist:
 
-1. Ein Team ändert den Quellinhalt mit dem Produkt.
-2. Glossia identifiziert Inhalte, die eine Übersetzung oder Verfeinerung benötigen.
-3. Sprachanleitung und Terminologie bieten Kontext für die Transformation.
-4. Validierung prüft das Ergebnis und Fehler bleiben handhabbar.
-5. Rezensenten prüfen die Änderungen, bevor die Veröffentlichungs-Pipeline sie bereitstellt.
+1. Ein Team ändert den Inhalt der Quelle mit dem Produkt.
+2. Glossia identifiziert Inhalte, die übersetzt oder verfeinert werden müssen.
+3. Sprachrichtlinien und Terminologie liefern Kontext für die Transformation.
+4. Validierung prüft das Ergebnis, und Fehler bleiben lösbar.
+5. Rezensenten prüfen die Änderungen, bevor die Veröffentlichungspipeline sie überreicht.
 
-[Progressive Verfeinerung](./progressive-refinement) erklärt, wie Hashing und Validierung in diesen Zyklus passen. [Übersetzungswiederherstellung](./translation-recovery) erklärt, was passiert, wenn die Generierung oder Validierung fehlschlägt.
+[Schrittweise Verfeinerung](./progressive-refinement) erklärt, wie Hashing und Validierung in diesen Kreislauf passen. [Wiedergewinnung von Übersetzungen](./translation-recovery) erklärt, was passiert, wenn die Generierung oder Validierung fehlschlägt.
 
-## Kontinuierlich bedeutet nicht ungeprüft
+## Kontinuierlich heißt nicht unüberprüft
 
-Eine kontinuierlich auslieferbare Änderung ist nicht notwendigerweise eine automatisch genehmigte Änderung. Rechtssprache, Produktversprechen und kultursensible Materialien benötigen möglicherweise eine Expertenprüfung. Das Beibehalten dieser Prüfung im Auslieferungszyklus ermöglicht einem Team, das geeignete Gate zu wählen, ohne eine separate Publikationsautorität unterhalten zu müssen.
+Eine dauerhaft bereitstellbare Änderung ist nicht zwingend selbst genehmigt. Rechtssprache, Produktversprechen und kultursensible Inhalte können einer Expertenprüfung bedürfen. Durch die Einbindung dieser Prüfung in den Bereitstellungszyklus kann ein Team die richtige Hürde wählen, ohne eine separate Veröffentlichungsautorität aufrechtzuerhalten.
 
-Ebenso bedeutet kontinuierliche Lokalisierung nicht, das gesamte Repository bei jedem Commit zu übersetzen. Unveränderter Inhalt sollte dieselben Ressourcen nicht wiederholt verConsumen.
+Auch bedeutet kontinuierliche Lokalisierung nicht, das ganze Repository bei jedem Commit zu übersetzen. Unveränderter Inhalt sollte nicht dieselben Ressourcen wiederholt verbrauchen.
 
 ## Die praktische Grenze
 
-Glossia liefert Sprachkontext und Lokalisierungsmechanismen. Die Prüfungen und der Bereitstellungsprozess Ihres Repositories bestimmen weiterhin, wann eine Änderung sicher veröffentlicht werden kann. Glossia ist kein Ersatz für Anwendungstests oder die Verantwortung eines Editors für Genauigkeit.
+Glossia stellt Sprachkontext und Lokalisierungsmechanismen zur Verfügung. Die Prüfungen und der Bereitstellungsprozess Ihres Repositories bestimmen weiterhin, wann eine Änderung sicher bereitgestellt werden kann. Glossia ist kein Ersatz für Anwendungstests oder die Verantwortung eines Editors für die Genauigkeit.
 
-Andere Plattformen bieten ebenfalls Git-Integrationen und CI-Automatisierung an. Der Unterschied liegt im beabsichtigten Schwergewicht: Glossia ist um den Inhaltserweiterung und -prüfung im Repository aufgebaut, nicht um die Anforderung, die laufende redaktionelle Autorität in einen gehosteten Übersetzungs-Arbeitsbereich zu verlagern.
+Andere Plattformen bieten zudem Git-Integrationen und CI-Automatisierung an. Der Unterschied liegt im geplanten Schwerpunkt: Glossia ist um Inhaltswirtschaft und Prüfung im Repository herum aufgebaut, nicht um die Anforderung, die laufende redaktionelle Autorität in eine gehostete Übersetzungsarbeitsumgebung zu verlagern.

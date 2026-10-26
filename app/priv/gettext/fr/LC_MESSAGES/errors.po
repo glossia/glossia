@@ -16,7 +16,7 @@ msgstr "ne peut pas être vide"
 
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
-msgstr "a déjà été pris"
+msgstr "est déjà pris"
 
 ## From Ecto.Changeset.put_change/3
 msgid "is invalid"
@@ -52,8 +52,8 @@ msgstr "sont toujours associés à cette entrée"
 ## From Ecto.Changeset.validate_length/3
 msgid "should have %{count} item(s)"
 msgid_plural "should have %{count} item(s)"
-msgstr[0] "devrait avoir %{count} élément(s)"
-msgstr[1] "devrait avoir %{count} élément(s)"
+msgstr[0] "devrait comporter %{count} élément(s)"
+msgstr[1] "devrait comporter %{count} élément(s)"
 
 msgid "should be %{count} character(s)"
 msgid_plural "should be %{count} character(s)"
@@ -62,13 +62,13 @@ msgstr[1] "devrait comporter %{count} caractère(s)"
 
 msgid "should be %{count} byte(s)"
 msgid_plural "should be %{count} byte(s)"
-msgstr[0] "devrait faire %{count} octet(s)"
-msgstr[1] "devrait faire %{count} octet(s)"
+msgstr[0] "devrait comporter %{count} octet(s)"
+msgstr[1] "devrait comporter %{count} octet(s)"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
-msgstr[0] "doit contenir au moins %{count} élément(s)"
-msgstr[1] "doit contenir au moins %{count} élément(s)"
+msgstr[0] "doit comporter au moins %{count} élément(s)"
+msgstr[1] "doit comporter au moins %{count} élément(s)"
 
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
@@ -82,18 +82,18 @@ msgstr[1] "doit comporter au moins %{count} octet(s)"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "doit contenir au plus %{count} élément(s)"
-msgstr[1] "doit contenir au plus %{count} élément(s)"
+msgstr[0] "doit comporter au plus %{count} élément(s)"
+msgstr[1] "doit comporter au plus %{count} élément(s)"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "doit comporter au maximum %{count} caractère(s)"
-msgstr[1] "doit comporter au maximum %{count} caractère(s)"
+msgstr[0] "ne doit pas dépasser %{count} caractère(s)"
+msgstr[1] "ne doit pas dépasser %{count} caractère(s)"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "doit comporter au maximum %{count} octet(s)"
-msgstr[1] "doit comporter au maximum %{count} octet(s)"
+msgstr[0] "ne doit pas dépasser %{count} octet(s)"
+msgstr[1] "ne doit pas dépasser %{count} octet(s)"
 
 ## From Ecto.Changeset.validate_number/3
 msgid "must be less than %{number}"

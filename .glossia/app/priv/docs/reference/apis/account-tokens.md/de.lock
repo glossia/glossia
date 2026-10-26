@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "59b096583f57b9b6b21f6d4380a691bb8bf59277ceb7978818ec219f7e768880",
+  "hash": "39626731f6339e47a755ceb7e2da7a5a3b54a189e1ce5a4cba8c3c8a63e6bba6",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
+          "hash": "f80c234aa8b77bbb91f7d7d99698183dc8fe9113d9066582b99f7012a7f19e58",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "59b096583f57b9b6b21f6d4380a691bb8bf59277ceb7978818ec219f7e768880",
+      "hash": "39626731f6339e47a755ceb7e2da7a5a3b54a189e1ce5a4cba8c3c8a63e6bba6",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/apis/account-tokens.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "ef9d42011fc2bd11ba5254f007f50d82fcbb105f3dc4165b397b015b1d1cc2b5",
+  "output_hash": "b02e8deee26ceade1a70693c9603e25b9a834bb9a0dbb8cef13005f5f0fa3c2f",
   "output_path": "app/priv/i18n/de/docs/reference/apis/account-tokens.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/docs/reference/apis/account-tokens.md",
-  "translated_at": "2026-10-20T07:43:07.924574Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-25T22:24:24.650247Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

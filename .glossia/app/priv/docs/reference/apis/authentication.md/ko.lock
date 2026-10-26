@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "c60c85e4b9d1f7fe5924daa98bc1183ba8bd17a6512b96393f91c4e6c8dd6405",
+  "hash": "fdf3490f61392d3a2a4d2025f850348c65396665d7fef69c82ed7b1566c0f75e",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
+          "hash": "f80c234aa8b77bbb91f7d7d99698183dc8fe9113d9066582b99f7012a7f19e58",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "c60c85e4b9d1f7fe5924daa98bc1183ba8bd17a6512b96393f91c4e6c8dd6405",
+      "hash": "fdf3490f61392d3a2a4d2025f850348c65396665d7fef69c82ed7b1566c0f75e",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/apis/authentication.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "c2960ecc10c267f62687f8d821117e526a4213006c887fb02e4bfdbcd4d46be8",
+  "output_hash": "8a6e151cd8774f961e3dfed3fa8fc1d9105cb45c76299e5a89a3c7ae7540d672",
   "output_path": "app/priv/i18n/ko/docs/reference/apis/authentication.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/docs/reference/apis/authentication.md",
-  "translated_at": "2026-10-20T07:43:08.347427Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-25T22:34:10.636594Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

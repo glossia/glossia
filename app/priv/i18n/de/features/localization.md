@@ -1,16 +1,16 @@
 %{
   title: "Lokalisierung",
   summary:
-    "Lokalisieren Sie Ihren Inhalt in jede beliebige Sprache bei gleichzeitiger Bewahrung von Struktur, Code-Blöcken und Formatierung. Glossia-Agenten übernehmen die schwere Arbeit, sodass Ihr Team sich auf die Überprüfung konzentrieren kann.",
+    "Lokalisieren Sie Ihre Inhalte in jede beliebige Sprache. Dabei bleiben Struktur, Code-Blöcke und Formatierung erhalten. Die Glossia-Agenten übernehmen die Schwerarbeit, sodass Ihr Team sich auf die Überprüfung konzentrieren kann.",
   order: 1,
   icon: "Sprachen",
   hero_cta_text: "Loslegen",
   hero_cta_url: "/signup",
   highlights: [
     %{
-      title: "Strukturbewusst",
+      title: "Strukturorientiert",
       description:
-        "Code-Blöcke, Frontmatter und Formatierung überstehen die Lokalisierung unverändert. Keine manuelle Bereinigung erforderlich.",
+        "Code-Blöcke, Frontmatter und Formatierung bleiben bei der Lokalisierung intakt. Keine manuelle Nacharbeit erforderlich.",
       icon: "Code"
     },
     %{
@@ -20,10 +20,10 @@
       icon: "Welt"
     },
     %{
-      title: "Inkrementelle Updates",
+      title: "Inkrementale Updates",
       description:
-        "Nur geänderter Inhalt wird neu lokalisiert. Sperrdateien erfassen, was bereits verarbeitet wurde und sparen Zeit und Kosten ein.",
-      icon: "Turbo"
+        "Nur geänderter Inhalt wird neu lokalisiert. Lockdateien protokollieren, was bereits verarbeitet wurde, und sparen Zeit und Kosten.",
+      icon: "Blitz"
     }
   ]
 }
@@ -31,12 +31,12 @@
 
 ## Wie Lokalisierung funktioniert
 
-Glossia liest den Inhalt aus deinem Repository zusammen mit Lockfiles, die verfolgen, was bereits verarbeitet wurde. Es kombiniert dann deinen lokalen Kontext (`L10N.md` Dateien im Root-Verzeichnis oder in Unterordnern) mit globalem Kontext (Stimme, Glossar und Einstellungen auf Kontoniveau), um ein vollständiges Bild davon zu erzeugen, wie dein Inhalt in jeder Zielsprache klingen sollte. Sobald dieser Kontext assembles ist, lokalisiert ein agentenbasierter Workflow den veränderten Inhalt und bewahrt dabei Struktur, Code-Blöcke und Formatierung. Sobald die Ausführung abgeschlossen ist, werden die Ergebnisse als Pull Request, der für die Prüfung bereit ist, an dein Repository gesendet.
+Glossia liest den Inhalt aus deinem Repository zusammen mit Lockdateien, die verfolgen, was bereits verarbeitet wurde. Es integriert dann deinen lokalen Kontext (`L10N.md` Dateien im Root oder in Subordnern) mit globalem Kontext (Stimme, Glossar und Einstellungen auf Kontoebene), um ein vollständiges Bild davon zu erhalten, wie dein Inhalt in jeder Zielsprache klingen sollte. Sobald dieser Kontext zusammengetragen ist, lokalisiert ein Agenten-Workflow den veränderten Inhalt, während Struktur, Code-Blöcke und Formatierung erhalten bleiben. Sobald der Durchlauf abgeschlossen ist, werden die Ergebnisse deinem Repository als Pull-Request zurückgesendet, der für die Überprüfung bereitsteht.
 
-## Kontextgestützte Qualität
+## Kontextgesteuerte Qualität
 
-Jede Lokalisierung profitiert vom Kontext, den du bereitstellst. Glossar, Stilhinweise und domänenspezifische Anweisungen fließen alle in den Prompt ein, damit der Agent eine Ausgabe erzeugt, die der Stimme deines Produkts entspricht.
+Jede Lokalisierung profitiert von dem Kontext, den du bereitstellst. Der Glossar, Stilhinweise und domänenspezifische Anweisungen fließen alle in den Prompt ein, sodass der Agent Ausgaben erzeugt, die der Stimme deines Produkts entsprechen.
 
-## Überprüfung mit Zuversicht
+## Überprüfen Sie mit Zuversicht
 
-Die Ergebnisse landen als Pull-Requests oder Entwurfsdateien, bereit für deine Überprüfung durch dein Team. Prüfer markieren Probleme, aktualisieren Kontextdateien und die nächste Ausführung übernimmt diese Korrekturen automatisch.
+Die Ausgaben landen als Pull-Requests oder Entwurfsdateien, bereit für die Überprüfung durch dein Team. Prüfer markieren Probleme, aktualisieren Kontextdateien und der nächste Durchlauf integriert diese Korrekturen automatisch.

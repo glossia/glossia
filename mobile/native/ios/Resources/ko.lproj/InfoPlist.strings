@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "마이크를 사용하여 기기 내에서 편집 가능한 초안으로 음성 직접 입력이 가능합니다. 오디오는 업로드되지 않습니다.";
+"NSSpeechRecognitionUsageDescription" = "이 기기에서 화자를 초안으로 직접 편집 가능한 내역을 생성합니다. 자동으로 정보가 전송되지 않습니다.";

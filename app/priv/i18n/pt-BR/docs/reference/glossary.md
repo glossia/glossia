@@ -1,18 +1,18 @@
 %{
   title: "Glossário",
   summary:
-    "Referência para o campo glossário em L10N.md e em cada arquivo de sobrescrição de idioma.",
+    "Referência para o campo de glossário no L10N.md e no arquivo de sobrescrita de cada idioma.",
   category: "referência",
   section: "translation",
   order: 2
 }
 ---
 
-Um glossário de repositório está dividido em dois arquivos. O Glossia o funde com o glossário da conta para cada arquivo que traduz. Veja [Glossary](/docs/explanation/glossary) para como os dois se combinam.
+Um glossário de repositório é dividido em dois arquivos. A Glossia o une ao glossário da conta para cada arquivo que traduz. Veja [Glossário](/docs/explanation/glossary) para ver como os dois são combinados.
 
-| Arquivo | `glossary` contém | Exemplo |
+| Arquivo | `glossary` mantém | Exemplo |
 |---|---|---|
-| `L10N.md` | Uma lista de **termos**, o mesmo para cada idioma. | `- source: commit` |
+| `L10N.md` | Uma lista de **termos**, a mesma para cada idioma. | `- source: commit` |
 | `L10N/<locale>.md` | Um mapeamento de termo para sua **tradução** nesse idioma. | `commit: commit` |
 
 ## Termos em L10N.md
@@ -33,11 +33,11 @@ glossary:
 | Campo | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
 | `source` | string | sim | O termo conforme aparece no texto de origem. |
-| `definition` | booleano | não | Orientação breve que o modelo lê para decidir se uma correspondência é realmente esse conceito. |
-| `case_sensitive` | booleano | não | Quando `true`, o termo só coincide com o caso exato conforme escrito. Padrão: `false`. Use para nomes e acrônimos como `API` ou `SDK`. |
-| `id` | string | não | Identificador estável. Derivado de `source` quando omitido (`Version Control` torna-se `version-control`, `C++` torna-se `cplusplus`). Defina para que traduções sejam indexadas por id, para renomear `source` sem perder a identidade do termo, ou para sobrescrever um termo de um `L10N.md` pai. |
+| `definition` | string | não | Orientação curta que o modelo lê para decidir se uma correspondência é realmente esse conceito. |
+| `case_sensitive` | booleano | não | Quando `true`, o termo apenas corresponde ao caso exato escrito. O padrão é `false`. Use-o para nomes e siglas como `API` ou `SDK`. |
+| `id` | string | não | Identificador estável. Derivado de `source` quando omitido (`Version Control` torna-se `version-control`, `C++` torna-se `cplusplus`). Defina-o para traduções principais por id, para renomear `source` sem perder a identidade do termo, ou para substituir um termo de um pai `L10N.md`. |
 
-Termos não carregam traduções. Um termo com um campo `targets` é rejeitado: traduções pertencem aos arquivos de idioma.
+Termos não carregam traduções. Um termo com um campo `targets` é rejeitado: as traduções pertencem aos arquivos de idioma.
 
 ## Traduções em L10N/<locale>.md
 
@@ -53,32 +53,32 @@ glossary:
 ---
 ```
 
-Cada chave é o `id` ou o `source` de um termo, e cada valor é a tradução aprovada para aquele idioma.
+Cada chave é o `id` do termo ou seu `source`, e cada valor é a tradução aprovada para esse idioma.
 
-- Uma chave que não corresponde a nenhum termo em `L10N.md` declara um termo apenas para este idioma.
+- Uma chave que não corresponde a nenhum termo em `L10N.md` declara um termo apenas para esse idioma.
 - Um termo sem tradução em um idioma recorre ao glossário da conta para esse idioma.
-- Para manter um nome sem tradução, mapeie-o a si mesmo, por exemplo `Glossia: Glossia`.
+- Para manter um nome sem tradução, mapeie-o a ele próprio, por exemplo `Glossia: Glossia`.
 
 ## Arquivos aninhados
 
-Cada arquivo é traduzido com o glossário da cadeia de diretórios:
+Todo arquivo é traduzido com o glossário de sua cadeia de diretórios:
 
-- Um `L10N.md` aninhado adiciona termos aos que herda. Um termo com o mesmo `id`, ou o mesmo `source` quando nenhum `id` está definido, substitui o herdado para essa subárvore.
-- Um `L10N/<locale>.md` aninhado adiciona traduções às que herda, e sua tradução ganha para um termo declarado por ambos.
+- Um `L10N.md` aninhado adiciona termos aos que ele herda. Um termo com o mesmo `id`, ou o mesmo `source` quando nenhum `id` está definido, substitui o herdado para aquela subárvore.
+- Um `L10N/<locale>.md` aninhado adiciona traduções às que ele herda, e sua tradução vence para um termo que ambos declaram.
 
 ## Validação
 
-Se um glossário for inválido, o Glossia traduz os arquivos afetados apenas com o glossário da conta, para que um erro de digitação nunca bloqueie traduções. Causas comuns:
+Se um glossário for inválido, a Glossia traduz os arquivos afetados apenas com o glossário da conta, para que um erro de digitação nunca bloqueie traduções. Causas comuns:
 
-- **.`source`Falta** Cada termo precisa de um não vazio.
-- **.`id`Duplicado** Cada termo deve resolver-se em um identificador único, seja definido explicitamente ou derivado de `source`.
+- **Falta `source`.** Cada termo precisa de um valor não vazio.
+- **Duplicata `id`.** Todo termo deve resolver em um identificador único, seja definido explicitamente ou derivado de `source`.
 - **Traduções em L10N.md.** Um termo com `targets`. Mova as traduções para `L10N/<locale>.md`.
-- **Tradução vazia.** Um termo mapeado a uma string vazia. Deixe a entrada de fora em vez disso.
-- **Formas ou tipos errados.** `glossary` deve ser uma lista em `L10N.md` e um mapa em `L10N/<locale>.md`. Traduções, `id`, e `definition` devem ser strings; `case_sensitive` deve ser `true` ou `false`.
+- **Tradução vazia.** Um termo mapeado para uma string vazia. Não o inclua.
+- **Formas ou tipos incorretos.** `glossary` deve ser uma lista em `L10N.md` e um mapa em `L10N/<locale>.md`. Traduções, `id`, e `definition` devem ser strings; `case_sensitive` deve ser `true` ou `false`.
 
-## O que o Glossia registra
+## O que a Glossia registra
 
-Cada arquivo traduzido registra as entradas do glossário que o moldaram:
+O lockfile de cada arquivo traduzido registra as entradas do glossário que o moldaram:
 
 ```json
 {
@@ -91,13 +91,13 @@ Cada arquivo traduzido registra as entradas do glossário que o moldaram:
 }
 ```
 
-- `applied` lista as entradas que coincidem com o arquivo. As entradas do repositório aparecem como `repo:<id>`, as da conta como `account:<id>`.
-- `shadowed` lista as entradas da conta que uma entrada do repositório substituiu neste arquivo.
+- O `applied` lista as entradas que correspondem ao arquivo. As entradas do repositório aparecem como `repo:<id>`, as da conta como `account:<id>`.
+- O `shadowed` lista as entradas de conta que uma entrada de repositório substituiu para este arquivo.
 
-Editando um termo ou uma tradução apenas retraduz os arquivos que o utilizam.
+Editar um termo ou uma tradução apenas retraduz os arquivos que o utilizam.
 
 ## Veja também
 
 - [Definir um glossário](/docs/how-to/define-a-glossary): guia passo a passo.
-- [Glossário](/docs/explanation/glossary): como os glossários do repositório e da conta se combinam.
-- [L10N.md referência](/docs/reference/l10n-md): os outros campos frontmatter.
+- [Glossário](/docs/explanation/glossary): como os glossários de repositório e conta são combinados.
+- [L10N.md referência](/docs/reference/l10n-md): os outros campos de frontmatter.

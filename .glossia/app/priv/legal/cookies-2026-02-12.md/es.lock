@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "7d95df6e44547eb058c15f9af65400c278c60e8c51b70ff2d611e9fbb422b953",
+  "hash": "1fd1f8168242a416caec0ead41073a39675e2d243ce29a999756b5272cddcc04",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
+          "hash": "f5e82ede8d4b0959c24c9ac7e96b6b28f9a912488370cbce5a14521ad7647d86",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "7d95df6e44547eb058c15f9af65400c278c60e8c51b70ff2d611e9fbb422b953",
+      "hash": "1fd1f8168242a416caec0ead41073a39675e2d243ce29a999756b5272cddcc04",
       "kind": "translation_input",
       "label": "app/priv/legal/cookies-2026-02-12.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "560190d1fe18f852a1198f869ebe3390c94d1285693a3a879fc3db09fdc5db69",
+  "output_hash": "41ad7c4d222d4ea5d4e993ac8120f74d3f6bd790fc54ee52277b9327ffc82b3d",
   "output_path": "app/priv/i18n/es/legal/cookies-2026-02-12.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/legal/cookies-2026-02-12.md",
-  "translated_at": "2026-10-20T10:29:12.897635Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-26T04:19:33.279871Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

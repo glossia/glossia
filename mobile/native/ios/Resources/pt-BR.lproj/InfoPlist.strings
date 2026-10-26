@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Use seu microfone para ditado no dispositivo em um rascunho editável do Toki. O áudio não é enviado.";
+"NSSpeechRecognitionUsageDescription" = "Transcreva a fala nesse dispositivo em um rascunho editável do Toki. Nada é enviado automaticamente.";

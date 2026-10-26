@@ -1,33 +1,33 @@
 %{
   title: "Glossia でログイン",
-  summary: "OAuth 2.1 を使用して、ユーザーが自身の Glossia アカウントでお使いのアプリにサインインできるようにします。",
+  summary: "ユーザーは OAuth 2.1 を使用して、Glossia アカウントでアプリにサインインできます。",
   category: "チュートリアル",
   section: "platform",
   order: 2
 }
 ---
 
-このガイドでは、"Glossia でログイン"機能をアプリケーションに追加する方法を案内します。終わる頃には、ユーザーが自身のGlossiaアカウントでサインインできるようになり、あなたのアプリはGlossia APIを代わりに呼び出すためのアクセステークンを取得できます。
+本ガイドでは「Glossia ログイン」をアプリに追加する手順を案内します。完了後には、ユーザーは Glossia アカウントでサインインでき、アプリはユーザーの代わりの API 呼び出しに必要なアクセストークンを取得できます。
 
-Glossiaは**OAuth 2.1 with PKCE**（コード交換用のプロックキー）を使用しています。PKCEはすべてのクライアント、包括的にサーバーサイドアプリケーションが必要のものとなります。
+Glossia は **OAuth 2.1 および PKCE** (コード交換のための証明キー) を使用します。PKCE はすべてのクライアント、サーバーサイドアプリケーションにも必須です。
 
 ## 1. OAuth アプリケーションを登録する
 
-アプリケーションを登録するには2つの選択肢があります:
+アプリケーションの登録には 2 つの方法があります：
 
-### オプションA: ダッシュボードを経由（推奨）
+### 選択肢 A：ダッシュボード経由（推奨）
 
-1. Glossiaにサインインし、アカウントダッシュボードに進みます。
-2. サイドバーから**API**セクションを開き、**OAuth apps**をクリックします。
-3. **New application**をクリックします。
-4. アプリケーション**name**と**callback URL**（リダイレクトURIとも呼ばれます）を入力します。
-5. **Create application**をクリックします。
+1. Glossia にサインインし、アカウントダッシュボードへ移動します。
+2. サイドバーの **API** セクションを開き、**OAuth アプリ** をクリックします。
+3. **新しいアプリケーション** をクリックします。
+4. アプリケーションの **名前** および **コールバック URL**（リダイレクト URI も参照）を入力します。
+5. **アプリケーションを作成** をクリックします。
 
-作成後、**Client ID**と**Client secret**をメモします。シークレットは1回のみ表示されるため、安全に保存してください。
+作成後、**クライアント ID** および **クライアント Secret** を記録します。Secret は一度のみ表示されるため、安全に保管してください。
 
-### オプションB: ダイナミッククライアント登録
+### 選択肢 B：ダイナミッククライアント登録
 
-`POST` リクエストを `/oauth/register` へ送信します：
+`POST` リクエストを `/oauth/register` に送信します：
 
 ```bash
 curl -X POST https://glossia.ai/oauth/register \
@@ -39,11 +39,11 @@ curl -X POST https://glossia.ai/oauth/register \
   }'
 ```
 
-レスポンスは`client_id`と`client_secret`を含みます。
+レスポンスには `client_id` および `client_secret` が含まれます。
 
-## 2. PKCEコードチャレンジを生成する
+## 2. PKCE コードチャレンジを生成する
 
-ユーザーをリダイレクトする前に、PKCEコードバリデーターと挑战を生成します:
+ユーザーをリダイレクトする前に、PKCE コード検証者とチャallenge を生成します：
 
 ```javascript
 function generateCodeVerifier() {
@@ -70,9 +70,9 @@ const codeChallenge = await generateCodeChallenge(codeVerifier);
 // Store codeVerifier in your session -- you will need it in step 4
 ```
 
-## 3. ユーザーをGlossiaにリダイレクトする
+## 3. ユーザーを Glossia にリダイレクト
 
-認証URLを構築し、ユーザーのブラウザをリダイレクトします:
+認証 URL を作成して、ユーザーのブラウザへリダイレクトします：
 
 ```
 https://glossia.ai/oauth/authorize?
@@ -85,29 +85,29 @@ https://glossia.ai/oauth/authorize?
   &state=RANDOM_STATE_VALUE
 ```
 
-**Parameters:**
+**パラメーター:**
 
-| パラメータ | 必須 | 説明 |
+| パラメーター | 必須 | 説明 |
 |-----------|----------|-------------|
-| `response_type` | Yes | Always `code` |
-| `client_id` | Yes | あなたのアプリケーションのクライアントID |
-| `redirect_uri` | Yes | 登録されたリダイレストURLと一致する必要があります |
-| `code_challenge` | Yes | PKCEコードチャレンジ（S256） |
-| `code_challenge_method` | Yes | Always `S256` |
-| `scope` | No | スペース区切りリストの[scopes](/docs/reference/apis/authorization)。省略された場合、アクションスコープは授与されません |
-| `state` | 推奨 | CSRF攻撃を防ぐためのランダム文字列。ユーザーが戻った際に一致するか確認してください |
+| `response_type` | 必須 | 常に `code` |
+| `client_id` | 必須 | あなたのアプリケーションのクライアント ID |
+| `redirect_uri` | 必須 | 登録されたコールバック URL と一致する必要があります |
+| `code_challenge` | 必須 | PKCE コードチャレンジ (S256) |
+| `code_challenge_method` | 必須 | 常に `S256` |
+| `scope` | 必須 | スペース区切りの [スコープ](/docs/reference/apis/authorization) リスト。省略された場合はアクションスコープは付与されません |
+| `state` | 推奨 | CSRF 攻撃を防ぐためのランダム文字列。ユーザーが戻ってきた際には対応を確認してください |
 
-ユーザーはあなたのアプリケーション名と登録されたスコープを表示する同意画面を見 synchronizedされます。その後、Glossiaは同意でのあなたのカックバックURLに認証コードと共にリダイレクトします。
+ユーザーはあなたのアプリケーション名と要求されたスコープが表示された同意画面を確認し、承認すると、Glossia は承認コードと共にコールバック URL にリダイレクトします。
 
-## 4. コードからトークンを交換する
+## 4. コードをトークンとの交換
 
-ユーザーがあなたのコールバックURLへリダイレクトされると、URLは`code`パラメータを含んでいるようになります:
+ユーザーがコールバック URL にリダイレクトされると、URL には `code` パラメータが含まれます：
 
 ```
 https://myapp.com/auth/callback?code=AUTHORIZATION_CODE&state=RANDOM_STATE_VALUE
 ```
 
-まず、`state`がステップ3で送信したものと一致するか確認してください。次に、コードをトークンを交換します:
+まず `state` がステップ 3 で送信されたものと一致することを確認します。その後、コードをトークンと交換します：
 
 ```bash
 curl -X POST https://glossia.ai/oauth/token \
@@ -120,7 +120,7 @@ curl -X POST https://glossia.ai/oauth/token \
   -d "code_verifier=YOUR_CODE_VERIFIER"
 ```
 
-レスポンス:
+レスポンス：
 
 ```json
 {
@@ -131,22 +131,22 @@ curl -X POST https://glossia.ai/oauth/token \
 }
 ```
 
-両方のトークンを安全に保存してください。アクセストークンは API リクエストに使用されます。現在のトークンが期限切れになった際、新しいアクセストークンを取得するにはリフレッシュ トークンを使用します。
+両方のトークンを安全に保管してください。アクセストークンは API リクエストに使用されます。リフレッシュトークンは有効期限が切れた場合、新しいアクセストークンを取得するために使用されます。
 
 ## 5. ユーザーの代わりに API を呼び出す
 
-認証された API リクエストを作成するには、アクセストークンを使用します:
+アクセストークンを使用して認証された API リクエストを発行：
 
 ```bash
 curl -H "Authorization: Bearer eyJhbGciOiJSUzI1..." \
   https://glossia.ai/api/projects
 ```
 
-トークンのスコープはアクセスできるエンドポイントを制限します。リソースレベルの認証は依然として適用されます。例えば、`project:read` を持つトークンは、ユーザーがアクセスできるプロジェクトのみを読み取ることができます。
+トークンのスコープはアクセス可能なエンドポイントを制限します。リソースレベルの認証も引き続き適用されます。例えば、`project:read` を持つトークンはユーザーがアクセスできるプロジェクトのみを読み込むことができます。
 
-## 6. トークンを更新する
+## 6. トークンのリフレッシュ
 
-アクセストークンが期限切れになったとき、ユーザーを同意フローに再度送らずに、リフレッシュ トークンを使用して新しいトークンを取得します:
+アクセストークンの有効期限が切れた場合、再度同意フローを通じてユーザーを送信することなく、リフレッシュトークンを使用して新しいトークンを取得：
 
 ```bash
 curl -X POST https://glossia.ai/oauth/token \
@@ -157,9 +157,9 @@ curl -X POST https://glossia.ai/oauth/token \
   -d "client_secret=YOUR_CLIENT_SECRET"
 ```
 
-## 7. トークンを取り消す
+## 7. トークンの無効化
 
-ユーザーがアプリの接続を解除する場合、またはこれ以上アクセス権を必要としない場合は、トークンを取り消します:
+ユーザーがアプリを解除する場合、またはアクセスが不要になった場合、トークンを無効化：
 
 ```bash
 curl -X POST https://glossia.ai/oauth/revoke \
@@ -171,48 +171,48 @@ curl -X POST https://glossia.ai/oauth/revoke \
 
 ## スコープの選択
 
-アプリケーションに必要なスコープのみをリクエストしてください。一般的な組み合わせは以下の通りです:
+アプリケーションに必要なスコープのみをリクエストしてください。一般的な組み合わせは以下の通りです：
 
-| 使用事例 | スコープ |
+| 使用例 | スコープ |
 |----------|--------|
-| ユーザー プロフィールの読み取り | `user:read` |
+| ユーザープロフィールの読み取り | `user:read` |
 | プロジェクトとコンテンツの読み取り | `user:read project:read voice:read` |
 | プロジェクトの管理 | `user:read project:read project:write` |
 | 組織リソースの管理 | `user:read organization:read organization:write members:read members:write project:read project:write` |
 
-利用可能なすべてのスコープについては[scopes reference](/docs/reference/apis/authorization) を参照してください。
+利用可能なすべてのスコープについては [スコープの参照](/docs/reference/apis/authorization) をご覧ください。
 
-## 発見エンドポイント
+## ディスカバリーエンドポイント
 
-サーバーメタデータをフェッチすることで、アプリケーションは Glossia の OAuth エンドポイントを自動的に発見できます:
+アプリケーションはサーバーメタデータを取得することで、Glossia の OAuth エンドポイントを自動的に特定できます：
 
 ```bash
 curl https://glossia.ai/.well-known/oauth-authorization-server
 ```
 
-これには`authorization_endpoint`, `token_endpoint`, `revocation_endpoint`, およびその他の詳細を含む JSON ドキュメントが返されます。発見機能を使用することで、統合はエンドポイントの変更に対して強固になります。
+これは `authorization_endpoint`, `token_endpoint`, `revocation_endpoint`, およびその他の詳細を含む JSON ドキュメントを返します。ディスカバリーを使用することで、統合はエンドポイントの変更に対して堅牢になります。
 
 ## エラー処理
 
 ### 認証エラー
 
-ユーザーが同意を拒否するか、認証中に問題が発生した場合は、Glossia は`error` パラメータを含むコールバック URL にリダイレクトします:
+ユーザーが同意を拒否する場合、または認証中に何らかの問題が発生した場合、Glossia は `error` パラメータが付いたコールバック URL にリダイレクト：
 
 ```
 https://myapp.com/auth/callback?error=access_denied&state=RANDOM_STATE_VALUE
 ```
 
-一般的なエラーコード:
+一般的なエラーコード：
 
 | エラー | 意味 |
 |-------|---------|
 | `access_denied` | ユーザーは認証リクエストを拒否しました |
-| `invalid_request` | リクエストに必要なパラメータが一つ以上欠落しています |
-| `invalid_scope` | リクエストされたスコープの一つ以上が無効です |
+| `invalid_request` | リクエストに必須パラメータが不足しています |
+| `invalid_scope` | リクエストされたスコープの 1 つ以上が無効です |
 
 ### トークンエラー
 
-トークン エンドポイントは JSON エラーボディと共に HTTP 400 を返します:
+トークンエンドポイントは JSON エラーボディを含む HTTP 400 を返します：
 
 ```json
 {
@@ -223,16 +223,16 @@ https://myapp.com/auth/callback?error=access_denied&state=RANDOM_STATE_VALUE
 
 ### レート制限
 
-OAuth エンドポイント は IP ごとにレート制限されます。制限に到達した場合は HTTP 429 を受信します。詳細については[rate limiting reference](/docs/reference/apis/authentication) を参照してください。
+OAuth エンドポイントは IP ごとにレート制限されています。制限に達すると HTTP 429 が返されます。詳細については [レート制限の参照](/docs/reference/apis/authentication) をご覧ください。
 
-## セキュリティ チェックリスト
+## セキュリティチェックリスト
 
-本番環境展開前に、実装がこれらのプラクティスに従っていることを確認してください:
+本番環境に移行する前に、実装がこのプラクティスに従っていることを確認してください：
 
 - 本番環境のコールバック URL には常に HTTPS を使用してください
-- CSRF を防止するためにコールバックの`state` パラメータを検証してください
-- トークンを暗号化状態のままで保存してください
-- クライアント側 JavaScript またはブラウザの URL にトークンを公開しないでください
-- 必要な最小限のスコープのみを使用してください
-- リフレッシュトークンを使用してトークンの期限切れを適切に処理してください
-- ユーザーがアプリから切断またはアカウントを削除した場合は、トークンを取り消してください
+- `state` パラメータをコールバックで検証して CSRF を防止
+- トクierungs エンダーでトークンを暗号化して保存
+- クライアントサイドの JavaScript やブラウザ URL にトークンを表示してはいけません
+- 必要最低限のスコープのみを使用してください
+- リフレッシュトークンを使用してトークンの有効期限を適切に処理してください
+- ユーザーがアプリを解除し、またはアカウントを削除した場合、トークンを無効化：

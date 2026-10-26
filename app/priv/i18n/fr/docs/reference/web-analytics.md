@@ -1,8 +1,8 @@
 %{
-  title: "SDK analytique",
+  title: "SDK d'analyse",
   summary:
-    "Les champs collectés, l'endpoint des événements et le modèle de confidentialité derrière l'analyse web de Glossia.",
-  category: "Référence",
+    "Les champs collectés, l'endpoint des événements et le modèle de confidentialité sous-jacent aux analyses web Glossia.",
+  category: "référence",
   section: "analytics",
   order: 1
 }
@@ -12,62 +12,80 @@
 
 `POST https://glossia.ai/v1/collect`
 
-`POST /api/analytics/events` reste disponible pour la compatibilité. Le script hébergé tire `/v1/collect` de son propre origine ; les intégrations de paquet doivent configurer `endpoint` explicitement.
+`POST /api/analytics/events` reste disponible pour la compatibilité. Le script hébergé dérive `/v1/collect` de son propre origine ; les intégrations de paquets doivent définir `endpoint` explicitement.
 
-Accepte un événement JSON provenant du SDK `@glossia/web`. Répond toujours `202 Accepted`, y compris pour les domaines inconnus ou les charges malformées, de sorte que le SDK ne révèle jamais quels projets collectent des données.
+Accepte un événement JSON venant du SDK `@glossia/web`. Répond toujours `202 Accepted`, y compris pour des domaines inconnus ou des charges malformées, de sorte que le SDK ne révèle jamais quels projets collectent des analyses.
 
-Le projet est résolu par le domaine du site déclaré dans le fragment. `d` est prioritaire ; s'il est absent, le serveur se rabat sur le hôte de `u` (l'URL de la page), puis sur les en-têtes `Origin`/`Referer` de la requête.
+Le projet est résolu par le domaine du site que le fragment déclare. `d` est l'autorité ; lorsqu'il est absent, le serveur recourt au hôte de `u` (l'URL de la page), puis à l'en-tête `Origin`/`Referer`.
 
 ### Corps de la requête
 
 | Champ | Type   | Description                                                  |
 |-------|--------|--------------------------------------------------------------|
-| `d`   | Chaîne | Domaine du site qui identifie le projet (p. ex. `example.com`). Envoyé par la bibliothèque du navigateur ; la résolution de secours est décrite ci-dessus. |
-| `n`   | Chaîne | Nom de l'événement. Par défaut, `pageview`.                          |
-| `u`   | Chaîne | URL de la page (`location.href`).                                  |
-| `r`   | Chaîne | En-tête Referrer (`document.referrer`).                              |
-| `l`   | Chaîne | Langues du navigateur (`navigator.languages.join(",")`).         |
-| `sl`  | Chaîne | Langue de la page réelle (`document.documentElement.lang`). Vide si non déclarée. |
-| `al`  | Chaîne | Langues de traduction séparées par des virgules provenant de `link[rel="alternate"][hreflang]`, excluant `x-default`. |
-| `tz`  | Chaîne | Fuseau horaire IANA (`Intl.DateTimeFormat().resolvedOptions().timeZone`). |
-| `sw`  | Nombre | Largeur d'écran en pixels CSS.                                  |
-| `sid` | Chaîne | Identifiant de session par onglet (sessionStorage, effacé à la fermeture).       |
+| `d`   | string | Domaine du site qui identifie le projet (par exemple `example.com`). Envoyé par la bibliothèque de navigateur ; le mécanisme de repli est décrit ci-dessus. |
+| `n`   | string | Nom de l'événement. Par défaut `pageview`.                          |
+| `u`   | string | URL de la page (`location.href`).                                  |
+| `r`   | string | Référent (`document.referrer`).                              |
+| `l`   | string | Langues du navigateur (`navigator.languages.join(",")`).         |
+| `sl`  | string | Langue réelle de la page (`document.documentElement.lang`). Vide si non déclarée. |
+| `al`  | string | Langues de traduction séparées par des virgules issues de `link[rel="alternate"][hreflang]`, excluant `x-default`. |
+| `cl`  | string | Langue choisie explicitement, ou vide si aucune sélection n'a été observée. Le SDK normalise les balises BCP 47 et limite l'entrée à 64 caractères. |
+| `tz`  | string | Fuse horaire IANA (`Intl.DateTimeFormat().resolvedOptions().timeZone`). |
+| `sw`  | number | Largeur d'écran en pixels CSS.                                  |
+| `sid` | string | ID de session par onglet (sessionStorage, effacé à la fermeture).       |
 
-Le CORS est ouvert (`Access-Control-Allow-Origin: *`) car le point de terminaison n'accepte aucune authentification.
+CORS est ouvert (`Access-Control-Allow-Origin: *`) car le point de terminaison n'accepte aucune authentification.
 
-## Champs dérivés du serveur
+## Sélection explicite de la langue
 
-Ces champs sont calculés lors de l'ingestion et stockés côté serveur. L'IP brute et le User-Agent ne sont jamais stockés.
+Le nom `selectLanguage(language)` est disponible en export nommé, dans l'export SDK par défaut, et dans la variable `glossia` globale du script hébergé. Appelez-le après l'initialisation depuis un gestionnaire d'action utilisateur, avant la navigation. Les balises de langue invalides et les appels avant l'initialisation sont ignorés.
+
+La méthode envoie immédiatement un événement `language_selection`. Son `sl` décrit toujours la page actuelle, pas la destination. Les événements suivants incluent le choix dans `cl` jusqu'à ce qu'un autre choix explicite le remplace. Sans sélection observée, `cl` est vide. Le choix est stocké sous la clé `__glossia_selected_language` dans le stockage d'origine même, par onglet `sessionStorage` ; en cas d'échec de stockage, il est conservé uniquement en mémoire jusqu'à la décharge.
+
+Pour les liens, `data-glossia-language="zh-Hans"` active le suivi délégué des clics primaires sûrs et non modifiés, y compris l'activation du clavier. Les clics scriptés, les clics déjà annulés, les téléchargements, les liens cross-origin, et les liens ciblant un autre onglet ou un cadre sont ignorés. L'écouteur s'exécute dans la phase capture avant la navigation des routeurs, ne bloque pas la navigation, et gère aussi les liens insérés dynamiquement. Utilisez soit l'annotation, soit l'API pour une action, pas les deux.
+
+Il s'agit d'un signal d'intention rapporté par le client, pas d'une preuve que la navigation a réussi. Les changements d'URL, les redirections et les changements de langue HTML ne sont pas interprétés comme des choix. La sélection ne recouvre pas `l` ou `sl`, ni ne modifie actuellement `has_locale_gap` ou les insignes du tableau de bord.
+
+## Champs dérivés par le serveur
+
+Ces champs sont calculés lors de l'ingestion et stockés côté serveur. L'IP brute et l'User-Agent ne sont jamais conservés.
 
 | Champ             | Source        | Description                                                         |
 |-------------------|---------------|---------------------------------------------------------------------|
-| `visitor_id`      | HMAC          | Hachage rotatif quotidien de l'IP + UA + projet. Non identifiable entre les jours.  |
-| `country_code`    | Cloudflare / GeoIP | Code ISO 3166-1 alpha-2 depuis l'en-tête `CF-IPCountry` de confiance, ou l'adaptateur de géolocalisation IP configuré. Vide lorsqu'aucun des deux ne résout un pays. |
+| `visitor_id`      | HMAC          | Hachage rotatif quotidien de l'IP + UA + projet. Non rattachable à travers les jours.  |
+| `country_code`    | Cloudflare / GeoIP | Code ISO 3166-1 alpha-2 issu d'un en-tête `CF-IPCountry` de confiance, ou de l'adaptateur de géolocalisation IP configuré. Vide si aucun ne résout un pays. |
 | `device`          | User-Agent    | `desktop`, `mobile`, `tablet`, `bot`, ou `unknown`.                 |
 | `browser`         | User-Agent    | `chrome`, `safari`, `firefox`, `edge`, `opera`, ou `unknown`.       |
 | `os`              | User-Agent    | `windows`, `macos`, `ios`, `android`, `linux`, ou `unknown`.        |
-| `hostname`        | URL de la page      | Hôte en minuscules.                                                    |
+| `hostname`        | URL de la page      | Hôte minuscule.                                                    |
 | `pathname`        | URL de la page      | Composant du chemin.                                                     |
-| `referrer_source` | En-tête Referrer      | Hôte de l'en-tête Referrer, `www.`/`m.` en tête supprimés.                        |
-| `browser_language`| Langues     | Préférence locale normalisée la plus recherchée (p. ex. `pt-BR`).                    |
-| `served_locale`   | Langue de la page | Normalisé `sl`, ou vide (affiché comme Non signalé) si elle n'a pas été collectée. |
-| `has_locale_gap`  | Calculé      | `1` lorsque aucune des langues préférées du visiteur ne correspond aux objectifs du projet, aux traductions annoncées (`al`) ou à la langue de la page (`sl`). Les préférences manquantes ne comptent pas comme un écart. |
+| `referrer_source` | Referrer      | Hôte Referrer, `www.`/`m.` initial supprimé.                        |
+| `browser_language`| Langues     | Langue locale normalisée la plus préférée (par exemple `pt-BR`).                    |
+| `served_locale`   | Langue de la page | `sl` normalisé, ou vide s'il n'a pas été recueilli. Les lignes avec une langue de la page vide sont omises de la ventilation par langue du navigateur. |
+| `selected_locale` | Choix explicite | `cl` normalisé, ou vide pour des entrées manquantes, malformées ou de taille excessive. Stocké séparément des préférences du navigateur et de la langue de la page. |
+| `has_locale_gap`  | Calculé      | `1` lorsque aucune des langues préférées du visiteur ne correspond aux cibles du projet, aux traductions annoncées (`al`) ou à la langue de la page (`sl`). Les préférences manquantes ne constituent pas un manquement. |
 
-### Résolution du pays
+### Résolution de l'IP client
 
-`GLOSSIA_TRUST_CLOUDFLARE_COUNTRY_HEADER=true` active le chemin rapide `CF-IPCountry`. Il est **désactivé par défaut**. Activez-le uniquement après que l'origine authentifie Cloudflare, rejette les requêtes contournant Cloudflare, ou que l'ingress supprime des copies non authentifiées de l'en-tête. Le paramètre de géolocalisation IP de Cloudflare doit également être activé pour la zone. `CF-Connecting-IP`, `CF-Ray` et `use-forwarded-headers` de nginx n'authentifient pas une requête à eux seuls.
+Pour les requêtes provenant d'un pair d'ingress privé, Glossia utilise l'en-tête `X-Real-IP` écrasé de nginx, non la première entrée contrôlée par l'appelant dans `X-Forwarded-For`. Les connexions publiques directes utilisent l'adresse du socket. Chez Hetzner, le chargeur de charge et nginx doivent tous deux activer le protocole PROXY afin que nginx reçoive l'adresse du visiteur au lieu de celle du chargeur de charge. D'autres proxies inverses doivent également écraser `X-Real-IP` avec une source authentifiée, non un en-tête inbound `X-Forwarded-For` illimité. La seule politique d'en-tête forwarded du graphique générique ne garantit pas cela. Les pairs privés sont une infrastructure de confiance, donc limiter l'accès direct au pod.
 
-Lorsque la confiance des en-têtes est activée, un code pays ISO valide unique est utilisé immédiatement, sans requête IP ou accès à la mémoire cache. La valeur de bordure actuelle a toujours la priorité sur toute recherche en cache. Les codes manquants, dupliqués, malformés ou inconnus, y compris les codes `XX` (inconnu) et `T1` (Tor) de Cloudflare, retombent sur l'adaptateur de géolocalisation configuré.
+`GLOSSIA_TRUST_CLOUDFLARE_CLIENT_IP_HEADER=true` permet à `CF-Connecting-IP` de surcharger l'adresse canonique pour les requêtes provenant d'un pair d'ingress privé. Il est **désactivé par défaut**, indépendamment de la confiance de l'en-tête de pays. Activez-le uniquement après que l'edge authentifie Cloudflare ou élimine les en-têtes forgés sur les requêtes contournant Cloudflare. Les déploiements DNS uniquement doivent le laisser désactivé. Cette adresse sert également de clé pour les limites de taux IP et l'hachage des visiteurs quotidiens.
 
-Sans base de données MaxMind configurée, les recherches de secours utilisent `api.ipapi.is` puis `api.country.is` si la requête principale échoue ou retourne aucun pays reconnu. Chaque requête dispose d'un délai de connexion et de réponse d'une seconde avec les réessais désactivés. Les résultats réussis depuis l'un ou l'autre fournisseur sont mis en mémoire par Cachex pendant 24 heures, avec une limite de taille planifiée de 100 000 entrées et une libération automatique de l'expiration. `Cachex.fetch/3` regroupe les manquements concurrents pour la même IP en un seul résolveur. Les échecs ne sont pas mis en mémoire. Les adresses privées et réservées ne sont envoyées à aucun des deux fournisseurs.
+### Résolution des pays
 
-### Langue de page manquante
+`GLOSSIA_TRUST_CLOUDFLARE_COUNTRY_HEADER=true` active la voie rapide `CF-IPCountry`. Il est **désactivé par défaut**. Activez-le uniquement après que l'origine authentifie Cloudflare, rejette les requêtes contournant Cloudflare, ou après que l'ingress élimine les copies non fiables de l'en-tête. Le paramètre de géolocalisation IP de Cloudflare doit également être activé pour la zone. `CF-Connecting-IP`, `CF-Ray` et l'exécution `use-forwarded-headers` de nginx n'authentifient pas une requête à eux seuls.
 
-Le tableau de bord affiche **Non signalé** lorsqu'un événement n'a aucun `sl`. Cela inclut les événements collectés par des versions plus anciennes du tracker et les pages sans attribut HTML `lang`. La langue de la page n'est pas déduite des préférences du navigateur ou de l'URL. Les événements historiques conservent les métadonnées collectées à l'époque ; les nouvelles versions du tracker ne les comblent pas.
+Lorsque la confiance de l'en-tête est activée, un code pays ISO valide unique est utilisé immédiatement, sans requête d'IP ou accès cache. La valeur actuelle du bord prend toujours le dessus sur toute recherche en cache. Codes manquants, dupliqués, malformés ou inconnus, y compris les valeurs Cloudflare `XX` (inconnu) et `T1` (Tor), retombent sur l'adaptateur de géolocalisation configuré.
 
-## Modèle de vie privée
+Sans base de données MaxMind configurée, les requêtes de repli utilisent `api.ipapi.is`, puis `api.country.is` si la requête principale échoue ou ne renvoie pas de pays reconnu. Chaque requête a un délai de connexion et réponse d'une seconde avec réessai désactivé. Les résultats réussis de l'un ou l'autre fournisseur sont mis en cache par Cachex pendant 24 heures, avec une limite de taille planifiée de 100 000 entrées et une récupération automatique à l'expiration. `Cachex.fetch/3` condense les manques concurrents pour la même IP en un seul résolveur. Les échecs ne sont pas mis en cache. Les adresses privées et réservées ne sont pas envoyées à l'un ou l'autre fournisseur.
 
-- **Aucun identifiant de session persistant.** Le SDK n'établit pas de cookies et ne stocke qu'un identifiant de session par onglet dans `sessionStorage`, que le navigateur efface à la fermeture.
-- **Aucune empreinte digitale.** Les empreintes numériques du canvas, WebGL, de la police et de l'audio ne sont pas collectées. Le hachage du serveur rotatif quotidien fournit des uniques sans elles.
-- **Aucun identifiant brut persisté.** L'IP et le User-Agent sont lus une seule fois, hachés avec un secret de serveur et un sel quotidien, puis jetés.
-- **Délimitation par projet.** Le même navigateur utilisé sur deux projets génère des identifiants de visiteur non liés, de sorte que les visiteurs ne peuvent pas être suivis entre les clients Glossia.
+### Langue de la page manquante
+
+La ventilation par langue du navigateur omet les événements sans `sl`. Cela inclut les événements recueillis par des versions de trackers plus anciennes et les pages sans attribut HTML `lang`. Ces événements contribuent toujours au trafic global. La langue de la page n'est pas déduite des préférences du navigateur ou de l'URL. Les événements historiques conservent les métadonnées recueillies à l'époque ; les nouvelles versions de trackers ne les reconstituent pas.
+
+## Modèle de confidentialité
+
+- **Aucun identifiant de session croisée persistant.** L'SDK ne définit pas de cookies et stocke uniquement un ID de session par onglet et une langue explicitement sélectionnée dans `sessionStorage`, que le navigateur efface à la fermeture.
+- **Aucune empreinte numérique.** Les empreintes Canvas, WebGL, polices et audio ne sont pas recueillies. Le hachage serveur rotatif quotidien fournit des uniques sans elles.
+- **Aucun identifiant brut persistant.** L'IP et l'User-Agent sont lus une fois, hachés avec un secret serveur et un sel quotidien, puis éliminés.
+- **Portée par projet.** Le même navigateur sur deux projets génère des identifiants de visiteurs sans lien, donc les visiteurs ne peuvent être suivis à travers les clients Glossia.

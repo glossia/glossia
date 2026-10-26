@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "4bd9011cd45dc36b8bf04cc943f8c2cdebb14790e3a4f8d23ea55f539c6c1df9",
+  "hash": "d461226d3f748a90a6a061ca11aa92c979d4f20891ec150d424f1dd24cb535e3",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
+          "hash": "f5e82ede8d4b0959c24c9ac7e96b6b28f9a912488370cbce5a14521ad7647d86",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "4bd9011cd45dc36b8bf04cc943f8c2cdebb14790e3a4f8d23ea55f539c6c1df9",
+      "hash": "d461226d3f748a90a6a061ca11aa92c979d4f20891ec150d424f1dd24cb535e3",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/glossia-vs-weblate.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "29502e41e81c71d386d2ab9442cf4d3478e31c6b8b1d19e1eb4c93e8ea85a0d6",
+  "output_hash": "55c26dc5f07fecea1dfc3e1096de3232780681685e7ff63ddd8b6d750a0177a0",
   "output_path": "app/priv/i18n/es/docs/explanation/glossia-vs-weblate.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "4b77452a9ba312dea7a18611a5f1888bd50c233d",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/docs/explanation/glossia-vs-weblate.md",
-  "translated_at": "2026-10-23T09:00:36.220290Z",
-  "translation_session_id": "01a167f8-3075-7b15-b4d2-bdb3638edb55"
+  "translated_at": "2026-10-25T21:00:25.768919Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

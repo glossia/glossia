@@ -1,30 +1,30 @@
 %{
-  title: "Schrittweise Verfeinerung",
+  title: "Progressive Verfeinerung",
   summary:
-    "Warum sich die Inhaltsqualität im Laufe der Zeit verbessert, nicht in einem einzigen Durchlauf.",
+    "Warum sich die Qualität der Inhalte im Laufe der Zeit verbessert, nicht in einem einzigen Durchlauf.",
   category: "Erklärung",
   section: "translation",
   order: 1
 }
 ---
 
-Erste Entwürfe von [großen Sprachmodellen](https://en.wikipedia.org/wiki/Large_language_model) sind strukturell korrekt, können aber Nuancen, den Tonfall oder domänenspezifische Formulierungen übersehen. Das ist absichtlich so gestaltet. Glossia behandelt die Inhaltserstellung genauso wie Software-Teams Code: Eine funktionierende Version veröffentlichen, sie prüfen und iterativ verbessern.
+Erste Entwürfe von [großen Sprachmodellen](https://en.wikipedia.org/wiki/Large_language_model) sind strukturell korrekt, können aber Nuancen, Ton oder domänenspezifische Phrasen verpassen. Das ist gewollt. Glossia behandelt die Inhaltserstellung genauso wie Softwareteams Code: Eine funktionierende Version ausliefern, sie überprüfen und iterativ verbessern.
 
-## Der Verbesserungszyklus
+## Die Verfeinerungsschleife
 
-1. **Entwurf**: Glossia erzeugt einen strukturell gültigen ersten Entwurf auf Basis Ihrer Quelldateien und des Kontextes in `L10N.md`.
-2. **Prüfung**: Ihr Team meldet Probleme über Pull-Requests und Diffs, genau den Workflow, den Sie für Code bereits nutzen.
-3. **Verfeinern**: Aktualisierte Kontextdateien, Glossar-Korrekturen und Rückmeldungen aus der Prüfung fließen in den nächsten Durchlauf ein.
-4. **Konvergenz**: Jeder Zyklus verringert den Abstand zur Produktionsqualität. Das System lernt die Stimme Ihres Produkts durch den Kontext, den Sie bereitstellen.
+1. **Entwurf**: Glossia generiert einen strukturell gültigen ersten Entwurf basierend auf Ihren Quelldateien und dem Kontext in `L10N.md`.
+2. **Überprüfung**: Ihr Team meldet Probleme über Pull Requests und Diffs, den gleichen Workflow, den Sie bereits für Code nutzen.
+3. **Verfeinerung**: Aktualisierte Kontextdateien, Glossar-Korrekturen und Feedback aus der Überprüfung fließen in den nächsten Durchlauf ein.
+4. **Konvergenz**: Jeder Zyklus reduziert den Abstand zur Produktionsqualität. Das System lernt die Stimme Ihres Produkts durch den von Ihnen bereitgestellten Kontext.
 
 ## Warum das funktioniert
 
-Der entscheidende Aspekt ist, dass Kontext ansammelt. Jeder Prüfungskommentar, der zu einer aktualisierten `L10N.md` oder einem korrigierten Glossareintrag führt, verbessert alle zukünftigen Durchläufe, nicht nur die Datei, die die Prüfung ausgelöst hat.
+Die Haupteinsicht ist, dass sich Kontext aufbaut. Jeder Review-Kommentar, der zu einem aktualisierten `L10N.md` oder einem korrigierten Glossar-Eintrag führt, verbessert alle zukünftigen Durchläufe, nicht nur die Datei, die die Überprüfung ausgelöst hat.
 
-Dies folgt dem gleichen Prinzip hinter Kaizen in der Fertigung und sukzessiver Annäherung in der Technik: Starten Sie mit einer brauchbaren Basis und verbessern Sie sie systematisch mit menschlichem Urteil im Kreislauf.
+Dies folgt demselben Prinzip wie Kaizen in der Fertigung und der schrittweisen Annäherung im Ingenieurwesen: Starten Sie mit einer brauchbaren Basis und verbessern Sie sie systematisch mit menschlicher Urteilsfindung im Loop.
 
-## Praktische Implikationen
+## Praktische Konsequenzen
 
-- Erwarten Sie keine Perfektion beim ersten Durchlauf. Planen Sie einen oder zwei Prüfungszyklen.
-- Investieren Sie Zeit in das Schreiben klarer Kontextdateien. Sie sind die höchst-wirksame Verbesserung, die Sie vornehmen können.
-- Verwenden Sie die Übersetzungssitzung in Glossia, um zu verfolgen, welche Dateien übersetzt, übersprungen oder fehlgeschlagen sind.
+- Erwarten Sie keine Perfektion beim ersten Durchlauf. Planen Sie einen oder zwei Überprüfungszyklen.
+- Investieren Sie Zeit beim Schreiben klarer Kontextdateien. Sie sind die wirksamste Verbesserung, die Sie vornehmen können.
+- Nutzen Sie die Übersetzungssitzung in Glossia, um zu verfolgen, welche Dateien übersetzt, übersprungen oder fehlgeschlagen wurden.

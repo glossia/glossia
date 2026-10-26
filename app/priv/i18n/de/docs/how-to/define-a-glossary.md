@@ -1,25 +1,25 @@
 %{
   title: "Ein Glossar definieren",
   summary:
-    "Definiere Begriffe in L10N.md und ihre genehmigten Übersetzungen in der Überschreibungsdatei jeder Sprache.",
+    "Legen Sie Begriffe in L10N.md und deren genehmigte Übersetzungen in der Override-Datei jeder Sprache fest.",
   category: "Anleitung",
   section: "translation",
   order: 6
 }
 ---
 
-Ihr Team verfügt bereits über Begriffe, die auf eine bestimmte Weise übersetzt werden müssen: Produktnamen, die im Englischen bleiben, technische Begriffe mit einer bevorzugten Darstellung und Markenwörter, die eine bestimmte Nuance tragen. Nennt sie in eurem Repository und Glossia wendet sie auf jede zukünftige Übersetzung an.
+Ihr Team verfügt bereits über Begriffe, die auf eine bestimmte Weise übersetzt werden müssen: Produktnamen, die im Englischen verbleiben, technische Begriffe mit einer bevorzugten Darstellung und Markenwörter, die einen spezifischen Ton tragen. Definieren Sie diese in Ihrem Repository und Glossia wendet sie auf jede zukünftige Übersetzung an.
 
-Ein Glossar lebt in zwei Arten von Dateien, die ihr bereits verwendet:
+Ein Glossar befindet sich in zwei Arten von Dateien, die Sie bereits nutzen:
 
-- `L10N.md` definiert die **Begriffe**: was das Wort ist und was es bedeutet. Das gilt für jede Sprache gleichermaßen.
-- `L10N/<locale>.md` definiert die **Übersetzungen** für eine Sprache. Die Rezensenten jeder Sprache betreuen ihre eigene Datei.
+- `L10N.md` definiert die **Begriffe**: was das Wort ist und was es bedeutet. Dies gilt für jede Sprache.
+- `L10N/<locale>.md` definiert die **Übersetzungen** für eine Sprache. Die Rezensenten jeder Sprache übernehmen ihre eigene Datei.
 
-Wenn Ihr Konto zudem ein Glossar in Glossia hat, werden die beiden zum Übersetzungszeitpunkt verschmolzen. Siehe [Glossar](/docs/explanation/glossary) für die Regeln und für [wann Sie welchen verwenden](/docs/explanation/glossary#when-to-use-which).
+Falls Ihr Konto auch ein Glossar in Glossia enthält, werden die beiden zur Übersetzungszeit zusammengeführt. Für die Regeln und für [wann was verwendet wird](/docs/explanation/glossary#when-to-use-which) siehe [Glossar](/docs/explanation/glossary).
 
-## 1. Deklarieren Sie die Begriffe in L10N.md
+## 1. Definieren Sie die Begriffe in L10N.md
 
-Fügen Sie eine `glossary`-Liste in den Frontmatter des Wurzeldateiheaders `L10N.md` hinzu:
+Fügen Sie eine `glossary`-Liste in die Frontmatter Ihrer Wurzeldatei `L10N.md` ein:
 
 ```yaml
 ---
@@ -39,11 +39,11 @@ glossary:
 Write for software developers.
 ```
 
-Jeder Begriff benötigt ein `source`, das Wort wie es in Ihrem Text erscheint. Eine `definition` hilft dem Modell zu entscheiden, ob ein Treffer wirklich das gemeinte Konzept ist. `case_sensitive: true` sorgt dafür, dass `API` übereinstimmt, ohne dass „api" im Text übereinstimmt.
+Jeder Begriff benötigt eine `source` [das Wort, so wie es in Ihrem Text erscheint]. Eine `definition` hilft dem Modell zu entscheiden, ob ein Treffer tatsächlich das von Ihnen gemeinte Konzept ist. `case_sensitive: true` stellt sicher, dass `API` passt, ohne dass "api" im Fließtext abgeglichen wird.
 
-## 2. Übersetzen Sie sie in der Datei jeder Sprache
+## 2. Übersetzen Sie sie in jede Sprachdatei
 
-Erstellen oder öffnen Sie `L10N/<locale>.md` neben Ihrem `L10N.md` und weisen Sie jeden Begriff auf seine genehmigte Übersetzung zu:
+Erstellen oder öffnen Sie `L10N/<locale>.md` neben `L10N.md` und übertragen Sie jeden Begriff in seine genehmigte Übersetzung:
 
 ```yaml
 # L10N/es.md
@@ -65,11 +65,11 @@ glossary:
 ---
 ```
 
-Die Schlüssel sind die `source` des Begriffs. Wenn eine Sprache keine Übersetzung für einen Begriff hat, fällt sie auf das Kontoglossar zurück oder lässt das Modell die Entscheidung treffen.
+Schlüssel sind der `source` des Begriffs. Eine Sprache ohne Übersetzung für einen Begriff greift auf das Kontoglossar zurück oder lässt das Modell entscheiden.
 
-## 3. Fügen Sie einen Begriff hinzu, der nur von einer Sprache benötigt wird
+## 3. Fügen Sie einen Begriff hinzu, der nur eine Sprache benötigt
 
-Eine Sprachdatei kann ein Übersetzung für ein Wort bereitstellen, das `L10N.md` nicht deklariert. Die Regel gilt dann erst für diese Sprache allein:
+Eine Sprachdatei kann ein Wort übersetzen, das `L10N.md` nicht deklariert. Dann gilt die Regel nur für diese Sprache:
 
 ```yaml
 # L10N/es.md
@@ -83,7 +83,7 @@ glossary:
 
 ## 4. Geben Sie einem Begriff eine stabile ID
 
-Wenn das gleiche Wort eine präzise Bedeutung benötigt, oder Sie später den `source` eines Begriffs umbenennen möchten, geben Sie ihm eine `id` und verweisen Sie Übersetzungen über diese ID:
+Wenn dasselbe Wort eine präzise Bedeutung benötigt oder Sie später den `source` eines Begriffs umbenennen möchten, geben Sie ihm eine `id` und verknüpfen Sie seine Übersetzungen mit dieser ID:
 
 ```yaml
 # L10N.md
@@ -99,9 +99,9 @@ glossary:
   vcs-branch: rama
 ```
 
-## 5. Verfeinern Sie das Glossar für einen Teil des Repository
+## 5. Verfeinern Sie das Glossar für einen Teil des Repositories
 
-Ein verschachteltes `L10N.md` oder `L10N/<locale>.md` leitet sich von den übergeordneten Verzeichnissen ab und kann Einträge für den Unterbaum hinzufügen oder überschreiben:
+Eingebettete `L10N.md` oder `L10N/<locale>.md` erben von ihren übergeordneten Verzeichnissen und können Einträge für ihren Unterbaum hinzufügen oder überschreiben:
 
 ```yaml
 # marketing/L10N/es.md
@@ -112,16 +112,16 @@ glossary:
 ---
 ```
 
-Spanische Dateien unter `marketing/` übersetzen „commit" als `compromiso`; der Rest des Repository behält `commit`.
+Spanische Dateien unter `marketing/` übersetzen "commit" als `compromiso`; der Rest des Repositories behält `commit` bei.
 
 ## 6. Commit und Push
 
-Erstellen Sie den Commit und pushen Sie. Bei der nächsten Übersetzungsrunde übersetzt Glossia nur die Dateien neu, die die Begriffe verwenden, die Sie hinzugefügt oder geändert haben, in den Sprachen, deren Übersetzungen sich geändert haben. Dateien, die diese Begriffe nicht enthalten, behalten ihre bestehenden Übersetzungen.
+Führen Sie den Commit und Pushen Sie die Änderung durch. Beim nächsten Übersetzungslauf übersetzt Glossia nur die Dateien neu, die die von Ihnen hinzugefügten oder geänderten Begriffe enthalten, und zwar nur in den Sprachen, deren Übersetzungen sich geändert haben. Dateien, die diese Begriffe nicht enthalten, behalten ihre bestehenden Übersetzungen.
 
-Wenn ein Glossar einen Fehler enthält, ignoriert Glossia das Repository-Glossar für die betroffenen Dateien und verwendet nur das Kontoglossar, so dass Sie die [Validierungsregeln](/docs/reference/glossary#validation) prüfen, wenn ein Begriff scheinbar nicht anwendbar ist.
+Wenn ein Glossar einen Fehler enthält, ignoriert Glossia das Repository-Glossar für die betroffenen Dateien und verwendet lediglich das Kontoglossar; prüfen Sie also die [Validierungsregeln](/docs/reference/glossary#validation), wenn ein Begriff scheinbar nicht zutrifft.
 
 ## Siehe auch
 
-- [Glossar-Referenz](/docs/reference/glossary): jedes Feld und Validierungsregel.
-- [Glossar](/docs/explanation/glossary): wie das Repository- und Kontoglossar kombiniert werden.
+- [Glossar-Referenz](/docs/reference/glossary): jedes Feld und jede Validierungsregel.
+- [Glossar](/docs/explanation/glossary): wie die Repository- und Kontoglossare kombiniert werden.
 - [L10N.md Referenz](/docs/reference/l10n-md): die anderen Frontmatter-Felder.

@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "5cacbd3c13e4a18b0ceb6448d90689a798782f77442e5d112198a7a7f9ffc018",
+  "hash": "b08c62a27aa933d4e458ba4e73bf1438dc106faeebbcdfea03b217113da0f222",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
+          "hash": "f5e82ede8d4b0959c24c9ac7e96b6b28f9a912488370cbce5a14521ad7647d86",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "5cacbd3c13e4a18b0ceb6448d90689a798782f77442e5d112198a7a7f9ffc018",
+      "hash": "b08c62a27aa933d4e458ba4e73bf1438dc106faeebbcdfea03b217113da0f222",
       "kind": "translation_input",
       "label": "app/priv/features/language-memory.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "b47b58a7113957943ca3d11d7ccd6b2affcb08c79fb74067d9fc6f83c9c79ffb",
+  "output_hash": "c7a7cc6cbda57b113549204f815fc940c44fe9601a04872ca35730874748e382",
   "output_path": "app/priv/i18n/es/features/language-memory.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/features/language-memory.md",
-  "translated_at": "2026-10-20T07:48:16.860199Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-26T00:52:22.860347Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

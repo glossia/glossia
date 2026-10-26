@@ -1,73 +1,73 @@
 %{
   title: "Erste Schritte",
   summary:
-    "Verbinden Sie ein Repository und bereiten Sie dessen erste Lokalisierungseinrichtung vor.",
+    "Verbinden Sie ein Repository und richten Sie dessen erste Lokalisierungseinrichtung ein.",
   category: "Anleitungen",
   order: 1
 }
 ---
 
-Dieses Tutorial verbindet ein GitHub-Repository mit Glossia, wählt die ersten Ziel-Sprachen und bereitet eine Übersetzungs-Basis für Ihr Team zur Überprüfung vor.
+Dieses Tutorial verknüpft ein GitHub-Repository mit Glossia, wählt die ersten Zielsprachen aus und erstellt eine Lokalisierungsgrundlinie, die Ihr Team überprüfen kann.
 
 ## Bevor Sie beginnen
 
-Benötigt:
+Sie benötigen:
 
 - Ein Glossia-Konto, in dem Sie Einstellungen und Projekte verwalten können.
-- Ein GitHub-Repository, das Sie der Glossia-GitHub-App zur Lese- und Schreibzugriffserteilung gestatten können.
+- Ein GitHub-Repository, für das Sie der Glossia GitHub App Lese- und Schreibberechtigung erteilen können.
 - Ein Provider-Schlüssel für ein unterstütztes [großes Sprachmodell](https://en.wikipedia.org/wiki/Large_language_model).
 
-## 1. Konfigurieren Sie ein Kontomodell
+## 1. Konfigurieren eines Kontomodells
 
-Öffnen Sie **Einstellungen**, wechseln Sie dann zu **Modell** und wählen Sie **Neues Modell**.
+Öffnen Sie **Einstellungen**, dann **Modelle**, und wählen Sie **Neues Modell** aus.
 
-1. Geben Sie dem Modell einen kurzen Handle, wie `translation-default`.
-2. Öffnen Sie den Modell-Auswahlbereich und geben Sie Teil eines Anbieter- oder Modellnamens ein, um die Liste zu filtern.
-3. Wählen Sie das Modell, das Glossia verwenden soll.
+1. Geben Sie dem Modell einen kurzen Namen, beispielsweise `translation-default`.
+2. Öffnen Sie den Modell-Auswahler und geben Sie einen Teil des Namenes eines Anbieters oder Modells ein, um die Liste zu filtern.
+3. Wählen Sie das Modell aus, das Glossia verwenden soll.
 4. Geben Sie den Provider-Schlüssel ein und speichern Sie das Modell.
 
-Der Handle ermöglicht es Repositories, sich auf dieses Kontomodell zu beziehen, ohne Anbieter-Credentials in der Versionskontrolle zu platzieren. Siehe [Konfigurieren eines Modell-Anbieters](/docs/how-to/configure-a-model-provider) für weitere Details.
+Dieser Name ermöglicht Repositories, sich auf dieses Kontomodell zu beziehen, ohne Provider-Anmeldedaten in die Versionskontrolle zu legen. Weitere Details finden Sie unter [Ein Modellanbieter konfigurieren](/docs/how-to/configure-a-model-provider).
 
-## 2. Starten Sie ein Projekt
+## 2. Ein Projekt starten
 
-Gehen Sie zurück zu **Projekte** und wählen Sie **Neues Projekt**.
+Fahren Sie zu **Projekte** und wählen Sie **Neues Projekt** aus.
 
-Wenn Glossia nach Repository-Zugriff fragt, folgen Sie dem Link zu GitHub und gewähren Sie der Glossia-GitHub-App den Zugang zum Repository. Nach der Rückkehr zu Glossia öffnen Sie ggf. **Neues Projekt**.
+Wenn Glossia nach Zugriff auf das Repository fragt, befolgen Sie den Link zu GitHub und erteilen Sie der Glossia GitHub App Zugriff auf das Repository. Nach der Rückkehr nach Glossia öffnen Sie **Neues Projekt** erneut, falls notwendig.
 
-## 3. Wählen Sie ein Repository
+## 3. Ein Repository auswählen
 
-Wählen Sie das Repository, das Sie lokalisieren möchten. Glossia führt lediglich Repositories auf, die über die GitHub-App-Installation des aktuellen Kontos verfügbar sind.
+Wählen Sie das Repository aus, das Sie lokalisieren möchten. Glossia listet nur Repositories auf, die über die GitHub App-Installation des aktuellen Kontos verfügbar sind.
 
-## 4. Wählen Sie eine Projekt-Einrichtungsmethode
+## 4. Konfiguration des Projekts wählen
 
-Wählen Sie **Automatisierte Einrichtung**, um Glossia zuzulassen, das Repository zu prüfen und die Lokalisierungs-Konfiguration in einem Pull-Request vorzuschlagen. Dieses Tutorial folgt diesem Pfad.
+Wählen Sie **Automatisierte Einrichtung** aus, um Glossia die Überprüfung des Repositories und den Vorschlag der Lokalisierungs-Konfiguration über einen Pull Request zu ermöglichen. Dieses Tutorial folgt diesem Weg.
 
-Wenn das Repository bereits eine `L10N.md`-Datei enthält, oder Sie würden es lieber selbst schreiben, wählen Sie stattdessen **Manuelle Konfiguration**. Glossia erstellt das Projekt sofort und Sie können die übbrigen Schritte überspringen. Siehe [Projekt-Einrichtung](/docs/reference/project-setup) für den Zweck jedes Modus.
+Wenn das Repository bereits eine `L10N.md`-Datei enthält oder Sie diese lieber selbst schreiben möchten, wählen Sie **Manuelle Konfiguration** statt. Glossia erstellt das Projekt sofort und Sie können die restlichen Schritte überspringen. Siehe [Projektaufbau](/docs/reference/project-setup) für die Details, was jeder Modus tut.
 
-## 5. Wählen Sie Ziel-Sprachen
+## 5. Zielsprachen wählen
 
-Wählen Sie eine oder mehr Sprachen, aus denen aus dem Quellinhalt des Repositoriums produziert werden soll, und starten Sie die Einrichtung.
+Wählen Sie eine oder mehrere Sprachen aus, die aus dem Quellinhalt des Repositorys erstellt werden sollen, und starten Sie die Einrichtung.
 
-## 6. Verfolgen Sie den Einrichtungsfortschritt
+## 6. Fortschritt der Einrichtung verfolgen
 
-Halten Sie die Einrichtungsseite offen, während Glossia das Projekt vorbereitet. Die Fortschrittskarte zeigt den aktuellen Status und die häufigste Aktivität, einschließlich Repositories-Vorbereitung, Dateiprüfung, Änderungen, Prüfungen und Abschluss.
+Bleiben Sie auf der Einrichtung-Seite, während Glossia das Projekt vorbereitet. Die Fortschrittskarte zeigt den aktuellen Status und die jüngsten Aktivitäten, einschließlich Repository-Vorbereitung, Dateiüberprüfung, Änderungen, Prüfungen und Abschluss.
 
-Sie können die Seite verlassen und zur Projekt-Übersicht zurückkehren, ohne den Einrichtungsstatus zu verlieren. Wenn die Einrichtung fehlschlägt, lesen Sie die Fehlermitteilung. Glossia wirft das vorläufige Projekt weg; beheben Sie die Voraussetzung und beginnen Sie erneut über **Neues Projekt**. Siehe [Projekt-Einrichtung erneut versuchen](/docs/how-to/retry-project-setup).
+Sie können die Seite verlassen und zur Projektübersicht zurückkehren, ohne den Einrichtungszustand zu verlieren. Wenn die Einrichtung fehlschlägt, lesen Sie die Fehlermeldung. Glossia verwirft das vorläufige Projekt; beheben Sie die Voraussetzung und starten Sie erneut über **Neues Projekt**. Siehe [Wiederholung der Projekteinrichtung](/docs/how-to/retry-project-setup).
 
-## 7. Überprüfen Sie das Ergebnis
+## 7. Das Ergebnis überprüfen
 
-Wenn die Einrichtung abgeschlossen ist, öffnen Sie die Projekt-Übersicht und überprüfen Sie den für das Repository erstellten Pull-Request. Die vorgeschlagene Basis umfasst normalerweise:
+Wenn die Einrichtung abgeschlossen ist, öffnen Sie die Projektübersicht und überprüfen Sie den für das Repository erstellten Pull Request. Die vorgeschlagene Grundlinie umfasst normalerweise:
 
-- Eine Root-`L10N.md`-Datei mit Ursprungssprache, Ursprungspfaden und Ziel-Sprachen.
-- Die kleinsten Anwendungs- oder Inhaltsänderungen, die zum Laden lokalisierter Dateien notwendig sind.
+- Eine Wurzel-`L10N.md`-Datei mit Quellensprache, Quellpfaden und Zielsprachen.
+- Die minimalen Änderungen an der Anwendung oder am Inhalt, die zum Laden lokalisiertierter Dateien erforderlich sind.
 - Jede leichte Validierung, die bereits im Repository verfügbar war.
 
-Überprüfen und verbinden Sie den Pull-Request über Ihren normalen GitHub-Workflow. Zukünftige Übersetzungsabläufe nutzen den zusammengeführten `L10N.md`-Kontext.
+Prüfen und fusionieren Sie den Pull Request über Ihren normalen GitHub-Workflow. Künftige Übersetzungsläufe verwenden den `L10N.md`-Kontext.
 
-Die Projekt-Übersicht hält den Einrichtungs-Pull-Request visuell bis zum Zusammenführen. Wenn er geschlossen wurde, ohne zusammengeführt zu werden, öffnen Sie ihn über den Link in der Einrichtungsmitteilung.
+Die Projektübersicht hält den Einrichtungen-Pull Request sichtbar, bis er fusioniert wurde. Wenn er ohne Fusionierung geschlossen wird, öffnen Sie ihn erneut über den Link im Einrichtungshinweis.
 
 ## Nächste Schritte
 
-- [Neue Sprache hinzufügen](/docs/how-to/add-a-new-language)
-- [Projekt-Einrichtungs-Status verstehen](/docs/reference/project-setup)
-- [Erfahren Sie, wie Kontomodellen funktionieren](/docs/explanation/account-models)
+- [Eine neue Sprache hinzufügen](/docs/how-to/add-a-new-language)
+- [Projekt-Einrichtungszustände verstehen](/docs/reference/project-setup)
+- [Lernen Sie, wie Kontomodell funktionieren](/docs/explanation/account-models)
