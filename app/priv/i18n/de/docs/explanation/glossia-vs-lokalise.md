@@ -1,7 +1,7 @@
 %{
   title: "Glossia vs. Lokalise",
   summary:
-    "Behalten Sie die Produktlokalisierung in Ihrer Lieferpipeline, mit öffentlicher Quelle, eigenen Modelltokens und nativer Validierung.",
+    "Behalten Sie die Produktlokalisierung in Ihrer Lieferpipeline, mit öffentlichem Source, Ihren eigenen Modelltokens und nativer Validierung.",
   category: "Erklärung",
   markdown_only: true,
   section: "translation",
@@ -9,48 +9,48 @@
 }
 ---
 
-**Wählen Sie Glossia, wenn das Produkt-Repository die Autorität für mehrsprachige Inhalte behalten soll.** Strings, Dokumentation, Konfiguration und deren Prüfungen entwickeln sich bereits mit Ihrer Anwendung weiter. Glossia hält Sprachänderungen an diese Entwicklung gebunden, statt Ihr Team zu fragen, einen gehosteten Editor zur Veröffentlichungsbefugnis zu machen.
+**Wählen Sie Glossia, wenn das Produktrepositorium weiterhin die Autorität für mehrsprachigen Inhalt bleiben soll.** Strings, Dokumentation, Konfiguration und ihre Prüfungen entwickeln sich bereits gemeinsam mit Ihrer Anwendung. Glossia bindet Sprachänderungen an diese Evolution an, statt Ihr Team zu bitten, einen gehosteten Editor zur Veröffentlichungsinstanz zu machen.
 
-[Lokalise](https://lokalise.com/) bietet kollaborative Lokalisierung, Übersetzungsmanagement und Entwicklerintegrationen. Glossias Ansatz ist spezifischer: Bewahren Sie den Repository-Arbeitsfluss bei, bringen Sie Ihre eigenen Modellcredentials an, nutzen Sie Ihre bestehenden Prüfungen und prüfen Sie das System, das die Arbeit erledigt.
+[Lokalise](https://lokalise.com/) bietet kollaborative Lokalisierung, Übersetzungsmanagement und Entwickler-Integrationen. Glossias Ansatz ist spezifischer: Behalten Sie den Repository-Workflow bei, bringen Sie Ihre eigenen Modell-Anmeldungsschlüssel mit, nutzen Sie Ihre bestehenden Prüfungen und prüfen Sie das System, das die Arbeit ausführt.
 
-## Warum Glossia wählen
+## ## Warum Glossia wählen
 
-| Ihre Priorität | Glossias Vorteil |
+| \| Ihre Priorität \| | \| Vorteil von Glossia \| |
 |---|---|
-| Anpassung an die Software-Liefergeschwindigkeit | Quelländerungen treiben Übersetzungsarbeit an; vorgeschlagene Ausgaben kehren durch einen Repository-Review-Prozess zurück. |
-| Kontrolle über die Implementierung | Öffentlicher Quellcode macht die Verarbeitung überprüfbar und unterstützt Änderungen sowie Self-Hosting unter den Lizenzbedingungen. |
-| Nutzen Sie Ihre eigenen Modelltokens | Anbieter-Credentials, die auf das Konto bezogen sind, erlauben Ihnen, unterstützte Modelle zu wählen, ohne Geheimnisse in Git zu speichern. |
-| Gültigen Anwendungsinhalt verifizieren | Repository-Skripte können den Kandidaten prüfen, wo die Anwendung ihn erwartet zu finden. |
-| Bewahren Sie eine klare Prüfungsabgrenzung | Pull Requests halten Sprachänderungen im selben Werkzeug sichtbar, das zur Produktprüfung genutzt wird. |
+| | Entsprechendes Software-Lieferungstempo | | Quelländerungen treiben Übersetzungsarbeit an; vorgeschlagene Ausgaben kehren durch einen Repositories-Überprüfungsworkflow zurück. |
+| | Die Implementierung selbst führen | | | Öffentlicher Quellcode macht Verarbeitung prüfbar und unterstützt Änderungen und Selbsthosting unter den Lizenzbedingungen. |
+| | Verwenden Sie Ihre eigenen Modelltokens | | | Konto-spezifische Anbieterzertifikate ermöglichen es Ihnen, unterstützte Modelle zu wählen, ohne Geheimnisse in Git zu speichern. |
+| | Prüfen Sie echten Anwendungsinhalt | | | Repositoryskripte können den Kandidaten prüfen, an der Stelle, an der die Anwendung ihn zu finden erwartet. |
+| | Bewahren Sie eine klare Überprüfgrenze bei | | | Pull requests halten Sprachänderungen sichtbar im selben Werkzeug zum Überprüfen des Produkts. |
 
-## Halten Sie Sprachänderungen an Produktänderungen gekoppelt
+## Binden Sie Sprachänderungen an Produktänderungen
 
-Eine neue UI-Nachricht oder ein Dokumentationsabschnitt ist keine isolierte Übersetzungs-Aufgabe. Sie gehört zu einer Produktrevision, verwendet deren Terminologie und muss mit ihrer Struktur funktionieren.
+Eine neue UI-Nachricht oder Documentationssektion ist keine isolierte Übersetzungsaufgabe. Sie gehört zu einer Produktrevision, verwendet ihre Terminologie und muss mit ihrer Struktur funktionieren.
 
-Glossia liest die vom Repository verwaltete `L10N.md` Konfiguration, nutzt Inhalts- und Kontextänderungen, um veraltete Übersetzungen zu identifizieren, und schlägt Updates zur Prüfung vor. Prüfer sehen tatsächliche Dateien und Unterschiede; die Veröffentlichungspipeline bleibt in Ihrer Hand.
+Glossia liest repositories-eigene `L10N.md` Konfiguration, verwendet Inhalt- und Kontextänderungen, um veraltete Übersetzungen zu identifizieren, schlägt Updates zur Prüfung vor. Prüfer sehen tatsächliche Dateien und Diffs; die Veröffentlichungsipeline bleibt bei Ihnen.
 
-Lokalise bietet auch Automatisierung und Git-Integrationen. Glossias Unterscheidung liegt im intendierten System der Register: Ihr Repository besitzt den publizierten Inhalt und dessen Lieferregeln, während Glossia Sprachkontext und Transformationsmechanismen bereitstellt.
+Lokalise bietet ebenfalls Automatisierung und Git-Integrationen. Die Unterscheidung von Glossia liegt im intendierten System der Aufzeichnung: Ihr Repositorium besitzt den veröffentlichten Inhalt und seine Lieferrichtlinien, während Glossia Sprachkontext bereitstellt.
 
-## Bringen Sie Ihre eigenen Tokens mit, statt ein Modell festzulegen
+## Bringen Sie eigene Token mit, anstatt eine Modellentscheidung vorzuprogrammieren
 
-Glossia ermöglicht es Ihnen, unterstützte Modelle mit Ihren eigenen Anbieter-API-Tokens zu konfigurieren. Ein Repository verwendet einen stabilen Modellhandler, sodass das Rotieren von Credentials oder das Aktualisieren des dahinterliegenden Modells nicht jede Projektänderung erfordert.
+Glossia ermöglicht die Konfiguration unterstützter Modelle mit Ihren eigenen Anbieter-API-Token. Ein Repositorium nutzt einen stabilen Modell-Handle, sodass die Rotation von Zertifikaten oder das Aktualisieren des Modell-Handles hinter diesem Handle keine Änderung jedes einzelnen Projekts erfordert.
 
-Verschachtelte Konfigurationen und lokal spezifische Anleitungen können für einen bestimmten Bereich ein anderes konfiguriertes Modell auswählen. Dies ist eine explizite Auswahl, keine Zusage für automatisches Anbieter-Failover. Siehe [Kontomodell](./account-models).
+Verschachtelte Konfigurationen und gerichte-spezifische Hinweise können ein anderes konfiguriertes Modell für einen bestimmten Bereich oder eine Sprache auswählen. Dies ist eine explizite Auswahl, kein Versprechen eines automatischen Anbieter-Wechsels. Siehe [Konto-Modelle](./account-models).
 
-## Validierung wiederverwenden, die Ihre Anwendung bereits kennt
+## Nutzen Sie Validierung, die Ihre Anwendung bereits kennt
 
-Ihr Repository kann bereits wissen, wie es ungültige Strings, fehlerhafte Dateien, beschädigte Komponenteneigenschaften oder eine Dokumentationsberechnungsfehlmeldung erkennt. Glossia kann diese Erkenntnis über einen konfigurierten Validierungsbefehl aufrufen.
+Ihr Repository kann bereits wissen, wie es ungültige Strings, fehlerhafte Dateien, kaputte Komponenten Attribute oder eine Dokumentations-Baumecktesting erkennen kann. Glossia kann dieses Wissen über einen konfigurierten Validierungsbefehl anrufen.
 
-Der Kandidat wird temporär an seinem tatsächlichen Ausgabepfad angelegt für die Prüfung. Das vorherige Ziel wird nach jeder Validierungsversuch wiederhergestellt, und der akzeptierte Kandidat wird danach geschrieben. Abgelehnte Ausgaben gehen durch das konfigurierte Wiederherstellungsbudget, statt nur aufgrund des Textes akzeptiert zu werden.
+Der Kandidat wird temporär am tatsächlichen Ausgabepfad für die Prüfung platziert. Das vorherige Ziel wird nach jeder Validierungsversuch wiederhergestellt, und der akzeptierte Kandidat wird danach geschrieben. Abgelehnter Output durchläuft das konfigurierte Recovery-Budget anstatt nur aufgrund des Textes, der plausibel aussieht, akzeptiert zu werden.
 
-Strukturelle und Repository-Prüfungen beweisen nicht, dass jeder Satz korrekt ist. Sie ergänzen die menschliche Sprachprüfung und machen diese Prüfung Teil einer lieferbaren Änderung. Siehe [L10N.md](/docs/reference/l10n-md) und [Übersetzungs-Wiederherstellung](./translation-recovery).
+Strukturelle und Repositoryprüfungen beweisen nicht, dass jeder Satz korrekt ist. Sie ergänzen den menschlichen Sprachüberprüfung und machen diese Überprüfung Teil eines lieferbaren Wandels. Siehe [L10N.md](/docs/reference/l10n-md) und [Übersetzungs-Wiederherstellung](./translation-recovery).
 
-## Öffentlicher Quellcode und Repository-gesteuerte Ausgaben
+## Öffentlicher Quellcode und repositories-eigene Ausgaben
 
-Glossia folgt einem Open-Core-Modell. Der Kern steht unter [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), die kommerzielle Nutzung, Änderungen, Weitergabe, Self-Hosting und konkurrierende gehostete Dienste gemäß ihren Bedingungen erlaubt. Der Code unter `ee/` ist einsehbar, aber nicht Open Source. Er unterliegt einer separaten [Enterprise-Lizenz](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md); der Produktionseinsatz erfordert eine schriftliche kommerzielle Vereinbarung.
+Der Kern von Glossia ist unter [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) zur Prüfung, Änderung, Verteilung und Selbstbetätigung verfügbar, was auch konkurrierende gehostete Dienste gestatten. Unternehmenscode unter `ee/` hat eine separate [Lizenz](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md), die ein schriftliches kommerzielles Abkommen für den Produktionsbetrieb erfordert.
 
-Wichtiger für die tägliche Lieferung bleiben Ihre übersetzten Ausgaben in Git. Sie brauchen keine Bearbeitungssitzung in einem anderen Produkt, um einfach die bestehenden Dateien zu veröffentlichen, die Sie besitzen.
+Wichtiger für die tägliche Lieferung sind Ihre übersetzten Ausgabedateien. Sie benötigen keine Bearbeitungssitzung in einem anderen Produkt, um die Dateien zu veröffentlichen, die Sie besitzen.
 
-Lokalise passt möglicherweise einem Team, das zentralisierte Browser-Bearbeitung und Lokalisierungs-Koordination wünscht. Glossia ist die Wahl, wenn **Eigentum am Repository, Ihre eigenen Modelltokens und bestehenden Produktprüfungen** der Arbeitsfluss ist, den Sie beibehalten möchten.
+Lokalise passt möglicherweise ein Team, das zentralisierte Browser-Editing und Lokalisierungsabstimmung benötigt. Glossia ist die Wahl, wenn **Repositorybesitz, Ihr eigene Modelltoken und bestehende Produkteprüfungen** der Workflow sind, den Sie behalten möchten.
 
-Testen Sie eine repräsentative Änderung, bevor Sie Systeme wechseln. Diese Seite verspricht keine automatische Migration oder Feature-Parität, oder behauptet, dass Lokalise an Automatisierung oder allen Anbieter-Optionen mangelt. Siehe [Lokales Dokumentationsmaterial](https://docs.lokalise.com/) für die aktuellen Möglichkeiten.
+Testen Sie eine repräsentative Änderung, bevor Sie Systeme wechseln. Diese Seite verspricht keine automatische Migration oder Features-Palette, oder beantragt, dass Lokalise Automatisierung oder alle Anbieteroptionen mangelt. Siehe [Lokalise's Dokumentation](https://docs.lokalise.com/) für seine aktuellen Fähigkeiten.

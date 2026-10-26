@@ -1,29 +1,29 @@
 %{
-  title: "Affinement progressif",
-  summary: "Pourquoi la qualité du contenu converge au fil du temps et non en une seule passe.",
+  title: "Raffinement progressif",
+  summary: "Pourquoi la qualité du contenu converge au fil du temps, et non en un seul passage.",
   category: "explication",
   section: "translation",
   order: 1
 }
 ---
 
-Les premières ébauches provenant de [modèles de langage à grande échelle](https://en.wikipedia.org/wiki/Large_language_model) sont structurellement correctes mais peuvent manquer de nuances, de ton, ou d'expression spécifique à un domaine. C'est intentionnel. Glossia traite la génération de contenu de la même façon que les équipes de logiciels traitent le code : livrer une version fonctionnelle, la revoir et l'améliorer itérativement.
+Les premiers brouillons générés par [les grands modèles de langage](https://en.wikipedia.org/wiki/Large_language_model) sont structurés correctement, mais peuvent manquer de nuance, de ton ou de formulations spécifiques au domaine. C'est par conception. Glossia traite la génération de contenu de la même manière que les équipes informatiques traitent le code : diffusez une version fonctionnelle, révisez-la et améliorez-la itérativement.
 
-## La boucle d'affinement
+## La boucle de raffinement
 
-1. **Ébauche** : Glossia génère un premier jet structuralement valide basé sur vos fichiers sources et le contexte dans `L10N.md`.}
-2. **Revue** : Votre équipe signale les problèmes via des requêtes de pull et des diffs, le même processus que vous utilisez déjà pour le code.
-3. **Affiner** : Les fichiers de contexte mis à jour, les corrections du glossaire et les retours de révision alimentent l'exécution suivante.
-4. **Converger** : Chaque cycle réduit la distance à la qualité de production. Le système apprend la voix de votre produit grâce au contexte que vous fournissez.
+1. **Brouillon**: Glossia génère une première version valide structurellement basée sur vos fichiers source et le contexte dans `L10N.md`.
+2. **Revue**: Votre équipe signale les problèmes via des Pull Requests et des diffs, le même flux de travail que vous utilisez déjà pour le code.
+3. **Raffinement**: Les fichiers de contexte mis à jour, les corrections du glossaire et les retours de revue alimentent la prochaine exécution.
+4. **Convergence**: Chaque cycle réduit la distance à la qualité de production. Le système apprend la voix de votre produit grâce au contexte que vous fournissez.
 
 ## Pourquoi cela fonctionne
 
-L'intuition clé est que le contexte s'accumule. Chaque commentaire de révision qui mène à une `L10N.md` mise à jour ou à une entrée de glossaire corrigée améliore toutes les exécutions futures, pas seulement le fichier ayant déclenché la révision.
+L'idée clé est que le contexte s'accumule. Chaque commentaire de revue qui conduit à un `L10N.md` mis à jour ou à une entrée de glossaire corrigée améliore tous les futurs exécutions, et non seulement le fichier qui a déclenché la revue.
 
-Ceci suit le même principe derrière Kaizen dans la fabrication et l'approximation successive en ingénierie : commencer avec une base suffisamment bonne et améliorer systématiquement avec le jugement humain dans la boucle.
+Cela suit le même principe que le Kaizen dans l'industrie manufacturière et l'approximation successive en ingénierie : commencez par une base suffisante et améliorez-la systématiquement avec le jugement humain dans la boucle.
 
-## Implications pratiques
+## Conséquences pratiques
 
-- N'attendez pas de perfection au premier essai. Prévoyez un ou deux cycles de révision.
-- Investissez du temps dans la rédaction de fichiers de contexte clairs. Ce sont les améliorations les plus rentables que vous puissiez faire.
-- Utilisez la session de traduction dans Glossia pour suivre quels fichiers ont été traduits, ignorés ou échoués.
+- N'attendez pas la perfection au premier essai. Prévoyez un ou deux cycles de révision.
+- Investissez du temps à rédiger des fichiers de contexte clairs. C'est l'amélioration à plus haut rendement que vous puissiez réaliser.
+- Utilisez la session de traduction dans Glossia pour suivre quels fichiers ont été traduits, ignorés ou ont échoué.

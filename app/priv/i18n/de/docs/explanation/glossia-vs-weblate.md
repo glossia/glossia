@@ -1,7 +1,7 @@
 %{
   title: "Glossia gegenüber Weblate",
   summary:
-    "Wählen Sie Glossia für modellbasierte Spracharbeit, die der Repository-Auslieferung folgt und Ihre bestehende Validierung wiederverwendet.",
+    "Wählen Sie Glossia für modellbasierte Spracharbeit, die der Repository-Bereitstellung folgt und Ihre bestehende Validierung wiederverwendet.",
   category: "Erklärung",
   markdown_only: true,
   section: "translation",
@@ -9,44 +9,44 @@
 }
 ---
 
-**Wählen Sie Glossia, wenn Sie wünschen, dass Sprachautomatisierung ebenso funktioniert wie der Rest Ihrer Softwareauslieferung:** Anweisungen unter Versionskontrolle, Ihre eigenen Model-Token, repository-native Prüfungen und Pull Requests zur Überprüfung.
+**Wählen Sie Glossia, wenn Sie möchten, dass Sprachautomatisierung wie der Rest Ihrer Softwareauslieferung funktioniert:** quellkontrollierte Anweisungen, eigene Modell-Token, repository-orientierte Prüfungen und Pull Requests zur Überprüfung.
 
-[Weblate](https://weblate.org/) ist ein Open-Source-Lokalisierungssystem mit einer Webseiten-Übersetzungs-Schnittstelle, Version-Kontrolle-Integration und Selbsthosting-Optionen. Öffentlicher Code und Git-Integration sind nicht exklusiv für Glossia. Der Grund, Glossia zu wählen, ist die Kombination aus repository-zentrierter Lieferung, modellgetriebenen Transformationen und wiederverwendbarem Sprachkontext für Menschen und Agenten.
+[Weblate](https://weblate.org/) ist ein Open-Source-Lokalisierungssystem mit einer webbasierten Übersetzungschnittstelle, Versionskontroll-Integration und Selbsthosting-Optionen. Öffentlicher Code und Git-Integration sind nicht exklusiv für Glossia. Der Grund, Glossia zu wählen, ist die Kombination aus repository-zentrierter Abgabe, modellgesteuerten Transformationen und wiederverwendbarem Sprachkontext für sowohl Menschen als auch Agenten.
 
 ## Warum Glossia wählen
 
-| Ihre Priorität | Der Vorteil von Glossia |
+| Ihre Priorität | Vorteil von Glossia |
 |---|---|
-| Prüfung im Produkt-Workflow belassen | Überprüfen Sie die tatsächliche Quelle-gekoppelte Ausgabe durch Repository-Änderungen und Pull Requests. |
-| Ein sich schnell veränderndes Quellrepository abdecken | Änderungserkennung und gebündelte Veröffentlichung unterstützen einen laufenden Lokalisierungszyklus ohne wiederholtes Übersetzen unveränderter Eingaben. |
-| Bringen Sie Ihre eigenen Model-Token mit | Konfigurieren Sie unterstützte Modelle mit kontomäßigen Anbietern credentials und wählen Sie sie mit repository-eigenen Handles. |
-| Nutzung einheimischer Validierung | Führen Sie den eigenen Validierungsbefehl des Repositories gegen einen Kandidaten an seinem echten Zielpfad durch. |
-| Kontext jenseits der Übersetzung wiederverwenden | Geteilte Stimme und Terminologie können neuen Inhalt und Agenten-Integrationen über MCP und REST-Schnittstellen leiten. |
+| Beibehalten der Überprüfung im Produkt-Workflow | Überprüfen Sie den tatsächlichen versionsgesteuerten Output über Repository-Änderungen und Pull-Requests. |
+| Anpassung an ein schnellgelegtes Quell-Repository | Die Änderungserkennung und der gepackte Publikumsbetrieb unterstützen einen laufenden Lokalisierungslauf, ohne dass ungewandelte Eingaben wiederholt übersetzt werden. |
+| Bringen Sie Ihre eigenen Modell-Tokens mit | Richten Sie unterstützte Modelle mit an Konten gebundenen Provider-Anmeldeinformationen ein und wählen Sie sie mit repository-eigenen Handles aus. |
+| Wiederverwendung der nativen Validierung | Führen Sie den eigenen Validierungsbefehl des Repositorys am Kandidaten bei seinem realen Zielpfad aus. |
+| Wiederverwendung von Kontext über die Übersetzung hinaus | Geteilte Stimme und Terminologie können neuen Inhalt und Agenten-Integrationen durch MCP- und REST-Schnittstellen führen. |
 
-## Behalten Sie das Repository als Überprüfungsfläche
+## Halten Sie das Repository als Überprüfungsoberfläche bei
 
-Glossia ist für ein Team konzipiert, das bereits Git verwendet, um zu entscheiden, was bereit ist für den Versand. Seine Lokalisierungs-Konfiguration befindet sich neben dem Inhalt, und seine vorgeschlagenen Ausgaben können über denselben Prozess wie die Produktänderung überprüft werden.
+Glossia ist für ein Team konzipiert, das Git bereits nutzt, um zu entscheiden, was versandbereit ist. Seine Lokalisierungs-Konfiguration lebt neben dem Inhalt, und seine vorgeschlagenen Ausgaben können über denselben Prozess wie die Produktänderung überprüft werden.
 
-Weblate integriert sich ebenfalls mit Versionskontrolle. Seine browsergeleiteten Übersetzungs-Schnittstelle ist möglicherweise genau das, was eine Beitragsgemeinschaft braucht. Der Schwerpunkt von Glossia ist anders: bewahren Sie die repository-Überprüfungs-Grenze und bringen Sie Sprachautomatisierung an diese heran, anstatt eine weitere Bearbeitungsschnittstelle zum Zentrum der Teamarbeit zu machen.
+Weblate integriert sich ebenfalls mit Versionskontrolle. Seine browserbasierte Übersetzungs-Oberfläche ist möglicherweise genau das, was eine Beitragsgemeinschaft benötigt. Glossias Fokussierung liegt anders: Bewahren Sie die Repository-Überprüfungsgrenze bei, und bringen Sie Sprachautomatisierung dazu, statt einen anderen Bearbeitungsbereich in den Mittelpunkt der Teamarbeit zu stellen.
 
-## Bringen Sie Ihre eigenen Token mit und machen Sie Modellentscheidungen explizit
+## Bringen Sie eigene Tokens mit und machen Sie Modellentscheidungen explizit
 
-Glossia verwendet unterstützte Modelle, die mit Ihren API-Token des Anbieters konfiguriert sind. Repository-Konfiguration verweist auf stabile Modell-Handles; Geheimnisse bleiben in Kontoeinstellungen. Sie können verschiedene konfigurierte Modelle nach Inhaltsumfang oder Zielortsgebiet auswählen und Credentials rotieren, ohne jedes Repository zu ändern.
+Glossia nutzt unterstützte Modelle, die mit Ihren Provider-API-Tokens konfiguriert sind. Repository-Konfiguration bezieht sich auf stabile Modellhandles; Geheimnisse bleiben in den Konteneinstellungen. Sie können verschiedene konfigurierte Modelle nach Inhaltsumfang oder Ziellokalität auswählen und Anmeldeinformationen drehen, ohne jedes Repository zu ändern.
 
-Das gibt Ihrem Team einen expliziten Ort, um die Modelle zu wählen, die ihren Inhalt schreiben. Es verspricht nicht, dass irgendein Token oder Modell unterstützt ist, oder dass Generation den Bedarf an menschlicher Überprüfung entfernt. Siehe [Konfigurieren eines Modell-Anbieters](/docs/how-to/configure-a-model-provider).
+Damit hat Ihr Team einen expliziten Ort, um die Modelle auszuwählen, die deren Inhalt erstellen. Es wird nicht zugesichert, dass jedes Token oder Modell unterstützt ist, oder dass die Generierung den Bedarf an menschlicher Überprüfung beseitigt. Siehe [Modellanbieter konfigurieren](/docs/how-to/configure-a-model-provider).
 
-## Nutzen Sie die Prüfungen, die eine lieferbare Änderung definieren
+## Wiederverwendung der Checks, die eine lieferbare Änderung definieren
 
-Glossias eingebaute strukturelle Prüfungen sind nur Teil der Qualitätsbegrenzung. Durch `L10N.md` kann es ein Repositorys natives Validierungsskript, Parser, Compiler oder Dokumentierungs-Check am Kandidaten an seinem echten Zielpfad ausführen.
+Die eingebaute strukturelle Checks von Glossia sind nur ein Teil der Qualitätsgrenze. Durch `L10N.md` kann ein Repositorys nativen Validierungsskript, Parser, Compiler oder Dokumentations-Check am Kandidaten an seinem realen Zielpfad ausführen.
 
-Dies ist nützlich, wenn übersetzter Inhalt mehr enthält als查明nde Strings: anwendungsspezifische Formate, Markdown-Komponenten, strukturierte Metadaten und Einschränkungen, die das Projekt bereits zu überprüfen weiß. Validierung und Wiederherstellung bleiben mit den tatsächlichen Dateien verbunden, die Ihre Pipeline veröffentlichen wird.
+Das ist nützlich, wenn übersetzter Inhalt mehr als nur einfache Strings enthält: anwendungsspezifische Formate, Markdown-Komponenten, strukturierte Metadaten und Einschränkungen, die das Projekt bereits weiß, wie es zu verifizieren ist. Validierung und Wiederherstellung bleiben mit den tatsächlichen Dateien verbunden, die Ihre Pipeline veröffentlichen wird.
 
-Die Laufzeitumgebung benötigt immer noch die Abhängigkeiten des Validators, und strukturelle Validierung etabliert keine linguistische Genauigkeit. Siehe [L10N.md](/docs/reference/l10n-md) und [Wiederherstellung der Übersetzung](./translation-recovery).
+Die Ausführungsumgebung benötigt weiterhin die Abhängigkeiten des Validators, und die strukturelle Validierung etabliert keine linguistische Genauigkeit. Siehe [L10N.md](/docs/reference/l10n-md) und [Übersetzungswiederherstellung](./translation-recovery).
 
-## Öffentlicher Code ist eine Basislinie, nicht der gesamte Vergleich
+## Öffentlicher Quellesscode ist eine Grundlinie, nicht die gesamte Vergleich.
 
-Glossias Kern steht unter [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), die kommerzielle Nutzung, Änderungen, Weitergabe, Self-Hosting und konkurrierende gehostete Dienste gemäß ihren Bedingungen erlaubt. Der Code unter `ee/` unterliegt einer separaten [Enterprise-Lizenz](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md); der Produktionseinsatz erfordert eine schriftliche kommerzielle Vereinbarung. Dieses Open-Core-Modell unterscheidet sich von Weblates GPL-basierter Lizenzierung.
+Der Kern von Glossia ist öffentlich und kann unter [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) inspiziert, geändert, verteilt und selbst gehostet werden, was konkurrierende gehostete Dienste erlaubt. Unternehmenscode unter `ee/` hat eine separate [Lizenz](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md), die für den Produktionsbetrieb eine schriftliche Geschäftsvereinbarung erfordert. Dieses Open-Core-Modell unterscheidet sich von der GPL-basierten Lizenzierung von Weblate.
 
-Wenn unbegrenzte Open-Source-Lizensierung und eine etablierte Webseiten-Übersetzungs-Schnittstelle Ihre primären Kriterien sind, verdient Weblate Berücksichtigung. Wenn das Ziel **Ihre eigenen Model-Zugangsdaten, bestehenden Repository-Prüfungen und Spracharbeit, die der Softwareauslieferung folgt** ist, bringt Glossia diese Entscheidungen in einem Sprach-OS zusammen.
+Wenn GPL-basierte Lizenzierung und ein etabliertes Web-Übersetzungsinterface Ihre primären Kriterien sind, verdient Weblate Berücksichtigung. Wenn das Ziel **Ihre eigenen Modellzugangsdaten, bestehende Repository-Prüfungen und Spracharbeit, die der Softwareauslieferung folgt** ist, bringt Glossia diese Optionen in einem Sprach-OS zusammen.
 
-Dieser Vergleich behauptet nicht, dass Weblate Automatisierung, Validierungsmerkmale oder Anbieter-Integrationen fehlt, und garantiert keine automatische Migration oder Funktionsäquivalenz. Siehe [Weblate's Dokumentation](https://docs.weblate.org/) für aktuelle Fähigkeiten.
+Dieser Vergleich behauptet nicht, dass Weblate an Automatisierung, Validierungsmerkmalen oder Provider-Integrationen leidet, und verspricht keine automatische Migration oder Feature-Parität. Siehe [Weblates Dokumentation](https://docs.weblate.org/) für die aktuellen Fähigkeiten.
