@@ -200,7 +200,7 @@ defmodule Glossia.TranslationSessions.Translate do
 
         case compare_source_history(previous_session, session, project, token) do
           {:ok, "identical"} ->
-            {:ok, session}
+            synchronize_publication_head(session, project, token)
 
           {:ok, "ahead"} ->
             merge_source_commit(session, project, token)
@@ -294,14 +294,7 @@ defmodule Glossia.TranslationSessions.Translate do
   defp merge_source_commit(session, project, token, params) do
     case Glossia.Github.Client.merge_branch(project.github_repo_full_name, params, token) do
       {:ok, response} ->
-        with {:ok, branch_commit_sha} <-
-               merged_commit_sha(response, session.publication_branch, project, token),
-             {:ok, updated_session} <-
-               TranslationSessions.update_session_publication(session, %{
-                 publication_commit_sha: branch_commit_sha
-               }) do
-          {:ok, updated_session}
-        end
+        synchronize_publication_head(session, project, token, response)
 
       # An open PR must not be abandoned just because its branch conflicts
       # with the source. Fail visibly rather than opening a second PR.
@@ -310,6 +303,18 @@ defmodule Glossia.TranslationSessions.Translate do
 
       {:error, _reason} = error ->
         error
+    end
+  end
+
+  # The source can be identical while a manual conflict resolution or review
+  # advanced the publication branch. Refresh its head before running so the
+  # next publication builds on that work rather than a stale checkpoint.
+  defp synchronize_publication_head(session, project, token, response \\ %{}) do
+    with {:ok, branch_commit_sha} <-
+           merged_commit_sha(response, session.publication_branch, project, token) do
+      TranslationSessions.update_session_publication(session, %{
+        publication_commit_sha: branch_commit_sha
+      })
     end
   end
 

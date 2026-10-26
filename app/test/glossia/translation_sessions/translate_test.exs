@@ -744,6 +744,128 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert_received {:repository, %{publication_branch: "glossia/translate-abc123456789"}}
   end
 
+  test "a same-source retry publishes on top of a manually repaired branch" do
+    {user, project} =
+      project_with_installation("translate-repaired@test.com", "translate-repaired")
+
+    previous = session_for(user, project)
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        commit_sha: previous.commit_sha,
+        source_language: "en",
+        target_languages: ["es"],
+        continued_from_session_id: previous.id,
+        publication_branch: "glossia/translate-abc123456789",
+        publication_commit_sha: "stale-checkpoint",
+        pull_request_url: "https://github.com/glossia/demo/pull/2",
+        pull_request_number: 2
+      })
+
+    stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+    stub(Glossia.Github.Client, :get_pull_request, fn _, 2, _ -> {:ok, %{"state" => "open"}} end)
+
+    stub(Glossia.Github.Client, :compare_commits, fn _, _, _, _ ->
+      {:ok, %{"status" => "identical"}}
+    end)
+
+    expect(Glossia.Github.Client, :get_ref, fn "glossia/demo",
+                                               "heads/glossia/translate-abc123456789",
+                                               "github-token" ->
+      {:ok, %{"object" => %{"sha" => "manually-repaired-head"}}}
+    end)
+
+    reject(&Glossia.Github.Client.merge_branch/3)
+    reject(&Glossia.Github.Client.create_pull_request/3)
+
+    expect(Glossia.Github.Client, :get_commit, fn _, "manually-repaired-head", _ ->
+      {:ok, %{"tree" => %{"sha" => "repaired-tree"}}}
+    end)
+
+    stub(Glossia.Github.Client, :create_blob, fn _, _, _ -> {:ok, %{"sha" => "blob"}} end)
+
+    expect(Glossia.Github.Client, :create_tree, fn _, %{base_tree: "repaired-tree"}, _ ->
+      {:ok, %{"sha" => "translated-tree"}}
+    end)
+
+    expect(Glossia.Github.Client, :create_commit, fn _, params, _ ->
+      assert params.parents == ["manually-repaired-head"]
+      {:ok, %{"sha" => "translated-commit"}}
+    end)
+
+    expect(Glossia.Github.Client, :update_ref, fn _,
+                                                  "heads/glossia/translate-abc123456789",
+                                                  "translated-commit",
+                                                  _ ->
+      {:ok, %{}}
+    end)
+
+    stub(Glossia.Translations.RepositoryRun, :run, fn running, _, repository, _, _ ->
+      assert running.publication_commit_sha == "manually-repaired-head"
+      assert repository.publication_branch == session.publication_branch
+
+      assert Repo.get!(TranslationSession, session.id).publication_commit_sha ==
+               "manually-repaired-head"
+
+      assert {:ok, _} =
+               Translate.publish_changes(
+                 %{session_id: running.id},
+                 %{changes: [%{path: "es/guide.md", status: "modified", content: "# Hola\n"}]},
+                 wait: false
+               )
+
+      {:ok, []}
+    end)
+
+    assert :ok = Translate.run(session.id)
+    updated = Repo.get!(TranslationSession, session.id)
+    assert updated.status == "completed"
+    assert updated.publication_commit_sha == "translated-commit"
+    assert updated.pull_request_number == 2
+  end
+
+  for {description, response, reason} <- [
+        {"unavailable", {:error, {:api_error, 403, %{}}}, {:api_error, 403, %{}}},
+        {"malformed", {:ok, %{"object" => %{}}}, :invalid_github_response},
+        {"empty", {:ok, %{"object" => %{"sha" => ""}}}, :invalid_github_response}
+      ] do
+    @publication_head_response response
+    @publication_head_error reason
+
+    test "a same-source retry fails closed when the publication head is #{description}" do
+      {user, project} = project_with_installation("translate-head@test.com", "translate-head")
+      previous = session_for(user, project)
+
+      {:ok, session} =
+        TranslationSessions.create_session(user.account, project, %{
+          commit_sha: previous.commit_sha,
+          source_language: "en",
+          target_languages: ["es"],
+          continued_from_session_id: previous.id,
+          publication_branch: "glossia/translate-abc123456789",
+          publication_commit_sha: "stale-checkpoint"
+        })
+
+      stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+
+      stub(Glossia.Github.Client, :compare_commits, fn _, _, _, _ ->
+        {:ok, %{"status" => "identical"}}
+      end)
+
+      response = @publication_head_response
+      expect(Glossia.Github.Client, :get_ref, fn _, _, _ -> response end)
+      reject(&Glossia.Github.Client.merge_branch/3)
+      reject(&Glossia.Translations.RepositoryRun.run/5)
+      reject(&Glossia.Github.Client.update_ref/4)
+
+      assert {:error, @publication_head_error} = Translate.run(session.id)
+      updated = Repo.get!(TranslationSession, session.id)
+      assert updated.status == "failed"
+      assert updated.publication_commit_sha == "stale-checkpoint"
+      assert updated.publication_branch == session.publication_branch
+    end
+  end
+
   test "merges the new source commit into a continued translation branch" do
     {user, project} =
       project_with_installation("translate-continuation@test.com", "translate-continuation")
