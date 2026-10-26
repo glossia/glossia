@@ -167,8 +167,19 @@ class ConversationModel(val id: String, var created: Boolean = false, translatio
     val canResolve get() = goal?.optString("status") == "open" && completedReply != null &&
         !busy && !running && !resolving && !inputActive && pending == null && draft.isEmpty() && !resolutionNeedsRefresh && !unavailable && error == null
     val canSaveDecision get() = canResolve && decision?.valid == true && resolutionMessageId == completedReply?.optionalString("id")
+    val proposalReplyId get() = if (decision != null) resolutionMessageId else completedReply?.optionalString("id")
     val protectsDecision get() = resolving || decision != null || inputActive
     val shouldPollVisible get() = running || goal?.optString("status") == "open"
+    val canStageGoalPrompt get() = goal?.optString("status") == "open" && !unavailable &&
+        decision == null && !resolving && !inputActive && pending == null && draft.isEmpty() && !resolutionNeedsRefresh
+
+    // Suggestions are editable drafts, never writes. Recheck at tap time as a
+    // poll, dictation callback or keystroke may have changed eligibility.
+    fun stageGoalPrompt(value: String): Boolean {
+        if (!canStageGoalPrompt) return false
+        draft = value
+        return true
+    }
 
     fun beginResolution() {
         if (!canResolve || decision != null) return

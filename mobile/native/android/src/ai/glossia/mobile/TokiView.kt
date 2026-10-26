@@ -91,8 +91,11 @@ internal class TokiView(context: Context, private val model: TokiModel,
     private var binding = false
     private var available = false
     private var signature: String? = null
-    private var decisionView: TokiDecisionView? = null
     private var decisionDraft: ReviewDraft? = null
+    private var decisionSheet: TokiDecisionSheet? = null
+    private var reviewingDecision = false
+    private var contextThreadId: String? = null
+    private var goalContextExpanded = false
 
     init {
         orientation = VERTICAL
@@ -110,18 +113,21 @@ internal class TokiView(context: Context, private val model: TokiModel,
     fun render(canChat: Boolean) {
         available = canChat
         val thread = model.active
+        if (contextThreadId != thread?.id) { contextThreadId = thread?.id; goalContextExpanded = false }
         binding = true
         if (input.text.toString() != (thread?.draft ?: "")) {
             input.setText(thread?.draft ?: ""); input.setSelection(input.length())
         }
         binding = false
-        if (thread == null || thread.goalClosed || thread.decision != null) removeView(composer) else if (composer.parent == null) addView(composer)
-        if (thread?.decision != null && decisionDraft === thread.decision && decisionView != null) {
-            decisionView!!.refreshState(); updateComposer(); return
+        if (thread == null || thread.goalClosed) removeView(composer) else if (composer.parent == null) addView(composer)
+        if (decisionDraft !== thread?.decision) {
+            decisionSheet?.dismissPreservingDraft(); decisionSheet = null
+            decisionDraft = thread?.decision
+            reviewingDecision = decisionDraft != null
         }
-        decisionView = null; decisionDraft = null
         body.removeAllViews()
         if (thread == null) renderHistory(canChat) else renderConversation(thread, canChat)
+        syncDecisionSheet()
         updateComposer()
         renderVoice()
         val nextSignature = thread?.let { "${it.id}:${it.messages}:${it.pending?.id}:${it.decision != null}" }
@@ -133,6 +139,24 @@ internal class TokiView(context: Context, private val model: TokiModel,
         signature = nextSignature
         // Suggestion taps rebuild this body locally, without a session event.
         context.appearance?.paint(this)
+    }
+
+    override fun onAttachedToWindow() { super.onAttachedToWindow(); syncDecisionSheet() }
+
+    override fun onDetachedFromWindow() {
+        decisionSheet?.dismissPreservingDraft(); decisionSheet = null
+        super.onDetachedFromWindow()
+    }
+
+    private fun syncDecisionSheet() {
+        val thread = model.active ?: return
+        if (!isAttachedToWindow || thread.decision == null || !reviewingDecision) return
+        if (decisionSheet == null) {
+            decisionSheet = TokiDecisionSheet(context, thread, saveDecision, { open(thread.id) }, {
+                reviewingDecision = false; decisionSheet = null; render(available)
+            }).also { it.show() }
+        }
+        decisionSheet?.refreshState()
     }
 
     private fun updateComposer() {
@@ -195,14 +219,8 @@ internal class TokiView(context: Context, private val model: TokiModel,
 
     private fun renderConversation(thread: ConversationModel, canChat: Boolean) {
         val messages = thread.messages
-        if (thread.decision != null) {
-            decisionDraft = thread.decision
-            decisionView = TokiDecisionView(context, thread, saveDecision, { open(thread.id) }, { thread.discardDecision(); render(available) })
-            body.addView(decisionView)
-            return
-        }
-        if (thread.sharedGoal) body.addSpaced(TokiGoalView(context, thread, { open(thread.id) }, source))
-        thread.translationSessionId?.let { id ->
+        if (thread.sharedGoal) body.addSpaced(TokiGoalView(context, thread, { open(thread.id) }, source, goalContextExpanded) { goalContextExpanded = it })
+        thread.translationSessionId?.takeUnless { thread.sharedGoal }?.let { id ->
             body.addSpaced(context.card {
                 addSpaced(context.label("SOURCE TRANSLATION", 12f, true), 8)
                 val summary = thread.source.data
@@ -237,9 +255,28 @@ internal class TokiView(context: Context, private val model: TokiModel,
                 body.addSpaced(chips)
             }
         }
+        val proposal = (0 until messages.length()).firstNotNullOfOrNull { index ->
+            messages.getJSONObject(index).takeIf { thread.proposalReplyId != null && it.optionalString("id") == thread.proposalReplyId }
+        }?.takeIf { thread.goal?.optString("status") == "open" || thread.decision != null }
         for (index in 0 until messages.length()) {
             val message = messages.getJSONObject(index)
             val role = message.optString("role")
+            // The goal question is already the compact header. Replace only the
+            // eligible reply with its proposal card, never duplicate its bubble.
+            if (index == 0 && thread.sharedGoal && role == "assistant" && message.optString("content") == thread.goal?.optString("question")) continue
+            if (proposal?.optionalString("id") == message.optionalString("id") && proposal != null) {
+                body.addSpaced(context.card {
+                    val continuing = thread.decision != null && thread.resolutionMessageId == message.optionalString("id")
+                    addSpaced(context.label("Toki", 12f, true), 4)
+                    addSpaced(context.heading("Proposed decision", 18f), 8)
+                    addSpaced(context.label(message.optString("content"), 16f, verbatim = true).apply { setTextIsSelectable(true) }, 12)
+                    addView(context.button(if (continuing) "Continue reviewing" else "Review decision", true) {
+                        thread.beginResolution(); reviewingDecision = true; render(available)
+                    }.apply { isEnabled = available && (continuing || thread.decision == null && thread.canResolve) })
+                })
+                continue
+            }
+            if (thread.goal?.optString("status") == "answered" && message.optionalString("id") != null && message.optionalString("id") == thread.goal?.optionalString("resolution_message_id")) continue
             val namedHuman = role == "user" && thread.sharedGoal
             bubble(message.optString("content"), role == "user", if (role == "user") {
                 if (namedHuman) message.optionalString("author")?.take(100) ?: context.nativeText("Linguist").toString() else "You"
@@ -265,9 +302,33 @@ internal class TokiView(context: Context, private val model: TokiModel,
         thread.error?.let { failure ->
             body.failure(failure) { if (thread.pending != null) sendButton.performClick() else open(thread.id) }
         }
-        if (thread.goal?.optString("status") == "open") {
-            body.addSpaced(context.button("Resolve goal", true) { thread.beginResolution(); render(available) }.apply { isEnabled = thread.canResolve }, 8)
-            body.addView(context.label("Keep chatting until you agree on a decision. Resolution requires a completed Toki reply and no unsent draft.", 12f, true))
+        if (thread.goal?.optString("status") == "answered") {
+            body.addSpaced(context.resolvedGoalView(thread, source) { open(thread.id) })
+        }
+        if (thread.decision != null && (proposal == null || thread.resolutionMessageId != proposal.optionalString("id"))) {
+            body.addSpaced(context.card {
+                addSpaced(context.label("Your unsaved decision draft is retained. Review or explicitly discard it before starting another decision.", muted = true), 8)
+                addView(context.button("Continue reviewing") { reviewingDecision = true; syncDecisionSheet() })
+            })
+        }
+        if (thread.goal?.optString("status") == "open" && thread.decision == null) {
+            body.addSpaced(ChipGroup(context).apply {
+                chipSpacingHorizontal = context.dp(8); chipSpacingVertical = context.dp(8)
+                listOf("Compare examples" to "Compare examples for this goal (%1\$s): %2\$s",
+                    "Check support tone" to "Check the support tone for this goal (%1\$s): %2\$s").forEach { (title, prompt) ->
+                    addView(Chip(context).apply {
+                        text = context.nativeText(title); isCheckable = false; isClickable = true
+                        isEnabled = available && thread.canStageGoalPrompt
+                        setEnsureMinTouchTargetSize(true)
+                        setOnClickListener {
+                            val goal = thread.goal ?: return@setOnClickListener
+                            if (thread.stageGoalPrompt(context.nativeFormat(prompt, "\u2068${goal.optString("locale")}\u2069", "\u2068${goal.optString("question")}\u2069"))) {
+                                draftChanged(thread.draft); render(available); input.requestFocus()
+                            }
+                        }
+                    })
+                }
+            }, 8)
         }
     }
 
