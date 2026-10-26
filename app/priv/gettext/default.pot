@@ -273,6 +273,11 @@ msgstr ""
 msgid "Activity"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Adapt the tone"
+msgstr ""
+
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format
 msgid "Add a DNS TXT record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
@@ -743,6 +748,16 @@ msgstr ""
 msgid "Cached input tokens"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Can you help me find the right term for this context?\n\n"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Can you help me review this translation?\n\n"
+msgstr ""
+
 #: lib/glossia_web/components/dashboard_components.ex
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
@@ -1108,6 +1123,11 @@ msgstr ""
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Conversation history"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Conversation starters"
 msgstr ""
 
 #: lib/glossia_web/live/toki_live.ex
@@ -1862,6 +1882,11 @@ msgstr ""
 msgid "Filter"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Find the right term"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Finish setting up Glossia"
@@ -2156,6 +2181,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Homepage URL"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "How can I make this translation sound more natural?\n\n"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -3192,6 +3222,11 @@ msgstr ""
 msgid "Only provider-reported counts are shown. Historical translations, local Pi sessions, and decision evaluations are not included."
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Only you and Toki can see this conversation"
+msgstr ""
+
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3847,6 +3882,11 @@ msgstr ""
 msgid "Reusable guidance"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Review a translation"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Review and push"
@@ -4283,6 +4323,11 @@ msgstr ""
 msgid "Shared translation goals will appear here when help is needed. You can also start a private conversation with Toki."
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Shared with invited teammates"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Short summary of the suggested change"
@@ -4546,11 +4591,6 @@ msgstr ""
 #: lib/glossia_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Test user not found. Run: mix run priv/repo/seeds.exs"
-msgstr ""
-
-#: lib/glossia_web/live/toki_live.ex
-#, elixir-autogen, elixir-format
-msgid "Text messages only. Attachments and voice input are not available on the web yet."
 msgstr ""
 
 #: lib/glossia_web/controllers/auth_controller.ex

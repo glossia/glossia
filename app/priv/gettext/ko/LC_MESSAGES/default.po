@@ -267,6 +267,11 @@ msgstr "작업"
 msgid "Activity"
 msgstr "활동"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Adapt the tone"
+msgstr ""
+
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format
 msgid "Add a DNS TXT record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
@@ -737,6 +742,16 @@ msgstr "캐시된 입력"
 msgid "Cached input tokens"
 msgstr "캐시된 입력 토큰"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Can you help me find the right term for this context?\n\n"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Can you help me review this translation?\n\n"
+msgstr ""
+
 #: lib/glossia_web/components/dashboard_components.ex
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
@@ -1102,6 +1117,11 @@ msgstr "지속적인 현지화"
 #, elixir-autogen, elixir-format
 msgid "Conversation history"
 msgstr "대화 이력"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Conversation starters"
+msgstr "대화"
 
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
@@ -1855,6 +1875,11 @@ msgstr "번역이 시작되면 파일이 여기에 표시됩니다."
 msgid "Filter"
 msgstr "필터"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Find the right term"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Finish setting up Glossia"
@@ -2150,6 +2175,11 @@ msgstr "고우선순위"
 #, elixir-autogen, elixir-format
 msgid "Homepage URL"
 msgstr "홈페이지 URL"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "How can I make this translation sound more natural?\n\n"
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3185,6 +3215,11 @@ msgstr "소통 방식에 대한 단일 진실 소스"
 msgid "Only provider-reported counts are shown. Historical translations, local Pi sessions, and decision evaluations are not included."
 msgstr "제공업체 보고 건수만 표시됩니다. 기존 번역, 로컬 Pi 세션, 및 의사결정 평가는 포함되지 않습니다."
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Only you and Toki can see this conversation"
+msgstr ""
+
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3840,6 +3875,11 @@ msgstr "재사용 가능한 L10N 안내 (선택사항)"
 msgid "Reusable guidance"
 msgstr "재사용 가능한 안내"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Review a translation"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Review and push"
@@ -4276,6 +4316,11 @@ msgstr "설정 업데이트"
 msgid "Shared translation goals will appear here when help is needed. You can also start a private conversation with Toki."
 msgstr "도움이 필요한 경우 여기에 공유 번역 목표가 표시됩니다. 또한 Toki 와 사적인 대화를 시작할 수도 있습니다."
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Shared with invited teammates"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Short summary of the suggested change"
@@ -4540,11 +4585,6 @@ msgstr "용어를 하나 추가하면 여기에 표시됩니다."
 #, elixir-autogen, elixir-format
 msgid "Test user not found. Run: mix run priv/repo/seeds.exs"
 msgstr "테스트 사용자를 찾지 못했습니다. 실행: mix run priv/repo/seeds.exs"
-
-#: lib/glossia_web/live/toki_live.ex
-#, elixir-autogen, elixir-format
-msgid "Text messages only. Attachments and voice input are not available on the web yet."
-msgstr "텍스트 메시지만 가능합니다. 첨부 파일 및 음성 입력은 웹에서도 아직 지원되지 않습니다."
 
 #: lib/glossia_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format

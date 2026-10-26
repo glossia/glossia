@@ -273,6 +273,11 @@ msgstr "Ações"
 msgid "Activity"
 msgstr "Atividade"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Adapt the tone"
+msgstr ""
+
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format
 msgid "Add a DNS TXT record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
@@ -743,6 +748,16 @@ msgstr "Entrada em cache"
 msgid "Cached input tokens"
 msgstr "Tokens de entrada em cache"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Can you help me find the right term for this context?\n\n"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Can you help me review this translation?\n\n"
+msgstr ""
+
 #: lib/glossia_web/components/dashboard_components.ex
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
@@ -1109,6 +1124,11 @@ msgstr "Localização contínua"
 #, elixir-autogen, elixir-format
 msgid "Conversation history"
 msgstr "Histórico de conversas"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Conversation starters"
+msgstr "Conversas"
 
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
@@ -1862,6 +1882,11 @@ msgstr "Os arquivos aparecerão aqui quando a tradução começar."
 msgid "Filter"
 msgstr "Filtrar"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Find the right term"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Finish setting up Glossia"
@@ -2157,6 +2182,11 @@ msgstr "Alta prioridade"
 #, elixir-autogen, elixir-format
 msgid "Homepage URL"
 msgstr "URL da página inicial"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "How can I make this translation sound more natural?\n\n"
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3192,6 +3222,11 @@ msgstr "Uma única fonte da verdade sobre como você se comunica"
 msgid "Only provider-reported counts are shown. Historical translations, local Pi sessions, and decision evaluations are not included."
 msgstr "Apenas contagens reportadas pelo provedor são exibidas. Traduções históricas, sessões locais do Pi e avaliações de decisão não estão incluídas."
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Only you and Toki can see this conversation"
+msgstr ""
+
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3847,6 +3882,11 @@ msgstr "Orientação L10N reutilizável (opcional)"
 msgid "Reusable guidance"
 msgstr "Orientação reutilizável"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Review a translation"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Review and push"
@@ -4283,6 +4323,11 @@ msgstr "Atualização de configuração"
 msgid "Shared translation goals will appear here when help is needed. You can also start a private conversation with Toki."
 msgstr "Objetivos de tradução compartilhados aparecerão aqui quando for preciso pedir ajuda. Você também pode iniciar uma conversa privada com o Toki."
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Shared with invited teammates"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Short summary of the suggested change"
@@ -4547,11 +4592,6 @@ msgstr "Os termos aparecerão aqui assim que você adicionar um."
 #, elixir-autogen, elixir-format
 msgid "Test user not found. Run: mix run priv/repo/seeds.exs"
 msgstr "Usuário de teste não encontrado. Execute: mix run priv/repo/seeds.exs"
-
-#: lib/glossia_web/live/toki_live.ex
-#, elixir-autogen, elixir-format
-msgid "Text messages only. Attachments and voice input are not available on the web yet."
-msgstr "Apenas mensagens de texto. Anexos e entrada de voz ainda não estão disponíveis na web."
 
 #: lib/glossia_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
