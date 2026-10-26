@@ -36,6 +36,10 @@
     <string name="native_b8352b44a588721c" formatted="false">"앱 언어"</string>
     <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
     <string name="native_5eebf1828971d514" formatted="false">"앱 언어: %1$s"</string>
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
+    <string name="native_7a16bc098c384817" formatted="false">"%1$s 님이 승인함"</string>
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
+    <string name="native_dc70d73ff30abbc3" formatted="false">"승인된 결정"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_f7c3b47055a1c9c9" formatted="false">"언어 입력 대기 중"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
@@ -48,6 +52,10 @@
     <string name="native_19766ed6ccb2f4a3" formatted="false">"취소"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_d353a99eb4556847" formatted="false">"취소됨"</string>
+    <!-- android/src/ai/glossia/mobile/TokiView.kt -->
+    <string name="native_1dd3f46399ee2960" formatted="false">"고객 지원 어조 확인"</string>
+    <!-- android/src/ai/glossia/mobile/TokiView.kt -->
+    <string name="native_e1e3912c7a2e55e7" formatted="false">"이 목표(%1$s)에 대한 고객 지원 어조를 확인해 주십시오: %2$s"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_c7f937836f5d82d5" formatted="false">"선택"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
@@ -76,6 +84,14 @@
     <string name="native_94b211b56e22d4d9" formatted="false">"작업 공간 선택"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_9e496f1dd6dbd48d" formatted="false">"ClickableViewAccessibility"</string>
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
+    <string name="native_7d9eb7acb13e2462" formatted="false">"닫기"</string>
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
+    <string name="native_b322b65227bc3ec9" formatted="false">"접힘"</string>
+    <!-- android/src/ai/glossia/mobile/TokiView.kt -->
+    <string name="native_724dcd659bae300c" formatted="false">"예시 비교"</string>
+    <!-- android/src/ai/glossia/mobile/TokiView.kt -->
+    <string name="native_37c6ae0d7712eebf" formatted="false">"이 목표(%1$s)에 대한 예시를 비교해 주십시오: %2$s"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt, android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_22a970d2e5b1cc23" formatted="false">"완료됨"</string>
     <!-- android/res/layout, android/res/menu -->
@@ -84,6 +100,8 @@
     <string name="native_2dfdb3e04b01ae7a" formatted="false">"보안을 통해 연결 중…"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_bbf70085e039651b" formatted="false">"실시간 업데이트 연결 중…"</string>
+    <!-- android/src/ai/glossia/mobile/TokiView.kt -->
+    <string name="native_0f2f376ae8f26413" formatted="false">"계속 검토하기"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_ccca181757536587" formatted="false">"대화"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
@@ -132,6 +150,8 @@
     <string name="native_f9bfa3dc7c8fcdea" formatted="false">"변경 사항 삭제"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_3d2129b115793995" formatted="false">"선택 사항 초안 삭제"</string>
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
+    <string name="native_b17f79a8a862494a" formatted="false">"결정 초안을 삭제하시겠습니까?"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_96fd465eacf47330" formatted="false">"사전 삭제"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
@@ -160,6 +180,8 @@
     <string name="native_dac466d5e4deb54f" formatted="false">"Glossia 서버의 HTTPS 주소를 입력하십시오."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_9d165780db2799f3" formatted="false">"이동에서의 모든 단어"</string>
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
+    <string name="native_e72d5d8d0b167d21" formatted="false">"펼쳐짐"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt, android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_031a8f0f659df890" formatted="false">"실패"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -188,6 +210,8 @@
     <string name="native_a29321760b4f0483" formatted="false">"목표 차단됨. 저장되지 않은 선택 사항과 지침은 유지됩니다. 카피하거나 명시적으로 삭제하십시오."</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_03a31f4b9d9a0df2" formatted="false">"목표 기본 설정됨. 접속 권한 여부를 확인하려면 대화를 새로 로딩하십시오."</string>
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
+    <string name="native_b311977c0d80e30c" formatted="false">"PR 검토를 위해 제안된 지침"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_fa04ae3d5198bd40" formatted="false">"처리"</string>
     <!-- android/src/ai/glossia/mobile/TokiCompanionView.kt -->
@@ -204,10 +228,10 @@
     <string name="native_7d89dcb70f2f2dfc" formatted="false">"텍스트 파일 가져오기; 이미지 사용할 수 없음"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_f4482b894fa2cebe" formatted="false">"독립적으로 재사용 가능한 규칙"</string>
-    <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_648e41906edc0350" formatted="false">"의견에 동의하기 전까지 계속 채팅하십시오. 해결하려면 완료된 토키 응답과 보낸 상태의 초안이 없어야 합니다."</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_d95911500e9d7117" formatted="false">"초안 유지"</string>
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
+    <string name="native_e76fd2add01005ae" formatted="false">"계속 편집하기"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
     <string name="native_73c8ea8c8e0eec73" formatted="false">"언어 태그"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -218,7 +242,7 @@
     <string name="native_321908411f03f5a7" formatted="false">"관찰된 마지막 토키 작업. 앱이 활동하지 않을 때 Glossia 로 열고 새로 로딩하십시오."</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
     <string name="native_3db8ce043f1467ba" formatted="false">"마지막으로 관찰됨: %1$s"</string>
-    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
+    <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_8ece6158f988da80" formatted="false">"언어학자"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_2ea9243d479b59d3" formatted="false">"언어학적 목표"</string>
@@ -244,7 +268,7 @@
     <string name="native_f5d7beb0a27c1f57" formatted="false">"프로필 로딩 중…"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_6970a1ced73ddb58" formatted="false">"프로젝트 로딩 중…"</string>
-    <!-- android/src/ai/glossia/mobile/TokiView.kt -->
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_26f14e07f596944e" formatted="false">"원본 로딩 중…"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_e9197192702b213f" formatted="false">"번역 로딩 중…"</string>
@@ -352,8 +376,8 @@
     <string name="native_9859597853197476" formatted="false">"프로젝트"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_1ecc262a05069c51" formatted="false">"재사용 가능한 지침 제안"</string>
-    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_19ee0fb9a8f77085" formatted="false">"제안된 지침 · %1$s"</string>
+    <!-- android/src/ai/glossia/mobile/TokiView.kt -->
+    <string name="native_e4ee3e35bce9e320" formatted="false">"제안된 결정"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_b0eb80189ca928a1" formatted="false">"이 빌드에서는 푸시 알림이 구성되어 있지 않습니다."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
@@ -392,8 +416,6 @@
     <string name="native_e6c5c7ec5c6b7b66" formatted="false">"요청 실패."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
     <string name="native_f0260beb241acc2f" formatted="false">"저장된 로그인 초기화"</string>
-    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_142c5f01e5fab95e" formatted="false">"목표 해결"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
     <string name="native_942087cc2d41e013" formatted="false">"다시 시도"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
@@ -406,10 +428,10 @@
     <string name="native_286cd7414fa18a02" formatted="false">"저장된 세션 다시 시도"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_9752be688eec3462" formatted="false">"초안으로 돌아오기"</string>
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
+    <string name="native_beaf31ea8ef3e061" formatted="false">"결정 검토"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_1ecd8ff24dc9885f" formatted="false">"내 번역 검토"</string>
-    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_28f585a9458726e0" formatted="false">"Toki 의 최신 완료 응답에서 편집 가능한 초안을 검토하십시오. 저장하기는 자동 분해가 아닌 명시적 결정입니다."</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_f4ccae29e1bb0c20" formatted="false">"실행 중"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
@@ -418,8 +440,6 @@
     <string name="native_ce574160992f8288" formatted="false">"선택 사항 저장 및 재개"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
     <string name="native_645c2c86befd4ee2" formatted="false">"순회 언어 저장"</string>
-    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_c36d6b0f55a04905" formatted="false">"저장된 선택 사항"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_212999ca3176504d" formatted="false">"선택 사항 저장 중…"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
@@ -458,8 +478,6 @@
     <string name="native_549592e6a9aee21b" formatted="false">"번역 링크 공유"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_5fd4078f3fd2e7a9" formatted="false">"공유 대화가 사용할 수 없습니다. 다시 시도하려면 검토를 새로 로딩하십시오."</string>
-    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_0802ff827de36445" formatted="false">"공유 언어학적 목표"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_bfd402b2f6f38125" formatted="false">"로그인"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
@@ -556,8 +574,6 @@
     <string name="native_b3384cabcf76375f" formatted="false">"번역 세부정보"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_50f25efd54dbed91" formatted="false">"번역 진행"</string>
-    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_9aa271b730cace0c" formatted="false">"번역 재개됨"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_2987ee3535d7ff3f" formatted="false">"번역 세션"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -586,7 +602,7 @@
     <string name="native_f53a3d76a5214b23" formatted="false">"위쪽의 워크 스페이스 선택기를 사용하여 번역을 보십시오."</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_355e995b6ef582f5" formatted="false">"재개된 번역 보기"</string>
-    <!-- android/src/ai/glossia/mobile/TokiView.kt -->
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_e57cfce70f9aa10e" formatted="false">"원본 번역 보기"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_351de5dea8f8f3cc" formatted="false">"번역 보기"</string>
@@ -618,6 +634,8 @@
     <string name="native_36d464fbf46def1b" formatted="false">"사용자 · 확인 안됨"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_d55d84957c47a7bb" formatted="false">"사용자 · 전송 중…"</string>
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
+    <string name="native_84f0cd4cd061c106" formatted="false">"승인하면 이 질문이 해결됩니다. 지침은 검토를 위해 번역 PR에 제안될 뿐입니다."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_3ef3b689433715b1" formatted="false">"귀하의 공중"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
@@ -626,12 +644,16 @@
     <string name="native_903532e033973e3d" formatted="false">"귀하의 대화"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_9cb1a7438da71f7b" formatted="false">"자격 증명은 Android αξιο소럼으로 암호화됩니다. 로그아웃하면 워크 스페이스, 대화, 초안을 삭제합니다."</string>
+    <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
+    <string name="native_cc79effb18422360" formatted="false">"결정과 선택적으로 입력한 지침이 아직 저장되지 않았습니다."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_b18368148b3aa106" formatted="false">"초안이나 확인되지 않은 응답은 안전합니다. 재료를 마칠èves 또는 명시적으로 로컬 보낸 상태의 작업을 삭제한 다음 링크를 다시 여십시오."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_528d89ad72cba22e" formatted="false">"프로필"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
     <string name="native_a17daa220def9ce0" formatted="false">"응답이 준비 완료. 대화를 여십시오."</string>
+    <!-- android/src/ai/glossia/mobile/TokiView.kt -->
+    <string name="native_996764a320badf68" formatted="false">"저장하지 않은 결정 초안이 유지됩니다. 다른 결정을 작성하기 전에 초안을 검토하거나 명시적으로 삭제하십시오."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_8f1701c365574ec7" formatted="false">"언어학적 입력 대기 중"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->

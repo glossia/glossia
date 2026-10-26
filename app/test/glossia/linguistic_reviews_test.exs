@@ -40,6 +40,25 @@ defmodule Glossia.LinguisticReviewsTest do
     %{user: user, project: project, session: session}
   end
 
+  test "serialized approval tolerates missing names and unavailable approvers", c do
+    review = request!(c.session, "a.txt")
+    assert Map.fetch!(LinguisticReviews.serialize(review), :answered_by) == nil
+
+    {:ok, user} = Glossia.Accounts.update_user_profile(c.user, %{name: nil})
+
+    Oban.Testing.with_testing_mode(:manual, fn ->
+      {:ok, answered} =
+        answer(%{c | user: user}, review, %{"answer" => "A source-control branch."})
+
+      assert LinguisticReviews.serialize(answered).answered_by == %{id: user.id, name: nil}
+
+      # Historical decisions can outlive their approver via the nullable foreign key.
+      unavailable = answered |> Ecto.Changeset.change(answered_by_id: nil) |> Repo.update!()
+      assert unavailable.status == "answered"
+      assert Map.fetch!(LinguisticReviews.serialize(unavailable), :answered_by) == nil
+    end)
+  end
+
   test "matching fluent teammates share one goal and explicitly approve the current conversation decision",
        c do
     {:ok, owner} = Glossia.Accounts.update_user_profile(c.user, %{fluent_languages: ["es"]})
@@ -171,6 +190,23 @@ defmodule Glossia.LinguisticReviewsTest do
 
       assert is_binary(resumed)
       assert {:ok, _} = LinguisticReviews.answer(owner, project, session.id, review.id, attrs)
+
+      {:ok, _} =
+        Glossia.MemberPermissions.update(
+          org,
+          owner,
+          teammate,
+          Glossia.MemberPermissions.basic_scopes() ++ ["translation:write"]
+        )
+
+      assert {:ok, replayed} =
+               LinguisticReviews.answer(teammate, project, session.id, review.id, attrs)
+
+      assert LinguisticReviews.serialize(replayed).answered_by == %{
+               id: owner.id,
+               name: owner.name
+             }
+
       assert length(all_enqueued(worker: TranslateWorker)) == 1
 
       assert {:error, :goal_closed} =

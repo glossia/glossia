@@ -7,6 +7,9 @@ final class GoalFixture {
     let state: String
     var resolved = false
     private var failedResolution = false
+    private var answer = "Use informal tú."
+    private var guidance: String? = "Use informal Spanish in onboarding."
+    private var contextPath = "L10N/es.md"
     init(_ state: String) { self.state = state; resolved = state == "goal-resolved" }
     var review: [String: Any] {
         var row: [String: Any] = ["id": "def12345-802e-4f91-9112-77d8a919efc5", "conversation_id": Self.chatID,
@@ -17,7 +20,12 @@ final class GoalFixture {
             "participants": [["name": "Alex", "fluent_languages": ["es"]], ["name": "Sam", "fluent_languages": ["es-MX"]]]]
         if state.contains("rtl") { row["question"] = "هل نخاطب القارئ بصيغة رسمية أم ودية؟"; row["locale"] = "ar"; row["output_path"] = "locales/ar/welcome.json"; row["translation_excerpt"] = "مرحبًا بعودتك!" }
         if state.contains("hebrew") { row["question"] = "באיזה סגנון נפנה לקוראים?"; row["locale"] = "he"; row["translation_excerpt"] = "ברוכים השבים!" }
-        if resolved { row["answer"] = "Use informal tú."; row["guidance"] = "Use informal Spanish in onboarding."; row["context_path"] = "L10N/es.md"; row["resumed_session_id"] = Self.replyID }
+        if resolved {
+            row["answer"] = answer
+            row["answered_by"] = ["id": "eee12345-802e-4f91-9112-77d8a919efc5", "name": "Alex"]
+            if let guidance { row["guidance"] = guidance; row["context_path"] = contextPath }
+            row["resumed_session_id"] = Self.replyID
+        }
         return row
     }
     var thread: [String: Any] {
@@ -32,6 +40,9 @@ final class GoalFixture {
         if input["operation"] as? String == "translation_reviews" {
             if state == "goal-error" { failedResolution = true; throw GlossiaFailure(kind: "network", message: "Connection lost while saving.") }
             if state == "goal-permission" { failedResolution = true; throw GlossiaFailure(kind: "forbidden", message: "Saving requires translation:write permission.") }
+            answer = input["answer"] as? String ?? answer
+            guidance = input["guidance"] as? String
+            contextPath = input["context_scope"] as? String == "project" ? "L10N.md" : "L10N/es.md"
             resolved = true; return ["review": review]
         }
         if failedResolution { throw GlossiaFailure(kind: "network", message: "Cannot refresh yet. Your decision draft is retained; reconnect before explicitly retrying.") }
@@ -60,6 +71,7 @@ struct GoalPreview: View {
         .environment(\.layoutDirection, state.contains("rtl") || state.contains("hebrew") ? .rightToLeft : .leftToRight)
         .environment(\.locale, Locale(identifier: state.contains("rtl") ? "ar" : state.contains("hebrew") ? "he" : "en"))
         .dynamicTypeSize(state.contains("large") ? .accessibility2 : .large)
+        .preferredColorScheme(state.contains("dark") ? .dark : nil)
         .task {
             if state == "goal-denied" { await model.open(GoalFixture.chatID) }
             if ["goal-editing", "goal-error", "goal-permission", "goal-closed-draft"].contains(state) {

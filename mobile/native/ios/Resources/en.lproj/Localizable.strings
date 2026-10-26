@@ -53,7 +53,7 @@
 "Another participant may have resolved or superseded this goal. Your unsaved decision and guidance remain editable below for copying. They cannot be saved to this closed goal." = "Another participant may have resolved or superseded this goal. Your unsaved decision and guidance remain editable below for copying. They cannot be saved to this closed goal.";
 
 /* No comment provided by engineer. */
-"answer" = "answer";
+"Approved by %@" = "Approved by %@";
 
 /* No comment provided by engineer. */
 "Ask about this project's languages or recent translations. Replies use your organization's configured AI provider." = "Ask about this project's languages or recent translations. Replies use your organization's configured AI provider.";
@@ -68,6 +68,9 @@
 "Current: %@ / %@. Your workspace changes only when you choose a project." = "Current: %1$@ / %2$@. Your workspace changes only when you choose a project.";
 
 /* No comment provided by engineer. */
+"Decision" = "Decision";
+
+/* No comment provided by engineer. */
 "Discuss each goal with Toki in its project-shared conversation, then explicitly save the agreed decision to resume affected work in a new translation." = "Discuss each goal with Toki in its project-shared conversation, then explicitly save the agreed decision to resume affected work in a new translation.";
 
 /* No comment provided by engineer. */
@@ -80,19 +83,19 @@
 "Get an alert when translations or Toki need your attention. Alerts never include private content. Optional; turn off anytime." = "Get an alert when translations or Toki need your attention. Alerts never include private content. Optional; turn off anytime.";
 
 /* No comment provided by engineer. */
-"Glossia chooses the nearest L10N.md or L10N/<locale>.md path. Guidance becomes a reviewed diff in the normal translation PR, never a direct repository edit." = "Glossia chooses the nearest L10N.md or L10N/<locale>.md path. Guidance becomes a reviewed diff in the normal translation PR, never a direct repository edit.";
+"Goal unavailable. Refresh the conversation to check access." = "Goal unavailable. Refresh the conversation to check access.";
 
 /* No comment provided by engineer. */
-"Goal unavailable. Refresh the conversation to check access." = "Goal unavailable. Refresh the conversation to check access.";
+"Guidance is not applied automatically. Review it in the translation PR." = "Guidance is not applied automatically. Review it in the translation PR.";
+
+/* No comment provided by engineer. */
+"Guidance is proposed in the translation PR for review, never applied automatically." = "Guidance is proposed in the translation PR for review, never applied automatically.";
 
 /* No comment provided by engineer. */
 "https://glossia.example.com" = "https://glossia.example.com";
 
 /* No comment provided by engineer. */
 "Import a UTF-8 text file into your editable draft. Nothing sends automatically. Image uploads are unavailable." = "Import a UTF-8 text file into your editable draft. Nothing sends automatically. Image uploads are unavailable.";
-
-/* No comment provided by engineer. */
-"Keep chatting until you agree on a decision. Resolution requires a completed Toki reply and no unsent draft." = "Keep chatting until you agree on a decision. Resolution requires a completed Toki reply and no unsent draft.";
 
 /* No comment provided by engineer. */
 "Last checked %@" = "Last checked %@";
@@ -125,19 +128,13 @@
 "Notifications" = "Notifications";
 
 /* No comment provided by engineer. */
+"Optional guidance" = "Optional guidance";
+
+/* No comment provided by engineer. */
 "or" = "or";
 
 /* No comment provided by engineer. */
-"Participants: %@" = "Participants: %@";
-
-/* No comment provided by engineer. */
-"Proposed guidance · ⁦%@⁩" = "Proposed guidance · ⁦%@⁩";
-
-/* No comment provided by engineer. */
-"Refresh to check for the resumed translation." = "Refresh to check for the resumed translation.";
-
-/* No comment provided by engineer. */
-"Saved decision" = "Saved decision";
+"Saving approves this decision and resumes translation when all open questions are resolved. Closing keeps your unsaved draft." = "Saving approves this decision and resumes translation when all open questions are resolved. Closing keeps your unsaved draft.";
 
 /* No comment provided by engineer. */
 "Secure sign-in opens in your browser." = "Secure sign-in opens in your browser.";
@@ -153,9 +150,6 @@
 
 /* No comment provided by engineer. */
 "Shared conversation unavailable. Refresh reviews to retry." = "Shared conversation unavailable. Refresh reviews to retry.";
-
-/* No comment provided by engineer. */
-"Shared linguistic goal" = "Shared linguistic goal";
 
 /* No comment provided by engineer. */
 "Sign in with Glossia" = "Sign in with Glossia";
@@ -185,10 +179,10 @@
 "This goal is no longer current. Chat and resolution are read-only." = "This goal is no longer current. Chat and resolution are read-only.";
 
 /* No comment provided by engineer. */
-"This is an editable proposal from Toki’s latest completed reply, not an automatic resolution." = "This is an editable proposal from Toki’s latest completed reply, not an automatic resolution.";
+"This locale" = "This locale";
 
 /* No comment provided by engineer. */
-"This locale" = "This locale";
+"This removes your unsaved decision and guidance. Nothing is sent to the server." = "This removes your unsaved decision and guidance. Nothing is sent to the server.";
 
 /* No comment provided by engineer. */
 "Toki can help you explore your project's languages and translations." = "Toki can help you explore your project's languages and translations.";
@@ -200,7 +194,7 @@
 "Translation context" = "Translation context";
 
 /* No comment provided by engineer. */
-"Translation resumed" = "Translation resumed";
+"Translation resumes after all open questions are resolved." = "Translation resumes after all open questions are resolved.";
 
 /* No comment provided by engineer. */
 "Translation sessions will appear when Glossia translates your project." = "Translation sessions will appear when Glossia translates your project.";
@@ -239,9 +233,6 @@
 "⁦%@ → %@⁩" = "⁦%1$@ → %2$@⁩";
 
 /* No comment provided by engineer. */
-"⁦%@⁩" = "⁦%@⁩";
-
-/* No comment provided by engineer. */
 "⁨%@⁩ · %@" = "⁨%1$@⁩ · %2$@";
 
 
@@ -269,6 +260,9 @@
 /* TokiGoalView.swift: static UI/model copy */
 "Applies to" = "Applies to";
 
+/* TokiGoalView.swift: static UI/model copy */
+"Approved decision" = "Approved decision";
+
 /* AnalyticsView.swift: static UI/model copy */
 "Around the world" = "Around the world";
 
@@ -290,6 +284,9 @@
 /* TokiWorkStatusView.swift: static UI/model copy */
 "Check status" = "Check status";
 
+/* TokiView.swift: static UI/model copy */
+"Check support tone" = "Check support tone";
+
 /* TokiComposer.swift: static UI/model copy */
 "Choose Files" = "Choose Files";
 
@@ -308,11 +305,20 @@
 /* GlossiaWorkspaceView.swift: static UI/model copy */
 "Choose project" = "Choose project";
 
+/* TokiGoalView.swift: static UI/model copy */
+"Close review, keeping draft" = "Close review, keeping draft";
+
 /* TokiWorkStatusView.swift: static UI/model copy */
 "Collapsed" = "Collapsed";
 
 /* TranslationsView.swift: static UI/model copy */
 "Commit" = "Commit";
+
+/* TokiView.swift: static UI/model copy */
+"Compare concrete translation examples for the alternatives in this question." = "Compare concrete translation examples for the alternatives in this question.";
+
+/* TokiView.swift: static UI/model copy */
+"Compare examples" = "Compare examples";
 
 /* TranslationsView.swift: static UI/model copy */
 "Completed" = "Completed";
@@ -325,6 +331,15 @@
 
 /* ProfileView.swift: static UI/model copy */
 "Connection" = "Connection";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Context" = "Context";
+
+/* TokiView.swift: static UI/model copy */
+"Continue reviewing" = "Continue reviewing";
+
+/* TokiView.swift: static UI/model copy */
+"Conversation actions" = "Conversation actions";
 
 /* GlossiaSession.swift: static UI/model copy */
 "Could not access secure storage. Try again." = "Could not access secure storage. Try again.";
@@ -354,6 +369,9 @@
 "Date" = "Date";
 
 /* TokiGoalView.swift: static UI/model copy */
+"Decision draft" = "Decision draft";
+
+/* TokiGoalView.swift: static UI/model copy */
 "Decision summary" = "Decision summary";
 
 /* TokiWorkStatusView.swift: static UI/model copy */
@@ -371,8 +389,14 @@
 /* TokiGoalView.swift: static UI/model copy */
 "Discard decision draft" = "Discard decision draft";
 
+/* TokiGoalView.swift: static UI/model copy */
+"Discard decision draft?" = "Discard decision draft?";
+
 /* TokiComposer.swift: static UI/model copy */
 "Discard dictation" = "Discard dictation";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Discard draft" = "Discard draft";
 
 /* TokiView.swift: static UI/model copy */
 "Discard drafts" = "Discard drafts";
@@ -443,6 +467,9 @@
 /* TokiGoalView.swift: static UI/model copy */
 "Goal closed" = "Goal closed";
 
+/* TokiGoalView.swift: static UI/model copy */
+"Guidance proposed for PR review" = "Guidance proposed for PR review";
+
 /* ProfileView.swift: static UI/model copy */
 "Handle" = "Handle";
 
@@ -459,6 +486,9 @@
 "Hourly totals · UTC" = "Hourly totals · UTC";
 
 /* TokiView.swift: static UI/model copy */
+"How would this choice affect the tone of our support messages?" = "How would this choice affect the tone of our support messages?";
+
+/* TokiView.swift: static UI/model copy */
 "Image uploads are unavailable. Choose a UTF-8 text file instead." = "Image uploads are unavailable. Choose a UTF-8 text file instead.";
 
 /* TokiComposer.swift: static UI/model copy */
@@ -469,6 +499,9 @@
 
 /* GlossiaSession.swift: static UI/model copy */
 "Invalid sign-in response." = "Invalid sign-in response.";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Keep editing" = "Keep editing";
 
 /* ProfileView.swift: static UI/model copy */
 "Language" = "Language";
@@ -524,6 +557,9 @@
 /* AnalyticsView.swift: static UI/model copy */
 "Monthly totals · UTC" = "Monthly totals · UTC";
 
+/* TokiGoalView.swift: static UI/model copy */
+"Needs input" = "Needs input";
+
 /* TokiView.swift: static UI/model copy */
 "New conversation" = "New conversation";
 
@@ -532,6 +568,9 @@
 
 /* TokiGoalView.swift: static UI/model copy */
 "No excerpt" = "No excerpt";
+
+/* TokiGoalView.swift: static UI/model copy */
+"No longer current" = "No longer current";
 
 /* WorkspacePicker.swift: static UI/model copy */
 "No matching projects" = "No matching projects";
@@ -562,6 +601,9 @@
 
 /* TokiVoiceInput.swift: static UI/model copy */
 "On-device dictation is unavailable." = "On-device dictation is unavailable.";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Only a person can approve this decision." = "Only a person can approve this decision.";
 
 /* TokiActivityAttributes.swift: static UI/model copy */
 "Open Glossia to check Toki" = "Open Glossia to check Toki";
@@ -620,6 +662,9 @@
 /* TokiGoalView.swift: static UI/model copy */
 "Propose reusable guidance" = "Propose reusable guidance";
 
+/* TokiGoalView.swift: static UI/model copy */
+"Proposed decision" = "Proposed decision";
+
 /* GlossiaPushNotifications.swift: static UI/model copy */
 "Push notifications" = "Push notifications";
 
@@ -638,7 +683,7 @@
 /* TokiComposer.swift: static UI/model copy */
 "Recording on this device" = "Recording on this device";
 
-/* TokiGoalView.swift: static UI/model copy */
+/* TokiView.swift: static UI/model copy */
 "Refresh goal and conversation" = "Refresh goal and conversation";
 
 /* TranslationsView.swift: static UI/model copy */
@@ -650,8 +695,8 @@
 /* GlossiaLoginView.swift: static UI/model copy */
 "Reset saved sign-in" = "Reset saved sign-in";
 
-/* TokiView.swift: static UI/model copy */
-"Resolve goal" = "Resolve goal";
+/* TokiGoalView.swift: static UI/model copy */
+"Resolved" = "Resolved";
 
 /* GlossiaNavigation.swift: static UI/model copy */
 "Retry" = "Retry";
@@ -660,7 +705,7 @@
 "Retry saved session" = "Retry saved session";
 
 /* TokiGoalView.swift: static UI/model copy */
-"Review the decision before saving" = "Review the decision before saving";
+"Review decision" = "Review decision";
 
 /* TokiSprite.swift: static UI/model copy */
 "RightArm" = "RightArm";
@@ -669,16 +714,19 @@
 "Running" = "Running";
 
 /* TokiGoalView.swift: static UI/model copy */
+"Save" = "Save";
+
+/* TokiGoalView.swift: static UI/model copy */
 "Save decision and resume" = "Save decision and resume";
 
 /* FluentLanguages.swift: static UI/model copy */
 "Save fluent languages" = "Save fluent languages";
 
-/* TokiGoalView.swift: static UI/model copy */
-"Saving decision…" = "Saving decision…";
-
 /* FluentLanguages.swift: static UI/model copy */
 "Saving or loading languages…" = "Saving or loading languages…";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Saving…" = "Saving…";
 
 /* TokiSprite.swift: static UI/model copy */
 "Say hello" = "Say hello";
@@ -726,7 +774,7 @@
 "Signing in…" = "Signing in…";
 
 /* TokiGoalView.swift: static UI/model copy */
-"Source and translation context" = "Source and translation context";
+"Source" = "Source";
 
 /* TranslationsView.swift: static UI/model copy */
 "Source language" = "Source language";
@@ -866,11 +914,11 @@
 /* TranslationsView.swift: static UI/model copy */
 "Unknown status" = "Unknown status";
 
-/* TokiGoalView.swift: static UI/model copy */
-"View resumed translation" = "View resumed translation";
-
 /* TokiView.swift: static UI/model copy */
 "View source translation" = "View source translation";
+
+/* TokiGoalView.swift: static UI/model copy */
+"View translation" = "View translation";
 
 /* AnalyticsView.swift: static UI/model copy */
 "Visits with a language gap" = "Visits with a language gap";
@@ -913,3 +961,6 @@
 
 /* TranslationsView.swift: static UI/model copy */
 "Your session is no longer authorized. Sign in again." = "Your session is no longer authorized. Sign in again.";
+
+/* TokiGoalView.swift: static UI/model copy */
+"Your unsaved decision draft is kept on this device." = "Your unsaved decision draft is kept on this device.";
