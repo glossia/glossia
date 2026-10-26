@@ -5,29 +5,29 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_c7cbf81ce2899a3a" formatted="false">"%1$s / %2$s 已翻译"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_a10e0981d93b133e" formatted="false">"%1$s 明确重试前请先刷新对话；该决策可能已被保存。"</string>
+    <string name="native_a10e0981d93b133e" formatted="false">"%1$s 显式重试前先刷新对话；决定可能已保存。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_debd3794fc2ca25e" formatted="false">"%1$s 天"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_79cd89cf61866c43" formatted="false">"%1$s 次查看"</string>
+    <string name="native_79cd89cf61866c43" formatted="false">"%1$s 次浏览"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_9917cbf8075d0f37" formatted="false">"%1$s。%2$s。打开对话"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_4840ee205c78e386" formatted="false">"正在保存决策。离开前请等待结果。"</string>
+    <string name="native_4840ee205c78e386" formatted="false">"正在保存决定。离开前请等待结果。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_2fa7518ca5270013" formatted="false">"理解的新世界"</string>
+    <string name="native_2fa7518ca5270013" formatted="false">"理解的世界"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_7e1b0d5641f2640c" formatted="false">"账户"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_919bb4cb2182c322" formatted="false">"账户 ID"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_0689e32a7ec3a447" formatted="false">"在 Android 设置中启用 Glossia 通知以接收提醒。"</string>
+    <string name="native_0689e32a7ec3a447" formatted="false">"在 Android 设置中允许 Glossia 通知以启用提醒。"</string>
     <!-- android/src/ai/glossia/mobile/TokiVoiceInput.kt -->
-    <string name="native_3cd264362c03ed7b" formatted="false">"在 Android 设置中允许麦克风访问以使用设备端语音输入。"</string>
+    <string name="native_3cd264362c03ed7b" formatted="false">"在 Android 设置中允许麦克风访问以便使用设备端听写。"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_69f2e5f981095e84" formatted="false">"已是最新状态"</string>
+    <string name="native_69f2e5f981095e84" formatted="false">"已是最新"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_662171c90652338c" formatted="false">"更新已就绪。打开 Glossia 即可查看。"</string>
+    <string name="native_662171c90652338c" formatted="false">"更新已就绪。打开 Glossia 查看。"</string>
     <!-- android/res/layout, android/res/menu, android/src/ai/glossia/mobile/GlossiaNavigation.kt, android/src/ai/glossia/mobile/GlossiaSession.kt, android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_94c116ee118a7299" formatted="false">"分析"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
@@ -37,33 +37,33 @@
     <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
     <string name="native_5eebf1828971d514" formatted="false">"应用语言：%1$s"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_7a16bc098c384817" formatted="false">"已由 %1$s 批准"</string>
+    <string name="native_7a16bc098c384817" formatted="false">"由 %1$s 批准"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_dc70d73ff30abbc3" formatted="false">"已批准的决策"</string>
+    <string name="native_dc70d73ff30abbc3" formatted="false">"已批准的决定"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_f7c3b47055a1c9c9" formatted="false">"等待语言输入"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
-    <string name="native_cf4f6f6c9d300e8a" formatted="false">"BCP47 标签，例如 es、ar、zh-Hant"</string>
+    <string name="native_cf4f6f6c9d300e8a" formatted="false">"BCP47 语言标签，例如 es、ar、zh-Hant"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_d456fc75664472cc" formatted="false">"返回对话列表"</string>
+    <string name="native_d456fc75664472cc" formatted="false">"返回对话"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_9f172e8ffecceb0f" formatted="false">"返回翻译列表"</string>
+    <string name="native_9f172e8ffecceb0f" formatted="false">"返回翻译"</string>
     <!-- android/src/ai/glossia/mobile/AppLanguageView.kt, android/src/ai/glossia/mobile/MainActivity.kt, android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_19766ed6ccb2f4a3" formatted="false">"取消"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_d353a99eb4556847" formatted="false">"已取消"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_1dd3f46399ee2960" formatted="false">"检查客服语气"</string>
+    <string name="native_1dd3f46399ee2960" formatted="false">"检查支持的语域"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_e1e3912c7a2e55e7" formatted="false">"请检查此目标（%1$s）的客服语气：%2$s"</string>
+    <string name="native_e1e3912c7a2e55e7" formatted="false">"检查此目标的支语气（%1$s）：%2$s"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_c7f937836f5d82d5" formatted="false">"选择"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_d82fdc8c1494e2c8" formatted="false">"在工具栏中选择 Compose 开始与 Toki 对话。选择发送前，内容不会被发送。"</string>
+    <string name="native_d82fdc8c1494e2c8" formatted="false">"选择工具栏中的 Compose 开始与 Toki 对话。选择\"发送\"前不会发送任何内容。"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_bd2f848d07b03ab1" formatted="false">"选择文件"</string>
     <!-- android/src/ai/glossia/mobile/TokiTextImport.kt -->
-    <string name="native_871bf5d3c170555f" formatted="false">"选择一个 UTF-8 文本文件，大小不超过 16 KB。"</string>
+    <string name="native_871bf5d3c170555f" formatted="false">"选择一个最大 16 KB 的 UTF-8 文本文件。"</string>
     <!-- android/src/ai/glossia/mobile/TokiTextImport.kt -->
     <string name="native_402bd803910ebba9" formatted="false">"选择一个 UTF-8 文本文件。不支持二进制文件和图片。"</string>
     <!-- android/src/ai/glossia/mobile/TokiTextImport.kt -->
@@ -73,17 +73,17 @@
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_995c08ae21a77c03" formatted="false">"选择工作区"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_315624b57447fa48" formatted="false">"在上方选择组织和项目以开始对话。"</string>
+    <string name="native_315624b57447fa48" formatted="false">"在上方选择组织与项目\n以开始对话。"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_6cd7f3cfcd527712" formatted="false">"在上方选择组织和项目以查看或开始新的对话。"</string>
+    <string name="native_6cd7f3cfcd527712" formatted="false">"在上方选择组织与项目以查看对话并开始新对话。"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
-    <string name="native_11f15d2945a1c91b" formatted="false">"选择组织以查看其项目。"</string>
+    <string name="native_11f15d2945a1c91b" formatted="false">"选择组织可查看其项目。"</string>
     <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
-    <string name="native_bdb1df7e63362fc3" formatted="false">"为应用选择语言。此设置不会更改你的流畅语言。"</string>
+    <string name="native_bdb1df7e63362fc3" formatted="false">"选择此应用的语言。此设置不会更改您的流畅语言。"</string>
     <!-- android/res/layout, android/res/menu -->
     <string name="native_94b211b56e22d4d9" formatted="false">"选择工作区"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_9e496f1dd6dbd48d" formatted="false">"可点击的访问性接口"</string>
+    <string name="native_9e496f1dd6dbd48d" formatted="false">"ClickableViewAccessibility"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_7d9eb7acb13e2462" formatted="false">"关闭"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
@@ -91,43 +91,43 @@
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_724dcd659bae300c" formatted="false">"比较示例"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_37c6ae0d7712eebf" formatted="false">"请比较此目标（%1$s）的示例：%2$s"</string>
+    <string name="native_37c6ae0d7712eebf" formatted="false">"比较此目标的示例（%1$s）：%2$s"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt, android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_22a970d2e5b1cc23" formatted="false">"已完成"</string>
     <!-- android/res/layout, android/res/menu -->
     <string name="native_98652afe6ee7c577" formatted="false">"Compose"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
-    <string name="native_2dfdb3e04b01ae7a" formatted="false">"正在安全连接..."</string>
+    <string name="native_2dfdb3e04b01ae7a" formatted="false">"正在安全连接…"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_bbf70085e039651b" formatted="false">"正在连接实时更新..."</string>
+    <string name="native_bbf70085e039651b" formatted="false">"正在连接实时更新…"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_0f2f376ae8f26413" formatted="false">"继续审查"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_ccca181757536587" formatted="false">"对话"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_19cd3398d0591398" formatted="false">"无法安全完成此请求。请重试。"</string>
+    <string name="native_19cd3398d0591398" formatted="false">"无法安全完成请求。请再试一次。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_77617ca9912b11fd" formatted="false">"无法确认流畅语言。草稿未更改。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_1e16e841f3a2c888" formatted="false">"无法确认已保存的决策。"</string>
+    <string name="native_1e16e841f3a2c888" formatted="false">"无法确认已保存的决定。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_eae9ad9b36d6f130" formatted="false">"无法创建翻译链接。请尝试再次分享。"</string>
+    <string name="native_eae9ad9b36d6f130" formatted="false">"无法创建翻译链接。请再次分享。"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_b47b344b5ee0530d" formatted="false">"无法导入文本文件。草稿未更改。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_b9c2a78a46d9f2a4" formatted="false">"无法获取推送令牌。需要 Google Play 服务和已配置的 Firebase 项目。"</string>
+    <string name="native_b9c2a78a46d9f2a4" formatted="false">"无法获取推送令牌。需要 Google Play 服务以及配置好的 Firebase 项目。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_ff94844a3deff154" formatted="false">"无法打开链接的工作区。%1$s"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_53d3b8af43626e57" formatted="false">"无法打开文本文件。草稿未更改。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_92dd6f1e4be1fd91" formatted="false">"无法读取安全的通知设置。"</string>
+    <string name="native_92dd6f1e4be1fd91" formatted="false">"无法读取安全通知设置。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_6991589e37baa96d" formatted="false">"无法安全清除通知注册。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_56244ef75ece74f4" formatted="false">"无法安全禁用通知。退出登录前请重试。"</string>
+    <string name="native_56244ef75ece74f4" formatted="false">"无法安全禁用通知。注销前请再试一次。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_59350707d79bb720" formatted="false">"无法安全禁用通知。请再次退出登录。"</string>
+    <string name="native_59350707d79bb720" formatted="false">"无法安全禁用通知。请再次注销。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_bc81eed8f9766bf4" formatted="false">"无法安全保存通知注册。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
@@ -137,39 +137,39 @@
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_0023d97493d1f5ab" formatted="false">"当前：%1$s / %2$s"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaAppearance.kt -->
-    <string name="native_c668df228ae0a093" formatted="false">"已停用"</string>
+    <string name="native_c668df228ae0a093" formatted="false">"弃用"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_8e7ca387242cec0c" formatted="false">"决策摘要"</string>
+    <string name="native_8e7ca387242cec0c" formatted="false">"决定摘要"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
-    <string name="native_6b69f587519b7241" formatted="false">"已在 Android 中停用"</string>
+    <string name="native_6b69f587519b7241" formatted="false">"Android 版本中已弃用"</string>
     <!-- android/src/ai/glossia/mobile/TokiVoiceInput.kt -->
-    <string name="native_2798f229faea805b" formatted="false">"语音输入已达时间限制。您手动输入的草稿未更改。"</string>
+    <string name="native_2798f229faea805b" formatted="false">"听写已达到时间限制。你输入的手写草稿未更改。"</string>
     <!-- android/src/ai/glossia/mobile/TokiVoiceInput.kt -->
-    <string name="native_c0547c2cb297da39" formatted="false">"语音输入已停止。手动输入的草稿未更改；请重试。"</string>
+    <string name="native_c0547c2cb297da39" formatted="false">"听写已停止。你输入的手写草稿未更改；请再试一次。"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
-    <string name="native_f9bfa3dc7c8fcdea" formatted="false">"撤销更改"</string>
+    <string name="native_f9bfa3dc7c8fcdea" formatted="false">"丢弃更改"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_3d2129b115793995" formatted="false">"撤销决策草稿"</string>
+    <string name="native_3d2129b115793995" formatted="false">"丢弃决定草稿"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_b17f79a8a862494a" formatted="false">"要撤销决策草稿吗？"</string>
+    <string name="native_b17f79a8a862494a" formatted="false">"丢弃决定草稿？"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_96fd465eacf47330" formatted="false">"撤销语音输入"</string>
+    <string name="native_96fd465eacf47330" formatted="false">"丢弃听写"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_12421a9fd32d4d4f" formatted="false">"撤销本地未发送的工作"</string>
+    <string name="native_12421a9fd32d4d4f" formatted="false">"丢弃本地的未发送工作"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_f0268e6a5936fa96" formatted="false">"撤销本地未发送的工作？"</string>
+    <string name="native_f0268e6a5936fa96" formatted="false">"丢弃本地的未发送工作？"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_58ff3402104158c0" formatted="false">"撤销本地工作"</string>
+    <string name="native_58ff3402104158c0" formatted="false">"丢弃本地工作"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_43e29b3ed8bfc1d5" formatted="false">"撤销未发送的消息"</string>
+    <string name="native_43e29b3ed8bfc1d5" formatted="false">"丢弃未发送消息"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_4c82fde06e0ce332" formatted="false">"在项目中共享的 Toki 对话中讨论每个目标，然后将商定的决策明确保存，以便在新的翻译中继续相关工作。"</string>
+    <string name="native_4c82fde06e0ce332" formatted="false">"在每个项目的共享 Toki 对话中讨论每个目标，然后显式保存同意的决定以在新翻译中继续受影响的工。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_41347dfb4e90ac0b" formatted="false">"与 Toki 讨论"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_48845bff334a50a5" formatted="false">"关闭"</string>
+    <string name="native_48845bff334a50a5" formatted="false">" dismissing"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_45f7b07697dfae67" formatted="false">"草稿 · 在此设备保存"</string>
+    <string name="native_45f7b07697dfae67" formatted="false">"草稿 · 已在此设备保存"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_b861fc6c117d1e45" formatted="false">"编辑流畅语言"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -177,57 +177,57 @@
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_8bbc995a5177c76e" formatted="false">"启用推送通知"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_dac466d5e4deb54f" formatted="false">"输入 Glossia 服务器的 HTTPS 地址。"</string>
+    <string name="native_dac466d5e4deb54f" formatted="false">"输入您的 Glossia 服务器的 HTTPS 地址。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_9d165780db2799f3" formatted="false">"每个单词，在运动之中"</string>
+    <string name="native_9d165780db2799f3" formatted="false">"每个词，在运动中"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_e72d5d8d0b167d21" formatted="false">"已展开"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt, android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_031a8f0f659df890" formatted="false">"失败"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_b91bed18ec8e27ed" formatted="false">"计划准备时，文件进度将显示于此。"</string>
+    <string name="native_b91bed18ec8e27ed" formatted="false">"文件进度将在准备计划时显示。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_abc7e9892806b047" formatted="false">"文件"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt, android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
     <string name="native_1c8ebe3becc2fe14" formatted="false">"流畅语言"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_c2f16b30ab16a27a" formatted="false">"当翻译或 Toki 需要您关注时，会收到提醒。提醒永远不会包含私人内容。可选；随时可关闭。"</string>
+    <string name="native_c2f16b30ab16a27a" formatted="false">"当翻译或 Toki 需要您注意时提醒您。提醒内容永远不会包含私人内容；选择关闭。可选。"</string>
     <!-- android/res/layout, android/res/menu, android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_2c1526ca7ee29306" formatted="false">"Glossia"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_ed10c70b991acadb" formatted="false">"Glossia 选择最近的 L10N.md 或 L10N/&lt;locale&gt;.md 路径。指南将成为正常翻译 PR 中的审查 diff，绝不会是直接存储库编辑。"</string>
+    <string name="native_ed10c70b991acadb" formatted="false">"Glossia 会选择最近的 L10N.md 或 L10N/&lt;locale&gt;.md 路径。指南将成为正常翻译 PR 中的审查差异，绝不是仓库的直接编辑。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_ea169c3bb3f297fa" formatted="false">"Glossia for Android"</string>
+    <string name="native_ea169c3bb3f297fa" formatted="false">"Glossia 用于 Android"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_01d5c36add1e77c0" formatted="false">"Glossia 通知"</string>
     <!-- android/src/ai/glossia/mobile/FeatureModels.kt -->
-    <string name="native_26706918d8ecf180" formatted="false">"Glossia 返回了无效的 лингвистический 审查。"</string>
+    <string name="native_26706918d8ecf180" formatted="false">"Glossia 返回了无效的语言学审查。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureModels.kt -->
     <string name="native_a500f56162f899e9" formatted="false">"Glossia 返回了无效的共享对话。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_7c739c5388e0312d" formatted="false">"Glossia 返回了无效的共享对话。刷新后重试。"</string>
+    <string name="native_7c739c5388e0312d" formatted="false">"Glossia 返回了无效的共享对话。请刷新重试。"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_a29321760b4f0483" formatted="false">"目标已关闭。您未保存的决策和指导已保留；可以复制或明确撤销。"</string>
+    <string name="native_a29321760b4f0483" formatted="false">"目标已关闭。您未保存的决定和指导已保留；请复制或显式丢弃它们。"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_03a31f4b9d9a0df2" formatted="false">"目标不可用。刷新对话以检查访问权限。"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_b311977c0d80e30c" formatted="false">"已提出指南供 PR 审查"</string>
+    <string name="native_b311977c0d80e30c" formatted="false">"已提议 PR 审查的指南"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_fa04ae3d5198bd40" formatted="false">"操作"</string>
+    <string name="native_fa04ae3d5198bd40" formatted="false">"处理"</string>
     <!-- android/src/ai/glossia/mobile/TokiCompanionView.kt -->
     <string name="native_e6fb849d28725259" formatted="false">"很高兴见到您"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_aa82031fea8df929" formatted="false">"帮我开始"</string>
+    <string name="native_aa82031fea8df929" formatted="false">"帮助我开始"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_d0f3bb92fd4b5450" formatted="false">"你好，我是 Toki"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_c262a19c535501df" formatted="false">"历史运行 · 语言输入已回答"</string>
+    <string name="native_c262a19c535501df" formatted="false">"历史运行 · 语言输入已应答"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_ebeb6456d7f73504" formatted="false">"图片上传不可用。请选择 UTF-8 文本文件。"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_7d89dcb70f2f2dfc" formatted="false">"导入文本文件；图片不可用"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_f4482b894fa2cebe" formatted="false">"独立可复用的规则"</string>
+    <string name="native_f4482b894fa2cebe" formatted="false">"独立可复用规则"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_d95911500e9d7117" formatted="false">"保留草稿"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
@@ -237,17 +237,17 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_318655cea4bd2096" formatted="false">"语言"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
-    <string name="native_80a3f42965acea02" formatted="false">"最后记录：%1$s。打开 Glossia 刷新。"</string>
+    <string name="native_80a3f42965acea02" formatted="false">"最后已知的：%1$s。打开 Glossia 刷新。"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
-    <string name="native_321908411f03f5a7" formatted="false">"最后观察到的 Toki 工作。当应用不活跃时打开 Glossia 刷新。"</string>
+    <string name="native_321908411f03f5a7" formatted="false">"最后观察到的 Toki 工作。打开 Glossia 更新，当应用未激活时。"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
-    <string name="native_3db8ce043f1467ba" formatted="false">"最后观察：%1$s"</string>
+    <string name="native_3db8ce043f1467ba" formatted="false">"最后 observing：%1$s"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_8ece6158f988da80" formatted="false">"语言专家"</string>
+    <string name="native_8ece6158f988da80" formatted="false">"语言学家"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_2ea9243d479b59d3" formatted="false">"语言目标"</string>
+    <string name="native_2ea9243d479b59d3" formatted="false">"语言学目标"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_af19285940a75576" formatted="false">"语言输入已回答"</string>
+    <string name="native_af19285940a75576" formatted="false">"语言输入已应答"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_56bf4f9913500179" formatted="false">"实时更新"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -257,127 +257,127 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_ac8991ef01019cf5" formatted="false">"加载更多"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_3e09212128d9b2b0" formatted="false">"正在加载受众洞察..."</string>
+    <string name="native_3e09212128d9b2b0" formatted="false">"正在加载观众洞察…"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_1eec1dfc13a43e8f" formatted="false">"正在加载对话..."</string>
+    <string name="native_1eec1dfc13a43e8f" formatted="false">"正在加载对话…"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_5eb1e4a3be4147b4" formatted="false">"正在加载对话..."</string>
+    <string name="native_5eb1e4a3be4147b4" formatted="false">"正在加载对话…"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_1f169558e301913b" formatted="false">"正在加载语言审查..."</string>
+    <string name="native_1f169558e301913b" formatted="false">"正在加载语言学审查…"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_f5d7beb0a27c1f57" formatted="false">"正在加载资料..."</string>
+    <string name="native_f5d7beb0a27c1f57" formatted="false">"正在加载资料…"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
-    <string name="native_6970a1ced73ddb58" formatted="false">"正在加载项目..."</string>
+    <string name="native_6970a1ced73ddb58" formatted="false">"正在加载项目…"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_26f14e07f596944e" formatted="false">"正在加载源内容..."</string>
+    <string name="native_26f14e07f596944e" formatted="false">"正在加载源…"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_e9197192702b213f" formatted="false">"正在加载翻译..."</string>
+    <string name="native_e9197192702b213f" formatted="false">"正在加载翻译…"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_d05c63ab18143624" formatted="false">"正在加载翻译..."</string>
+    <string name="native_d05c63ab18143624" formatted="false">"正在加载翻译…"</string>
     <!-- android/res/layout, android/res/menu -->
     <string name="native_0eb92c0d19c93dfb" formatted="false">"正在加载工作区"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_bb9c9644eaa21fcc" formatted="false">"本地未发送的工作已撤销。服务器可能仍会完成已接收的消息。准备好时，请再次打开链接。"</string>
+    <string name="native_bb9c9644eaa21fcc" formatted="false">"本地未发送工作已丢弃。服务器可能已收到消息仍会完成。准备就绪时再次打开链接。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_8fe2f15411762bc5" formatted="false">"本地访问间隙"</string>
+    <string name="native_8fe2f15411762bc5" formatted="false">"本地语言行程访问"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_9d6322c1f4d9d3f3" formatted="false">"登录"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_cc07e81259a47184" formatted="false">"与 Toki 发送消息..."</string>
+    <string name="native_cc07e81259a47184" formatted="false">"给 Toki 发消息…"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_dcd1d5223f73b3a9" formatted="false">"名称"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt, android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_396c946f0c795aa6" formatted="false">"新对话"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_b7c03347b1e60d6a" formatted="false">"没有可用的应用可以分享此翻译链接。"</string>
+    <string name="native_b7c03347b1e60d6a" formatted="false">"没有可用应用分享此翻译链接。"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_555e68788c6f2da9" formatted="false">"没有可用于安全登录的浏览器。"</string>
+    <string name="native_555e68788c6f2da9" formatted="false">"没有可用浏览器进行安全登录。"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_0d60084f056eb4cf" formatted="false">"尚无对话"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_e2e18a767a2b6db5" formatted="false">"暂无数据"</string>
+    <string name="native_e2e18a767a2b6db5" formatted="false">"尚无数据"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_fabcac4550ea28cc" formatted="false">"没有文件详情。"</string>
+    <string name="native_fabcac4550ea28cc" formatted="false">"没有可用文件详情。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_85ade374b72fe95a" formatted="false">"未选择流畅语言"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_8057c3a5e7c149a0" formatted="false">"此翻译尚无语言问题。"</string>
+    <string name="native_8057c3a5e7c149a0" formatted="false">"此翻译没有语言学问题。"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
-    <string name="native_51c342463863b9a4" formatted="false">"无匹配项目。"</string>
+    <string name="native_51c342463863b9a4" formatted="false">"没有匹配项目。"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
-    <string name="native_0359b7c67916c885" formatted="false">"无组织"</string>
+    <string name="native_0359b7c67916c885" formatted="false">"没有组织"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_2f36c2b5e0835d1d" formatted="false">"此期间暂无页面浏览量。跟踪器在接收访问后才会显示数据。"</string>
+    <string name="native_2f36c2b5e0835d1d" formatted="false">"本时段没有页面浏览数据。之后跟踪接收访问时将显示数据。"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
-    <string name="native_f34c2be0d1c5f562" formatted="false">"无项目"</string>
+    <string name="native_f34c2be0d1c5f562" formatted="false">"没有项目"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
-    <string name="native_0a1bd960d5e32b63" formatted="false">"此组织内没有项目。请在 Glossia 上选择其他组织或创建项目。"</string>
+    <string name="native_0a1bd960d5e32b63" formatted="false">"此组织没有项目。选择另一个组织或在 Glossia 上创建项目。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_285f08d4923b040a" formatted="false">"无等待登录。请开始新的登录。"</string>
+    <string name="native_285f08d4923b040a" formatted="false">"没有等待登录。请开始新登录。"</string>
     <!-- android/src/ai/glossia/mobile/TokiVoiceInput.kt -->
-    <string name="native_8b7e280a7241f778" formatted="false">"未捕获语音。手动输入的草稿未更改。"</string>
+    <string name="native_8b7e280a7241f778" formatted="false">"未捕获任何语音。您输入的手写草稿未更改。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_15b7baaf1065a879" formatted="false">"此翻译尚无摘要。"</string>
+    <string name="native_15b7baaf1065a879" formatted="false">"此翻译没有摘要。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_2795869d4705b7f0" formatted="false">"无目标语言"</string>
+    <string name="native_2795869d4705b7f0" formatted="false">"没有目标语言"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_fafddbba06ac3a37" formatted="false">"无需翻译工作"</string>
+    <string name="native_fafddbba06ac3a37" formatted="false">"不需要翻译工作"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_557832355c8534ab" formatted="false">"未选中"</string>
+    <string name="native_557832355c8534ab" formatted="false">"未选择"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_67a926f7008e2b0e" formatted="false">"不可用"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_0303e18246708180" formatted="false">"未连接"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_67e2f1583da2ddb3" formatted="false">"通知已本地关闭。验证符清理将在下次登录时重试。"</string>
+    <string name="native_67e2f1583da2ddb3" formatted="false">"通知已在本地关闭。服务器清理将在下次登录时重试。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_ba17c83fe79b5df6" formatted="false">"通知已关闭。在 Android 设置中启用 Glossia 通知以接收提醒。"</string>
+    <string name="native_ba17c83fe79b5df6" formatted="false">"通知已关闭。在 Android 设置中允许 Glossia 通知以启用提醒。"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_565339bc4d33d728" formatted="false">"确定"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
-    <string name="native_64fa8a14a90feef5" formatted="false">"已观察"</string>
+    <string name="native_64fa8a14a90feef5" formatted="false">"已观察到"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
     <string name="native_d8f42b6ec0385a7e" formatted="false">"已观察 %1$s"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_8617effba434b6cc" formatted="false">"获取推送令牌已超时。返回 Glossia 重试。"</string>
+    <string name="native_8617effba434b6cc" formatted="false">"获取推送令牌超时。返回 Glossia 重试。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_ca7981b46ecf2c17" formatted="false">"关闭"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_130011756125313c" formatted="false">"开启"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_5ae3ddc35d9bf4a3" formatted="false">"此应用不支持设备端语音输入。您仍可以打字。"</string>
+    <string name="native_5ae3ddc35d9bf4a3" formatted="false">"此设备不可用设备端听写。您仍然可以键入。"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
     <string name="native_f7f0cd6dca9a0541" formatted="false">"打开 Glossia 查看最新状态。"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_f1f10e75e39800cf" formatted="false">"打开共享的 Toki 对话"</string>
+    <string name="native_f1f10e75e39800cf" formatted="false">"打开共享 Toki 对话"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt, android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_d764d42592fc9687" formatted="false">"组织"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_2fdb1d1e6e68427d" formatted="false">"组织：%1$s ▾"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_de7f62a5818c31e1" formatted="false">"页面浏览量"</string>
+    <string name="native_de7f62a5818c31e1" formatted="false">"页面浏览"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_02819ca3dee51a23" formatted="false">"参与者：%1$s"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_331551b0de4157c9" formatted="false">"待处理"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_a508f4c84fae80b9" formatted="false">"照片库不可用：此服务器仅支持文本"</string>
+    <string name="native_a508f4c84fae80b9" formatted="false">"相册不可用：此服务器仅支持文本"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_1e13e0944485db8c" formatted="false">"继续您留下的工作，或工具栏中选择 Compose 开始新的内容。"</string>
+    <string name="native_1e13e0944485db8c" formatted="false">"继续之前未完成的对话，或使用工具栏中的 Compose 开始新对话。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_d6f88b76e6755ed2" formatted="false">"正在规划翻译；进度尚不可知"</string>
+    <string name="native_d6f88b76e6755ed2" formatted="false">"正在规划翻译；进度尚未知"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_8d559889b6387784" formatted="false">"正在规划翻译..."</string>
+    <string name="native_8d559889b6387784" formatted="false">"正在规划翻译…"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_485ca594ccc9003b" formatted="false">"私密设计"</string>
+    <string name="native_485ca594ccc9003b" formatted="false">"默认隐私"</string>
     <!-- android/res/layout, android/res/menu, android/src/ai/glossia/mobile/GlossiaNavigation.kt, android/src/ai/glossia/mobile/GlossiaSession.kt, android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_d696a35bdd1883da" formatted="false">"个人资料"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_9859597853197476" formatted="false">"项目"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_1ecc262a05069c51" formatted="false">"提议可复用的指南"</string>
+    <string name="native_1ecc262a05069c51" formatted="false">"提议可复用指南"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_e4ee3e35bce9e320" formatted="false">"建议的决策"</string>
+    <string name="native_e4ee3e35bce9e320" formatted="false">"提议的决定"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_b0eb80189ca928a1" formatted="false">"此构建未配置推送通知。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
@@ -385,23 +385,23 @@
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_a9f42ced863266cb" formatted="false">"推送令牌不可用"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt, android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_661ff40a07e037bb" formatted="false">"已排队"</string>
+    <string name="native_661ff40a07e037bb" formatted="false">"已排队的"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_d6d1ff3280a6db2c" formatted="false">"准备好说第一句话"</string>
+    <string name="native_d6d1ff3280a6db2c" formatted="false">"准备迎接您的第一句话"</string>
     <!-- android/src/ai/glossia/mobile/TokiCompanionView.kt -->
-    <string name="native_be3cb0d8ef6bce65" formatted="false">"准备提供援助"</string>
+    <string name="native_be3cb0d8ef6bce65" formatted="false">"准备就绪可以帮助"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_1209ca3092fbf129" formatted="false">"重新连接中... 显示最新可用进度。"</string>
+    <string name="native_1209ca3092fbf129" formatted="false">"正在重新连接… 显示最新可用进度。"</string>
     <!-- android/src/ai/glossia/mobile/TokiWaveformView.kt -->
-    <string name="native_d106f2a154a5e79d" formatted="false">"正在此设备上录制"</string>
+    <string name="native_d106f2a154a5e79d" formatted="false">"在此设备录制中"</string>
     <!-- android/res/layout, android/res/menu -->
     <string name="native_0e91610117029a62" formatted="false">"刷新"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_2b3d8ae96dc54325" formatted="false">"刷新分析"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_4de70629c17a3e89" formatted="false">"刷新目标和对话"</string>
+    <string name="native_4de70629c17a3e89" formatted="false">"刷新目标与对话"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_fe3f80f0e59e10a2" formatted="false">"如果对话已发生变化，则请刷新；在解决新的回复之前撤销此提案。"</string>
+    <string name="native_fe3f80f0e59e10a2" formatted="false">"如果对话已更改，刷新；在更新回复前丢弃此提议。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_b32b3b55f102ef96" formatted="false">"刷新个人资料"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
@@ -409,13 +409,13 @@
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_442c4b893915d8df" formatted="false">"刷新状态"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_3bbacc99cd31e98f" formatted="false">"刷新以检查已恢复的翻译。"</string>
+    <string name="native_3bbacc99cd31e98f" formatted="false">"刷新以检查恢复的翻译。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_d13a132f498879cb" formatted="false">"刷新翻译"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_e6c5c7ec5c6b7b66" formatted="false">"请求失败。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
-    <string name="native_f0260beb241acc2f" formatted="false">"重置已保存的登录状态"</string>
+    <string name="native_f0260beb241acc2f" formatted="false">"重置已保存登录"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
     <string name="native_942087cc2d41e013" formatted="false">"重试"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
@@ -425,35 +425,35 @@
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_2a2067439c8087d7" formatted="false">"重试消息"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
-    <string name="native_286cd7414fa18a02" formatted="false">"重试保存的会话"</string>
+    <string name="native_286cd7414fa18a02" formatted="false">"重试已保存会话"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_9752be688eec3462" formatted="false">"返回草稿"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_beaf31ea8ef3e061" formatted="false">"审查决策"</string>
+    <string name="native_beaf31ea8ef3e061" formatted="false">"审查决定"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_1ecd8ff24dc9885f" formatted="false">"审查我的翻译"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_f4ccae29e1bb0c20" formatted="false">"运行中"</string>
+    <string name="native_f4ccae29e1bb0c20" formatted="false">"正在运行"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_bbaa7f7371ed7c54" formatted="false">"源翻译"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_ce574160992f8288" formatted="false">"保存决策并恢复"</string>
+    <string name="native_ce574160992f8288" formatted="false">"保存决定并继续"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
     <string name="native_645c2c86befd4ee2" formatted="false">"保存流畅语言"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_212999ca3176504d" formatted="false">"正在保存决策..."</string>
+    <string name="native_212999ca3176504d" formatted="false">"正在保存决定…"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
-    <string name="native_32303078474786bd" formatted="false">"正在保存流畅语言..."</string>
+    <string name="native_32303078474786bd" formatted="false">"正在保存流畅语言…"</string>
     <!-- android/src/ai/glossia/mobile/TokiCompanionView.kt -->
-    <string name="native_6d995dba1af03739" formatted="false">"打招呼"</string>
+    <string name="native_6d995dba1af03739" formatted="false">"说你好"</string>
     <!-- android/src/ai/glossia/mobile/TokiCompanionView.kt -->
-    <string name="native_6590828065cefb3a" formatted="false">"向 Toki 打招呼"</string>
+    <string name="native_6590828065cefb3a" formatted="false">"向 Toki 问好"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
-    <string name="native_9e079c7df9f105b9" formatted="false">"搜索项目"</string>
+    <string name="native_9e079c7df9f105b9" formatted="false">"查找项目"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
-    <string name="native_7c8255d8c91afd0c" formatted="false">"安全登录将在浏览器中打开。"</string>
+    <string name="native_7c8255d8c91afd0c" formatted="false">"安全登录已在您的浏览器中打开。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_58c2a45efe928029" formatted="false">"查看您能触达的对象，以及仍在等待的对象。"</string>
+    <string name="native_58c2a45efe928029" formatted="false">"查看您能到达谁，以及谁仍在等待。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_59ea38175202e61e" formatted="false">"选择上方项目以探索其受众。"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
@@ -463,11 +463,11 @@
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_93a26b1eaff99b3a" formatted="false">"发送消息"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_7a94cb5a8e455025" formatted="false">"正在发送消息..."</string>
+    <string name="native_7a94cb5a8e455025" formatted="false">"正在发送消息…"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_e3e43fc7851bf24c" formatted="false">"正在发送您的消息..."</string>
+    <string name="native_e3e43fc7851bf24c" formatted="false">"正在发送您的消息…"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
-    <string name="native_bbc4dcefedf52133" formatted="false">"用逗号分隔语言标签。留空以删除流畅语言。"</string>
+    <string name="native_bbc4dcefedf52133" formatted="false">"用逗号分隔语言标签。留空以移除流畅语言。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_aef7de28d52977f1" formatted="false">"服务器"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
@@ -475,9 +475,9 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_3f34bb234d6dc35e" formatted="false">"服务器版本"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt, android/src/ai/glossia/mobile/GlossiaNavigation.kt -->
-    <string name="native_549592e6a9aee21b" formatted="false">"分享翻译链接"</string>
+    <string name="native_549592e6a9aee21b" formatted="false">"共享翻译链接"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_5fd4078f3fd2e7a9" formatted="false">"共享对话不可用。刷新审查以重试。"</string>
+    <string name="native_5fd4078f3fd2e7a9" formatted="false">"共享对话不可用。刷新审查重试。"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_bfd402b2f6f38125" formatted="false">"登录"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
@@ -485,21 +485,21 @@
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_1aa4a786262d6093" formatted="false">"再次登录 Glossia。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
-    <string name="native_f7670670bd2cfc64" formatted="false">"登录以访问您的工作区并协作"</string>
+    <string name="native_f7670670bd2cfc64" formatted="false">"登录以访问您的工作区并\n与团队协作"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
-    <string name="native_5234882cdd3a783e" formatted="false">"通过 Glossia 登录"</string>
+    <string name="native_5234882cdd3a783e" formatted="false">"使用 Glossia 登录"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_48f0d3d397d49f13" formatted="false">"登出"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_7cf34b1e6c3ddcf6" formatted="false">"源和翻译上下文"</string>
+    <string name="native_7cf34b1e6c3ddcf6" formatted="false">"源与翻译上下文"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_fe4cfa338bc2ccaa" formatted="false">"开始关于此翻译的对话。选择发送前，内容不会被发送。"</string>
+    <string name="native_fe4cfa338bc2ccaa" formatted="false">"开始讨论此翻译的对话。选择\"发送\"前不会发送任何内容。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_ecbc89cd37a03734" formatted="false">"已开始"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_1bd68550c40f53b3" formatted="false">"状态不可用"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_64f22bb2f8e34bd9" formatted="false">"停止语音输入并编辑转录"</string>
+    <string name="native_64f22bb2f8e34bd9" formatted="false">"停止听写并编辑转录稿"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_8e76a94ac8320d51" formatted="false">"摘要"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
@@ -507,37 +507,37 @@
     <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
     <string name="native_b0459211f9f76871" formatted="false">"系统默认"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_7a6926673c555300" formatted="false">"点击 Toki 打招呼"</string>
+    <string name="native_7a6926673c555300" formatted="false">"轻触 Toki 问好"</string>
     <!-- android/src/ai/glossia/mobile/TokiTextImport.kt -->
-    <string name="native_c68724ae798bc47b" formatted="false">"导入的文本和草稿必须限制在 4,000 个字符内。手动输入的草稿未更改。"</string>
+    <string name="native_c68724ae798bc47b" formatted="false">"导入的文本和草稿必须兼容 4,000 字符。草稿未更改。"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_897179e6b05e3583" formatted="false">"最新回复未完成。刷新状态或发送新消息。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_a26b32e5894d6061" formatted="false">"链接的组织或项目不可访问。请向工作区管理员申请访问权限，然后再次打开链接。"</string>
+    <string name="native_a26b32e5894d6061" formatted="false">"链接的组织或项目不可访问。向工作区管理员请求访问，然后再次打开链接。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_1b09dd907cc1ac08" formatted="false">"源翻译已不再可访问。"</string>
+    <string name="native_1b09dd907cc1ac08" formatted="false">"源翻译不再可访问。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_ea40433e81a910e2" formatted="false">"工作区已更改。页面重新加载之前完成您的 Toki 草稿或未确认消息。"</string>
+    <string name="native_ea40433e81a910e2" formatted="false">"工作区已更改。在重新加载前完成您的 Toki 草稿或未确认消息。"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
-    <string name="native_1c6a830804d0fa80" formatted="false">"这些语言邀请授权的语言专家进入相同的共享审查对话。它们不会更改应用语言或授予项目访问权限。"</string>
+    <string name="native_1c6a830804d0fa80" formatted="false">"这些语言邀请授权语言学家进入同一共享审查对话；因此不会更改应用语言或授予项目访问权限。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_d962fc471046eaab" formatted="false">"此 Glossia 链接无效或不受支持。"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_833b743b31ef7870" formatted="false">"此操作将清除所有本地 Toki 草稿和未确认的重试。服务器已接收的消息可能仍会完成。此操作不会删除对话或取消服务器工作。"</string>
+    <string name="native_833b743b31ef7870" formatted="false">"此操作将清除所有本地 Toki 草稿和未确认重试。服务器可能已收到消息仍会完成。此操作不会删除对话或取消服务器工作。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_de8cfb5a3e2aec3e" formatted="false">"此对话已不再可用。重试以检查访问权限，或开始新对话。"</string>
+    <string name="native_de8cfb5a3e2aec3e" formatted="false">"此对话不再可用。重试检查访问权限或开始新对话。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureModels.kt -->
-    <string name="native_1e705769f6d9e8cd" formatted="false">"此目标已关闭。您未保存的决策和指导保存在下方。复制或明确撤销草稿；无法保存到已关闭的目标。"</string>
+    <string name="native_1e705769f6d9e8cd" formatted="false">"此目标已关闭。您未保存的决定和指导已保留下面。复制草稿或显式丢弃；无法保存到已关闭的目标。"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_531f837b1144c8c1" formatted="false">"此目标已不再当前。聊天和解决是只读状态。"</string>
+    <string name="native_531f837b1144c8c1" formatted="false">"此目标不再当前。对话和解决方案仅读。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_69b94e8e4837d5d8" formatted="false">"此链接属于不同的 Glossia 服务器。登出，登录 %1$s，然后再次打开链接。"</string>
+    <string name="native_69b94e8e4837d5d8" formatted="false">"此链接属于不同的 Glossia 服务器。注销登录，登录 %1$s，然后再次打开链接。"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_6e135109be03f2d6" formatted="false">"当前区域"</string>
+    <string name="native_6e135109be03f2d6" formatted="false">"此本地语言"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_0a52fe0ce081cb70" formatted="false">"此组织已不再可用。请选择其他组织。"</string>
+    <string name="native_0a52fe0ce081cb70" formatted="false">"此组织不再可用。选择另一个组织。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_ae7c46226d32ec25" formatted="false">"此翻译不可用或您没有访问权限。重试以检查访问权限。"</string>
+    <string name="native_ae7c46226d32ec25" formatted="false">"此翻译不可用或您没有访问权限。重试检查访问权限。"</string>
     <!-- android/res/layout, android/res/menu, android/src/ai/glossia/mobile/GlossiaNavigation.kt, android/src/ai/glossia/mobile/GlossiaSession.kt, android/src/ai/glossia/mobile/MainActivity.kt, android/src/ai/glossia/mobile/TokiCompanionView.kt, android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_581e6ddfaa87c21c" formatted="false">"Toki"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
@@ -547,17 +547,17 @@
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_b8a98f3361230935" formatted="false">"Toki 无法完成"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_c853de6455d0004a" formatted="false">"Toki 正在思考..."</string>
+    <string name="native_c853de6455d0004a" formatted="false">"Toki 正在思考…"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
     <string name="native_f9bdee1613566ae4" formatted="false">"Toki · %1$s"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_a803ad3eb0e5bcad" formatted="false">"请求过多。请重试。"</string>
+    <string name="native_a803ad3eb0e5bcad" formatted="false">"请求太多。请再试一次。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_f1a1a6939db2c54b" formatted="false">"主要浏览器语言"</string>
+    <string name="native_f1a1a6939db2c54b" formatted="false">"首选浏览器语言"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_f33de7ab0f0f6533" formatted="false">"主要国家"</string>
+    <string name="native_f33de7ab0f0f6533" formatted="false">"首选国家/地区"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_3515b818b5c95d73" formatted="false">"主要页面"</string>
+    <string name="native_3515b818b5c95d73" formatted="false">"首选页面"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_77e1e11c03107d5a" formatted="false">"转录语音消息"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
@@ -567,9 +567,9 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_d146f7b81608f119" formatted="false">"已翻译项目：%1$s"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_a784a358b55c0df4" formatted="false">"正在翻译文件"</string>
+    <string name="native_a784a358b55c0df4" formatted="false">"翻译文件"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_244955302e2c23c4" formatted="false">"项目翻译活动。"</string>
+    <string name="native_244955302e2c23c4" formatted="false">"您的项目的翻译活动。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_b3384cabcf76375f" formatted="false">"翻译详情"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -577,83 +577,83 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_2987ee3535d7ff3f" formatted="false">"翻译会话"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_214728cf53324f28" formatted="false">"您的项目开始翻译后，翻译会话将在此显示。"</string>
+    <string name="native_214728cf53324f28" formatted="false">"当您的项目开始翻译时，翻译会话将显示在此处。"</string>
     <!-- android/res/layout, android/res/menu, android/src/ai/glossia/mobile/GlossiaNavigation.kt, android/src/ai/glossia/mobile/GlossiaSession.kt, android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_266a41b90d4f831e" formatted="false">"翻译"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_a0c2cc1374d94994" formatted="false">"请重试。"</string>
+    <string name="native_a0c2cc1374d94994" formatted="false">"再试一次。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_a6d99209f7019b50" formatted="false">"关闭通知"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_344178c4f155b981" formatted="false">"未确认消息 · 可重试"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_8782c9e27e945ea5" formatted="false">"理解我的受众"</string>
+    <string name="native_8782c9e27e945ea5" formatted="false">"了解我的受众"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_a8edb2959cd65e37" formatted="false">"独立访客"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_b764cdc0eab71374" formatted="false">"未知"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_15eebb6f74cc8a5a" formatted="false">"状态未知"</string>
+    <string name="native_15eebb6f74cc8a5a" formatted="false">"未知状态"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_2a37f0319acb2e5f" formatted="false">"未发送消息保留在此设备上"</string>
+    <string name="native_2a37f0319acb2e5f" formatted="false">"未发送消息已保留在此设备上"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_b8be8f419a1171b0" formatted="false">"最多使用 4,000 个字符（%1$s）。"</string>
+    <string name="native_b8be8f419a1171b0" formatted="false">"最多使用 4,000 字符（%1$s）。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_f53a3d76a5214b23" formatted="false">"在上方选择工作区查看其翻译。"</string>
+    <string name="native_f53a3d76a5214b23" formatted="false">"使用上方工作区选择器查看其翻译。"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_355e995b6ef582f5" formatted="false">"查看已恢复的翻译"</string>
+    <string name="native_355e995b6ef582f5" formatted="false">"查看恢复的翻译"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_e57cfce70f9aa10e" formatted="false">"查看源翻译"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_351de5dea8f8f3cc" formatted="false">"查看翻译"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_8ba1c74afed42249" formatted="false">"对项目管理成员可见 · 一个共享对话。"</string>
+    <string name="native_8ba1c74afed42249" formatted="false">"项目成员可见 · 一个共享对话。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_9fe979aa46f80f65" formatted="false">"在您项目尚未提供语言中的访问次数。"</string>
+    <string name="native_9fe979aa46f80f65" formatted="false">"您的项目尚未提供的语言的访问。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_821d80ec4eb5371b" formatted="false">"等待语言输入"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_d8a7070382cce76b" formatted="false">"等待许可..."</string>
+    <string name="native_d8a7070382cce76b" formatted="false">"等待权限…"</string>
     <!-- android/src/ai/glossia/mobile/TokiCompanionView.kt -->
-    <string name="native_1cdc7c9456cb6ed2" formatted="false">"挥手问好"</string>
+    <string name="native_1cdc7c9456cb6ed2" formatted="false">"挥手问候"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
     <string name="native_6dc5f34d889050b2" formatted="false">"欢迎来到 Glossia"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_29cf5336179c0bbd" formatted="false">"您想讨论此翻译的什么？\n选择发送前，内容不会被发送。"</string>
+    <string name="native_29cf5336179c0bbd" formatted="false">"您想讨论关于此翻译的什么内容？\n选择\"发送\"前不会发送任何内容。"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_28ff734e9722c069" formatted="false">"整个项目"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
-    <string name="native_a92f0449a9f7235b" formatted="false">"工作中"</string>
+    <string name="native_a92f0449a9f7235b" formatted="false">"正在工作"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_87bb59ba2f92f2a5" formatted="false">"工作区"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_08b041935798fbf6" formatted="false">"您"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_fbaa90d40b340d51" formatted="false">"您无权查看语言审查。"</string>
+    <string name="native_fbaa90d40b340d51" formatted="false">"您无权查看语言学审查。"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_36d464fbf46def1b" formatted="false">"您 · 未确认"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_d55d84957c47a7bb" formatted="false">"您 · 发送中..."</string>
+    <string name="native_d55d84957c47a7bb" formatted="false">"您 · 正在发送…"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_84f0cd4cd061c106" formatted="false">"您的批准将解决此问题。指南仅作为提案在翻译 PR 中提交审查。"</string>
+    <string name="native_84f0cd4cd061c106" formatted="false">"您的批准将解决此问题。指南仅在翻译 PR 中提议审查。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_3ef3b689433715b1" formatted="false">"您的受众"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_92b94bd2e9e02195" formatted="false">"每个语言的伴侣。\n我们一起做什么？"</string>
+    <string name="native_92b94bd2e9e02195" formatted="false">"每次语言的所有合作伙伴。\n我们一起做什么？"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_903532e033973e3d" formatted="false">"您的对话"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_9cb1a7438da71f7b" formatted="false">"您的凭证使用 Android Keystore 加密。登出将清除此应用中的工作区、对话和草稿。"</string>
+    <string name="native_9cb1a7438da71f7b" formatted="false">"您的凭证与 Android Keystore 加密。注销将清除工作区、对话和草稿从这个应用。"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_cc79effb18422360" formatted="false">"您的决策和可选指南尚未保存。"</string>
+    <string name="native_cc79effb18422360" formatted="false">"您的决定和可选指南尚未保存。"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_b18368148b3aa106" formatted="false">"您的草稿或未确认回复是安全的。返回完成它，或明确撤销本地未发送的工作，然后再次打开链接。"</string>
+    <string name="native_b18368148b3aa106" formatted="false">"您的草稿或未确认回复是安全的。返回完成它，或显式丢弃本地未发送的工作，然后再次打开链接。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_528d89ad72cba22e" formatted="false">"您的资料"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
     <string name="native_a17daa220def9ce0" formatted="false">"您的回复已就绪。打开对话。"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_996764a320badf68" formatted="false">"您未保存的决策草稿已保留。起草新的决策前，请先审查该草稿或明确撤销。"</string>
+    <string name="native_996764a320badf68" formatted="false">"您未保存的决定草稿已保留。在开始另一个决定前查看或显式丢弃它。"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_8f1701c365574ec7" formatted="false">"等待语言输入"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -665,11 +665,11 @@
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
     <string name="native_7175517a370b5cd2" formatted="false">"或"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_9b0f1b10aff55228" formatted="false">"计划中"</string>
+    <string name="native_9b0f1b10aff55228" formatted="false">"已计划"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_d36be6494248ee06" formatted="false">"已排队"</string>
+    <string name="native_d36be6494248ee06" formatted="false">"已排队的"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_c071cf5f5ed6f884" formatted="false">"运行中"</string>
+    <string name="native_c071cf5f5ed6f884" formatted="false">"正在运行"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_bef6a4bb30a9d489" formatted="false">"已是最新"</string>
+    <string name="native_bef6a4bb30a9d489" formatted="false">"已就绪"</string>
 </resources>
