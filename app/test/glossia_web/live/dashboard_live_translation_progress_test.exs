@@ -916,6 +916,12 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
              "2 model calls"
            )
 
+    refute has_element?(
+             view,
+             "#translation-session [data-part='metadata'] a",
+             "View pull request"
+           )
+
     {:ok, _session} =
       TranslationSessions.update_session_publication(session, %{
         publication_branch: "glossia/translate-0123456789ab",
@@ -925,8 +931,8 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     assert has_element?(
              view,
-             "#translation-session [data-part='metadata'] a[href='https://github.com/example/progress/pull/42']",
-             "Open pull request"
+             "#translation-session [data-part='metadata'] a[href='https://github.com/example/progress/pull/42'][target='_blank'][rel='noopener noreferrer']",
+             "View pull request"
            )
   end
 
