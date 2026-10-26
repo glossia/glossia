@@ -32,7 +32,7 @@ class FeatureViews(private val context: Context) {
                     addSpaced(context.label("\u2068${item.optionalString("source_language") ?: context.nativeText("Source")}\u2069 → \u2068${languages.ifEmpty { context.nativeText("No target languages").toString() }}\u2069", 14f, true, verbatim = true), 8)
                     addSpaced(context.label(context.nativeFormat("Translated items: %1\$s", number(item, "translated_content_count")), 14f), 8)
                     item.optionalString("summary")?.let { addSpaced(context.label(it, 14f, true, verbatim = true), 8) }
-                    item.optionalString("inserted_at")?.let { addView(context.label(displayDate(it), 12f, true)) }
+                    item.optionalString("inserted_at")?.let { addView(context.label(context.displayDate(it), 12f, true)) }
                     item.optionalString("id")?.let { id -> addView(context.button("View translation") { open(id) }) }
                 })
             }
@@ -75,7 +75,7 @@ class FeatureViews(private val context: Context) {
                 detail("Languages", "\u2068${item.optionalString("source_language") ?: context.nativeText("Source")}\u2069 → \u2068" +
                     (0 until targets.length()).joinToString(", ") { targets.optString(it) }.ifEmpty { context.nativeText("No target languages").toString() } + "\u2069")
                 detail("Translated items", number(item, "translated_content_count"))
-                item.optionalString("inserted_at")?.let { detail("Started", displayDate(it)) }
+                item.optionalString("inserted_at")?.let { detail("Started", context.displayDate(it)) }
             })
             body.addSpaced(context.button("Discuss with Toki", true, discuss).apply { isEnabled = !model.busy && model.error == null })
             body.addSpaced(context.button("Share translation link", action = share).apply { isEnabled = !model.busy && model.error == null })
@@ -203,6 +203,7 @@ class FeatureViews(private val context: Context) {
         push: GlossiaPushNotifications? = null, languages: FluentLanguagesModel? = null,
         editLanguages: () -> Unit = {}, saveLanguages: () -> Unit = {}, discardLanguages: () -> Unit = {}): View {
         if (languages?.draft != null) return context.scroll(context.column().apply {
+            addSpaced(context.appLanguageView())
             addView(context.fluentLanguagesView(languages, saveLanguages, discardLanguages))
         })
         val body = context.column(20)
@@ -213,6 +214,7 @@ class FeatureViews(private val context: Context) {
         if (model.busy) body.loading("Loading profile…")
         body.failure(model.error, retry)
         if (push != null) body.addSpaced(context.pushSettings(push))
+        body.addSpaced(context.appLanguageView())
         body.addSpaced(context.card {
             addSpaced(context.heading("Fluent languages", 18f), 8)
             val tags = user?.optJSONArray("fluent_languages")
@@ -264,5 +266,5 @@ class FeatureViews(private val context: Context) {
     }
 
     private fun number(value: JSONObject, key: String): String = if (!value.has(key) || value.isNull(key)) "—"
-        else NumberFormat.getIntegerInstance().format(value.optLong(key))
+        else NumberFormat.getIntegerInstance(context.nativeLocale).format(value.optLong(key))
 }

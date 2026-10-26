@@ -5,7 +5,9 @@ import android.app.Application
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -21,6 +23,9 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.app.LocaleManagerCompat
+import androidx.core.os.LocaleListCompat
 import androidx.core.view.ViewCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -42,6 +47,7 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadows.ShadowChoreographer
+import org.robolectric.shadows.ShadowDialog
 import java.io.File
 import java.time.Duration
 import java.util.concurrent.CopyOnWriteArrayList
@@ -1843,6 +1849,162 @@ class GlossiaAndroidTest {
         val write = calls.last { it.optString("operation") == "fluent_languages" }
         assertEquals(listOf("ar", "zh-Hant"), (0 until write.getJSONArray("fluent_languages").length()).map { write.getJSONArray("fluent_languages").getString(it) })
         assertFalse(write.has("locale")); assertFalse(session.hasProtectedWork)
+    }
+
+    @Test @Config(sdk = [32, 35]) fun appLanguagePickerUsesOnlyPackagedCatalogsAndPlatformStorage() {
+        val controller = Robolectric.buildActivity(RenderActivity::class.java).setup()
+        val activity = controller.get()
+        val metadata = activity.packageManager.getServiceInfo(ComponentName(activity,
+            "androidx.appcompat.app.AppLocalesMetadataHolderService"), PackageManager.GET_META_DATA or PackageManager.MATCH_DISABLED_COMPONENTS)
+        assertTrue(metadata.metaData.getBoolean("autoStoreLocales"))
+        assertFalse(metadata.exported)
+        val packaged = activity.appLanguageTags()
+        assertTrue(packaged.contains("en"))
+        val catalogs = File("../locales").listFiles().orEmpty().filter { File(it, "android/strings.xml").isFile }.map { it.name }
+        assertEquals((listOf("en") + catalogs).distinct().sorted().map { java.util.Locale.forLanguageTag(it).toLanguageTag() }, packaged)
+        fun picker(): androidx.appcompat.app.AlertDialog {
+            val view = FeatureViews(activity).profile(FeatureModel(), "https://glossia.ai", null, null, {}, {})
+            activity.setContentView(view)
+            descendants(view).filterIsInstance<MaterialButton>().single { it.contentDescription?.startsWith("App language:") == true }.performClick()
+            return ShadowDialog.getLatestDialog() as androidx.appcompat.app.AlertDialog
+        }
+        try {
+            val dialog = picker()
+            val names = (0 until dialog.listView.count).map { dialog.listView.adapter.getItem(it).toString() }
+            assertEquals(listOf("System default") + packaged.map { tag -> java.util.Locale.forLanguageTag(tag).let { it.getDisplayName(it) } }, names)
+            assertEquals(0, dialog.listView.checkedItemPosition)
+            assertTrue(names.contains("English"))
+            val decor = dialog.window!!.decorView
+            decor.measure(View.MeasureSpec.makeMeasureSpec(1024, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(2000, View.MeasureSpec.AT_MOST))
+            decor.layout(0, 0, 1024, decor.measuredHeight)
+            val bitmap = rendered(decor)
+            File(artifacts, "android-app-language-picker-api${android.os.Build.VERSION.SDK_INT}.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            bitmap.recycle()
+            val english = names.indexOf("English")
+            dialog.listView.performItemClick(null, english, english.toLong())
+            pump { LocaleManagerCompat.getApplicationLocales(activity).toLanguageTags() == "en" }
+            assertEquals("en", AppCompatDelegate.getApplicationLocales().toLanguageTags())
+            val selected = picker()
+            assertEquals(english, selected.listView.checkedItemPosition)
+            selected.listView.performItemClick(null, 0, 0)
+            pump { LocaleManagerCompat.getApplicationLocales(activity).isEmpty }
+            assertTrue(AppCompatDelegate.getApplicationLocales().isEmpty)
+        } finally {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
+            controller.pause().stop().destroy()
+        }
+    }
+
+    @Test @Config(sdk = [32], application = GlossiaApplication::class, qualifiers = "ar-rEG-ldrtl-w411dp-h891dp-420dpi")
+    fun appLanguageRecreationPreservesSessionChatAndUnsavedFluencyAndMirrorsBack() {
+        val (session, storage) = session { request ->
+            if (request.optString("operation") == "resource" && request.optString("resource") == "profile")
+                JSONObject().put("user", JSONObject().put("fluent_languages", JSONArray().put("es"))) else null
+        }
+        // Install the existing fake transport at the Application boundary; run the
+        // real Activity, picker, AppCompat delegate and resource configurations.
+        GlossiaApplication::class.java.getDeclaredField("session\$delegate").apply { isAccessible = true }
+            .set(context, lazyOf(session))
+        session.newConversation(); session.draft("Keep my private chat مرحبا 🌍")
+        val thread = session.toki.active!!
+        session.selectTab("Profile"); pump { session.profile.loaded }
+        val originalCredentials = storage.load("session").toString()
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+        fun root() = controller.get().findViewById<View>(R.id.root)
+        fun capture(name: String) {
+            root().measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(2340, View.MeasureSpec.EXACTLY))
+            root().layout(0, 0, 1080, 2340)
+            val bitmap = rendered(root())
+            File(artifacts, "android-app-language-$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            bitmap.recycle()
+        }
+        fun choose(tag: String) {
+            descendants(root()).filterIsInstance<MaterialButton>().single { it.contentDescription?.startsWith("App language:") == true }.performClick()
+            val dialog = ShadowDialog.getLatestDialog() as androidx.appcompat.app.AlertDialog
+            val index = (listOf("") + controller.get().appLanguageTags()).indexOf(tag)
+            dialog.listView.performItemClick(null, index, index.toLong())
+            shadowOf(Looper.getMainLooper()).idle()
+        }
+        try {
+            assertEquals(View.LAYOUT_DIRECTION_RTL, root().layoutDirection)
+            capture("system-rtl-profile")
+            descendants(root()).filterIsInstance<MaterialButton>().single { it.text == "Edit fluent languages" }.performClick()
+            val field = descendants(root()).filterIsInstance<TextInputEditText>().single()
+            field.setText("ar, zh-Hant")
+            val before = controller.get()
+            choose("en")
+            pump { controller.get() !== before }
+            assertEquals(View.LAYOUT_DIRECTION_LTR, root().layoutDirection)
+            assertEquals("en", controller.get().resources.configuration.locales[0].language)
+            assertEquals("1,234", controller.get().nativeFormat("%,d", 1234))
+            assertEquals("Oct 25, 2026", controller.get().displayDate("2026-10-25T08:00:00Z"))
+            assertEquals("ar, zh-Hant", descendants(root()).filterIsInstance<TextInputEditText>().single().text.toString())
+            assertSame(session, (controller.get().application as GlossiaApplication).session)
+            assertSame(thread, session.toki.threads[thread.id])
+            assertEquals("Keep my private chat مرحبا 🌍", thread.draft)
+            assertEquals(originalCredentials, storage.load("session").toString())
+            assertEquals("es", session.profile.data!!.getJSONObject("user").getJSONArray("fluent_languages").getString(0))
+            assertFalse(calls.any { it.optString("operation") == "fluent_languages" })
+            capture("english-fluency")
+            pump { LocaleManagerCompat.getApplicationLocales(context).toLanguageTags() == "en" }
+            assertEquals("1,234", context.nativeFormat("%,d", 1234))
+            // Robolectric's recreation rewrites its global device qualifiers too.
+            // Restore the device environment and explicitly relaunch for the
+            // return-to-system check. The English switch above recreates itself.
+            choose("")
+            pump { LocaleManagerCompat.getApplicationLocales(context).isEmpty }
+            RuntimeEnvironment.setQualifiers("ar-rEG-ldrtl-w411dp-h891dp-420dpi")
+            controller.recreate()
+            assertEquals(View.LAYOUT_DIRECTION_RTL, root().layoutDirection)
+            assertEquals("ar", controller.get().resources.configuration.locales[0].language)
+            assertEquals(java.text.NumberFormat.getIntegerInstance(java.util.Locale.forLanguageTag("ar-EG")).format(1234),
+                controller.get().nativeFormat("%,d", 1234))
+            assertEquals("ar, zh-Hant", session.fluentLanguages.draft)
+            capture("system-rtl-fluency")
+        } finally {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
+            controller.pause().stop().destroy()
+        }
+    }
+
+    @Test fun appLanguageFormatsDatesAndAnalyticsWithResourceLocaleNotProcessDefault() {
+        val controller = Robolectric.buildActivity(RenderActivity::class.java).setup()
+        val original = java.util.Locale.getDefault()
+        try {
+            val english = android.view.ContextThemeWrapper(controller.get().createConfigurationContext(android.content.res.Configuration(
+                controller.get().resources.configuration).apply { setLocale(java.util.Locale.ENGLISH) }), R.style.GlossiaTheme)
+            java.util.Locale.setDefault(java.util.Locale.forLanguageTag("ar-EG"))
+            assertEquals("1,234", english.nativeFormat("%,d", 1234))
+            assertEquals("Oct 25, 2026", english.displayDate("2026-10-25T08:00:00Z"))
+            val model = AnalyticsModel().apply {
+                loaded = true; data = JSONObject("""{"summary":{"pageviews":12480},"top_pages":[]}""")
+            }
+            val view = FeatureViews(english).analytics(model, true, {}, {})
+            assertTrue(descendants(view).filterIsInstance<TextView>().any { it.text == "12,480" })
+            assertEquals("not a date", english.displayDate("not a date"))
+        } finally {
+            java.util.Locale.setDefault(original)
+            controller.pause().stop().destroy()
+        }
+    }
+
+    @Test @Config(application = GlossiaApplication::class)
+    fun appLanguageLayoutUsesLocaleWhenFrameworkDirectionBitIsStale() {
+        val (session, _) = session(signedIn = false)
+        GlossiaApplication::class.java.getDeclaredField("session\$delegate").apply { isAccessible = true }
+            .set(context, lazyOf(session))
+        for ((locale, staleDirection) in listOf("ar-rEG" to "ldltr", "en" to "ldrtl")) {
+            RuntimeEnvironment.setQualifiers("$locale-$staleDirection-w411dp-h891dp-420dpi")
+            val controller = Robolectric.buildActivity(MainActivity::class.java).setup().visible()
+            val root = controller.get().findViewById<View>(R.id.root)
+            val expected = if (locale == "en") View.LAYOUT_DIRECTION_LTR else View.LAYOUT_DIRECTION_RTL
+            assertEquals(expected, root.layoutDirection)
+            descendants(root).filterIsInstance<MaterialButton>().single { it.text == "Self-hosted server" }.performClick()
+            val dialog = ShadowDialog.getLatestDialog() as androidx.appcompat.app.AlertDialog
+            assertEquals(expected, dialog.window!!.decorView.layoutDirection)
+            dialog.dismiss()
+            controller.pause().stop().destroy()
+        }
     }
 
     @Test fun goalEligibilityRequiresACompletedReplyToTheLatestHumanTurn() {

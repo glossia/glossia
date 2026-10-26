@@ -32,6 +32,10 @@
     <string name="native_94c116ee118a7299" formatted="false">"Analytics"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_5b454a5ec511ff3c" formatted="false">"AndroidKeyStore"</string>
+    <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
+    <string name="native_b8352b44a588721c" formatted="false">"App language"</string>
+    <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
+    <string name="native_5eebf1828971d514" formatted="false">"App language: %1$s"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_f7c3b47055a1c9c9" formatted="false">"Awaiting linguistic input"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
@@ -40,7 +44,7 @@
     <string name="native_d456fc75664472cc" formatted="false">"Back to conversations"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_9f172e8ffecceb0f" formatted="false">"Back to translations"</string>
-    <!-- android/src/ai/glossia/mobile/MainActivity.kt, android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
+    <!-- android/src/ai/glossia/mobile/AppLanguageView.kt, android/src/ai/glossia/mobile/MainActivity.kt, android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_19766ed6ccb2f4a3" formatted="false">"Cancel"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_d353a99eb4556847" formatted="false">"Cancelled"</string>
@@ -66,6 +70,8 @@
     <string name="native_6cd7f3cfcd527712" formatted="false">"Choose an organization and project above to see your conversations and start a new one."</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_11f15d2945a1c91b" formatted="false">"Choose an organization to see its projects."</string>
+    <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
+    <string name="native_bdb1df7e63362fc3" formatted="false">"Choose the language for this app. This does not change your fluent languages."</string>
     <!-- android/res/layout, android/res/menu -->
     <string name="native_94b211b56e22d4d9" formatted="false">"Choose workspace"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
@@ -480,6 +486,8 @@
     <string name="native_8e76a94ac8320d51" formatted="false">"Summary"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_ec70b4a614bf5040" formatted="false">"Switch workspace"</string>
+    <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
+    <string name="native_b0459211f9f76871" formatted="false">"System default"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_7a6926673c555300" formatted="false">"Tap Toki to say hello"</string>
     <!-- android/src/ai/glossia/mobile/TokiTextImport.kt -->

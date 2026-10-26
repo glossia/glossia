@@ -48,6 +48,7 @@ internal fun <T : View> T.themed(binding: T.() -> Unit): T = apply {
 }
 
 internal fun Context.themed(dialog: AlertDialog): AlertDialog = dialog.also {
+    it.window?.decorView?.layoutDirection = android.text.TextUtils.getLayoutDirectionFromLocale(nativeLocale)
     appearance?.watch(it)
 }
 

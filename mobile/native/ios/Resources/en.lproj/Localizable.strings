@@ -59,6 +59,9 @@
 "Ask about this project's languages or recent translations. Replies use your organization's configured AI provider." = "Ask about this project's languages or recent translations. Replies use your organization's configured AI provider.";
 
 /* No comment provided by engineer. */
+"Choose the language for this app. Fluent languages and your device language stay unchanged." = "Choose the language for this app. Fluent languages and your device language stay unchanged.";
+
+/* No comment provided by engineer. */
 "content" = "content";
 
 /* No comment provided by engineer. */
@@ -164,6 +167,9 @@
 "status" = "status";
 
 /* No comment provided by engineer. */
+"System default" = "System default";
+
+/* No comment provided by engineer. */
 "Tap the compose button to start a private conversation about this project." = "Tap the compose button to start a private conversation about this project.";
 
 /* No comment provided by engineer. */
@@ -254,6 +260,9 @@
 /* GlossiaWorkspaceView.swift: static UI/model copy */
 "Analytics" = "Analytics";
 
+/* GlossiaLanguage.swift: static UI/model copy */
+"App language" = "App language";
+
 /* ProfileView.swift: static UI/model copy */
 "App version" = "App version";
 
@@ -265,6 +274,9 @@
 
 /* TranslationsView.swift: static UI/model copy */
 "Awaiting linguistic input" = "Awaiting linguistic input";
+
+/* GlossiaLanguage.swift: static UI/model copy */
+"Base" = "Base";
 
 /* TokiSprite.swift: static UI/model copy */
 "Body" = "Body";
@@ -457,6 +469,9 @@
 
 /* GlossiaSession.swift: static UI/model copy */
 "Invalid sign-in response." = "Invalid sign-in response.";
+
+/* ProfileView.swift: static UI/model copy */
+"Language" = "Language";
 
 /* TranslationsView.swift: static UI/model copy */
 "Languages" = "Languages";
@@ -802,9 +817,6 @@
 
 /* TokiWorkStatusView.swift: static UI/model copy */
 "Toki is thinking…" = "Toki is thinking…";
-
-/* TokiView.swift: static UI/model copy */
-"Toki suggestion" = "Toki suggestion";
 
 /* TokiLiveActivity.swift: static UI/model copy */
 "TokiFocused" = "TokiFocused";

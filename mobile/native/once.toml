@@ -113,7 +113,7 @@ header_dirs = ["core/include"]
 [[target]]
 name = "GlossiaAndroid"
 kind = "glossia_android_application"
-srcs = ["android/src/**/*.kt", "android/res/**/*", "locales/**/*.xml", "android/AndroidManifest.xml", "android/*.gradle.kts", "android/gradle.properties", "android/gradle.lockfile"]
+srcs = ["android/src/**/*.kt", "android/res/**/*", "android/AndroidManifest.xml", "android/*.gradle.kts", "android/gradle.properties", "android/gradle.lockfile"]
 deps = ["./GlossiaCoreAndroid"]
 
 [[target]]
@@ -170,7 +170,7 @@ postbuild_actions = ['{"name":"Embed Toki Live Activity","cacheable":true,"input
 [[target]]
 name = "GlossiaIOSPreview"
 kind = "apple_application"
-srcs = ["ios/Previews/**/*.swift", "ios/Sources/GlossiaLoginView.swift", "ios/Sources/GlossiaSession.swift", "ios/Sources/GlossiaPushNotifications.swift", "ios/Sources/GlossiaNavigation.swift", "ios/Sources/GlossiaBrand.swift", "ios/Sources/GlossiaAppearance.swift", "ios/Sources/GlossiaWorkspaceView.swift", "ios/Sources/WorkspacePicker.swift", "ios/Sources/TokiView.swift", "ios/Sources/TokiGoalView.swift", "ios/Sources/TokiComposer.swift", "ios/Sources/TokiVoiceInput.swift", "ios/Sources/FluentLanguages.swift", "ios/Sources/TokiSprite.swift", "ios/Sources/TokiActivityAttributes.swift", "ios/Sources/TokiLiveActivities.swift", "ios/Sources/TokiWorkController.swift", "ios/Sources/TokiWorkStatusView.swift", "ios/Sources/TranslationsView.swift", "ios/Sources/AnalyticsView.swift", "ios/Sources/ProfileView.swift"]
+srcs = ["ios/Previews/**/*.swift", "ios/Sources/GlossiaLoginView.swift", "ios/Sources/GlossiaSession.swift", "ios/Sources/GlossiaLanguage.swift", "ios/Sources/GlossiaPushNotifications.swift", "ios/Sources/GlossiaNavigation.swift", "ios/Sources/GlossiaBrand.swift", "ios/Sources/GlossiaAppearance.swift", "ios/Sources/GlossiaWorkspaceView.swift", "ios/Sources/WorkspacePicker.swift", "ios/Sources/TokiView.swift", "ios/Sources/TokiGoalView.swift", "ios/Sources/TokiComposer.swift", "ios/Sources/TokiVoiceInput.swift", "ios/Sources/FluentLanguages.swift", "ios/Sources/TokiSprite.swift", "ios/Sources/TokiActivityAttributes.swift", "ios/Sources/TokiLiveActivities.swift", "ios/Sources/TokiWorkController.swift", "ios/Sources/TokiWorkStatusView.swift", "ios/Sources/TranslationsView.swift", "ios/Sources/AnalyticsView.swift", "ios/Sources/ProfileView.swift"]
 deps = ["./GlossiaCoreIOS", "./GlossiaCoreFFI", "./GlossiaSimulatorSDK", "./GlossiaTokiActivityPreview"]
 [target.attrs]
 platform = "ios"
@@ -188,7 +188,7 @@ postbuild_actions = ['{"name":"Embed Toki Live Activity","cacheable":true,"input
 [[target]]
 name = "GlossiaIOSTests"
 kind = "apple_test_bundle"
-srcs = ["ios/Tests/**/*.swift", "ios/Sources/GlossiaSession.swift", "ios/Sources/GlossiaPushNotifications.swift", "ios/Sources/GlossiaNavigation.swift", "ios/Sources/GlossiaBrand.swift", "ios/Sources/GlossiaAppearance.swift", "ios/Sources/TokiView.swift", "ios/Sources/TokiGoalView.swift", "ios/Sources/TokiComposer.swift", "ios/Sources/TokiVoiceInput.swift", "ios/Sources/FluentLanguages.swift", "ios/Sources/TokiSprite.swift", "ios/Sources/TokiActivityAttributes.swift", "ios/Sources/TokiLiveActivities.swift", "ios/Sources/TokiWorkController.swift", "ios/Sources/TokiWorkStatusView.swift", "ios/Sources/TranslationsView.swift", "ios/Sources/AnalyticsView.swift"]
+srcs = ["ios/Tests/**/*.swift", "ios/Sources/GlossiaSession.swift", "ios/Sources/GlossiaLanguage.swift", "ios/Sources/GlossiaPushNotifications.swift", "ios/Sources/GlossiaNavigation.swift", "ios/Sources/GlossiaBrand.swift", "ios/Sources/GlossiaAppearance.swift", "ios/Sources/TokiView.swift", "ios/Sources/TokiGoalView.swift", "ios/Sources/TokiComposer.swift", "ios/Sources/TokiVoiceInput.swift", "ios/Sources/FluentLanguages.swift", "ios/Sources/TokiSprite.swift", "ios/Sources/TokiActivityAttributes.swift", "ios/Sources/TokiLiveActivities.swift", "ios/Sources/TokiWorkController.swift", "ios/Sources/TokiWorkStatusView.swift", "ios/Sources/TranslationsView.swift", "ios/Sources/AnalyticsView.swift"]
 deps = ["./GlossiaCoreIOS", "./GlossiaCoreFFI", "./GlossiaSimulatorSDK"]
 [target.attrs]
 platform = "ios"
