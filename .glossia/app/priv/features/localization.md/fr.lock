@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "58e30171d714d327c8e296cb6a010518d9d2731e82cf5e1ed3babf3772a19321",
+  "hash": "0b6fa059f7e662e1ef6617395be8f871ba08ac69f2e9a7157954420732b94a25",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
+          "hash": "f80c234aa8b77bbb91f7d7d99698183dc8fe9113d9066582b99f7012a7f19e58",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "58e30171d714d327c8e296cb6a010518d9d2731e82cf5e1ed3babf3772a19321",
+      "hash": "0b6fa059f7e662e1ef6617395be8f871ba08ac69f2e9a7157954420732b94a25",
       "kind": "translation_input",
       "label": "app/priv/features/localization.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "dddc41c43d77aaf70319780fe2f4e55c597e5cac62003c4f1b193d992f6e89ca",
+  "output_hash": "72883b2e6b24e1a6e7a611f0ad3078bf2e0d41064e06669f065d8d32765e1ad3",
   "output_path": "app/priv/i18n/fr/features/localization.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/features/localization.md",
-  "translated_at": "2026-10-20T07:48:47.127427Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-26T01:03:14.176543Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }
