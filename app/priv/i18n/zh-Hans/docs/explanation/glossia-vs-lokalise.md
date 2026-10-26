@@ -46,7 +46,7 @@ Glossia 允许您使用自己的提供商 API 令牌配置支持的模型。仓�
 
 ## 公开来源和仓库拥有的输出
 
-Glossia 的实现可在 [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md) 下进行审查、修改和自我托管。该许可证限制了竞争的托管服务，并非是不受限制的开源许可证。
+Glossia 采用开放核心模式。核心代码使用 [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE)，根据其条款允许商业使用、修改、分发、自托管以及提供竞争性托管服务。`ee/` 中的代码可供查看，但并非开源；它适用单独的 [Enterprise 许可证](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md)，生产使用需要签订书面商业协议。
 
 对于日常交付而言更重要的是，您的翻译输出保留在 Git 中。您不需要在另一个产品中进行编辑会话来发布您现有的文件。
 

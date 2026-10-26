@@ -122,6 +122,7 @@ final class TokiModel: ObservableObject {
     var canSaveDecision: Bool {
         canResolve && decision?.valid == true && resolutionMessageID == completedReply?["id"] as? String
     }
+    var proposalReplyID: String? { decision == nil ? completedReply?["id"] as? String : resolutionMessageID }
     var hasProtectedWork: Bool {
         voiceActive || importingText || resolving || decision != nil || sending || !pending.isEmpty || drafts.values.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     }
@@ -131,6 +132,11 @@ final class TokiModel: ObservableObject {
         resolutionMessageID = completedReply?["id"] as? String
         decision = ReviewDraft(answer: completedReply?["content"] as? String ?? "")
         resolutionError = nil; resolutionAcknowledged = false
+    }
+
+    func prepareGoalPrompt(_ prompt: String) {
+        guard canResolve, decision == nil else { return }
+        draft = prompt
     }
 
     func discardDecision() { guard !resolving else { return }; decision = nil; resolutionMessageID = nil; resolutionAcknowledged = false }
@@ -449,6 +455,7 @@ struct TokiConversationView: View {
     @State private var choosingText = false
     @State private var importOwner: String?
     @State private var importError: String?
+    @State private var reviewingDecision = false
     @Environment(\.glossiaTokens) private var tokens
     @Environment(\.scenePhase) private var scenePhase
     var openSource: ((String) -> Void)?
@@ -458,7 +465,7 @@ struct TokiConversationView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 16) {
                     if model.sharedGoal { TokiGoalView(model: model, openTranslation: openSource) }
-                    if let id = model.sourceID {
+                    if let id = model.sourceID, !model.sharedGoal {
                         Button { openSource?(id) } label: {
                             HStack(spacing: 12) {
                                 Image(systemName: "character.bubble")
@@ -495,18 +502,27 @@ struct TokiConversationView: View {
                     }
                     ForEach(model.messages.indices, id: \.self) { index in
                         let message = model.messages[index]
+                        let proposed = model.goal?["status"] as? String == "open" &&
+                            message["id"] as? String == model.proposalReplyID && model.proposalReplyID != nil
                         let outgoing = message["role"] as? String == "user"
                         let humanAuthor = model.sharedGoal ? String(((message["author"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? String(localized: "Linguist")).prefix(100)) : String(localized: "You")
                         HStack(alignment: .top, spacing: 8) {
                             if outgoing { Spacer(minLength: 32) }
                             if !outgoing { TokiSprite(pose: "Wave").frame(width: 36, height: 36) }
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(outgoing ? humanAuthor : "Toki").font(.caption.weight(.medium)).foregroundStyle(tokens.muted)
-                                Text(message["content"] as? String ?? "").textSelection(.enabled)
+                            if proposed {
+                                TokiProposalView(model: model) {
+                                    model.beginResolution()
+                                    reviewingDecision = model.decision != nil
+                                }
+                            } else {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(outgoing ? humanAuthor : "Toki").font(.caption.weight(.medium)).foregroundStyle(tokens.muted)
+                                    Text(message["content"] as? String ?? "").textSelection(.enabled)
+                                }
+                                .padding(16)
+                                .background(outgoing ? tokens.accentSoft : tokens.surface,
+                                            in: RoundedRectangle(cornerRadius: tokens.radius))
                             }
-                            .padding(16)
-                            .background(outgoing ? tokens.accentSoft : tokens.surface,
-                                        in: RoundedRectangle(cornerRadius: tokens.radius))
                             if !outgoing { Spacer(minLength: 24) }
                         }.id(message["id"] as? String ?? String(index))
                     }
@@ -524,11 +540,12 @@ struct TokiConversationView: View {
                             }
                         }
                     }
-                    if model.goal?["status"] as? String == "open" {
-                        Button("Resolve goal") { model.beginResolution() }.disabled(!model.canResolve)
-                            .buttonStyle(.borderedProminent).modifier(GlossiaPrimaryAction()).accessibilityIdentifier("goal-resolve")
-                        Text("Keep chatting until you agree on a decision. Resolution requires a completed Toki reply and no unsent draft.")
-                            .font(.caption).foregroundStyle(tokens.muted)
+                    if let goal = model.goal, goal["status"] as? String == "answered" {
+                        TokiResolvedDecisionView(goal: goal, openTranslation: openSource)
+                    }
+                    if model.decision != nil && (model.goalClosed || !model.messages.contains { $0["id"] as? String == model.proposalReplyID }) {
+                        Button("Continue reviewing") { reviewingDecision = true }
+                            .accessibilityIdentifier("goal-continue")
                     }
                     Color.clear.frame(height: 1).id("bottom")
                 }.padding(GlossiaBrand.gutter)
@@ -538,12 +555,41 @@ struct TokiConversationView: View {
                 if previous > 0 || !model.sharedGoal { scroll.scrollTo("bottom", anchor: .bottom) }
             }
             .background(tokens.canvas)
-            .safeAreaInset(edge: .bottom, spacing: 0) { if !model.goalClosed { composer } }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if !model.goalClosed {
+                    VStack(spacing: 0) {
+                        if model.sharedGoal && model.completedReply != nil && model.decision == nil {
+                            ViewThatFits(in: .horizontal) {
+                                HStack { goalPrompts }
+                                VStack(alignment: .leading) { goalPrompts }
+                            }
+                            .buttonStyle(.bordered).controlSize(.small).disabled(!model.canResolve)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 16).padding(.top, 8)
+                        }
+                        composer
+                    }.background(tokens.canvas)
+                }
+            }
         }
-        .navigationTitle(model.status == "draft" ? String(localized: "New conversation") : "Toki").navigationBarTitleDisplayMode(.inline)
+        .navigationTitle(model.sharedGoal ? ((model.detail?["conversation"] as? [String: Any])?["title"] as? String ?? String(localized: "Linguistic review")) : model.status == "draft" ? String(localized: "New conversation") : "Toki")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
         .navigationBarBackButtonHidden(model.decision != nil || model.resolving)
-        .sheet(isPresented: Binding(get: { model.decision != nil }, set: { if !$0 { model.discardDecision() } })) {
+        .toolbar {
+            if model.sharedGoal {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button("Refresh goal and conversation", systemImage: "arrow.clockwise") { Task { await model.refreshDetail() } }
+                            .disabled(model.resolving || model.sending || model.detailBusy)
+                    } label: { Image(systemName: "ellipsis") }
+                    .accessibilityLabel("Conversation actions")
+                }
+            }
+        }
+        .onAppear { reviewingDecision = model.decision != nil }
+        .onChange(of: model.decision != nil) { _, hasDraft in reviewingDecision = hasDraft }
+        .sheet(isPresented: $reviewingDecision) {
             TokiDecisionView(model: model)
         }
         .fileImporter(isPresented: $choosingText, allowedContentTypes: [.text, .json], allowsMultipleSelection: false) { result in
@@ -573,12 +619,21 @@ struct TokiConversationView: View {
         .onDisappear { startingVoice?.cancel(); voice.cancel(); model.voiceActive = false; model.importingText = false; importOwner = nil }
     }
 
+    @ViewBuilder private var goalPrompts: some View {
+        Button("Compare examples") {
+            model.prepareGoalPrompt(String(localized: "Compare concrete translation examples for the alternatives in this question."))
+        }
+        Button("Check support tone") {
+            model.prepareGoalPrompt(String(localized: "How would this choice affect the tone of our support messages?"))
+        }
+    }
+
     private var composer: some View {
         VStack(spacing: 0) {
             if let importError { Text(importError).font(.caption).foregroundStyle(.red) }
             TokiComposer(draft: Binding(get: { model.draft }, set: { model.draft = $0 }),
                 enabled: !model.sending && !model.resolving && !model.importingText && model.decision == nil && !model.resolutionNeedsRefresh && model.selectedID.flatMap { model.pending[$0] } == nil && model.detail != nil,
-                canSend: !voice.busy && !model.importingText && !model.sending && !model.thinking && !model.detailBusy && !model.resolving && !model.resolutionNeedsRefresh && model.detail != nil && !model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && model.draft.unicodeScalars.count <= 4000,
+                canSend: !voice.busy && !model.importingText && !model.sending && !model.thinking && !model.detailBusy && !model.resolving && model.decision == nil && !model.resolutionNeedsRefresh && model.detail != nil && !model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && model.draft.unicodeScalars.count <= 4000,
                 voice: voice, start: { let id = model.selectedID; startingVoice = Task {
                     await voice.start { text in if model.selectedID == id && !model.goalClosed { model.draft = TokiVoiceInput.appending(text, to: model.draft) } }
                 } }, stop: {

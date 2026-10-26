@@ -29,6 +29,8 @@ Eligible participants receive generic mobile push notifications only when they h
 
 Each review includes `id`, `translation_session_id`, `conversation_id`, `participants` (`id` and nullable `name`), `status`, `source_path`, `output_path`, `locale`, `question`, bounded `source_excerpt` and `translation_excerpt`, `answer`, `guidance`, `context_path`, `resolution_message_id`, `resumed_session_id`, and `inserted_at`. Status is `open`, `answered`, or `stale`.
 
+`answered_by` identifies the human who approved the decision as `{"id": "<user UUID>", "name": "<current display name>"}`; `name` can be null. The field is null before approval or when the approver is unavailable. It contains no email or other private profile fields, and replaying an approval does not change the approver. The same field is included in the nested `linguistic_review` on shared Toki conversations. No approval timestamp is exposed; `inserted_at` is the review's creation time, not its approval time.
+
 Use the existing project Toki conversation and message endpoints for discussion. Shared goal conversations appear alongside the actor's private conversations in Toki history. Shared histories require current Toki read/write policy permission and translation read access; ordinary histories remain owner-only. Human messages include their author identity, and replies include `status` and `reply_to_id`. Toki receives bounded source/candidate excerpts and the goal, not repository write access.
 
 `POST /api/:handle/projects/:project/translations/:id/reviews/:review_id/answer` requires both `translation:read` and `translation:write`, plus project access:

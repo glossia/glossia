@@ -45,7 +45,7 @@ L'environnement d'exécution a toujours besoin des dépendances du validateur, e
 
 ## Une source publique est une base, pas la comparaison complète
 
-L'implémentation de Glossia est publique et peut être inspectée, modifiée et débogée sous [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md). La licence restreint les services hébergés concurrents ; elle n'est pas la même que la licence open source GPL de Weblate.
+Le cœur de Glossia utilise [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), qui autorise l'utilisation commerciale, la modification, la distribution, l'auto-hébergement et les services hébergés concurrents selon ses conditions. Le code de `ee/` relève d'une [licence Enterprise](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) distincte et son utilisation en production nécessite un accord commercial écrit. Ce modèle open core diffère des licences basées sur la GPL de Weblate.
 
 Si une licence open source non restreinte et une interface web de traduction établie sont vos critères principaux, Weblate mérite d'être envisagé. Si l'objectif est **vos propres identifiants de modèle, les vérifications du dépôt existantes et les travaux linguistiques qui suivent la livraison de logiciels**, Glossia rassemble ces choix dans un OS linguistique.
 

@@ -1,26 +1,28 @@
-# Glossia Contributor License Agreement
+# Glossia Enterprise Contributor License Agreement
 
-Version 1, October 12, 2026.
+Version 2, October 24, 2026.
 
 **Maintainer notice: this agreement is a draft pending legal review. Do not merge external code or documentation contributions in reliance on it until that review is complete.**
 
-This agreement records the rights a contributor grants to Pedro Piñera Buendía (the "Project Owner"), the original licensor named in Glossia's `LICENSE.md`. It does not transfer ownership of your contributions.
+This agreement records the rights a contributor grants to Pedro Piñera Buendía (the "Project Owner") for contributions to the `ee/` directory of Glossia. It does not apply to contributions outside `ee/`, including the Apache-2.0 core, and does not transfer ownership of your contributions.
 
 ## 1. Contributions and acceptance
 
-"You" means the individual explicitly accepting this agreement or, if you are authorized to act for an employer or another legal entity, that entity. A "Contribution" means code, documentation, or other original material you intentionally submit for inclusion in Glossia in the pull request identified in your acceptance.
+"You" means the individual explicitly accepting this agreement or, if you are authorized to act for an employer or another legal entity, that entity. A "Contribution" means code, documentation, or other original material you intentionally submit for inclusion under `ee/` in Glossia. In a pull request that also changes core files, only the material contributed to `ee/` is covered.
 
-You accept this agreement by checking the Contributor License Agreement acceptance checkbox in that pull request's description or by posting a comment stating: "I agree to the Glossia Contributor License Agreement, Version 1, for my contributions in this pull request."
+You accept this agreement by posting this exact comment on a pull request that contributes to `ee/`: "I have read the Glossia Enterprise CLA, Version 2, and I hereby sign it for my contributions to ee/." Acceptance covers your present and future contributions to `ee/` under this version of the agreement, not contributions outside that directory.
 
-Acceptance must come from the contributor or an authorized representative, not from a maintainer on their behalf. If a pull request contains contributions owned by multiple people or entities, acceptance must be obtained from each owner or an authorized representative. Submitting a pull request or merging it does not, by itself, constitute acceptance. This agreement does not apply retroactively to other contributions.
+CLA Assistant records your GitHub username and account ID, signing-comment ID, signing timestamp, repository ID, and pull request reference in `signatures/v2/cla.json` on the repository's `cla-signatures` branch. The same file preserves the exact agreement text, Git blob identifier, immutable commit permalink, version, and signing statement alongside those records. These signature details and the signing comment are public. Do not include addresses, identification documents, or other private information in your comment. A checkbox in a pull request description is not a signature.
+
+Acceptance must come from the contributor or an authorized representative, not from a maintainer on their behalf. If a pull request contains contributions owned by multiple people or entities, acceptance must be obtained from each owner or an authorized representative. Submitting a pull request or merging it does not, by itself, constitute acceptance. This agreement does not retroactively cover contributions accepted before your signature. Material changes to the agreement require a new version and renewed acceptance.
 
 ## 2. Copyright license
 
 You grant the Project Owner a worldwide, non-exclusive, perpetual, irrevocable, royalty-free copyright license to use, reproduce, modify, prepare derivative works of, publicly display, publicly perform, distribute, sell, and sublicense your Contribution.
 
-This grant expressly permits the Project Owner to include your Contribution in commercial hosted, managed, and Software-as-a-Service products and to distribute or sublicense it under O'Saasy, open-source, source-available, proprietary, or other license terms, now or in the future. The Project Owner may authorize operators and sublicensees to exercise these rights and may transfer these rights to a successor owner of the Glossia project.
+This grant expressly permits the Project Owner to include your Contribution in commercial hosted, managed, and Software-as-a-Service products and to distribute or sublicense it under Apache-2.0, source-available, proprietary, or other license terms, now or in the future. The Project Owner may authorize operators and sublicensees to exercise these rights and may transfer these rights to a successor owner of the Glossia project.
 
-This inbound grant is independent of Glossia's outbound software license. The O'Saasy restriction on directly competing hosted services does not limit the rights you grant to the Project Owner under this agreement.
+This inbound grant is independent of Glossia's outbound software license. The production-use and other restrictions in the Glossia Enterprise License do not limit the rights you grant to the Project Owner under this agreement.
 
 ## 3. Patent license
 
@@ -38,4 +40,4 @@ The Project Owner is not required to accept, maintain, or publish your Contribut
 
 ## 6. Scope
 
-This agreement concerns only the identified Contribution and the rights granted above. It does not grant rights in Glossia's trademarks, names, or brand assets and does not change the license governing your use of the rest of Glossia.
+This agreement concerns only your contributions to `ee/` under this version and the rights granted above. It does not grant rights in Glossia's trademarks, names, or brand assets and does not change the license governing your use of the rest of Glossia.

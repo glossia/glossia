@@ -26,7 +26,7 @@ Cela ne rend pas les mémoires de traduction par segment obsolètes. Les équipe
 
 La capacité à inspecter et modifier l'implémentation aide les équipes à comprendre comment leur contenu est traité. Cela ne signifie pas que chaque dépendance opérationnelle disparaît. Une instance déployée de Glossia a toujours besoin de bases de données, d'un accès au fournisseur de modèle pour les workflows pertinents, d'identifiants et d'infrastructure. Le contexte linguistique géré par le tableau de bord a également besoin d'un plan de migration explicite si une équipe change de systèmes.
 
-La licence O'Saasy actuelle limite les services hébergés concurrents. La disponibilité de la source publique n'est pas la même qu'une licence open-source illimitée ou une garantie qu'un service de remplacement peut être exploité selon n'importe quel modèle économique. Consultez la [licence](https://github.com/glossia/glossia/blob/main/LICENSE.md) du dépôt.
+Glossia suit un modèle open core. Le cœur utilise [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), qui autorise l'utilisation commerciale, la modification, la distribution, l'auto-hébergement et les services hébergés concurrents selon ses conditions. Le code de `ee/` est consultable, mais n'est pas open source. Il relève d'une [licence Enterprise](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) distincte et son utilisation en production nécessite un accord commercial écrit.
 
 ## Un test de portabilité utile
 

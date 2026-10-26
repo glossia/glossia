@@ -2,7 +2,7 @@
   "name": "@glossia/web",
   "version": "0.1.0",
   "description": "Cookieless, privacy-friendly web analytics that surfaces localization opportunities for Glossia.",
-  "license": "SEE LICENSE IN LICENSE.md",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/glossia/glossia.git",

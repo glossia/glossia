@@ -46,7 +46,7 @@ Glossia はそれらのチェックを `L10N.md` 検証コマンドを通じて�
 
 ## 公開された実装であり、ブラックボックスではありません
 
-Glossia のアプリケーション、CLI、SDK、およびデプロイメントソースは公開されています。コンテンツの処理方法を確認し、[O'Saasy license](https://github.com/glossia/glossia/blob/main/LICENSE.md) 下で実装を変更またはセルフホストできます。ライセンスは競合するホスティングサービスを制限し、制限のないオープンソースライセンスではありません。
+Glossia のアプリケーション、CLI、SDK、インフラのソースは公開されています。コアは [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) に基づき、その条件の下で商用利用、変更、配布、セルフホスティング、競合するホスト型サービスの提供が可能です。`ee/` のコードには別の [Enterprise ライセンス](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) が適用され、本番環境での利用には書面による商用契約が必要です。
 
 より包括的なローカライゼーションスイートは、専門的な翻訳運用および複雑な調整には理にかなっています。優先事項が **独自のトークンとリポジトリチェックによるソフトウェア配信速度の一致** の場合、Glossia はそのワークフローを直接保つように設計されています。
 

@@ -47,7 +47,7 @@ Struktur- und Repository-Prüfungen beweisen nicht, dass jeder Satz korrekt ist.
 
 ## Offentlicher Quellcode und von Repositories gehaltene Ausgaben
 
-Die Implementation von Glossia ist für Inspektion, Änderung und Eigenbetrieb unter [O'Saasy](https://github.com/glossia/glossia/blob/main/LICENSE.md) verfügbar. Diese Lizenz schränkt konkurrierende gehostete Dienste ein und ist keine unbegrenzte Open-Source-Lizenz.
+Glossia folgt einem Open-Core-Modell. Der Kern steht unter [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), die kommerzielle Nutzung, Änderungen, Weitergabe, Self-Hosting und konkurrierende gehostete Dienste gemäß ihren Bedingungen erlaubt. Der Code unter `ee/` ist einsehbar, aber nicht Open Source. Er unterliegt einer separaten [Enterprise-Lizenz](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md); der Produktionseinsatz erfordert eine schriftliche kommerzielle Vereinbarung.
 
 Wichtiger für die tägliche Zustellung bleiben Ihre übersetzten Ausgaben in Git. Sie brauchen keine Bearbeitungs-Sitzung in einem anderen Produkt, einfach nur um die bestehenden Dateien zu veröffentlichen, die Sie besitzen.
 

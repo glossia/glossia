@@ -1,0 +1,47 @@
+# App releases are independent of cli-v* and sdk-v* releases.
+# Like Tuist's server config, link PRs locally instead of querying GitHub per commit.
+[bump]
+initial_tag = "app-v0.1.0"
+
+[changelog]
+header = ""
+body = """
+## What's Changed{% if version %} in {{ version }}{% endif %}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim }}
+{% for commit in commits %}
+* {{ commit.message | split(pat="\n") | first | trim }}
+{%- endfor %}
+{% endfor %}
+{% if version and previous.version %}
+**Full Changelog**: https://github.com/glossia/glossia/compare/{{ previous.version }}...{{ version }}
+{% endif %}
+"""
+trim = true
+postprocessors = [
+  { pattern = '\* (feat|fix|docs?|perf|refactor|style|test|chore|ci|build)(\([^)]*\))?!?:\s*', replace = "* " },
+]
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+commit_preprocessors = [
+  { pattern = '\(#([0-9]+)\)', replace = "([#${1}](https://github.com/glossia/glossia/pull/${1}))" },
+]
+commit_parsers = [
+  { message = "^[a-z]+(\\([^)]*\\))?!:", group = "<!-- 0 -->Breaking Changes" },
+  { body = "BREAKING CHANGE:", group = "<!-- 0 -->Breaking Changes" },
+  { message = "^feat", group = "<!-- 1 -->Features" },
+  { message = "^fix", group = "<!-- 2 -->Bug Fixes" },
+  { message = "^perf", group = "<!-- 3 -->Performance" },
+  { message = "^refactor", group = "<!-- 4 -->Refactors" },
+  { message = "^docs?", group = "<!-- 5 -->Documentation" },
+  { message = "^test", group = "<!-- 6 -->Testing" },
+  { message = "^style", group = "<!-- 7 -->Styling" },
+  { message = "^(chore|ci|build)", skip = true },
+]
+protect_breaking_commits = true
+filter_commits = true
+tag_pattern = "^app-v[0-9]+\\.[0-9]+\\.[0-9]+$"
+sort_commits = "newest"

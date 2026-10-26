@@ -4,8 +4,8 @@ defmodule Glossia.Translations.Prompt do
 
   Prompt construction runs server-side: the CLI sends source content and
   receives translations rather than constructing the prompts itself.
-  The prompt implementation is part of Glossia's source-available code under
-  the O'Saasy License.
+  The prompt implementation is part of Glossia's open-source core under
+  Apache-2.0.
 
   Keep this in sync with the formats understood by the CLI planner. Supported
   formats: `"markdown"`, `"json"`, `"yaml"`, `"po"`, `"text"`.

@@ -66,6 +66,17 @@ defmodule GlossiaWeb.MobileOpenApiSpecTest do
     assert schemas["LinguisticReviewRequest"]["required"] == ["answer", "resolution_message_id"]
     assert schemas["LinguisticReview"]["properties"]["resumed_session_id"]["format"] == "uuid"
 
+    assert [approver, %{"type" => "null"}] =
+             schemas["LinguisticReview"]["properties"]["answered_by"]["anyOf"]
+
+    assert approver["type"] == "object"
+    assert Enum.sort(approver["required"]) == ~w(id name)
+
+    assert approver["properties"] == %{
+             "id" => %{"type" => "string", "format" => "uuid"},
+             "name" => %{"type" => ["string", "null"]}
+           }
+
     for {path, methods} <- [
           {"/api/me/push-devices/capabilities", ["get"]},
           {"/api/me/push-devices/{installation_id}", ["put", "delete"]}

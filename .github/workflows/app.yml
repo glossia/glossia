@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "app/**"
+      - "ee/**"
       # Translation checkpoints are content and lockfile updates. Building and
       # deploying the application for each one restarts the model gateway while
       # the same translation session is still using it.
@@ -16,11 +17,16 @@ on:
       - "mise.toml"
       - ".github/workflows/app.yml"
       - ".github/workflows/deploy.yml"
+      - "sdk/web/**"
+      - "LICENSE.md"
+      - "LICENSE-APACHE"
+      - ".github/scripts/*app*.sh"
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "app/**"
+      - "ee/**"
       - "!app/priv/i18n/**"
       - "!app/priv/gettext/*/LC_MESSAGES/**"
       - "cli/**"
@@ -28,6 +34,10 @@ on:
       - "mise.toml"
       - ".github/workflows/app.yml"
       - ".github/workflows/deploy.yml"
+      - "sdk/web/**"
+      - "LICENSE.md"
+      - "LICENSE-APACHE"
+      - ".github/scripts/*app*.sh"
 
 permissions:
   contents: read
@@ -44,7 +54,12 @@ env:
 jobs:
   build:
     if: github.event.pull_request.draft != true
-    name: Build
+    name: ${{ matrix.edition == 'core' && 'Build' || 'Build (enterprise)' }}
+    strategy:
+      matrix:
+        edition: [core, enterprise]
+    env:
+      GLOSSIA_EDITION: ${{ matrix.edition }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -77,7 +92,10 @@ jobs:
 
   test:
     if: github.event.pull_request.draft != true
-    name: Test
+    name: ${{ matrix.edition == 'core' && 'Test' || 'Test (enterprise)' }}
+    strategy:
+      matrix:
+        edition: [core, enterprise]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
@@ -102,6 +120,7 @@ jobs:
           - 8123:8123
     env:
       MIX_ENV: test
+      GLOSSIA_EDITION: ${{ matrix.edition }}
     defaults:
       run:
         working-directory: app

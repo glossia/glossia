@@ -1,6 +1,9 @@
 msgid ""
 msgstr "Language: es\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "are still associated with this entry"
+msgstr "Todavía están asociados con esta entrada"
+
 ## This is a PO Template file.
 ##
 ## `msgid`s here are often extracted from source code.
@@ -14,40 +17,83 @@ msgstr "Language: es\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8
 msgid "can't be blank"
 msgstr "no puede estar vacío"
 
+## From Ecto.Changeset.validate_confirmation/3
+msgid "does not match confirmation"
+msgstr "no coincide con la confirmación"
+
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
 msgstr "ya ha sido tomado"
-
-## From Ecto.Changeset.put_change/3
-msgid "is invalid"
-msgstr "es inválido"
-
-## From Ecto.Changeset.validate_acceptance/3
-msgid "must be accepted"
-msgstr "debe ser aceptado"
-
-## From Ecto.Changeset.validate_format/3
-msgid "has invalid format"
-msgstr "tiene un formato inválido"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
 msgstr "tiene una entrada inválida"
 
+## From Ecto.Changeset.validate_format/3
+msgid "has invalid format"
+msgstr "tiene un formato inválido"
+
+## From Ecto.Changeset.put_change/3
+msgid "is invalid"
+msgstr "es inválido"
+
 ## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
 msgstr "está reservado"
-
-## From Ecto.Changeset.validate_confirmation/3
-msgid "does not match confirmation"
-msgstr "no coincide con la confirmación"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
 msgstr "Todavía está asociado con esta entrada"
 
-msgid "are still associated with this entry"
-msgstr "Todavía están asociados con esta entrada"
+## From Ecto.Changeset.validate_acceptance/3
+msgid "must be accepted"
+msgstr "debe ser aceptado"
+
+msgid "must be equal to %{number}"
+msgstr "debe ser igual a %{number}"
+
+msgid "must be greater than %{number}"
+msgstr "Debe ser mayor que %{number}"
+
+msgid "must be greater than or equal to %{number}"
+msgstr "Debe ser mayor o igual que %{number}"
+
+## From Ecto.Changeset.validate_number/3
+msgid "must be less than %{number}"
+msgstr "Debe ser menor que %{number}"
+
+msgid "must be less than or equal to %{number}"
+msgstr "Debe ser menor o igual que %{number}"
+
+msgid "should be %{count} byte(s)"
+msgid_plural "should be %{count} byte(s)"
+msgstr[0] "Debe ser de %{count} byte(s)"
+msgstr[1] "Debe ser de %{count} byte(s)"
+
+msgid "should be %{count} character(s)"
+msgid_plural "should be %{count} character(s)"
+msgstr[0] "Debe ser de %{count} carácter(es)"
+msgstr[1] "Debe ser de %{count} carácter(es)"
+
+msgid "should be at least %{count} byte(s)"
+msgid_plural "should be at least %{count} byte(s)"
+msgstr[0] "debe tener al menos %{count} byte(s)"
+msgstr[1] "debe tener al menos %{count} byte(s)"
+
+msgid "should be at least %{count} character(s)"
+msgid_plural "should be at least %{count} character(s)"
+msgstr[0] "debe tener al menos %{count} carácter(s)"
+msgstr[1] "debe tener al menos %{count} carácter(s)"
+
+msgid "should be at most %{count} byte(s)"
+msgid_plural "should be at most %{count} byte(s)"
+msgstr[0] "Debe tener un máximo de %{count} bytes"
+msgstr[1] "Debe tener un máximo de %{count} bytes"
+
+msgid "should be at most %{count} character(s)"
+msgid_plural "should be at most %{count} character(s)"
+msgstr[0] "Debe tener un máximo de %{count} carácter(es)"
+msgstr[1] "Debe tener un máximo de %{count} carácter(es)"
 
 ## From Ecto.Changeset.validate_length/3
 msgid "should have %{count} item(s)"
@@ -55,58 +101,12 @@ msgid_plural "should have %{count} item(s)"
 msgstr[0] "Debe tener %{count} elemento(s)"
 msgstr[1] "Debe tener %{count} elemento(s)"
 
-msgid "should be %{count} character(s)"
-msgid_plural "should be %{count} character(s)"
-msgstr[0] "Debe ser de %{count} carácter(es)"
-msgstr[1] "Debe ser de %{count} carácter(es)"
-
-msgid "should be %{count} byte(s)"
-msgid_plural "should be %{count} byte(s)"
-msgstr[0] "Debe ser de %{count} byte(s)"
-msgstr[1] "Debe ser de %{count} byte(s)"
-
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
 msgstr[0] "debe tener al menos %{count} elemento(s)"
 msgstr[1] "debe tener al menos %{count} elemento(s)"
 
-msgid "should be at least %{count} character(s)"
-msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "debe tener al menos %{count} carácter(s)"
-msgstr[1] "debe tener al menos %{count} carácter(s)"
-
-msgid "should be at least %{count} byte(s)"
-msgid_plural "should be at least %{count} byte(s)"
-msgstr[0] "debe tener al menos %{count} byte(s)"
-msgstr[1] "debe tener al menos %{count} byte(s)"
-
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
 msgstr[0] "debe tener como máximo %{count} elemento(s)"
 msgstr[1] "debe tener como máximo %{count} elemento(s)"
-
-msgid "should be at most %{count} character(s)"
-msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "Debe tener un máximo de %{count} carácter(es)"
-msgstr[1] "Debe tener un máximo de %{count} carácter(es)"
-
-msgid "should be at most %{count} byte(s)"
-msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "Debe tener un máximo de %{count} bytes"
-msgstr[1] "Debe tener un máximo de %{count} bytes"
-
-## From Ecto.Changeset.validate_number/3
-msgid "must be less than %{number}"
-msgstr "Debe ser menor que %{number}"
-
-msgid "must be greater than %{number}"
-msgstr "Debe ser mayor que %{number}"
-
-msgid "must be less than or equal to %{number}"
-msgstr "Debe ser menor o igual que %{number}"
-
-msgid "must be greater than or equal to %{number}"
-msgstr "Debe ser mayor o igual que %{number}"
-
-msgid "must be equal to %{number}"
-msgstr "debe ser igual a %{number}"

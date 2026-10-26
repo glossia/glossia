@@ -6,7 +6,7 @@
 import { build } from "esbuild";
 import { copyFileSync, rmSync } from "node:fs";
 
-copyFileSync(new URL("../../LICENSE.md", import.meta.url), new URL("./LICENSE.md", import.meta.url));
+copyFileSync(new URL("../../LICENSE-APACHE", import.meta.url), new URL("./LICENSE.md", import.meta.url));
 
 rmSync("dist", { recursive: true, force: true });
 
@@ -17,7 +17,7 @@ const base = {
   sourcemap: false,
   legalComments: "none",
   banner: {
-    js: "/*! @glossia/web | O'Saasy License | Source: https://github.com/glossia/glossia/tree/main/sdk/web */",
+    js: "/*! @glossia/web | Copyright 2026 Pedro Piñera Buendía | Apache-2.0 | Source: https://github.com/glossia/glossia/tree/main/sdk/web */",
   },
 };
 

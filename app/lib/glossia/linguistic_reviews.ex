@@ -30,7 +30,7 @@ defmodule Glossia.LinguisticReviews do
          from r in Review,
            where: r.translation_session_id == ^session_id,
            order_by: [asc: fragment("? != 'open'", r.status), asc: r.inserted_at, asc: r.id],
-           preload: [:conversation, :participants],
+           preload: [:conversation, :participants, :answered_by],
            limit: 500
        )}
     else
@@ -92,7 +92,7 @@ defmodule Glossia.LinguisticReviews do
   end
 
   def serialize(review) do
-    review = Repo.preload(review, [:conversation, :participants])
+    review = Repo.preload(review, [:conversation, :participants, :answered_by])
 
     review
     |> Map.take(~w(id translation_session_id status source_path output_path locale question
@@ -100,6 +100,7 @@ defmodule Glossia.LinguisticReviews do
       resolution_message_id inserted_at)a)
     |> Map.put(:conversation_id, review.conversation && review.conversation.id)
     |> Map.put(:participants, Enum.map(review.participants, &Map.take(&1, [:id, :name])))
+    |> Map.put(:answered_by, review.answered_by && Map.take(review.answered_by, [:id, :name]))
   end
 
   def answer(user, project, session_id, review_id, attrs, opts \\ []) do

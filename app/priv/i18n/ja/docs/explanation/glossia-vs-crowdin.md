@@ -54,7 +54,7 @@ validation:
 
 Glossia のプランの動作方法、認証情報の処理、Markdown の保持、および結果の検証手法を調査できます。言語サービスが利用できなくても、既存の翻訳ファイルはリポジトリのパイプラインを通じて公開可能です。
 
-Glossia は[O'Saasy license](https://github.com/glossia/glossia/blob/main/LICENSE.md) 元でソース利用可能であり、セルフホスティングを許可しますが、競合するホスティングサービスは制限されています。これは制限のないオープンソースライセンスではありません。
+Glossia はオープンコアモデルを採用しています。コアは [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) に基づき、その条件の下で商用利用、変更、配布、セルフホスティング、競合するホスト型サービスの提供が可能です。`ee/` のコードは閲覧できますが、オープンソースではありません。別の [Enterprise ライセンス](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) が適用され、本番環境での利用には書面による商用契約が必要です。
 
 Crowdin は、コントリビュータの協働と専用翻訳エディターにフォーカスするプログラムにも依然として適切です。**Git 所有コンテンツ、既存の検証、デリバリに追従するローカライズ** を優先するソフトウェアチームの場合、Glossia はそのタスクのために設計されています。
 

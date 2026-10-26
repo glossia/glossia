@@ -1,4 +1,11 @@
-defmodule Glossia.Ingestion.Event do
+defmodule GlossiaEnterprise.Audit.Event do
+  @moduledoc """
+  ClickHouse row schema for enterprise audit events.
+
+  This schema preserves the existing audit storage format. Domain-event
+  emission and product analytics remain part of the Apache-2.0 core.
+  """
+
   use Ecto.Schema
   use Glossia.Ingestion.Bufferable
 

@@ -33,10 +33,10 @@ msgstr "상위 페이지"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
-msgid "Where to translate next"
-msgstr "다음 번역"
+msgid "Traffic"
+msgstr "트래픽"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
-msgid "Traffic"
-msgstr "트래픽"
+msgid "Where to translate next"
+msgstr "다음 번역"

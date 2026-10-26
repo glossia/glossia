@@ -2,7 +2,7 @@
 name = "glossia"
 version = "0.0.0"
 edition = "2021"
-license-file = "../LICENSE.md"
+license = "Apache-2.0"
 default-run = "glossia"
 
 [[bin]]

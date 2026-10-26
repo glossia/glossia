@@ -2021,6 +2021,141 @@ class GlossiaAndroidTest {
         assertFalse(model.canSaveDecision); assertTrue(model.protectsDecision)
     }
 
+    @Test fun goalProposalReplacesOnlyItsReplyAndContextualChipsNeverSendOrOverwrite() {
+        val controller = Robolectric.buildActivity(RenderActivity::class.java).setup(); val activity = controller.get()
+        val thread = ConversationModel(goalChatId, true).apply {
+            accept(goalConversation()); goal!!.put("locale", "ja").put("question", "敬語を使いますか？")
+        }
+        val model = TokiModel().apply { threads[goalChatId] = thread; activeId = goalChatId }
+        var writes = 0
+        var source: String? = null
+        val view = TokiView(activity, model, { thread.draft = it }, { writes += 1 }, {}, {}, {}, source = { source = it }).apply { render(true) }
+        activity.setContentView(view)
+        fun labels() = descendants(view).filterIsInstance<TextView>().map { it.text.toString() }
+        assertEquals(1, labels().count { it == "Use informal tú." })
+        assertEquals(1, labels().count { it == "Proposed decision" })
+        assertFalse(labels().contains("Resolve goal")); assertFalse(labels().contains("SOURCE TRANSLATION"))
+        val contextButton = descendants(view).filterIsInstance<MaterialButton>().single { it.text == "Source and translation context" }
+        assertEquals("Collapsed", ViewCompat.getStateDescription(contextButton))
+        contextButton.performClick(); view.render(true)
+        assertEquals("Expanded", ViewCompat.getStateDescription(descendants(view).filterIsInstance<MaterialButton>().single { it.text == "Source and translation context" }))
+        descendants(view).filterIsInstance<MaterialButton>().single { it.text == "View source translation" }.performClick()
+        assertEquals(translationId, source)
+        val compare = descendants(view).filterIsInstance<com.google.android.material.chip.Chip>().single { it.text == "Compare examples" }
+        compare.performClick()
+        assertEquals("Compare examples for this goal (\u2068ja\u2069): \u2068敬語を使いますか？\u2069", thread.draft)
+        assertEquals(thread.draft, findInput(view)!!.text.toString()); assertEquals(0, writes); assertNull(thread.pending)
+        thread.draft = "Private unsent work"; compare.performClick()
+        assertEquals("Private unsent work", thread.draft)
+        assertFalse(thread.stageGoalPrompt("Must not replace"))
+        thread.draft = ""; view.render(true)
+        descendants(view).filterIsInstance<com.google.android.material.chip.Chip>().single { it.text == "Check support tone" }.performClick()
+        assertTrue(thread.draft.startsWith("Check the support tone for this goal (\u2068ja\u2069)")); assertEquals(0, writes)
+        thread.draft = ""; thread.beginResolution()
+        assertEquals(goalReplyId, thread.proposalReplyId)
+        thread.messages.put(JSONObject().put("id", "new-human").put("role", "user").put("content", "Another participant's new question"))
+            .put(JSONObject().put("id", reviewId).put("role", "assistant").put("reply_to_id", "new-human").put("status", "completed").put("content", "A genuinely newer answer"))
+        view.render(true)
+        assertEquals(goalReplyId, thread.proposalReplyId); assertFalse(thread.canSaveDecision)
+        assertEquals(1, labels().count { it == "Proposed decision" }); assertEquals(1, labels().count { it == "A genuinely newer answer" })
+        val oldProposal = descendants(view).filterIsInstance<MaterialCardView>().single { card -> descendants(card).filterIsInstance<TextView>().any { it.text == "Proposed decision" } }
+        assertTrue(descendants(oldProposal).filterIsInstance<TextView>().any { it.text.toString() == "Use informal tú." })
+        assertFalse(descendants(oldProposal).filterIsInstance<TextView>().any { it.text.toString() == "A genuinely newer answer" })
+        thread.messages.remove(2); view.render(true)
+        assertFalse(labels().contains("Proposed decision")); assertTrue(labels().contains("Continue reviewing"))
+        assertEquals("Use informal tú.", thread.decision!!.answer); assertEquals(0, writes)
+        controller.pause().stop().destroy()
+    }
+
+    @Test fun materialDecisionSheetNativeExitsRetainFrozenDraftAndOnlyExplicitDiscardConfirms() {
+        val controller = Robolectric.buildActivity(RenderActivity::class.java).setup(); val activity = controller.get()
+        val thread = ConversationModel(goalChatId, true).apply { accept(goalConversation()) }
+        val model = TokiModel().apply { threads[goalChatId] = thread; activeId = goalChatId }
+        var writes = 0
+        val view = TokiView(activity, model, { thread.draft = it }, { writes += 1 }, {}, {}, {}, saveDecision = { writes += 1 }).apply { render(true) }
+        activity.setContentView(view)
+        fun button(root: View, title: String) = descendants(root).filterIsInstance<MaterialButton>().single { it.text == title }
+        button(view, "Review decision").performClick()
+        val frozen = thread.decision!!
+        fun sheet() = ShadowDialog.getLatestDialog() as TokiDecisionSheet
+        var modal = sheet().window!!.decorView
+        assertNull(view.findViewWithTag<TextInputEditText>("goal-decision"))
+        val answer = modal.findViewWithTag<TextInputEditText>("goal-decision")!!
+        assertFalse(answer.isSaveEnabled); assertEquals(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS, answer.importantForAutofill)
+        assertEquals(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE, (answer.parent.parent as com.google.android.material.textfield.TextInputLayout).boxBackgroundMode)
+        assertTrue(answer.background is com.google.android.material.shape.MaterialShapeDrawable)
+        answer.setText("Reviewed answer")
+        descendants(modal).filterIsInstance<com.google.android.material.materialswitch.MaterialSwitch>().single().performClick()
+        modal.findViewWithTag<TextInputEditText>("goal-guidance")!!.setText("Independent reusable guidance")
+        descendants(modal).filterIsInstance<com.google.android.material.chip.Chip>().single { it.text == "Whole project" }.performClick()
+        assertTrue(thread.canSaveDecision)
+        for (exit in listOf("close", "back", "outside", "swipe")) {
+            val current = sheet()
+            current.window!!.decorView.apply {
+                measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(2340, View.MeasureSpec.EXACTLY))
+                layout(0, 0, 1080, 2340)
+            }
+            advanceFrames(32)
+            when (exit) {
+                "close" -> button(current.window!!.decorView, "Close").performClick()
+                "back" -> @Suppress("DEPRECATION") current.onBackPressed()
+                "outside" -> current.findViewById<View>(com.google.android.material.R.id.touch_outside)!!.performClick()
+                else -> current.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HIDDEN
+            }
+            advanceFrames(500)
+            assertFalse("$exit should dismiss the modal", current.isShowing)
+            assertSame(frozen, thread.decision); assertEquals(goalReplyId, thread.resolutionMessageId)
+            assertEquals("Reviewed answer", frozen.answer); assertEquals("Independent reusable guidance", frozen.guidance); assertEquals("project", frozen.scope)
+            assertEquals(0, writes)
+            button(view, "Continue reviewing").performClick()
+            assertTrue(sheet().isShowing)
+        }
+        modal = sheet().window!!.decorView
+        thread.resolutionNeedsRefresh = true; view.render(true)
+        assertFalse(button(modal, "Save decision and resume").isEnabled)
+        thread.resolutionNeedsRefresh = false; view.render(true)
+        button(modal, "Discard decision draft").performClick()
+        val keep = ShadowDialog.getLatestDialog() as androidx.appcompat.app.AlertDialog
+        keep.getButton(android.content.DialogInterface.BUTTON_NEGATIVE).performClick()
+        advanceFrames(32)
+        assertSame(frozen, thread.decision); assertTrue(thread.canSaveDecision)
+        button(modal, "Discard decision draft").performClick()
+        val discard = ShadowDialog.getLatestDialog() as androidx.appcompat.app.AlertDialog
+        assertNotSame(keep, discard)
+        discard.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick()
+        advanceFrames(32)
+        assertNull(thread.decision); assertNull(thread.resolutionMessageId); assertEquals(0, writes)
+        controller.pause().stop().destroy()
+    }
+
+    @Test fun resolvedGoalUsesAuthoritativeAnswerOptionalApproverAndRealResumedLinkAfterHistory() {
+        val controller = Robolectric.buildActivity(RenderActivity::class.java).setup(); val activity = controller.get()
+        val thread = ConversationModel(goalChatId, true).apply {
+            accept(goalConversation("answered"))
+            goal!!.put("answer", "Human approved wording").put("guidance", "Independent rule").put("resolution_message_id", goalReplyId)
+                .put("resumed_session_id", reviewId).put("answered_by", JSONObject().put("id", "alex").put("name", "Alex שלום"))
+        }
+        val model = TokiModel().apply { threads[goalChatId] = thread; activeId = goalChatId }
+        var opened: String? = null
+        val view = TokiView(activity, model, { thread.draft = it }, {}, {}, {}, {}, source = { opened = it }).apply { render(true) }
+        activity.setContentView(view)
+        fun labels() = descendants(view).filterIsInstance<TextView>().map { it.text.toString() }
+        assertTrue(labels().indexOf("Human approved wording") > labels().indexOf("Our onboarding should feel friendly."))
+        assertTrue(labels().contains("Approved by \u2068Alex שלום\u2069")); assertFalse(labels().contains("Use informal tú."))
+        assertTrue(labels().contains("Guidance proposed for PR review")); assertNull(findInput(view))
+        assertFalse(labels().contains("Review decision")); assertTrue(descendants(view).filterIsInstance<LinearProgressIndicator>().isEmpty())
+        descendants(view).filterIsInstance<MaterialButton>().single { it.text == "View resumed translation" }.performClick()
+        assertEquals(reviewId, opened)
+        for (metadata in listOf(JSONObject.NULL, JSONObject(), JSONObject().put("id", "unknown"))) {
+            thread.goal!!.put("answered_by", metadata).remove("resumed_session_id"); view.render(true)
+            assertFalse(labels().any { it.startsWith("Approved by") }); assertFalse(labels().contains("View resumed translation"))
+            assertTrue(labels().contains("Refresh to check for the resumed translation."))
+        }
+        thread.goal!!.remove("answered_by"); view.render(true)
+        assertFalse(labels().any { it.startsWith("Approved by") })
+        controller.pause().stop().destroy()
+    }
+
     @Test fun idleSharedGoalPollsTeammatesAndPreservesFrozenProposalAndEditor() {
         var response = goalConversation()
         val (session, _) = session { request -> if (request.optString("operation") == "conversation") response else null }
@@ -2036,17 +2171,23 @@ class GlossiaAndroidTest {
         thread.beginResolution(); thread.decision!!.apply { answer = "Reviewed decision"; reusable = true; guidance = "Independent rule" }
         val controller = Robolectric.buildActivity(RenderActivity::class.java).setup(); val activity = controller.get()
         val view = TokiView(activity, session.toki, {}, {}, {}, {}, {}).apply { render(true) }
-        val editor = view.findViewWithTag<TextInputEditText>("goal-decision")!!
+        activity.setContentView(view)
+        val sheet = ShadowDialog.getLatestDialog() as TokiDecisionSheet
+        val modal = sheet.window!!.decorView
+        val editor = modal.findViewWithTag<TextInputEditText>("goal-decision")!!
         editor.requestFocus(); editor.setSelection(3)
         response = goalConversation().apply { getJSONArray("messages").getJSONObject(2).put("id", reviewId) }
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2600)); pump { !thread.busy && thread.completedReply?.optString("id") == reviewId }
         view.render(true)
-        assertSame(editor, view.findViewWithTag<TextInputEditText>("goal-decision")); assertEquals(3, editor.selectionStart)
+        assertSame(sheet, ShadowDialog.getLatestDialog()); assertTrue(sheet.isShowing)
+        assertSame(editor, modal.findViewWithTag<TextInputEditText>("goal-decision")); assertEquals(3, editor.selectionStart)
+        assertEquals(goalReplyId, thread.resolutionMessageId)
         assertEquals("Reviewed decision", thread.decision!!.answer); assertFalse(thread.canSaveDecision)
         response = goalConversation("answered")
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2600)); pump { thread.goalClosed && !thread.busy }
         view.render(true)
-        assertSame(editor, view.findViewWithTag<TextInputEditText>("goal-decision")); assertEquals("Independent rule", thread.decision!!.guidance)
+        assertSame(editor, modal.findViewWithTag<TextInputEditText>("goal-decision")); assertEquals(3, editor.selectionStart)
+        assertEquals("Independent rule", thread.decision!!.guidance)
         assertTrue(thread.protectsDecision); assertFalse(thread.canSaveDecision); assertNotNull(thread.resolutionError)
         controller.pause().stop().destroy()
         val ordinary = ConversationModel(reviewId, true).apply { accept(conversation(reviewId, "completed")) }
@@ -2054,8 +2195,8 @@ class GlossiaAndroidTest {
     }
 
     @Test fun sharedGoalsRenderMirroredArabicHebrewAndLargeTextWithRealViews() {
-        for (language in listOf("ar", "he")) for (large in listOf(false, true)) {
-            RuntimeEnvironment.setQualifiers("$language-r${if (language == "ar") "EG" else "IL"}-ldrtl-w411dp-h891dp-420dpi")
+        for (language in listOf("ar", "he")) for (large in listOf(false, true)) for (night in listOf(false, true)) {
+            RuntimeEnvironment.setQualifiers("$language-r${if (language == "ar") "EG" else "IL"}-ldrtl-w411dp-h891dp-${if (night) "night" else "notnight"}-420dpi")
             RuntimeEnvironment.setFontScale(if (large) 1.6f else 1f)
             val controller = Robolectric.buildActivity(RenderActivity::class.java).setup()
             val activity = controller.get()
@@ -2080,8 +2221,42 @@ class GlossiaAndroidTest {
             assertTrue(position(attach) > position(mic)); assertTrue(position(mic) > position(send))
             assertTrue(send.width >= activity.dp(48)); assertTrue(mic.isEnabled)
             assertEquals("مرحبا L10N/ar.md שלום", findInput(view)!!.text.toString())
-            val bitmap = Bitmap.createBitmap(1080, 2340, Bitmap.Config.ARGB_8888); view.draw(Canvas(bitmap))
-            File(artifacts, "android-goal-$language${if (large) "-large" else ""}.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
+            fun capture(phase: String, modal: View? = null) {
+                view.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(2340, View.MeasureSpec.EXACTLY)); view.layout(0, 0, 1080, 2340)
+                modal?.apply {
+                    measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(2340, View.MeasureSpec.EXACTLY)); layout(0, 0, 1080, 2340)
+                }
+                advanceFrames(400)
+                val bitmap = Bitmap.createBitmap(1080, 2340, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bitmap); view.draw(canvas)
+                if (modal != null) { canvas.drawColor(Color.argb(80, 0, 0, 0)); modal.draw(canvas) }
+                File(artifacts, "android-goal-$language${if (large) "-large" else ""}-$phase-${if (night) "dark" else "light"}.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
+            }
+            capture("context")
+            descendants(view).filterIsInstance<MaterialButton>().single { it.text == "Source and translation context" }.performClick()
+            thread.draft = ""
+            thread.messages.getJSONObject(0).put("content", thread.goal!!.optString("question"))
+            thread.messages.getJSONObject(1).put("author", "Alex").put("content", if (language == "ar") "لنجعل الترحيب ودودًا." else "נבחר קבלת פנים ידידותית.")
+            thread.messages.getJSONObject(2).put("content", if (language == "ar") "استخدم أسلوبًا ودودًا ومباشرًا في الترحيب." else "נשתמש בסגנון ידידותי וישיר בקבלת הפנים.")
+            view.render(true); capture("proposal")
+            thread.beginResolution(); thread.decision!!.apply { reusable = true; guidance = if (language == "ar") "حافظ على لغة الدعم واضحة ومحايدة." else "שמרו על שפת תמיכה ברורה וניטרלית." }
+            view.render(true)
+            val sheet = ShadowDialog.getLatestDialog() as TokiDecisionSheet
+            val modal = sheet.window!!.decorView
+            capture("review-collapsed", modal)
+            sheet.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+            capture("review", modal)
+            val answer = modal.findViewWithTag<TextInputEditText>("goal-decision")!!
+            answer.requestFocus(); answer.setSelection(3); view.render(true)
+            assertSame(answer, modal.findViewWithTag<TextInputEditText>("goal-decision")); assertEquals(3, answer.selectionStart)
+            descendants(modal).filterIsInstance<androidx.core.widget.NestedScrollView>().single().fullScroll(View.FOCUS_DOWN)
+            capture("review-actions", modal)
+            sheet.cancel(); thread.discardDecision()
+            thread.goal!!.put("status", "answered").put("answer", answer.text.toString()).put("answered_by", JSONObject().put("id", "alex").put("name", "Alex שלום"))
+                .put("guidance", if (language == "ar") "حافظ على لغة الدعم واضحة ومحايدة." else "שמרו על שפת תמיכה ברורה וניטרלית.")
+                .put("resolution_message_id", goalReplyId).put("resumed_session_id", reviewId)
+            view.render(true); capture("resolved")
+            assertNull(findInput(view))
             controller.pause().stop().destroy()
         }
         RuntimeEnvironment.setFontScale(1f)
@@ -2136,7 +2311,18 @@ class GlossiaAndroidTest {
                 root.layout(0, 0, 1080, 2340)
                 shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(32))
                 val bitmap = Bitmap.createBitmap(1080, 2340, Bitmap.Config.ARGB_8888)
-                root.draw(Canvas(bitmap))
+                val canvas = Canvas(bitmap)
+                root.draw(canvas)
+                // A real modal has its own window, not children of TokiView.
+                // Include that hierarchy in rendering fixtures and assertions.
+                (ShadowDialog.getLatestDialog() as? TokiDecisionSheet)?.takeIf { it.isShowing }?.let { sheet ->
+                    val modal = sheet.window!!.decorView
+                    modal.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(2340, View.MeasureSpec.EXACTLY))
+                    modal.layout(0, 0, 1080, 2340)
+                    sheet.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+                    shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(400))
+                    canvas.drawColor(Color.argb(80, 0, 0, 0)); modal.draw(canvas)
+                }
                 File(artifacts, "android-$prefix$name-${if (night) "dark" else "light"}.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
                 bitmap.recycle()
             }
@@ -2261,6 +2447,7 @@ class GlossiaAndroidTest {
                         .put(messages.getJSONObject(1).put("author", "Alex")).put(messages.getJSONObject(2))
                     goal!!.put("participants", JSONArray().put(JSONObject().put("id", "alex").put("name", "Alex")).put(JSONObject().put("id", "sam").put("name", "Sam")))
                     if (state == "resolved") goal!!.put("answer", "Use informal tú.").put("guidance", "Use informal Spanish in onboarding.").put("context_path", "L10N/es.md").put("resumed_session_id", goalReplyId)
+                        .put("resolution_message_id", goalReplyId).put("answered_by", JSONObject().put("id", "alex").put("name", "Alex"))
                     if (state in listOf("editing", "error", "permission", "closed-draft")) {
                         beginResolution(); decision!!.reusable = true; decision!!.guidance = "Use informal Spanish in onboarding."
                         if (state == "closed-draft") accept(goalConversation("answered"))
@@ -2287,14 +2474,14 @@ class GlossiaAndroidTest {
                     assertEquals(goalReplyId, resumed)
                 }
                 if (state == "editing") {
-                    val scopes = descendants(goalView).filterIsInstance<com.google.android.material.chip.Chip>()
+                    val scopes = descendants((ShadowDialog.getLatestDialog() as TokiDecisionSheet).window!!.decorView).filterIsInstance<com.google.android.material.chip.Chip>()
                     assertEquals("This locale", scopes.single { it.isChecked }.text.toString())
                     assertTrue(scopes.single { it.isChecked }.isCheckedIconVisible)
                     scopes.single { it.text == "Whole project" }.performClick()
                     assertEquals("project", thread.decision!!.scope)
                     assertEquals("Whole project", scopes.single { it.isChecked }.text.toString())
                 }
-                if (state in listOf("error", "permission", "closed-draft")) assertFalse(descendants(goalView).filterIsInstance<MaterialButton>().single { it.text == "Save decision and resume" }.isEnabled)
+                if (state in listOf("error", "permission", "closed-draft")) assertFalse(descendants((ShadowDialog.getLatestDialog() as TokiDecisionSheet).window!!.decorView).filterIsInstance<MaterialButton>().single { it.text == "Save decision and resume" }.isEnabled)
                 if (state == "active") {
                     voice.start(); repeat(24) { capture.level!!((it % 9).toFloat()) }
                     goalView.refreshVoice(); show("goal-dictation-measured-fixture", goalView, R.id.toki, thread)

@@ -45,14 +45,29 @@ defmodule Glossia.ContentLocalesTest do
     end
   end
 
-  test "current legal pages use O'Saasy in every locale" do
+  test "current legal pages describe open-core licensing in every locale" do
     for locale <- I18n.locales(), document <- ~w(terms privacy cookies) do
       version = Legal.latest_version!(document, locale)
 
-      assert version.date == ~D[2026-10-12]
-      # The license name is invariant, but "License" itself is translated.
-      assert version.body =~ "O'Saasy"
-      refute version.body =~ "MPL-2.0"
+      assert version.date == ~D[2026-10-24]
+      # New legal versions fall back to English until translated.
+      assert version.body =~ "Apache-2.0"
+      assert version.body =~ "Glossia Enterprise License"
+      refute version.body =~ "O'Saasy"
+    end
+  end
+
+  test "licensing explanations describe the open-core boundary in every locale" do
+    slugs =
+      ~w(content-ownership why-glossia glossia-vs-crowdin glossia-vs-lokalise glossia-vs-phrase glossia-vs-weblate)
+
+    for locale <- I18n.locales(), slug <- slugs do
+      pages = Docs.all_pages(locale) ++ Docs.markdown_only_pages(locale)
+      page = Enum.find(pages, &(&1.category == "explanation" and &1.slug == slug))
+      assert page, "missing licensing explanation: #{locale}/#{slug}"
+      assert page.body =~ "Apache-2.0"
+      assert page.body =~ "ee/"
+      refute page.body =~ "O'Saasy"
     end
   end
 
@@ -61,6 +76,13 @@ defmodule Glossia.ContentLocalesTest do
 
     assert version.body =~ "O'Saasy License"
     assert version.body =~ "may not use it to offer"
+  end
+
+  test "the previous legal version remains unchanged" do
+    for locale <- I18n.locales(), document <- ~w(terms privacy cookies) do
+      version = Legal.get_version!(document, "2026-10-12", locale)
+      assert version.body =~ "O'Saasy"
+    end
   end
 
   test "an unknown changelog locale falls back to English" do

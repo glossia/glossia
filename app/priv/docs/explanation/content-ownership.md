@@ -25,7 +25,7 @@ That does not make segment-based translation memories obsolete. Teams may have v
 
 Being able to inspect and modify the implementation helps teams understand how their content is processed. It does not mean every operational dependency disappears. A deployed Glossia instance still needs databases, model-provider access for relevant workflows, credentials, and infrastructure. Dashboard-managed language context also needs an explicit migration plan if a team changes systems.
 
-The current O'Saasy license restricts competing hosted services. Public source availability is not the same as an unrestricted open-source license or an assurance that a replacement service can be operated under any business model. See the repository's [license](https://github.com/glossia/glossia/blob/main/LICENSE.md).
+Glossia's core is open source under Apache-2.0, which permits self-hosting and competing hosted services under its terms. Enterprise code under `ee/` is source-available under a separate license and requires a written commercial agreement for production use. Check the repository's [licensing notice](https://github.com/glossia/glossia/blob/main/LICENSE.md) when planning a replacement deployment.
 
 ## A useful portability test
 
