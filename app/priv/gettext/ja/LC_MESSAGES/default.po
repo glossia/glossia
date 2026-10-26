@@ -267,6 +267,11 @@ msgstr "操作"
 msgid "Activity"
 msgstr "活動"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Adapt the tone"
+msgstr ""
+
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format
 msgid "Add a DNS TXT record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
@@ -737,6 +742,16 @@ msgstr "キャッシュ済み入力"
 msgid "Cached input tokens"
 msgstr "キャッシュ済み入力トークン"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Can you help me find the right term for this context?\n\n"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Can you help me review this translation?\n\n"
+msgstr ""
+
 #: lib/glossia_web/components/dashboard_components.ex
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
@@ -1102,6 +1117,11 @@ msgstr "継続ローカライゼーション"
 #, elixir-autogen, elixir-format
 msgid "Conversation history"
 msgstr "会話履歴"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Conversation starters"
+msgstr "会話"
 
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
@@ -1855,6 +1875,11 @@ msgstr "翻訳が開始され次第、ファイルがここに表示されます
 msgid "Filter"
 msgstr "フィルター"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Find the right term"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Finish setting up Glossia"
@@ -2150,6 +2175,11 @@ msgstr "高優先度"
 #, elixir-autogen, elixir-format
 msgid "Homepage URL"
 msgstr "ホームページ URL"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "How can I make this translation sound more natural?\n\n"
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3185,6 +3215,11 @@ msgstr "話し言葉に関する唯一の情報源"
 msgid "Only provider-reported counts are shown. Historical translations, local Pi sessions, and decision evaluations are not included."
 msgstr "プロバイダーの報告数のみが表示されます。履歴翻訳、ローカル Pi セッション、および決定評価は含まれません"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Only you and Toki can see this conversation"
+msgstr ""
+
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3840,6 +3875,11 @@ msgstr "再利用可能な L10N ガイド（任意）"
 msgid "Reusable guidance"
 msgstr "再利用可能なガイド"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Review a translation"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Review and push"
@@ -4276,6 +4316,11 @@ msgstr "セットアップの更新"
 msgid "Shared translation goals will appear here when help is needed. You can also start a private conversation with Toki."
 msgstr "サポートが必要な場合、ここに共有翻訳目標が表示されます。Toki とプライベート会話を開始することもできます。"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Shared with invited teammates"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Short summary of the suggested change"
@@ -4540,11 +4585,6 @@ msgstr "タームを追加するとここに表示されます。"
 #, elixir-autogen, elixir-format
 msgid "Test user not found. Run: mix run priv/repo/seeds.exs"
 msgstr "テストユーザーが見つかりません。実行してください：mix run priv/repo/seeds.exs"
-
-#: lib/glossia_web/live/toki_live.ex
-#, elixir-autogen, elixir-format
-msgid "Text messages only. Attachments and voice input are not available on the web yet."
-msgstr "テキストメッセージのみ。添付ファイルと音声入力は、まだ Web 版では利用できません。"
 
 #: lib/glossia_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format

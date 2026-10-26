@@ -267,6 +267,11 @@ msgstr "操作"
 msgid "Activity"
 msgstr "活动"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Adapt the tone"
+msgstr ""
+
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format
 msgid "Add a DNS TXT record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
@@ -737,6 +742,16 @@ msgstr "缓存输入"
 msgid "Cached input tokens"
 msgstr "缓存输入令牌"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Can you help me find the right term for this context?\n\n"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Can you help me review this translation?\n\n"
+msgstr ""
+
 #: lib/glossia_web/components/dashboard_components.ex
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
@@ -1102,6 +1117,11 @@ msgstr "持续本地化"
 #, elixir-autogen, elixir-format
 msgid "Conversation history"
 msgstr "对话历史"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Conversation starters"
+msgstr "对话"
 
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
@@ -1855,6 +1875,11 @@ msgstr "翻译开始后，文件将在此处显示。"
 msgid "Filter"
 msgstr "筛选"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Find the right term"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Finish setting up Glossia"
@@ -2150,6 +2175,11 @@ msgstr "高优先级"
 #, elixir-autogen, elixir-format
 msgid "Homepage URL"
 msgstr "主页 URL"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "How can I make this translation sound more natural?\n\n"
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3185,6 +3215,11 @@ msgstr "关于您如何表达的唯一单一事实来源"
 msgid "Only provider-reported counts are shown. Historical translations, local Pi sessions, and decision evaluations are not included."
 msgstr "仅显示提供商报告的活动。历史翻译、本地 Pi 会话和决策评估不计入。"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Only you and Toki can see this conversation"
+msgstr ""
+
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3840,6 +3875,11 @@ msgstr "可复用本地化指导 (可选)"
 msgid "Reusable guidance"
 msgstr "可复用指导"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Review a translation"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Review and push"
@@ -4276,6 +4316,11 @@ msgstr "设置更新"
 msgid "Shared translation goals will appear here when help is needed. You can also start a private conversation with Toki."
 msgstr "需要帮助时，共享翻译目标将显示在这里。您也可以与 Toki 发起私密对话。"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Shared with invited teammates"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Short summary of the suggested change"
@@ -4540,11 +4585,6 @@ msgstr "添加条款后，此处将显示条款。"
 #, elixir-autogen, elixir-format
 msgid "Test user not found. Run: mix run priv/repo/seeds.exs"
 msgstr "未找到测试用户。运行：mix run priv/repo/seeds.exs"
-
-#: lib/glossia_web/live/toki_live.ex
-#, elixir-autogen, elixir-format
-msgid "Text messages only. Attachments and voice input are not available on the web yet."
-msgstr "仅支持文本消息。附件和语音输入在网页端暂未可用。"
 
 #: lib/glossia_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format

@@ -273,6 +273,11 @@ msgstr "Actions"
 msgid "Activity"
 msgstr "Activité"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Adapt the tone"
+msgstr ""
+
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format
 msgid "Add a DNS TXT record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
@@ -743,6 +748,16 @@ msgstr "Entrée en cache"
 msgid "Cached input tokens"
 msgstr "Tokens d'entrée en cache"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Can you help me find the right term for this context?\n\n"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Can you help me review this translation?\n\n"
+msgstr ""
+
 #: lib/glossia_web/components/dashboard_components.ex
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
@@ -1109,6 +1124,11 @@ msgstr "Localisation continue"
 #, elixir-autogen, elixir-format
 msgid "Conversation history"
 msgstr "Historique des conversations"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Conversation starters"
+msgstr "Conversations"
 
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
@@ -1862,6 +1882,11 @@ msgstr "Les fichiers apparaîtront ici lorsque la traduction commencera."
 msgid "Filter"
 msgstr "Filtrer"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Find the right term"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Finish setting up Glossia"
@@ -2157,6 +2182,11 @@ msgstr "Haute priorité"
 #, elixir-autogen, elixir-format
 msgid "Homepage URL"
 msgstr "URL de la page d'accueil"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "How can I make this translation sound more natural?\n\n"
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3192,6 +3222,11 @@ msgstr "Une seule source de vérité pour la manière dont vous communiquez."
 msgid "Only provider-reported counts are shown. Historical translations, local Pi sessions, and decision evaluations are not included."
 msgstr "Seuls les chiffres rapportés par le fournisseur sont affichés. Les traductions historiques, les sessions Pi locales et les évaluations de décision ne sont pas incluses."
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Only you and Toki can see this conversation"
+msgstr ""
+
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3847,6 +3882,11 @@ msgstr "Documentation L10N réutilisable (optionnel)"
 msgid "Reusable guidance"
 msgstr "Guidance réutilisable"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Review a translation"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Review and push"
@@ -4283,6 +4323,11 @@ msgstr "Mise à jour de la configuration"
 msgid "Shared translation goals will appear here when help is needed. You can also start a private conversation with Toki."
 msgstr "Les objectifs de traduction partagés apparaîtront ici lorsque de l'aide est nécessaire. Vous pouvez également démarrer une conversation privée avec Toki."
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Shared with invited teammates"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Short summary of the suggested change"
@@ -4547,11 +4592,6 @@ msgstr "Les termes s'afficheront ici une fois que vous en aurez ajouté un."
 #, elixir-autogen, elixir-format
 msgid "Test user not found. Run: mix run priv/repo/seeds.exs"
 msgstr "Utilisateur de test non trouvé. Exécutez : mix run priv/repo/seeds.exs"
-
-#: lib/glossia_web/live/toki_live.ex
-#, elixir-autogen, elixir-format
-msgid "Text messages only. Attachments and voice input are not available on the web yet."
-msgstr "Messages texte uniquement. Les pièces jointes et l'entrée vocale ne sont pas encore disponibles sur le web."
 
 #: lib/glossia_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
