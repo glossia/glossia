@@ -1,79 +1,79 @@
 %{
-  title: "Analytik-SDK",
+  title: "Analytik SDK",
   summary:
-    "Die gesammelten Felder, der Events-Endpoint und das Datenschutzmodell hinter der Glossia-Web-Analytik.",
+    "Die gesammelten Felder, der Events-Endpunkt und das Datenschutzmodell hinter Glossia Web-Analytik.",
   category: "Referenz",
   section: "analytics",
   order: 1
 }
 ---
 
-## Ereignisse-Endpunkt
+## Events-Endpunkt
 
 `POST https://glossia.ai/v1/collect`
 
-`POST /api/analytics/events` bleibt zur Kompatibilität verfügbar. Das gehostete Skript leitet `/v1/collect` aus seiner eigenen Herkunft ab; Paket-Integrationen sollten `endpoint` explizit festlegen.
+`POST /api/analytics/events` bleibt aus Kompatibilitätsgründen weiterhin verfügbar. Das gehostete Skript leitet `/v1/collect` aus seinem eigenen Ursprung ab; Paketintegrationen sollten `endpoint` explizit setzen.
 
-Akzeptiert ein JSON-Ereignis vom `@glossia/web` SDK. Reagiert immer mit `202 Accepted`, auch bei unbekannten Domänen oder fehlerhaften Payloads, sodass das SDK niemals enthüllt, welche Projekte Beimessungen sammeln.
+Nimmt ein JSON-Event vom `@glossia/web`-SDK entgegen. Antwortet stets `202 Accepted`, einschließlich unbekannter Domains oder falsch geformter Payloads, so dass das SDK nie verrät, welche Projekte Analysen sammeln.
 
-Das Projekt wird anhand der Webseite-Domäne gelöst, die das Snippet angibt. `d` ist maßgeblich; wenn es fehlt, fällt der Server auf den Host von `u` (die Seiten-URL) und dann auf die Anfrage `Origin`/`Referer`.
+Das Projekt wird über die Site-Domain ermittelt, die das Snippet deklariert. `d` ist maßgeblich; wenn es fehlt, fällt der Server auf den Host von `u` (die Seiten-URL) und dann auf die Anfrage `Origin`/`Referer` zurück.
 
-### Anforderungskörper
+### Anfrageinhalt
 
 | Feld | Typ   | Beschreibung                                                  |
 |-------|--------|--------------------------------------------------------------|
-| `d`   | string | Webseite-Domäne, die das Projekt identifiziert (beispielsweise `example.com`). Von der Browser-Bibliothek gesendet; Fallback-Lösung ist oben beschrieben. |
-| `n`   | string | Ereignisname. Standardmäßig `pageview`.                          |
-| `u`   | string | Seiten-URL (`location.href`).                                  |
-| `r`   | string | Verweis (`document.referrer`).                              |
-| `l`   | string | Browser-Sprachen (`navigator.languages.join(",")`).         |
-| `sl`  | string | Tatsächliche Seitensprache (`document.documentElement.lang`). Leer, wenn nicht erklärt. |
-| `al`  | string | Kommasetrennte Übersetzungssprachen aus `link[rel="alternate"][hreflang]`, außer `x-default`. |
-| `tz`  | string | IANA-Zeitzone (`Intl.DateTimeFormat().resolvedOptions().timeZone`). |
-| `sw`  | number | Bildschirmbreite in CSS-Pixeln.                                  |
-| `sid` | string | Pro-Tab-Sitzungs-ID (sessionStorage, bei Schließen geleert).       |
+| `d`   | Zeichenkette | Seitendomäne, die das Projekt identifiziert (z. B. `example.com`). Vom Browser-Bibliothek gesendet; die Fallback-Auflösung wird oben beschrieben. |
+| `n`   | Zeichenkette | Ereignisname. Standardmäßig `pageview`.                          |
+| `u`   | Zeichenkette | Seiten-URL (`location.href`).                                  |
+| `r`   | Zeichenkette | Referer (`document.referrer`).                              |
+| `l`   | Zeichenkette | Browser-Sprachen (`navigator.languages.join(",")`).         |
+| `sl`  | Zeichenkette | Tatsächliche Seiten-Sprache (`document.documentElement.lang`). Leer, wenn nicht angegeben. |
+| `al`  | Zeichenkette | Kommagetrennte Übersetzungssprachen aus `link[rel="alternate"][hreflang]`, ausgeschlossen `x-default`. |
+| `tz`  | Zeichenkette | IANA-Zeitzone (`Intl.DateTimeFormat().resolvedOptions().timeZone`). |
+| `sw`  | Numerisch | Bildschirmbreite in CSS-Pixeln.                                  |
+| `sid` | Zeichenkette | Sitzungs-ID pro Tab (sessionStorage, beim Schließen geleert).       |
 
-CORS ist offen (`Access-Control-Allow-Origin: *`) weil der Endpunkt keine Berechtigungen akzeptiert.
+CORS ist offen (`Access-Control-Allow-Origin: *`) weil der Endpunkt keine Anmeldeinformationen akzeptiert.
 
-## Server-seitig abgeleitete Felder
+## Serverseitig abgeleitete Felder
 
-Diese werden bei der Erfassung berechnet und serverseitig gespeichert. Der Roh-IP- und User-Agent werden niemals gespeichert.
+Diese werden bei der Aufnehmens berechnet und serverseitig gespeichert. Die Roh-IP und User-Agent werden niemals gespeichert.
 
 | Feld             | Quelle        | Beschreibung                                                         |
 |-------------------|---------------|---------------------------------------------------------------------|
-| `visitor_id`      | HMAC          | Täglich rotierender Hash von IP + UA + Projekt. Nicht über Tage verlinkbar.  |
-| `country_code`    | Cloudflare / GeoIP | ISO 3166-1 alpha-2-Code aus einem vertrauenswürdigen `CF-IPCountry`-Header oder dem konfigurierten IP-Geolokations-Adapter. Leer, wenn keiner ein Land feststellt. |
-| `device`          | User-Agent    | `desktop`, `mobile`, `tablet`, `bot` oder `unknown`.                 |
-| `browser`         | User-Agent    | `chrome`, `safari`, `firefox`, `edge`, `opera`, oder `unknown`.       |
-| `os`              | User-Agent    | `windows`, `macos`, `ios`, `android`, `linux`, oder `unknown`.        |
-| `hostname`        | Seiten-URL      | kleingeschriebener Host.                                                    |
+| `visitor_id`      | HMAC          | Täglich rotierender Hash von IP + UA + Projekt. Keine Verknüpfung über verschiedene Tage hinweg möglich.  |
+| `country_code`    | Cloudflare / GeoIP | ISO-3166-1-Alpha-2-Code aus einem vertrauenswürdigen `CF-IPCountry`-Header oder dem konfigurierten IP-Geolokations-Adapter. Leer, wenn keines der beiden ein Land ermittelt. |
+| `device`          | Benutzeragent    | `desktop`, `mobile`, `tablet`, `bot` oder `unknown`.                 |
+| `browser`         | Benutzeragent    | `chrome`, `safari`, `firefox`, `edge`, `opera` oder `unknown`.       |
+| `os`              | Benutzeragent    | `windows`, `macos`, `ios`, `android`, `linux` oder `unknown`.        |
+| `hostname`        | Seiten-URL      | Host in Kleinschreibung.                                                    |
 | `pathname`        | Seiten-URL      | Pfadkomponente.                                                     |
-| `referrer_source` | Verweis      | Verweis-Host, führendes `www.`/`m.` gestrichen.                        |
-| `browser_language`| Sprachen     | Am besten bevorzugtes normalisiertes Lokal (z.B. `pt-BR`).                    |
-| `served_locale`   | Seitensprache | Normalisierte `sl`, oder leer (als Nicht berichtet angezeigt), wenn es nicht gesammelt wurde. |
-| `has_locale_gap`  | Berechnet      | `1` wenn keine der bevorzugten Sprachen des Besuchers mit den Projektzielen, den beworbenen Übersetzungen (`al`) oder der Seitensprache (`sl`) übereinstimmen. Fehlende Einstellungen zählen nicht als Lücke. |
+| `referrer_source` | Referer      | Referer-Host, führende `www.`/`m.` gestrichen.                        |
+| `browser_language`| Sprachen     | Am häufigsten bevorzugtes normiertes Locale (z. B. `pt-BR`).                    |
+| `served_locale`   | Seiten-Sprache | Normalisiert `sl`, oder leer (als Nicht gemeldet angezeigt), wenn es nicht gesammelt wurde. |
+| `has_locale_gap`  | Berechnet      | `1` wenn keine der bevorzugten Sprachen des Besuchers mit den Projektzielen, beworbenen Übersetzungen (`al`) oder Seiten-Sprache (`sl`) übereinstimmen. Fehlende Präferenzen gelten nicht als Lücke. |
 
-### Client-IP-Auflösung
+### Auflösung der Client-IP
 
-Für Anfragen von einem privaten Ingress-Peer verwendet Glossia den von nginx überschriebenen `X-Real-IP`-Header, nicht den aufrufgesteuerten ersten Eintrag in `X-Forwarded-For`. Direkte öffentliche Verbindungen verwenden die Socket-Adresse. Auf Hetzner müssen sowohl der Load Balancer als auch nginx das PROXY-Protokoll aktivieren, damit nginx die Besucheradresse statt der Load Balancer-Adresse erhält. Andere Reverse-Proxys müssen `X-Real-IP` ebenfalls mit einer authentifizierten Quelle überschreiben, nicht mit einem unbeschränkten einwärtsgerichteten `X-Forwarded-For`-Header. Die allgemeine Richtlinie für fürwortsende-Header allein garantiert dies nicht. Private Peers sind vertrauenswürdige Infrastruktur, daher ist direkter Pod-Zugang zu begrenzen.
+Für Anfragen von einem privaten Ingress-Peer verwendet Glossia nginx's überschriebenen `X-Real-IP`-Header anstelle des vom Caller gesteuerten ersten Eintrags in `X-Forwarded-For`. Direkte öffentliche Verbindungen nutzen die Socket-Adresse. Auf Hetzner müssen sowohl Load Balancer als auch nginx PROXY-Protokoll aktivieren, damit nginx die Besucheradresse statt der Load Balancer-Adresse erhält. Andere Reverse Proxies müssen `X-Real-IP` ebenfalls mit einer authentisierten Quelle überschreiben, nicht mit einem unbeschränkten eingehenden `X-Forwarded-For`-Header. Die generischen Charts' forward-header-Policy allein garantiert dies nicht. Private Peers sind vertrauenswürdige Infrastruktur, daher eingeschränkten direkten Pod-Zugriff.
 
-`GLOSSIA_TRUST_CLOUDFLARE_CLIENT_IP_HEADER=true` ermöglicht `CF-Connecting-IP` zur Überschreibung der kanonischen Adresse für Anfragen von einem privaten Ingress-Peer. Es ist **standardmäßig deaktiviert**, unabhängig vom Country-Header-Vertrauen. Aktivieren Sie es nur, nachdem die Kante Cloudflare authentifiziert oder gefälschte Header entfernt hat. DNS-only-Deployments sollten es deaktiviert lassen. Diese Adresse steuert auch IP-Rate-Limits und den täglichen Besucher-Hash.
+`GLOSSIA_TRUST_CLOUDFLARE_CLIENT_IP_HEADER=true` ermöglicht `CF-Connecting-IP` die Überschreibung der kanonischen Adresse für Anfragen von einem privaten Ingress-Peer. Es ist **standardmäßig deaktiviert**, unabhängig vom Land-Header-Vertrauen. Aktivieren Sie es nur nach dem Authentifizieren von Cloudflare durch die Kante oder dem Abschneiden gefälschter Header bei Anforderungen, die Cloudflare umgehen. NFS-only-Deploymenten sollten es deaktiviert lassen. Diese Adresse schließt auch IP-Rate-Limits und den täglichen Besucher-Hash ein.
 
-### Country-Auflösung
+### Land-Auflösung
 
-`GLOSSIA_TRUST_CLOUDFLARE_COUNTRY_HEADER=true` ermöglicht den `CF-IPCountry`-Schnellweg. Es ist **standardmäßig deaktiviert**. Aktivieren Sie es nur, nachdem die Origin Cloudflare authentifiziert hat, Anfragen ablehnt, die Cloudflare umgehen, oder der Ingress nicht vertrauenswürdige Kopien des Headers entfernt. Cloudflares IP-Geolokations-Einstellung muss ebenfalls für die Zone aktiviert sein. `CF-Connecting-IP`, `CF-Ray` und nginx's `use-forwarded-headers` authentifizieren eine Anfrage nicht an sich.
+`GLOSSIA_TRUST_CLOUDFLARE_COUNTRY_HEADER=true` aktiviert den `CF-IPCountry`-Schnellweg. Es ist **standardmäßig deaktiviert**. Aktivieren Sie es nur nach dem Authentifizieren von Cloudflare durch den Ursprung, dem Ablehnen von Anforderungen, die Cloudflare umgehen, oder dem Abschneiden unzuverlässiger Kopien des Headers. Cloudflare's IP-Geolokationseinstellung muss auch für die Zone aktiviert sein. `CF-Connecting-IP`, `CF-Ray` und nginx `use-forwarded-headers` authentifizieren eine Anfrage nicht allein.
 
-Wenn Header-Vertrauen aktiviert ist, wird ein einzelner gültiger ISO-Landcode sofort verwendet, ohne IP-Abruf oder Cache-Zugriff. Der aktuelle Edge-Wert hat immer Vorrang vor jeder gecachten Abfrage. Fehlende, doppelte, fehlerhafte oder unbekannte Codes, einschließlich von Cloudflares `XX` (unbekannt) und `T1` (Tor)-Werten, wechseln zum konfigurierten Geolokations-Adapter.
+Wenn Header-Vertrauen aktiviert ist, wird ein einzelner gültiger ISO-Land-Code sofort verwendet, ohne eine IP-Nachschlage oder Cache-Zugriff. Der aktuelle Rand-Wert hat immer Vorrang vor einem gecachten Nachschlage. Fehlende, doppelte, falsch geformte oder unbekannte Codes, einschließlich Cloudflare's `XX` (unbekannt) und `T1` (Tor) Werte, greifen zurück auf den konfigurierten Geolokations-Adapter.
 
-Ohne eine konfigurierte MaxMind-Datenbank verwenden Fallback-Abfragen `api.ipapi.is`, dann `api.country.is`, wenn die primäre Anfrage fehlschlägt oder kein erkanntes Land zurückgibt. Jede Anfrage hat eine Verbindungs- und Antwortzeit-Timeout von einer Sekunde mit deaktivierten Rückversuchen. Erfolgreiche Ergebnisse von entwederem Anbieter werden von Cachex für 24 Stunden gecacht, mit einem geplanten Größe-Limit von 100.000 Einträgen und automatischer Expiry-Aufräumung. `Cachex.fetch/3` kollabiert gleichzeitige Fehlschläge für die gleiche IP in einen Resolver. Fehler werden nicht gecacht. Private und reservierte Adressen werden nicht an entwederem Anbieter gesendet.
+Ohne eine konfigurierte MaxMind-Datenbank verwenden Fallback-Aufrufungen `api.ipapi.is`, dann `api.country.is` wenn die primäre Anfrage fehlschlägt oder kein erkennbares Land zurückgibt. Jede Anfrage hat eine Verbindung- und Antwortzeitlimit von einer Sekunde ohne Wiederversuche. Erfolgreiche Ergebnisse von jedem Anbieter werden von Cachex für 24 Stunden zwischengespeichert, mit einem 100.000-Eintrag-Limit und automatischem Ablauf-Rückgewinnung. `Cachex.fetch/3` fasst gleichzeitige Fehlschläge für die gleiche IP in einen Resolver zusammen. Fehler werden nicht zwischengespeichert. Private und reservierte Adressen werden keinem Anbieter gesendet.
 
-### Fehlende Seitensprache
+### Fehlende Seiten-Sprache
 
-Das Dashboard zeigt **Nicht berichtet** an, wenn ein Ereignis keinen `sl` hat. Dies umfasst Ereignisse, die von älteren Tracker-Versionen gesammelt wurden, und Seiten ohne das HTML `lang`-Attribut. Die Seitensprache wird von Browserpräferenzen oder der URL nicht abgeleitet. Historische Ereignisse behalten die zum Zeitpunkt gesammelten Metadaten; neue Tracker-Versionen backfillen sie nicht.
+Das Dashboard zeigt **Nicht gemeldet**, wenn ein Event kein `sl` hat. Dies umfasst von älteren Tracker-Versionen gesammelte Ereignisse und Seiten ohne ein HTML `lang`-Attribut. Die Seiten-Sprache wird nicht aus Browser-Präferenzen oder der URL erschlossen. Historische Ereignisse behalten die Metadaten bei, die zum Zeitpunkt gesammelt wurden; neue Tracker-Versionen füllen sie nicht nach.
 
-## Privatsphärenmodell
+## Datenschutzmodell
 
-- **Kein dauerhafter Cross-Session-Identifizierer.** Das SDK setzt keine Cookies und speichert nur eine pro-Tab-Sitzungs-ID in `sessionStorage`, die der Browser beim Schließen leert.
-- **Kein Fingerprinting.** Canvas-, WebGL-, Font- und Audio-Fingerabdrücke werden nicht gesammelt. Der täglich rotierende Server-Hash liefert Uniques ohne diese.
-- **Keine rohen Identifizierer gespeichert.** IP und User-Agent werden einmal gelesen, mit einem Server-Schlüssel und einem täglichen Salz gehasht, und dann verworfen.
-- **Projektabgrenzung.** Der gleiche Browser auf zwei Projekten liefert unbezogene Besucher-IDs, sodass Besucher nicht über Glossia-Kunden hinweg verfolgt werden können.
+- **Kein dauerhafter Cross-Session-Indikator.** Das SDK setzt keine Cookies und speichert nur eine pro-Tab Sitzungs-ID in `sessionStorage`, die der Browser beim Schließen leert.
+- **Keine Fingerabdrücke.** Canvas-, WebGL-, Schriftart- und Audio-Fingerabdrücke werden nicht gesammelt. Der täglich rotierende Server-Hash bietet Eindeutigkeit ohne sie.
+- **Keine Roh-Identifikatoren gespeichert.** IP und Benutzeragenten werden einmal gelesen, mit einem Server-Secret und einem täglichen Salz gehasht und dann verworfen.
+- **Pro-Projekt-Bereich.** Der gleiche Browser auf zwei Projekten liefert irrelevante Besucher-IDs, sodass Besucher nicht zwischen Glossia-Kunden verfolgt werden können.
