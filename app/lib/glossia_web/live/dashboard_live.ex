@@ -8441,7 +8441,7 @@ defmodule GlossiaWeb.DashboardLive do
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {gettext("Open pull request")}
+                  {gettext("View pull request")}
                 </a>
               </div>
             </div>
