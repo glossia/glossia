@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "使用麦克风在本机进行可编辑的 Toki 草稿听写。音频不会上传。";
+"NSSpeechRecognitionUsageDescription" = "在本机将语音转录为可编辑的 Toki 草稿。不会自动发送任何内容。";
