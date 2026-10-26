@@ -1,41 +1,41 @@
 %{
   title: "Autorisation",
   summary:
-    "Portées d'autorisation, rôles d'organisation et vérifications d'accès au niveau des ressources.",
+    "Portées d'autorisation, rôles d'organisation et contrôles d'accès au niveau des ressources.",
   category: "Référence",
-  subcategory: "APIs",
+  subcategory: "API",
   order: 2
 }
 ---
 
-L'authentification établit une identité ; l'autorisation détermine les actions que cette identité peut exécuter. Voir [Authentification](/docs/reference/apis/authentication) pour les flux de connexion et de jeton.
+L'authentification établit une identité ; l'autorisation détermine quelles actions cette identité peut effectuer. Consultez [Authentification](/docs/reference/apis/authentication) pour les flux de connexion et de jeton.
 
-## Portées
+## Périmètres
 
-Les portées contrôlent les actions qu'un jeton peut exécuter. Elles suivent le modèle `object:action`.
+Les périmètres contrôlent quelles actions un jeton peut effectuer. Ils suivent le motif `object:action`.
 
-| Portée | Description |
+| Périmètre | Description |
 |-------|-------------|
-| `admin:read` | Lire les données d'administration de la plateforme (administrateurs plateforme uniquement) |
-| `admin:write` | Mettre à jour les données d'administration de la plateforme (administrateurs plateforme uniquement) |
-| `ops:read` | Lire les données d'exploitation de la plateforme (administrateurs plateforme uniquement) |
+| `admin:read` | Lire les données d'administration de la plateforme (administrateurs de plateforme uniquement) |
+| `admin:write` | Mettre à jour les données d'administration de la plateforme (administrateurs de plateforme uniquement) |
+| `ops:read` | Lire les données d'opérations de la plateforme (administrateurs de plateforme uniquement) |
 | `user:read` | Lire les informations de profil utilisateur |
 | `user:write` | Mettre à jour le profil utilisateur |
-| `account:read` | Lister les comptes d'organisation auxquels vous avez accès |
-| `organization:read` | Lire les détails d'organisation (et lister vos organisations) |
+| `account:read` | Lister les comptes d'organisation auxquels vous pouvez accéder |
+| `organization:read` | Lire les détails d'organisation (et lister vos organismes) |
 | `organization:write` | Créer ou mettre à jour les organisations |
 | `organization:claim` | Réclamer une organisation |
 | `organization:delete` | Supprimer les organisations |
 | `organization:admin` | Actions administratives d'organisation |
-| `members:read` | Lire les membres de l'organisation et les invitations |
-| `members:write` | Gérer les membres de l'organisation et les invitations |
+| `members:read` | Lire les membres et les invitations d'organisation |
+| `members:write` | Gérer les membres et les invitations d'organisation |
 | `project:read` | Lire les projets |
 | `project:write` | Créer ou mettre à jour les projets |
 | `project:admin` | Actions administratives de projet |
 | `project:delete` | Supprimer les projets |
-| `voice:read` | Lire la configuration de la voix |
-| `voice:write` | Créer ou mettre à jour la configuration de la voix |
-| `voice:admin` | Actions administratives de la voix |
+| `voice:read` | Lire la configuration de voix |
+| `voice:write` | Créer ou mettre à jour la configuration de voix |
+| `voice:admin` | Actions administratives de voix |
 | `glossary:read` | Lire les entrées du glossaire |
 | `glossary:write` | Créer ou mettre à jour les entrées du glossaire |
 | `glossary:admin` | Gérer les paramètres du glossaire |
@@ -45,22 +45,26 @@ Les portées contrôlent les actions qu'un jeton peut exécuter. Elles suivent l
 | `ticket:read` | Lire les tickets |
 | `ticket:write` | Créer ou mettre à jour les tickets |
 | `ticket:admin` | Actions administratives de ticket |
-| `llm_model:read` | Lire les modèles de langage du compte |
-| `llm_model:write` | Gérer les modèles de langage du compte |
+| `llm_model:read` | Lire les modèles de langue du compte |
+| `llm_model:write` | Gérer les modèles de langue du compte |
+| `translation:read` | Lire l'activité de traduction du projet |
 | `translation:write` | Écrire les données de traduction |
+| `analytics:read` | Lire les analyses du site web du projet |
+| `toki:read` | Lire vos propres conversations privées de projet |
+| `toki:write` | Créer des conversations privées et mettre les réponses des compagnons en file d'attente |
 | `api_credentials:read` | Lire les identifiants d'accès |
 | `api_credentials:write` | Gérer les identifiants d'accès |
 
-Les [métadonnées de découverte](/docs/reference/apis/authentication#discovery-endpoints) du serveur d'authentification publient les portées disponibles pour les clients. La disponibilité d'une portée ne confère pas d'accès par elle-même.
+Les métadonnées de [discovery metadata](/docs/reference/apis/authentication#discovery-endpoints) du serveur d'authentification publient les périmètres disponibles aux clients. La disponibilité d'un périmètre ne confère pas l'accès en soi.
 
 ## Modèle d'autorisation
 
-Glossia impose **deux couches** pour l'interface de programmation [Representational State Transfer](https://developer.mozilla.org/en-US/docs/Glossary/REST) et le serveur [Model Context Protocol](https://modelcontextprotocol.io) :
+Glossia impose **two layers** pour l'interface de programmation [Représentation d'État dans le transfert](https://developer.mozilla.org/en-US/docs/Glossary/REST) et le serveur de protocole [Modèle Context Protocol](https://modelcontextprotocol.io) :
 
-1. **Vérification de portée** : le jeton d'accès doit inclure la portée `object:action` requise.
-2. **Politique au niveau de la ressource** : l'utilisateur actuel doit être autorisé pour la ressource spécifiée via les permissions de membre explicites ou la politique par rôle.
+1. **Vérification de périmètre** : le jeton d'accès doit inclure le `object:action` périmètre requis.
+2. **Politique au niveau des ressources** : l'utilisateur actuel doit être autorisé pour la ressource spécifique par permissions des membres explicites ou la politique basée sur les rôles.
 
-Les portées représentent la capacité *maximum* d'un jeton. Les contrôles au niveau de la ressource imposent la permission *effectif* pour une ressource spécifique.
+Les périmètres représentent la *capacité* maximale d'un jeton. Les vérifications au niveau des ressources imposent la *permission réelle* pour une ressource spécifique.
 
 ### Rôles
 
@@ -73,15 +77,17 @@ Les portées représentent la capacité *maximum* d'un jeton. Les contrôles au 
 
 ### Permissions des membres
 
-Les membres d'organisation non-administrateurs peuvent porter des portées de permission explicites. Les nouveaux membres commencent avec un accès en lecture vers le compte, l'organisation, les projets, la voix, le glossaire, les discussions et les tickets. Un administrateur d'organisation peut remplacer ces portées via [Membres → Permissions](/docs/how-to/member-permissions). Une action demandée doit être incluse dans les portées autorisées du membre ainsi que dans les portées du jeton lors de l'utilisation d'un jeton.
+Les membres non-administrateurs peuvent porter des périmètres de permission explicites. Les nouveaux membres commencent avec un accès en lecture aux comptes, organisations, projets, voix, glossaires, discussions, tickets, activité de traduction et analyses, ainsi qu'un accès à leurs propres conversations privées Toki. Un administrateur d'organisation peut remplacer ces périmètres via [Membres → Permissions](/docs/how-to/member-permissions). Une action demandée doit être incluse dans les périmètres autorisés du membre ainsi que les périmètres du jeton lorsqu'un jeton est utilisé.
 
-Les administrateurs d'organisation conservent leur rôle d'administrateur. Les membres existants sans portées explicites continuent d'utiliser la politique par rôle ci-dessous tant que les permissions ne sont pas sauvegardées.
+La propriété privée Toki est vérifiée avant les surcharges de périmètre de membre organisation. Ni l'adhésion ni les rôles administrateur ne permettent l'accès à une conversation d'un autre utilisateur. La visibilité du projet est vérifiée séparément. Consultez l'[API mobile et compagnon](/docs/reference/apis/mobile) pour les périmètres et limites des points de terminaison.
 
-### Permissions de rôle
+Les administrateurs d'organisation conservent leur rôle d'administrateur. Les adhésions existantes sans périmètres explicites continuent d'utiliser la politique basée sur les rôles ci-dessous jusqu'à ce que les permissions soient enregistrées.
 
-Le tableau ci-dessous montre les règles courantes par rôle pour les membres sans portées explicites. Ce n'est pas la politique complète : les demandes de collection, l'accès temporaire et les administrateurs plateforme ont des règles supplémentaires.
+### Permissions des rôles
 
-| Portée | self | organization_member | organization_admin | public_account |
+Le tableau ci-dessous montre des règles courantes basées sur les rôles pour les adhésions sans périmètres explicites. Ce n'est pas la politique complète : les requêtes de collection, l'accès temporaire et les administrateurs de plateforme ont des règles supplémentaires.
+
+| Périmètre | Moi-même | Membre d'organisation | Administrateur d'organisation | Compte public |
 |-------|------|----------------------|--------------------|----------------|
 | `user:read` | Oui | Oui | | |
 | `user:write` | Oui | | | |

@@ -1,25 +1,25 @@
 %{
   title: "Definir un glosario",
   summary:
-    "Declara los términos en L10N.md y sus traducciones aprobadas en el archivo de sobrescritura de cada idioma.",
-  category: "Tutorial",
+    "Declarar términos en L10N.md y sus traducciones aprobadas en el archivo de sobrescritura de cada idioma.",
+  category: "Guía",
   section: "translation",
   order: 6
 }
 ---
 
-Tu equipo ya tiene términos que deben traducirse de una manera específica: nombres de productos que permanecen en inglés, términos técnicos con una renderización preferida, palabras de marca que transmiten un tono específico. Decláralos en tu repositorio y Glossia los aplicará a cada traducción futura.
+Su equipo ya tiene términos que deben traducirse de una manera específica: nombres de productos que permanecen en inglés, términos técnicos con una presentación preferente, palabras de marca que transmiten un tono específico. Declárelas en su repositorio y Glossia las aplica a cada traducción futura.
 
-Un glosario reside en dos tipos de archivos que ya utilizas:
+Un glosario reside en dos tipos de archivos que ya utiliza:
 
-- `L10N.md` declara los **términos**: qué palabra es y qué significa. Esto es lo mismo para cada idioma.
-- `L10N/<locale>.md` declara las **traducciones** para un idioma. Los revisores de cada idioma tienen su propio archivo.
+- `L10N.md` declara los **términos**: qué es la palabra y qué significa. Esto es lo mismo para cada idioma.
+- `L10N/<locale>.md` declara las **traducciones** para un idioma. Los revisores de cada idioma se encargan de su propio archivo.
 
-Si tu cuenta también tiene un glosario en Glossia, los dos se fusionan en el momento de la traducción. Consulta [Glosario](/docs/explanation/glossary) para las reglas y para [cómo elegir cuándo usar cuál](/docs/explanation/glossary#when-to-use-which).
+Si su cuenta también tiene un glosario en Glossia, los dos se combinan en el momento de la traducción. Consulte [Glosario](/docs/explanation/glossary) para las reglas y para [cuándo usar cada uno](/docs/explanation/glossary#when-to-use-which).
 
-## 1. Declara los términos en L10N.md
+## 1. Declare los términos en L10N.md
 
-Añade una `glossary` lista a la cabecera de tu `L10N.md` raíz:
+Agregue una `glossary` lista al frontmatter de su `L10N.md` raíz:
 
 ```yaml
 ---
@@ -39,11 +39,11 @@ glossary:
 Write for software developers.
 ```
 
-Cada término necesita un `source`, la palabra tal como aparece en tu texto. Un `definition` ayuda al modelo a decidir si una coincidencia es realmente el concepto que pretendes. `case_sensitive: true` hace que `API` coincida sin que coincida "api" en la prosa.
+Cada término necesita un `source`, la palabra tal como aparece en su texto. Un `definition` ayuda al modelo a decidir si una coincidencia es realmente el concepto que tiene en mente. `case_sensitive: true` hace que `API` coincida sin coincidir con "api" en el texto.
 
-## 2. Tradúcelos en el archivo de cada idioma.
+## 2. Tradúzcalos en el archivo de cada idioma
 
-Crea o abre `L10N/<locale>.md` junto a tu `L10N.md` y asigna cada término a su traducción aprobada:
+Cree o abra `L10N/<locale>.md` junto a su `L10N.md` y asignue cada término a su traducción aprobada:
 
 ```yaml
 # L10N/es.md
@@ -65,11 +65,11 @@ glossary:
 ---
 ```
 
-Las claves son la `source` del término. Un idioma sin traducción para un término recurre al glosario de la cuenta, o deja que el modelo elija.
+Las claves son la `source` del término. Un idioma sin traducción para un término vuelve al glosario de la cuenta, o permite que el modelo elija.
 
-## 3. Añade un término del que solo necesita un idioma.
+## 3. Agregue un término que solo necesite un idioma
 
-Un archivo de idioma puede traducir una palabra que `L10N.md` no declare. Entonces, la regla solo se aplica a ese idioma:
+Un archivo de idioma puede traducir una palabra que `L10N.md` no declara. Luego la regla se aplica solo a ese idioma:
 
 ```yaml
 # L10N/es.md
@@ -81,9 +81,9 @@ glossary:
 ---
 ```
 
-## 4. Da un id estable a un término.
+## 4. Asigne un término una ID estable
 
-Cuando una misma palabra necesita un significado preciso, o quieres renombrar la `source` de un término más tarde, dale un `id` y usa ese id para las claves de sus traducciones:
+Cuando una misma palabra necesita un significado preciso, o desea renombrar el `source` de un término más tarde, asígnele un `id` e identifique sus traducciones por esa ID:
 
 ```yaml
 # L10N.md
@@ -99,9 +99,9 @@ glossary:
   vcs-branch: rama
 ```
 
-## 5. Refina el glosario para una parte del repositorio.
+## 5. Refina el glosario para parte del repositorio
 
-Un `L10N.md` anidado o `L10N/<locale>.md` hereda de sus directorios padres y puede añadir o sobreescribir entradas para su subárbol:
+Un `L10N.md` anidado o `L10N/<locale>.md` hereda de sus directorios padres y puede agregar o sobrescribir entradas para su subárbol:
 
 ```yaml
 # marketing/L10N/es.md
@@ -112,16 +112,16 @@ glossary:
 ---
 ```
 
-Los archivos de español bajo `marketing/` traducen "commit" como `compromiso`; el resto del repositorio mantiene `commit`.
+Los archivos españoles bajo `marketing/` traducen "commit" como `compromiso`; el resto del repositorio mantiene `commit`.
 
-## 6. Commit y push
+## 6. Compromete y empuja
 
-Realiza el commit del cambio y el push. En la siguiente ejecución de traducción, Glossia retraduce solo los archivos que usen los términos que añadiste o cambiaste, en los idiomas cuyas traducciones cambiaron. Los archivos que no contienen esos términos conservan sus traducciones existentes.
+Compromete el cambio y empuja. En la siguiente ejecución de traducción, Glossia re-traduce solo los archivos que usan los términos que usted agregó o cambió, en los idiomas cuyas traducciones cambiaron. Los archivos que no contienen esos términos mantienen sus traducciones existentes.
 
-Si un glosario tiene un error, Glossia ignora el glosario del repositorio para los archivos afectados y usa solo el glosario de la cuenta, así que revisa las [reglas de validación](/docs/reference/glossary#validation) cuando un término no parezca aplicarse.
+Si un glosario tiene un error, Glossia ignora el glosario del repositorio para los archivos afectados y usa solo el glosario de la cuenta, así que revise las [reglas de validación](/docs/reference/glossary#validation) cuando un término no parezca aplicarse.
 
 ## Ver también
 
-- [Referencia de Glosario](/docs/reference/glossary): cada campo y regla de validación.
-- [Glosario](/docs/explanation/glossary): cómo se combinan el glosario del repositorio y de la cuenta.
-- [Referencia L10N.md](/docs/reference/l10n-md): los otros campos de cabecera.
+- [Referencia del Glosario](/docs/reference/glossary): cada campo y regla de validación.
+- [Glosario](/docs/explanation/glossary): cómo se combinan los glosarios del repositorio y de la cuenta.
+- [Referencia L10N.md](/docs/reference/l10n-md): los otros campos del frontmatter.

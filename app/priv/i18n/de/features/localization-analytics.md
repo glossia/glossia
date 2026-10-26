@@ -1,52 +1,52 @@
 %{
   title: "Lokalisierungsanalysen",
   summary:
-    "Sehen Sie, welche Sprachen und Länder Ihre Besucher tatsächlich wünschen, und wo Sie eine Lokalisierungslücke haben, bevor Sie in eine neue Lokalisierung investieren.",
+    "Sehen Sie, welche Sprachen und Länder Ihre Besucher tatsächlich wollen, und wo Sie eine Lokalisierungslücke haben, bevor Sie in eine neue Sprache investieren.",
   order: 6,
   icon: "Welt",
   hero_cta_text: "Loslegen",
   hero_cta_url: "/signup",
   highlights: [
     %{
-      title: "Chance, nicht Eitelkeit",
+      title: "Möglichkeit, nicht Leerstand",
       description:
-        "Dashboards basieren auf der Lokalisierungslücke: Der Anteil des Datenverkehrs, der eine Sprache wünscht, die Sie noch nicht bieten.",
+        "Dashboards orientieren sich an der Lokalisierungslücke: der Anteil des Traffics, der auf eine Sprache wartet, die Sie noch nicht anbieten.",
       icon: "Welt"
     },
     %{
-      title: "Von Haus aus ohne Cookies",
+      title: "Ohne Cookies von Grund auf",
       description:
-        "Keine Cookies, kein Fingerprinting, keine Einwilligungs-Banner. Einmalige Besucher kommen von einem täglich rotierten Hash, der nicht über Tage hinweg verknüpft werden kann.",
-      icon: "Blitz"
+        "Keine Cookies, keine Fingerabdrücke, keine Zustimmungsbanner. Eindeutige Besucher stammen von einem täglich frisch generierten Hash, der nicht über Tage hinweg verknüpft werden kann.",
+      icon: "Flash"
     },
     %{
-      title: "Eine Zeile zur Installation",
+      title: "Eine Zeile zum Installieren",
       description:
-        "Fügen Sie ein einzelnes Script-Tag in Ihre Seite ein, und Glossia misst sich selbst. Veröffentlichen Sie über npm oder CDN.",
+        "Tragen Sie ein einzelnes Script-Tag in Ihre Website ein, und Glossia misst sich. Verteilen Sie über npm oder CDN.",
       icon: "Code"
     }
   ]
 }
 ---
 
-## Entscheide dich für die nächste Zielsprache mit Daten
+## Bestimmen Sie Ihr nächstes Lokale mit Daten
 
-Die meisten Teams wählen Zielsprachen nach Bauchgefühl. Lokalisierungsanalytik ersetzt das durch Signale. Füge das Web-SDK hinzu und Glossia zeigt dir die Sprachen, die die Browser deiner Besucher anfordern, die Länder, aus denen sie kommen, und, was am wichtigsten ist, die Überschneidung mit den Sprachen, die du bereits unterstützt.
+Die meisten Teams wählen Zielsprachen aus Bauchgefühl heraus. Lokalisierungsanalysen ersetzen dies durch Signale. Fügen Sie das Web SDK hinzu, und Glossia zeigt Ihnen die Sprachen an, die die Browser Ihrer Besucher anfordern, die Länder, aus denen sie kommen, und, entscheidend, die Überschneidung mit den Sprachen, die Sie bereits unterstützen.
 
-Die Hauptmetrik ist die **Lokalisierungslücke**: der Prozentsatz deiner Besucher, deren bevorzugte Sprache keine unterstützte Übersetzung hat. Untersuche das nach Land, Referer und Seite, um genau zu sehen, wo die unterschätzte Nachfrage konzentriert ist und welche neue Lokalisierung den Ausschlag geben würde.
+Die Schlüsselkennzahl ist der **Lokalisierungslücke**: der Prozentsatz Ihrer Besucher, deren bevorzugte Sprache keine übersetzte Version unterstützt. Drilling nach Land, nach Referrer und nach Seite um genau zu sehen, wo die unterversorgte Nachfrage konzentriert ist und welches neue Lokale sichtbaren Einfluss bringen würde.
 
 ## Datenschutz ohne Kompromisse
 
-Glossia-Analytik sammelt nichts, wofür sie nicht benötigt wird, und speichert nichts identifizierbares. Der Browser sendet die Seiten-URL, den Referer, bevorzugte Sprachen, die Zeitzonen und die Bildschirmgröße. Der Server leitet den eindeutigen Besucher aus einem täglich rotierenden Hash der IP und des User-Agent ab und verwirft ihn. Es werden keine Cookies gesetzt, nichts wird Fingerprinting unterzogen und kein Besucher kann über Tage oder über Websites hinweg verfolgt werden.
+Glossia Analytics sammelt nur das Notwendige und speichert nichts Identifizierendes. Der Browser sendet die Seiten-URL, den Referrer, bevorzugte Sprachen, Zeitzone und Bildschirmauflösung. Der Server leitet den einzigartigen Besucher aus einem täglich rotierenden Hash der IP und User-Agent ab und darf nichts weiter speichern. Es werden keine Cookies gesetzt, nichts wird Fingerabdrücke gemacht, und kein Besucher kann über Tage oder über Websites hinweg verfolgt werden.
 
-Das Ergebnis ist eine Analyse, die du bereitstellen kannst, ohne ein Einwilligungsbanner, im Einklang mit den Datenschutz-Erwartungen, die deine internationalen Besucher bereits haben.
+Das Ergebnis ist eine Analysen, die Sie ohne Zustimmungsbanner bereitstellen können, abgestimmt auf die Datenschutzerwartungen Ihrer internationalen Besucher.
 
 ## In Sekunden installieren
 
-Füge eine Zeile zu deiner Website hinzu und Glossia beginnt die Erfassung:
+Fügen Sie eine Zeile zu Ihrer Website hinzu und Glossia beginnt mit der Messung:
 
 ```html
 <script defer data-domain="example.com" src="https://cdn.glossia.ai/web.js"></script>
 ```
 
-Nutzt du lieber npm? Installiere `@glossia/web` und rufe `init({ domain })` auf. Egal wie, fließen Pageviews, Client-seitige Navigation und benutzerdefinierte Ereignisse in dasselbe Dashboard, das deine Lokalisierungs-Chancen priorisiert.
+Verwenden Sie npm? Installieren Sie `@glossia/web` und rufen Sie `init({ domain })` auf. Auf jeden Fall fließen Selenium, Clientseitige Navigation und benutzerdefinierte Ereignisse in dasselbe Dashboard ein, das Ihre Lokalisierungsgelegenheiten bewertet.

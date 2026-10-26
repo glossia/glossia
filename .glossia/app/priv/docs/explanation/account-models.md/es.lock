@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "af2d8ec006644d0383dc9472e9eeae39367165601046a0f2bf1f16061b51e491",
+  "hash": "b116d088f9ccac6cb5546cde462894ad572256bde622adb18ecd05db6d2cfe53",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
+          "hash": "f5e82ede8d4b0959c24c9ac7e96b6b28f9a912488370cbce5a14521ad7647d86",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "af2d8ec006644d0383dc9472e9eeae39367165601046a0f2bf1f16061b51e491",
+      "hash": "b116d088f9ccac6cb5546cde462894ad572256bde622adb18ecd05db6d2cfe53",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/account-models.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "1a70ad9464afdaf471ce248cd79570a1135c86d50ec42daf35e7d331a5a06ced",
+  "output_hash": "e750050f62bffbf9d1794ec5e7a8ea2b0a7b9ec0df5336c6cad657600b6114df",
   "output_path": "app/priv/i18n/es/docs/explanation/account-models.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "f66a625779a7ff3a8c2c2133e60d9d7fef02a1d4",
+  "source_commit_sha": "c33204ce58c039efb0399d698b8df3c53a1f9fa3",
   "source_path": "app/priv/docs/explanation/account-models.md",
-  "translated_at": "2026-10-22T15:39:52.177183Z",
-  "translation_session_id": "01a16444-9bad-7680-b7a1-50373fdb63fe"
+  "translated_at": "2026-10-25T19:52:52.232225Z",
+  "translation_session_id": "01a17495-c385-7245-90c7-4dc8db7e5c7f"
 }

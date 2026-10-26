@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "3cfa13c0a0447f0f4080d7e3b169759f4c4ed08cafaa65781d17bc859f064fc8",
+  "hash": "0dcf0433875aa35e00c0f38396ecbc11f463da7584b85bc96844e3deaec51cb9",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "3146d40a0cec5d26d48ed1c9af8af44e3c5db5f82336fcccb8de0cda0cda7f3b",
+          "hash": "16e994d7ab9a0a23d0c5b533427bbd30332042052d0647e31af6849eeb329c34",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "3cfa13c0a0447f0f4080d7e3b169759f4c4ed08cafaa65781d17bc859f064fc8",
+      "hash": "0dcf0433875aa35e00c0f38396ecbc11f463da7584b85bc96844e3deaec51cb9",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/glossary.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "e8d4631e20f399b5834d2d8ac613579adce90ca71b74441b4f46e18737dcf8c9",
+  "output_hash": "1ce76b25990f681bc5dd67e7ee1b35a2a3755437123f8e2e36a96dc9045c061b",
   "output_path": "app/priv/i18n/es/docs/explanation/glossary.md",
   "protection_state": "recorded",
   "provider": "",
@@ -117,8 +117,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "4af8e3d7b56d9aa30ea1f330b414ee3a1ed1fec1",
   "source_path": "app/priv/docs/explanation/glossary.md",
-  "translated_at": "2026-10-20T07:41:36.326097Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-25T20:27:42.964475Z",
+  "translation_session_id": "01a174ad-9815-72eb-be16-f16f32338de0"
 }

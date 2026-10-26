@@ -1,6 +1,6 @@
 %{
-  title: "Glossia 対 Lokalise",
-  summary: "プロダクトのローカリゼーションを配信パイプラインに維持し、公開ソース、独自のモデルトークン、ネイティブバリデーションを提供します。",
+  title: "Glossia と Lokalise の比較",
+  summary: "製品のローカライズを配信パイプラインに管理し、公開ソース、自社のモデルトークン、ネイティブ検証を活用します。",
   category: "説明",
   markdown_only: true,
   section: "translation",
@@ -8,48 +8,48 @@
 }
 ---
 
-**製品リポジトリが多言語コンテンツの権威として残る場合、Glossia を選択してください。** ストリング、ドキュメント、構成、およびそれらのチェックは既にアプリケーションと共進化しています。Glossia は言語の変更をその進化に合わせて維持し、チームに対してホストされたエディターを出版の権威として選ぶよう求める代わりにします。
+**多言語コンテンツにおいてプロダクトリポジトリが権威として残る場合に Glossia を選択してください。** ストリング、ドキュメント、設定、およびそのチェックはすでにアプリケーションの進化と調和して変化しています。Glossia は変更をチームにホストされたエディタを出版権威にするよう求めるのではなく、その進化に言語の変更を添付します。
 
-[Lokalise](https://lokalise.com/) は共創的なローカライゼーション、翻訳管理、開発者統合を提供します。Glossia の提案はより具体的です：リポジトリワークフローを維持し、ご自身によるモデル認証を持ってきて、既存のチェックを再利用し、作業を行っているシステムを検証してください。
+[Lokalise](https://lokalise.com/) は協働ローカライゼーション、翻訳管理、および開発者統合を提供します。Glossia の提案はより具体的です：リポジトリワークフローを維持し、自前のモデル認証情報を導入し、既存のチェックを再利用し、作業を実行しているシステムを検査します。
 
-## Glossia を選ぶ理由
+## Why choose Glossia
 
-| ご優先すべき事項 | Glossia のメリット |
+| Your priority | Glossia's advantage |
 |---|---|
-| ソフトウェア配送速度との合致 | ソースの変更は翻訳作業を駆動し；提案された出力はリポジトリレビューワークフローを介して返されます。 |
-| 実装の所有権 | 公開ソースは処理が見通可能となり、ライセンス条項に基づき修正およびセルフホスティングがサポートされます。 |
-| ご自身によるモデルトークンを使用 | アカウント固有の認証情報により、Git にシークレットを含めることなくサポートされたモデルを選択できます。 |
-| アプリケーションの実際のコンテンツを検証 | リポジトリスクリプトは、アプリケーションがその位置を期待する場所で候補をチェックできます。 |
-| 明確なレビュー境界を維持 | プルリクエストにより、製品レビューに使用される同じツール内で言語変更が可視化されます。 |
+| Match software-delivery speed | Source changes drive translation work; proposed outputs return through a repository review workflow. |
+| Own the implementation | Public source makes processing inspectable and supports modification and self-hosting under the license terms. |
+| Use your own model tokens | Account-scoped provider credentials let you choose supported models without putting secrets into Git. |
+| Validate real application content | Repository scripts can check the candidate where the application expects to find it. |
+| Preserve a clear review boundary | Pull requests keep language changes visible in the same tooling used to review the product. |
 
-## 言語変更を製品変更と紐付ける
+## Keep language changes attached to product changes
 
-新しい UI メッセージやドキュメントセクションは孤立した翻訳タスクではありません。それは特定の製品リビジョンの一部であり、その用語を使用し、その構造と互い動作する必要があります。
+A new UI message or documentation section is not an isolated translation task. It belongs to a product revision, uses its terminology, and must work with its structure.
 
-Glossia はリポジトリ所有の `L10N.md` 構成を読み込み、コンテンツとコンテキストの変更を使用して陳旧的な翻訳を特定し、レビューのための更新を提案します。レビュアーは実際のファイルと差分を見、公開パイプラインは貴社の手に保たれます。
+Glossia reads repository-owned `L10N.md` configuration, uses content and context changes to identify stale translations, and proposes updates for review. Reviewers see actual files and diffs; the publishing pipeline remains yours.
 
-Lokalise にも自動化および Git 統合があります。Glossia の特徴は意図された記録システムです：あなたのリポジトリは公開コンテンツとその配信ルールを所有し、Glossia は言語コンテキストと変換メカニズムを供給します。
+Lokalise also has automation and Git integrations. Glossia's distinction is the intended system of record: your repository owns the published content and its delivery rules, while Glossia supplies language context and transformation mechanics.
 
-## 一つのモデル選択をハードワイズする代わりにご自身でトークンを持参
+## Bring your own tokens instead of hardwiring one model choice
 
-Glossia により、ご自身のプロバイダー API トークンを使用してサポートされたモデルを構成できます。リポジトリは安定したモデルハンドルを使用するため、そのハンドルの背後のモデルを変更するか認証を更新しても、すべてのプロジェクトを変更する必要はありません。
+Glossia lets you configure supported models using your own provider API tokens. A repository uses a stable model handle, so rotating credentials or updating the model behind that handle does not require changing every project.
 
-ネスト構成とローカライゼーション固有のガイダンスにより、特定の地域や言語のために別の構成モデルを選択できます。これは明示的な選択であり、自動プロバイダーフェイルオーバーの約束ではありません。[アカウントモデル](./account-models)を参照してください。
+Nested configuration and locale-specific guidance can select a different configured model for a particular area or language. This is explicit selection, not a promise of automatic provider failover. See [Account models](./account-models).
 
-## すでにあなたのアプリケーションを知っている検証を再利用
+## Reuse validation that already knows your application
 
-あなたのリポジトリはすでに無効なストリング、不正なファイル、壊れたコンポーネント属性、またはドキュメントビルドの失敗を検出する方法を知っているかもしれません。Glossia は構成された検証コマンドを通じてその知識を実行できます。
+Your repository may already know how to detect invalid strings, malformed files, broken component attributes, or a documentation build failure. Glossia can invoke that knowledge through a configured validation command.
 
-候補はチェックのために一時的に実際の出力パスに配置されます。各検証試み後に以前の設定は復元され、受け入れられた候補はその後記録されます。拒絶された出力は構成された回復予算を通過し、テキストが妥当に見えるためだけに受け入れられることはありません。
+The candidate is temporarily placed at its real output path for the check. The previous target is restored after each validation attempt, and the accepted candidate is written afterward. Rejected output goes through the configured recovery budget rather than being accepted just because the text looks plausible.
 
-構造的およびリポジトリチェックはすべての文が正しいことを証明するものではありません。それらは人間による言語レビューを補完し、そのレビューを配信可能な変更の一部にします。[L10N.md](/docs/reference/l10n-md)および[翻訳回復](./translation-recovery)を参照してください。
+Structural and repository checks do not prove every sentence is correct. They complement human language review and make that review part of a deliverable change. See [L10N.md](/docs/reference/l10n-md) and [Translation recovery](./translation-recovery).
 
-## 公開ソースとリポジトリ所有の出力
+## Public source and repository-owned outputs
 
 Glossia はオープンコアモデルを採用しています。コアは [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) に基づき、その条件の下で商用利用、変更、配布、セルフホスティング、競合するホスト型サービスの提供が可能です。`ee/` のコードは閲覧できますが、オープンソースではありません。別の [Enterprise ライセンス](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) が適用され、本番環境での利用には書面による商用契約が必要です。
 
-日々の配信においてより重要なのは、あなたの翻訳出力は Git に残ります。既に所有する既存のファイルを公開するため、別の製品で編集セッションを行う必要はありません。
+More importantly for daily delivery, your translated outputs stay in Git. You do not need an editing session in another product simply to publish the existing files you own.
 
-Lokalise は中央ブラウザ編集とローカライゼーション管理を望むチーム向けかもしれません。Glossia は、**リポジトリ所有、ご自身によるモデルトークン、および既存の製品チェック** を維持したいワークフローの選択肢です。
+Lokalise may fit a team that wants centralized browser editing and localization coordination. Glossia is the choice when **repository ownership, your own model tokens, and existing product checks** are the workflow you want to keep.
 
-システム変更前に代行者の変更を検証してください。このページは自動移行や機能の同等性を約束せず、または Lokalise に自動化や全プロバイダー選択肢の欠如を主張していません。現在の実機能を参照するには[Lokalise のドキュメント](https://docs.lokalise.com/)をご覧ください。
+Test a representative change before switching systems. This page does not promise automatic migration or feature parity, or claim that Lokalise lacks automation or all provider options. See [Lokalise's documentation](https://docs.lokalise.com/) for its current capabilities.

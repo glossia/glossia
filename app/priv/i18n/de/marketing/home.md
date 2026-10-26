@@ -1,33 +1,33 @@
-# Glossia: ein Sprach-Betriebssystem für Teams
+# Glossia: ein language OS für Teams
 
-Glossia vereinigt Sprache, Terminologie, Übersetzung, Revisionsverlauf und Lokalisierungsanalysen in einem System. Es hilft Entwicklern, Linguisten und Produktteams, konsistent über Sprachen hinweg zu kommunizieren, ohne ihren Content aus Git zu entfernen.
+Glossia bringt Stimme, Terminologie, Übersetzung, Revisionshistorie und Lokalisierungsanalysen in ein einziges System. Es hilft Entwicklern, Linguisten und Produktteams, konsistent über Sprachen hinweg zu kommunizieren, ohne ihren Inhalt aus Git zu bewegen.
 
 ## Das Problem
 
-Auszuglisten auf Englisch bedeuten nicht nur den Austausch von Wörtern. Teams müssen Gebrauch von Bedeutung richtig, Terminologie verwenden, Ton an das Publikum anpassen und Übersetzungen auf dem Laufenden halten, während sich das Produkt ändert. Kontext, der über Tabellen, Prompts und Übersetzungswerkzeuge verstreut ist, führt zu inkonsistentem Schreiben und wiederholter manueller Arbeit.
+Einschicken auf einer anderen Sprache ist nicht nur das Ersetzen von Wörtern. Teams müssen Bedeutung bewahren, die richtige Terminologie verwenden, den Ton an das Publikum anpassen und Übersetzungen aktuell halten, während sich das Produkt verändert. Kontext, der über Tabellen, Prompts und Übersetzungstools verstreut ist, führt zu inkonsistenter Schreibweise und wiederholter manueller Arbeit.
 
-Ein LLM kann eine Übersetzung skizzieren, aber ein Entwurf allein stellt Versionsverlauf, Validierung, selektive Updates oder einen Feedback-Loop für die nächste Änderung nicht bereit.
+Ein LLM kann eine Übersetzung entwurfen, aber ein Entwurf allein bietet keine Versionshistorie, Validierung, selektive Updates oder einen Feedbackloop für die nächste Änderung.
 
 ## Die Rolle von Glossia
 
-- **Sprach-Gedächtnis:** gemeinsam genutzte Sprachführungen und Glossar-Einträge helfen Menschen und Agenten, konsistente Sprache zu verwenden.
-- **Repository-Lokalisierung:** Repository verbinden, Quelldateien und Ziel-Lokalen in der Konfiguration beschreiben und Änderungen über Pull-Requests überprüfen.
-- **Schrittweise Verfeinerung:** Content-Hashes helfen dabei, unveränderte Inhalte zu übersetzen zu vermeiden. Validierung und Wiederherstellung machen Fehler sichtbar und handhabbar.
-- **Inhaltrevisionierung:** bewahren Sie die Geschichte von Sprachentscheidungen und Änderungen auf, anstatt jede Generierung als isolierten Prompt zu behandeln.
-- **Lokalisierungsanalysen:** datenschutzbewusste Web-Analysen helfen Teams, ihr Publikum zu verstehen und wo sich Lokalisierung auszahlt.
-- **Agent-Integration:** ein OAuth-authentifizierter MCP-Server und REST-Schnittstellen machen Sprach-Kontext für bestehende Workflows verfügbar.
+- **Sprachgedächtnis:** gemeinsam genutzte Stimmanleitung und Wörterbuch-Einträge helfen Personen und Agents, konsistente Sprache zu verwenden.
+- **Repository-Lokalisierung:** verbinden Sie ein Repository, beschreiben Sie Quell- und Zielsprachen in der Konfiguration und prüfen Sie Änderungen über Pull Requests.
+- **Progressive Verfeinerung:** Inhalts-Hashes helfen, unveränderten Inhalt nicht zu übersetzen. Validierung und Wiederherstellung machen Fehler sichtbar und handlungsrelevant.
+- **Inhaltsrevisionierung:** bewahren Sie die Historie sprachlicher Entscheidungen und Änderungen, anstatt jede Generierung als isolierten Prompt zu behandeln.
+- **Lokalisierungsanalysen:** datenschutzbewusste Webanalysen helfen Teams, ihr Publikum zu verstehen und wo Lokalisierung investiert werden sollte.
+- **Agentenintegration:** ein OAuth-authentizierter MCP-Server und REST-Schnittstellen machen sprachlichen Kontext für bestehende Workflows verfügbar.
 
-Glossia ersetzt nicht das Redakteururteil. Es liefert den Kontext, die Automatisierung und den Überprüfungs-Arbeitsgang, der Teams erlaubt, dieses Urteil wiederholt anzuwenden.
+Glossia ersetzt nicht das redaktionelle Urteil. Es versorgt Teams mit dem Kontext, der Automatisierung und dem Review-Workflow, um dieses Urteil wiederholt anzuwenden.
 
-## Entdecken
+## Erforschen
 
-- [Erste Schritte](/docs/tutorials/getting-started.md): Repository verbinden und Ihre erste Lokalisierungsarbeitsgang ausführen.
-- [Warum Glossia](/docs/explanation/why-glossia.md): die Probleme, die das Sprach-Betriebssystem lösen soll.
-- [Features](/features.md): Produkteigenschaften und Anwendungsfälle.
-- [Dokumentation](/docs.md): Tutorials, Anleitungen, Referenzen und Erklärungen.
-- [Blog](/blog.md): Schreiben über Lokalisierung und Sprachsysten.
-- [Änderungsprotokoll](/changelog.md): Produktänderungen.
-- [Quellcode](https://github.com/glossia/glossia): die Umsetzung inspizieren und beitragen.
+- [Erste Schritte](/docs/tutorials/getting-started.md): verbinden Sie ein Repository und führen Sie Ihren ersten Lokalisierungsablauf aus.
+- [Warum Glossia](/docs/explanation/why-glossia.md): die Probleme, die das language OS lösen soll.
+- [Funktionen](/features.md): Produktfähigkeiten und Anwendungsfälle.
+- [Dokumentation](/docs.md): Tutorials, How-to-Guides, Referenzen und Erklärungen.
+- [Blog](/blog.md): schriftlich über Lokalisierung und Sprachsysteme.
+- [Change Log](/changelog.md): Produktänderungen.
+- [Quellcode](https://github.com/glossia/glossia): überprüfen Sie die Implementierung und tragen Sie bei.
 
 ## Vergleiche
 
@@ -36,8 +36,8 @@ Glossia ersetzt nicht das Redakteururteil. Es liefert den Kontext, die Automatis
 - [Glossia vs Phrase](/docs/explanation/glossia-vs-phrase.md)
 - [Glossia vs Weblate](/docs/explanation/glossia-vs-weblate.md)
 
-## Für Crawler und Agenten
+## Für Crawler und Agents
 
-Veröffentlichte Seiten sind als Markdown verfügbar, indem Sie `.md` an ihren HTML-Url anhängen, oder indem Sie `Accept: text/markdown` an der HTML-Url anfordern. Die Markdown-Url der Startseite ist `/index.md`. Übersetzter Content verwendet die gleichen Lokalen-Vorfixe wie HTML und fällt zurück auf Englisch, wenn keine Übersetzung veröffentlicht ist.
+Veröffentlichte Seiten sind als Markdown verfügbar, indem Sie `.md` an ihre URL anhängen oder `Accept: text/markdown` mit der HTML URL anfordern. Die Markdown-URL der Homepage ist `/index.md`. Übersetzter Inhalt verwendet dieselben Sprachvorkennzeichner wie HTML und bewegt sich auf Englisch, wenn keine Übersetzung veröffentlicht ist.
 
-Verwenden Sie [/llms.txt](/llms.txt) für Entdeckung, [/llms-full.txt](/llms-full.txt) für einen konsolidierten Dokumentations-Export und [/sitemap.xml](/sitemap.xml) für kanonische HTML-URLs. Kontodashboards sind Anwendungsoberflächen, nicht Dokumentation; durchsuchen Sie sie nicht, um über Glossia zu lernen.
+Verwenden Sie [/llms.txt](/llms.txt) für Entdeckung, [/llms-full.txt](/llms-full.txt) für einen konsolidierten Dokumentationsexport und [/sitemap.xml](/sitemap.xml) für kanonische HTML-URLS. Kontodashboards sind Anwendungsoberflächen, keine Dokumentation; crawlen Sie sie nicht, um über Glossia zu lernen.

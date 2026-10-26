@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "b6b01107d8fb4993709fefbcb7db732c1e45eac273d06efe14ec6c9acf03d47a",
+  "hash": "0c016a4baaec3546933eda8feb5764a167dd0bfe4e334779a94ef5f1c72bb2c8",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
+          "hash": "f5e82ede8d4b0959c24c9ac7e96b6b28f9a912488370cbce5a14521ad7647d86",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "b6b01107d8fb4993709fefbcb7db732c1e45eac273d06efe14ec6c9acf03d47a",
+      "hash": "0c016a4baaec3546933eda8feb5764a167dd0bfe4e334779a94ef5f1c72bb2c8",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/continuous-localization.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "1ae3cb1bd160302c667ff253839ee21bf0bce383f02b44d5b349ffcf0ab2a3bd",
+  "output_hash": "98512ddfe0c29ea5cd2992f0a89a4dd45c41d25efbcda08a4ba0fa69850c5859",
   "output_path": "app/priv/i18n/es/docs/explanation/continuous-localization.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "c33204ce58c039efb0399d698b8df3c53a1f9fa3",
   "source_path": "app/priv/docs/explanation/continuous-localization.md",
-  "translated_at": "2026-10-20T07:41:36.200880Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-25T20:05:12.771153Z",
+  "translation_session_id": "01a17495-c385-7245-90c7-4dc8db7e5c7f"
 }

@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "442c5bf2a27c3a683a54eebcb727f9e171ff0e2cdcf109def94fb2693fbe5246",
+  "hash": "956c4f89584943a2c80a4865c5d3426d12abca2631d3fd49bb3b14c10a5b458d",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
+          "hash": "f80c234aa8b77bbb91f7d7d99698183dc8fe9113d9066582b99f7012a7f19e58",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "442c5bf2a27c3a683a54eebcb727f9e171ff0e2cdcf109def94fb2693fbe5246",
+      "hash": "956c4f89584943a2c80a4865c5d3426d12abca2631d3fd49bb3b14c10a5b458d",
       "kind": "translation_input",
       "label": "app/priv/blog/2026-10-01-translation-is-the-easy-part.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "93618f1a9819346a38c304078db7915b72335e36f22fd36d241b81a795f13366",
+  "output_hash": "e14adf92b6f4fbd548ee9b40ee0fcd220db94417c06fbbdd7b4a7af86e5de69c",
   "output_path": "app/priv/i18n/ja/blog/2026-10-01-translation-is-the-easy-part.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "f66a625779a7ff3a8c2c2133e60d9d7fef02a1d4",
+  "source_commit_sha": "26830cdcfd6f490f114691d716513712dcf0b715",
   "source_path": "app/priv/blog/2026-10-01-translation-is-the-easy-part.md",
-  "translated_at": "2026-10-22T15:39:52.024416Z",
-  "translation_session_id": "01a16444-9bad-7680-b7a1-50373fdb63fe"
+  "translated_at": "2026-10-25T19:26:40.991664Z",
+  "translation_session_id": "01a17483-888b-7240-a485-4b167654c2f3"
 }

@@ -1,0 +1,122 @@
+{
+  "baseline_schema_version": 1,
+  "hash": "9af744f075895b142247a7aaa88ba137100b12eee0223f747390a9aaf80baff6",
+  "hash_tree": {
+    "root": {
+      "children": [
+        {
+          "children": [],
+          "hash": "f0f629abd61fcdc673cdeeda6f7ce2617e662ab237eaf0b858be174d95b1e414",
+          "kind": "source",
+          "label": "mobile/native/ios/Resources/en.lproj/InfoPlist.strings",
+          "metadata": {
+            "content_hash": "48a1aed1525c7fbdf29cf57876ee44ee01178d0d5527f2eac92c72782fe398cd"
+          }
+        },
+        {
+          "children": [],
+          "hash": "c9f8ace3ac22edd5372c840b6f7af39e061c5b53889f682badd73f8051cf0499",
+          "kind": "translation_config",
+          "label": "generation",
+          "metadata": {
+            "custom_prompt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "format": "text",
+            "frontmatter_mode": "translate",
+            "language": "pt-BR",
+            "locale": "pt-BR",
+            "model": "",
+            "preserve": [],
+            "prompt_version": 8,
+            "provider": "",
+            "retries": 3,
+            "segmentation_version": 1,
+            "source_language": "en",
+            "validation_hash": "ad9ef4e9d853de0610a985b456aa28427e188375332ac4e8efca9c2226f5519e"
+          }
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "hash": "8829edb2ce065a477943d806edde754eef8c903cd160daec68857e44ebf998d8",
+              "kind": "context",
+              "label": "project",
+              "metadata": {
+                "content_hash": "6cd8580fbb1cdeeb41c094c052f3fd26cbc42b73630f6e8063519325f74a73f9"
+              }
+            },
+            {
+              "children": [],
+              "hash": "a92a1d3a18c1e1be86e613b194613064b411b73893253185405d19abfb685e7d",
+              "kind": "context",
+              "label": "locale",
+              "metadata": {
+                "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "hash": "1ce1060bb675f8cc75ef107e56162abcff4ca3e6f9f3adcd41022326a1dff73e",
+                  "kind": "context",
+                  "label": "voice",
+                  "metadata": {
+                    "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126"
+                  }
+                },
+                {
+                  "children": [],
+                  "hash": "70a46d36422990ac658b3e9615b5a3ec8c9ab24e53c20ac6e06aaafb9ac57183",
+                  "kind": "context",
+                  "label": "terminology",
+                  "metadata": {
+                    "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+                  }
+                }
+              ],
+              "hash": "dcebe04e5b7d13287ceb7e484de7b00a697c7ae291f406ec32563e84ccfe7c11",
+              "kind": "server_context",
+              "label": "organization",
+              "metadata": {
+                "compiler_version": 3,
+                "selector_version": 2
+              }
+            }
+          ],
+          "hash": "c22ec4864a858ae86226b33edd95c503a9e11faa4c68b25d90fe1965ba3fc8a7",
+          "kind": "context_bundle",
+          "label": "context",
+          "metadata": {}
+        }
+      ],
+      "hash": "9af744f075895b142247a7aaa88ba137100b12eee0223f747390a9aaf80baff6",
+      "kind": "translation_input",
+      "label": "mobile/native/ios/Resources/en.lproj/InfoPlist.strings",
+      "metadata": {}
+    }
+  },
+  "model": "",
+  "output_hash": "447f87bddccdb0e4a47b2b637bf2f060def3322f3c5247f13ef2b8c0a1758935",
+  "output_path": "mobile/native/ios/Resources/pt-BR.lproj/InfoPlist.strings",
+  "protection_state": "recorded",
+  "provider": "",
+  "server_context": {
+    "compiler_version": 3,
+    "glossary": {
+      "applied": [],
+      "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "shadowed": [],
+      "version": null
+    },
+    "selector_version": 2,
+    "voice": {
+      "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
+      "version": null
+    }
+  },
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
+  "source_path": "mobile/native/ios/Resources/en.lproj/InfoPlist.strings",
+  "translated_at": "2026-10-26T05:50:17.797588Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
+}

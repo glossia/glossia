@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "ea2496a0f988f6542119711328717c35fe2b03b244cd748f322eb20e8e248503",
+  "hash": "0af544c35f93a9cf48d93687909e184aa335f155ddaf5d3bae07a7773bcf9ab9",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "e66e9ecbca1fbb59adbc4a061a9c5b3ec21aaf437fbe72e5ba719129c151f146",
+          "hash": "0cc7ba3cbf1978054897f5a5d352b49d1d1aaea5340e212fd723afdf7f35ebcf",
           "kind": "source",
           "label": "app/priv/docs/reference/apis/authorization.md",
           "metadata": {
-            "content_hash": "a7584117d373b8ae3cd6d512ef456f8dbb840bd76eab6b915457c6387d6f5dcc"
+            "content_hash": "96e31b1ee916772f2ad4e9c0deb849892a52031dcea351c6330028163e76cb18"
           }
         },
         {
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
+          "hash": "f5e82ede8d4b0959c24c9ac7e96b6b28f9a912488370cbce5a14521ad7647d86",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "ea2496a0f988f6542119711328717c35fe2b03b244cd748f322eb20e8e248503",
+      "hash": "0af544c35f93a9cf48d93687909e184aa335f155ddaf5d3bae07a7773bcf9ab9",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/apis/authorization.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "9c5d042009eb45c7228bd09e01775d56e66b226fd57ad3304f5997e8caa778e3",
+  "output_hash": "efc1bcfe8fae65a4240358380bfacad716fda104bb7b6d5ef7f9ca171cf380ee",
   "output_path": "app/priv/i18n/es/docs/reference/apis/authorization.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "8c946ab2f6b10f009391d70fc5133dad149ab8a2",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/docs/reference/apis/authorization.md",
-  "translated_at": "2026-10-21T17:43:36.498730Z",
-  "translation_session_id": "01a15f5f-f115-757e-9113-1d0e7d250066"
+  "translated_at": "2026-10-25T22:39:03.979838Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

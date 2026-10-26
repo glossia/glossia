@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "3eb137eb22809dac92f706ae365d700dec4694eb463bb8f2670c0f6056613296",
+  "hash": "12bc75da10c4a6f21c51c5fe8e5267248337f049dee1f08dbb69773938c0e4b8",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
+          "hash": "f80c234aa8b77bbb91f7d7d99698183dc8fe9113d9066582b99f7012a7f19e58",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "3eb137eb22809dac92f706ae365d700dec4694eb463bb8f2670c0f6056613296",
+      "hash": "12bc75da10c4a6f21c51c5fe8e5267248337f049dee1f08dbb69773938c0e4b8",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/content-ownership.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "d23036ed66958488dce0af1aa8a73a7e03171b64ddaad33e0dcc3044737cf2df",
+  "output_hash": "c4f0302d3d151f17cd961c96300020240ba6b48b1b41fd38aa966dc84f0e916b",
   "output_path": "app/priv/i18n/ja/docs/explanation/content-ownership.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "f66a625779a7ff3a8c2c2133e60d9d7fef02a1d4",
+  "source_commit_sha": "c33204ce58c039efb0399d698b8df3c53a1f9fa3",
   "source_path": "app/priv/docs/explanation/content-ownership.md",
-  "translated_at": "2026-10-22T15:45:11.773080Z",
-  "translation_session_id": "01a16444-9bad-7680-b7a1-50373fdb63fe"
+  "translated_at": "2026-10-25T19:58:26.367863Z",
+  "translation_session_id": "01a17495-c385-7245-90c7-4dc8db7e5c7f"
 }

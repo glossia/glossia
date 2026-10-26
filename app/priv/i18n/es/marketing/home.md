@@ -1,33 +1,33 @@
-# Glossia: un sistema operativo de idiomas para equipos
+# Glossia: un OS de lenguaje para equipos
 
-Glossia integra la voz, la terminología, la traducción, el historial de revisiones y las analíticas de localización en un solo sistema. Ayuda a los desarrolladores, lingüistas y equipos de producto a comunicarse consistentemente en múltiples idiomas sin mover su contenido fuera de Git.
+Glossia integra la voz, la terminología, la traducción, el historial de revisiones y el análisis de localización en un solo sistema. Ayuda a los desarrolladores, lingüistas y equipos de producto a comunicarse de manera consistente a través de idiomas sin mover su contenido fuera de Git.
 
 ## El problema
 
-Lanzar en otro idioma no se trata solo de sustituir palabras. Los equipos necesitan preservar el significado, utilizar la terminología adecuada, adaptar el tono a la audiencia y mantener las traducciones actualizadas a medida que el producto cambia. El contexto disperso en hojas de cálculo, prompts y herramientas de traducción conduce a una redacción inconsistente y a un trabajo manual repetitivo.
+Lanzar un producto en otro idioma no es solo reemplazar palabras. Los equipos necesitan preservar el significado, utilizar la terminología correcta, adaptar el tono al público y mantener las traducciones actualizadas conforme el producto cambia. El contexto disperso en hojas de cálculo, instrucciones y herramientas de traducción conduce a una redacción incoherente y trabajo manual repetido.
 
-Un LLM puede redactar una traducción, pero una redacción por sí sola no proporciona historial de versiones, validación, actualizaciones selectivas ni un ciclo de retroalimentación para el próximo cambio.
+Un LLM puede redactar una traducción, pero un borrador por sí solo no proporciona historial de versiones, validación, actualizaciones selectivas ni un bucle de retroalimentación para el próximo cambio.
 
 ## El papel de Glossia
 
-- **Memoria de lenguaje:** las guías de voz compartidas y las entradas del glosario ayudan a las personas y los agentes a utilizar un lenguaje consistente.
-- **Localización de repositorio:** conecta un repositorio, describe los archivos de origen y marcadores de idioma objetivo en la configuración y revisa los cambios mediante pull requests.
-- **Refinamiento progresivo:** los hashes del contenido ayudan a evitar traducir contenido sin cambios. La validación y la recuperación hacen que los fallos sean visibles y accionables.
-- **Revisión de contenido:** preservar el historial de decisiones y cambios del lenguaje en lugar de tratar cada generación como un prompt aislado.
-- **Analíticas de localización:** las analíticas web conscientes de la privacidad ayudan a los equipos a entender a su audiencia y en qué invertir en localización.
-- **Integración de agentes:** un servidor MCP autenticado mediante OAuth e interfaces REST hacen que el contexto del lenguaje esté disponible para los flujos de trabajo existentes.
+- **Memoria del lenguaje:** la orientación de voz compartida y las entradas del glosario ayudan a las personas y los agentes a usar un lenguaje consistente.
+- **Localización del repositorio:** conectar un repositorio, describir archivos de origen y locales objetivo en la configuración y revisar cambios a través de solicitudes de extracción.
+- **Refinamiento progresivo:** los hashes de contenido ayudan a evitar traducir contenido inalterado. La validación y la recuperación hacen visibles y accionables los fallos.
+- **Gestión de revisiones de contenido:** conserve el historial de decisiones de lenguaje y cambios en lugar de tratar cada generación como una instrucción aislada.
+- **Análisis de localización:** el análisis web consciente de la privacidad ayuda a los equipos a comprender a su audiencia y dónde vale la pena invertir en localización.
+- **Integración de agentes:** un servidor MCP autenticado con OAuth e interfaces REST ponen el contexto del lenguaje disponible en los flujos de trabajo existentes.
 
-Glossia no reemplaza el juicio editorial. Proporciona el contexto, la automatización y el flujo de trabajo de revisión que permiten a los equipos aplicar dicho juicio de manera repetida.
+Glossia no sustituye el juicio editorial. Proporciona el contexto, la automatización y el flujo de trabajo de revisión que permiten a los equipos aplicar ese criterio repetidamente.
 
 ## Explorar
 
-- [Comenzar](/docs/tutorials/getting-started.md): conecta un repositorio y ejecuta tu primer flujo de trabajo de localización.
-- [Por qué Glossia](/docs/explanation/why-glossia.md): los problemas que el sistema operativo de idiomas está diseñado para resolver.
+- [Empezar](/docs/tutorials/getting-started.md): conecte un repositorio y ejecute su primer flujo de trabajo de localización.
+- [¿Por qué Glossia?](/docs/explanation/why-glossia.md): los problemas para los que está diseñado el OS de lenguaje.
 - [Características](/features.md): capacidades del producto y casos de uso.
-- [Documentación](/docs.md): tutoriales, guías paso a paso, referencia y explicaciones.
-- [Blog](/blog.md): escritura sobre localización y sistemas de idiomas.
+- [Documentación](/docs.md): tutoriales, guías cómo hacer, referencia y explicaciones.
+- [Blog](/blog.md): escritos sobre localización y sistemas de lenguaje.
 - [Registro de cambios](/changelog.md): cambios del producto.
-- [Código fuente](https://github.com/glossia/glossia): examina la implementación y contribuye.
+- [Código fuente](https://github.com/glossia/glossia): examine la implementación y contribuya.
 
 ## Comparaciones
 
@@ -38,6 +38,6 @@ Glossia no reemplaza el juicio editorial. Proporciona el contexto, la automatiza
 
 ## Para rastreadores y agentes
 
-Las páginas publicadas están disponibles como Markdown mediante la extensión `.md` de su URL, o solicitando `Accept: text/markdown` en la URL HTML. La URL Markdown de la página principal es `/index.md`. El contenido traducido utiliza los mismos prefijos de locales que HTML y vuelve al inglés cuando no hay ninguna traducción publicada.
+Las páginas publicadas están disponibles como Markdown añadiendo `.md` a su URL, o solicitando `Accept: text/markdown` en la URL HTML. La URL Markdown de la página principal es `/index.md`. El contenido traducido utiliza los mismos prefijos de localización que HTML y recurre al inglés cuando no se publica ninguna traducción.
 
-Utiliza [/llms.txt](/llms.txt) para la exploración, [/llms-full.txt](/llms-full.txt) para una exportación consolidada de documentación y [/sitemap.xml](/sitemap.xml) para las URLs HTML canónicas. Los paneles de cuenta son interfaces de aplicación, no documentación; no los rastreéis para conocer a Glossia.
+Utilice [/llms.txt](/llms.txt) para el descubrimiento, [/llms-full.txt](/llms-full.txt) para la exportación de documentación consolidada y [/sitemap.xml](/sitemap.xml) para las URLs HTML canónicas. Los paneles de control de cuentas son superficies de aplicación, no documentación; no los rastree para aprender sobre Glossia.

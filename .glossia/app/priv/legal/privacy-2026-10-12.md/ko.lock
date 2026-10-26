@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "efb6674b59840abee453d2d97aa8d9b971dc1b0350a122f81c53b2881787db90",
+  "hash": "26829cd4741774eced8b2bdc332a3576faf3c8bece4692d5550fee33def02fbf",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
+          "hash": "f80c234aa8b77bbb91f7d7d99698183dc8fe9113d9066582b99f7012a7f19e58",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "efb6674b59840abee453d2d97aa8d9b971dc1b0350a122f81c53b2881787db90",
+      "hash": "26829cd4741774eced8b2bdc332a3576faf3c8bece4692d5550fee33def02fbf",
       "kind": "translation_input",
       "label": "app/priv/legal/privacy-2026-10-12.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "9a99c53404b6617e5064dd3fb4fe9e8d2b8c192f6ca3d84c89536fa2adea830f",
+  "output_hash": "52ec1340b9783bdbc9cf9d41d8f1e7ba2f1bedf38f20d19192b039a3db32fdd2",
   "output_path": "app/priv/i18n/ko/legal/privacy-2026-10-12.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "8c946ab2f6b10f009391d70fc5133dad149ab8a2",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/legal/privacy-2026-10-12.md",
-  "translated_at": "2026-10-21T18:13:32.610946Z",
-  "translation_session_id": "01a15f5f-f115-757e-9113-1d0e7d250066"
+  "translated_at": "2026-10-26T04:39:59.868882Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

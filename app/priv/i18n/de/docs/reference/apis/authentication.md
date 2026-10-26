@@ -1,37 +1,37 @@
 %{
   title: "Authentifizierung",
-  summary: "Browser-Anmeldung, Zugriffstoken und Authentifizierungs-Endpunkte.",
+  summary: "Browser-Anmeldung, Zugriffstoken und Authentifizierungsendpunkte.",
   category: "Referenz",
   subcategory: "APIs",
   order: 1
 }
 ---
 
-Diese Seite beschreibt [Offene Autorisierung](https://oauth.net/2.1/) (OAuth), [Beweisschlüssel für Code-Tausch](https://datatracker.ietf.org/doc/html/rfc7636) (PKCE) und die [Anwendungsprogrammierschnittstelle](https://developer.mozilla.org/en-US/docs/Glossary/API) (API). Darunter verlinkte Protokollspezifikationen werden als Anfragen zur Kommentierung (RFCs) publiziert.
+Diese Seite beschreibt [Open Authorization](https://oauth.net/2.1/) (OAuth), [Proof Key for Code Exchange](https://datatracker.ietf.org/doc/html/rfc7636) (PKCE) und die [Programmierschnittstelle](https://developer.mozilla.org/en-US/docs/Glossary/API) (API). Die unten verlinkten Protokollspezifikationen werden als Requests for Comments (RFCs) veröffentlicht.
 
 ## Authentifizierungsmethoden
 
-Glossia unterstützt Browser-Sitzungen und Bearer-Token. Bearer-Token können durch den unten beschriebenen Autorisierungsfluss ausgestellt oder als [Kontotokens](/docs/reference/apis/account-tokens) erstellt werden.
+Glossia unterstützt Browser-Sitzungen und Bearer-Token. Bearer-Token können über den unten beschriebenen Autorisierungsablauf ausgestellt oder als [Kontotoken](/docs/reference/apis/account-tokens) erstellt werden.
 
 ### Browser-Sitzungen
 
-Wenn Sie sich über die Benutzeroberfläche anmelden, verwendet Glossia eine auf Sitzungen basierende Authentifizierung. Sie authentifizieren sich über GitHub, GitLab, Google oder einen konfigurierten Organisations-Identitätsanbieter mithilfe der [Assent](https://github.com/pow-auth/assent)-Bibliothek. Nach einer erfolgreichen Anmeldung wird ein Sitzungs-Cookie gesetzt und für nachfolgende Anfragen verwendet.
+Wenn Sie sich über das Web-Oberfläche anmelden, verwendet Glossia eine Sitzungsauthentifizierung. Sie authentifizieren sich über GitHub, GitLab, Google oder einen konfigurierten Organisations-Identitätsanbieter mittels der [Assent](https://github.com/pow-auth/assent)-Bibliothek. Nach einer erfolgreichen Anmeldung wird ein Sitzungs-Cookie gesetzt und für nachfolgende Anfragen verwendet.
 
-Organisationen können Google Workspace oder Okta konfigurieren und ihre Arbeits-E-Mail-Domain verifizieren, bevor sie die automatische Registrierung erlauben. Siehe [Organisationsanmeldung einrichten](/docs/how-to/organization-sign-in) für Setup- und Kontoverknüpfungsanforderungen.
+Organisationen können Google Workspace oder Okta konfigurieren und ihre geschäftliche E-Mail-Domain verifizieren, bevor sie die automatische Zulassung erlauben. Siehe [Konfiguration der Organisationsanmeldung](/docs/how-to/organization-sign-in) für Einrichtungs- und Konto-Linkierungsanforderungen.
 
 ### Bearer-Token (OAuth 2.1)
 
-Für API-Zugriff (beispielsweise über die CLI oder andere Tools) implementiert Glossia OAuth 2.1 mit dem Autorisierungscode-Flow und PKCE. Clients erhalten einen Bearer-Token und schließen ihn in den `Authorization`-Header ein:
+Für API-Zugriff (z. B. von der CLI oder anderen Tools) implementiert Glossia OAuth 2.1 mit dem Authorization-Code-Fluss und PKCE. Clients erhalten ein Bearer-Token und beinhalten es im `Authorization`-Header:
 
 ```
 Authorization: Bearer <access_token>
 ```
 
-## OAuth 2.1-Fluss
+## OAuth 2.1-Ablauf
 
-### 1. Dynamische Client-Registrierung
+### 1. Registrierung dynamischer Clients
 
-Clients registrieren sich selbst, indem sie `POST /oauth/register` mit ihren Metadaten aufrufen. Dies folgt [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
+Clients registrieren sich, indem sie `POST /oauth/register` mit ihren Metadaten aufrufen. Dies folgt [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
 
 ```json
 {
@@ -41,21 +41,21 @@ Clients registrieren sich selbst, indem sie `POST /oauth/register` mit ihren Met
 }
 ```
 
-Glossia gibt `client_id` und `client_secret` zurück. Das `localhost`-Redirect in diesem Beispiel gehört zu Ihrer Anwendung während der Entwicklung. Produktionsanwendungen sollten ihre eigenen sicheren Callback-Adresse registrieren.
+Glossia gibt `client_id` und `client_secret` zurück. Der `localhost`-Umleitung in diesem Beispiel gehört zu Ihrer Anwendung während der Entwicklung. Produktionsanwendungen sollten ihre eigene sichere Callback-Adresse registrieren.
 
-### 2. Autorisationsanfrage
+### 2. Autorisierungsanfrage
 
-Der Client leitet den Benutzer mit PKCE-Parametern auf `/oauth/authorize` weiter:
+Der Client führt den Benutzer zu `/oauth/authorize` mit PKCE-Parametern weiter:
 
 ```
 GET /oauth/authorize?response_type=code&client_id=<id>&redirect_uri=<uri>&code_challenge=<challenge>&code_challenge_method=S256&state=<state>
 ```
 
-**PKCE ist für alle Clients erforderlich.** Nur die `S256`-Code-Challenge-Methode wird unterstützt.
+**PKCE ist für alle Clients erforderlich.** Nur die `S256`-Challenge-Methode wird unterstützt.
 
 ### 3. Token-Austausch
 
-Nachdem der Benutzer zugestimmt hat, tauscht der Client den Autorisierungscode für Token an `POST /oauth/token` aus:
+Nach der Genehmigung tauscht der Client den Autorisierungscode gegen Tokens an `POST /oauth/token` ein:
 
 ```
 POST /oauth/token
@@ -64,11 +64,11 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<id>&client_secret=<secret>&code_verifier=<verifier>
 ```
 
-Die Antwort enthält einen Zugriffstoken und optional ein Refresh-Token.
+Die Antwort enthält ein Access-Token und optional ein Refresh-Token.
 
 ### 4. Token-Erneuerung
 
-Wenn ein Zugriffstoken abläuft, verwenden Sie den Refresh-Token:
+Wenn ein Access-Token abläuft, verwenden Sie das Refresh-Token:
 
 ```
 POST /oauth/token
@@ -77,37 +77,37 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=refresh_token&refresh_token=<token>&client_id=<id>&client_secret=<secret>
 ```
 
-Siehe [Autorisierung](/docs/reference/apis/authorization) für Berechtigungsbereiche, Mitgliedschaftszugriff und Ressourcen-Checks.
+Siehe [Autorisierung](/docs/reference/apis/authorization) für Berechtigungs-Bereiche, Mitgliederzugriff und Ressourcen-Prüfungen auf Ressourcebene.
 
-## Entdeckbare Endpunkte
+## Entdeckungsendpunkte
 
-Glossia veröffentlicht Metadaten an Standard-URLs, sodass Clients Endpunkte automatisch entdecken können.
+Glossia veröffentlicht Metadaten an standardisierten bekannten URLs, sodass Clients Endpunkte automatisch entdecken können.
 
-### OAuth-Autorisierungsserver-Metadaten (RFC 8414)
+### OAuth-Autorisierungs-Server-Metadaten (RFC 8414)
 
 ```
 GET /.well-known/oauth-authorization-server
 ```
 
-Es gibt den Herausgeber, Endpunkte, unterstützte Bereiche, Übergabearten und Code-Challenge-Methoden zurück.
+Gibt den Anbieter, Endpunkte, unterstützte Bereiche, Gewährungstypen und Challenge-Methoden zurück.
 
-### Geschützte Ressourcen-Metadaten (RFC 9728)
+### Geschützte Ressourcenmetadaten (RFC 9728)
 
 ```
 GET /.well-known/oauth-protected-resource
 ```
 
-Es gibt den Ressourcen-Identifier, Autorisierungsserver, unterstützte Bereiche und Bearer-Methoden zurück.
+Gibt den Ressourcen-Identifizierer, Autorisierungs-Server, unterstützte Bereiche und Bearer-Methoden zurück.
 
-## Geschwindigkeitsbegrenzung
+## Ratenbegrenzung
 
-Die Registrierung ist nach Client-Adresse begrenzt. Token-, Widerruf- und Introspektionsanfragen sind von Client-Adresse und Client-Identifier begrenzt:
+Die Registrierung wird durch die Client-Adresse begrenzt. Token-, Widerruf- und Introspektionsanfragen werden sowohl durch die Client-Adresse als auch durch die Client-Identifizierung begrenzt:
 
-| Endpunkt | Limit |
+| Endpunkt | Grenze |
 |----------|-------|
 | `POST /oauth/register` | 5 Anfragen pro Minute |
 | `POST /oauth/token` | 30 Anfragen pro Minute |
 | `POST /oauth/revoke` | 30 Anfragen pro Minute |
 | `POST /oauth/introspect` | 30 Anfragen pro Minute |
 
-Bei Geschwindigkeitsbegrenzung sendet der Server HTTP 429 (Zu viele Anfragen) zurück.
+Wenn die Rate begrenzt wird, gibt der Server HTTP 429 (Zu viele Anfragen) zurück.

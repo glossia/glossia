@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Utilisez votre microphone pour la dictation sur l'appareil dans un brouillon Toki modifiable. L'audio n'est pas transmis.";
+"NSSpeechRecognitionUsageDescription" = "Transcrivez la parole sur cet appareil dans un brouillon Toki modifiable. Rien n'est envoyé automatiquement.";

@@ -15,11 +15,11 @@ msgstr "ainda estão associados a esta entrada"
 ## effect: edit them in PO (`.po`) files instead.
 ## From Ecto.Changeset.cast/4
 msgid "can't be blank"
-msgstr "não pode ficar em branco"
+msgstr "não pode ser vazio"
 
 ## From Ecto.Changeset.validate_confirmation/3
 msgid "does not match confirmation"
-msgstr "não coincide com a confirmação"
+msgstr "não corresponde à confirmação"
 
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
@@ -39,7 +39,7 @@ msgstr "é inválido"
 
 ## From Ecto.Changeset.validate_exclusion/3
 msgid "is reserved"
-msgstr "está reservado"
+msgstr "é reservado"
 
 ## From Ecto.Changeset.no_assoc_constraint/3
 msgid "is still associated with this entry"
@@ -77,13 +77,13 @@ msgstr[1] "deve ter %{count} caractere(s)"
 
 msgid "should be at least %{count} byte(s)"
 msgid_plural "should be at least %{count} byte(s)"
-msgstr[0] "deve ter pelo menos %{count} byte(s)"
-msgstr[1] "deve ter pelo menos %{count} byte(s)"
+msgstr[0] "deve ter pelo menos %{count} bytes"
+msgstr[1] "deve ter pelo menos %{count} bytes"
 
 msgid "should be at least %{count} character(s)"
 msgid_plural "should be at least %{count} character(s)"
-msgstr[0] "deve ter pelo menos %{count} caractere(s)"
-msgstr[1] "deve ter pelo menos %{count} caractere(s)"
+msgstr[0] "deve ter pelo menos %{count} caracteres"
+msgstr[1] "deve ter pelo menos %{count} caracteres"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
@@ -103,10 +103,10 @@ msgstr[1] "deve ter %{count} item(s)"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
-msgstr[0] "deve ter pelo menos %{count} item(s)"
-msgstr[1] "deve ter pelo menos %{count} item(s)"
+msgstr[0] "deve ter pelo menos %{count} itens"
+msgstr[1] "deve ter pelo menos %{count} itens"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "deve ter no máximo %{count} item(s)"
-msgstr[1] "deve ter no máximo %{count} item(s)"
+msgstr[0] "deve ter no máximo %{count} itens"
+msgstr[1] "deve ter no máximo %{count} itens"

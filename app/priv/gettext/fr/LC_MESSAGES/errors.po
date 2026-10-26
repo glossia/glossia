@@ -23,7 +23,7 @@ msgstr "ne correspond pas à la confirmation"
 
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
-msgstr "a déjà été pris"
+msgstr "est déjà pris"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
@@ -67,8 +67,8 @@ msgstr "doit être inférieur ou égal à %{number}"
 
 msgid "should be %{count} byte(s)"
 msgid_plural "should be %{count} byte(s)"
-msgstr[0] "devrait faire %{count} octet(s)"
-msgstr[1] "devrait faire %{count} octet(s)"
+msgstr[0] "devrait comporter %{count} octet(s)"
+msgstr[1] "devrait comporter %{count} octet(s)"
 
 msgid "should be %{count} character(s)"
 msgid_plural "should be %{count} character(s)"
@@ -87,26 +87,26 @@ msgstr[1] "doit comporter au moins %{count} caractère(s)"
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"
-msgstr[0] "doit comporter au maximum %{count} octet(s)"
-msgstr[1] "doit comporter au maximum %{count} octet(s)"
+msgstr[0] "ne doit pas dépasser %{count} octet(s)"
+msgstr[1] "ne doit pas dépasser %{count} octet(s)"
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] "doit comporter au maximum %{count} caractère(s)"
-msgstr[1] "doit comporter au maximum %{count} caractère(s)"
+msgstr[0] "ne doit pas dépasser %{count} caractère(s)"
+msgstr[1] "ne doit pas dépasser %{count} caractère(s)"
 
 ## From Ecto.Changeset.validate_length/3
 msgid "should have %{count} item(s)"
 msgid_plural "should have %{count} item(s)"
-msgstr[0] "devrait avoir %{count} élément(s)"
-msgstr[1] "devrait avoir %{count} élément(s)"
+msgstr[0] "devrait comporter %{count} élément(s)"
+msgstr[1] "devrait comporter %{count} élément(s)"
 
 msgid "should have at least %{count} item(s)"
 msgid_plural "should have at least %{count} item(s)"
-msgstr[0] "doit contenir au moins %{count} élément(s)"
-msgstr[1] "doit contenir au moins %{count} élément(s)"
+msgstr[0] "doit comporter au moins %{count} élément(s)"
+msgstr[1] "doit comporter au moins %{count} élément(s)"
 
 msgid "should have at most %{count} item(s)"
 msgid_plural "should have at most %{count} item(s)"
-msgstr[0] "doit contenir au plus %{count} élément(s)"
-msgstr[1] "doit contenir au plus %{count} élément(s)"
+msgstr[0] "doit comporter au plus %{count} élément(s)"
+msgstr[1] "doit comporter au plus %{count} élément(s)"

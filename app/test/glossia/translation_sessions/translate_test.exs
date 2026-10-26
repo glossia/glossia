@@ -873,17 +873,32 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     end)
 
     expect(Glossia.Github.Client, :merge_branch, fn _, _, _ ->
-      {:error, {:api_error, 409, %{"message" => "Merge conflict"}}}
+      {:error, {:api_error, 409, %{"message" => "Merge conflict TOKEN=private-output"}}}
     end)
 
     reject(&Glossia.Github.Client.create_pull_request/3)
     reject(&Glossia.Translations.RepositoryRun.run/5)
 
-    assert {:error, {:api_error, 409, _}} = Translate.run(session.id)
+    log =
+      capture_log(fn ->
+        assert {:error, :translation_branch_conflict} = Translate.run(session.id)
+      end)
+
     updated = Repo.get!(TranslationSession, session.id)
     assert updated.pull_request_number == 2
     assert updated.publication_branch == session.publication_branch
+    assert updated.publication_commit_sha == "checkpoint-commit"
     assert updated.status == "failed"
+    assert updated.failure_kind == "translation_branch_conflict"
+    assert updated.error =~ "pull request branch conflicts"
+    assert updated.error =~ "Resolve the conflicts in the existing pull request, then retry."
+    refute updated.error =~ "private-output"
+    assert log =~ ~s("failure_kind":"translation_branch_conflict")
+    refute log =~ "private-output"
+
+    [event] = Glossia.Ingestion.list_translation_session_events(session.id)
+    assert JSON.decode!(event.metadata)["failure_kind"] == "translation_branch_conflict"
+    assert event.content == updated.error
   end
 
   test "publication defers before any GitHub calls when the shared budget is exhausted" do

@@ -9,33 +9,33 @@
 
 ## `glossia init`
 
-Erstellen Sie eine `L10N.md`-Konfigurationsdatei im aktuellen Repository.
+Erstellen Sie eine `L10N.md`-Konfigurationsdatei als Startvorlage im aktuellen Repository.
 
 ```bash
 glossia init
 ```
 
-Es schlägt fehl, wenn `L10N.md` bereits existiert.
+Fehlt, wenn `L10N.md` bereits existiert.
 
-## Die Übersetzung erfolgt serverseitig.
+## Übersetzung läuft serverseitig
 
-Die Übersetzung läuft im gehosteten Glossia-Dienst anstatt im Befehlszeileninterface. Sobald ein Commit erfolgreich übernommen wurde, plant Glossia die Arbeit anhand Ihrer `L10N.md`-Dateien, übersetzt jede Datei mit dem im Rahmen Ihres Kontos konfigurierten Modell und erstellt eine Pull-Request mit den Ergebnissen. Sie können jede Datei und die Modellwechsel live auf der Übersetzungs-Sitzungsseite beobachten.
+Die Übersetzung läuft im gehosteten Glossia-Dienst, nicht in der Befehlszeilenschnittstelle. Wenn ein Commit eingeht, plant Glossia die Arbeit aus Ihren `L10N.md`-Dateien, übersetzt jede Datei mit dem vom Konto konfigurierten Modell und erstellt einen Pull-Request mit den Ergebnissen. Sie können jede Datei und die Modell-Verläufe live auf der Überseteilig-Session-Seite verfolgen.
 
-Das Modell wird pro Dokument ausgewählt: Eine `L10N.md` `model:`-Anweisung, die eines Ihrer Kontomodell-Handles benannt, wählt es; andernfalls wird das Standardmodell Ihres Kontos verwendet.
+Das Modell wird pro Dokument ausgewählt: eine `L10N.md`-Zeile mit `model:`, die eine der Modell-Handles Ihres Kontos benennt, wählt es aus; ansonsten wird das Standardmodell Ihres Kontos verwendet.
 
-Das Befehlszeileninterface plant absichtlich nicht generierte Übersetzungen zu planen, zu übersetzen, zu validieren, zu untersuchen oder zu löschen. Es liest auch keine Übersetzungs-Sperdateien, die von Glossia veröffentlicht wurden.
+Die Befehlszeilenschnittstelle plant, übersetzt, validiert, inspiziert oder löschtda es nicht absichtlich nicht vorgesehen ist. Zudem liest sie auch nicht die Übersetzungs-Sperrdateien, die von Glossia veröffentlicht werden.
 
 ## `glossia revisit`
 
-Reserviert für einen zukünftigen Quell-Sprachen-Überprüfungsdurchlauf. Die Rust-Befehlszeilenschnittstelle gibt derzeit einen Fehler "nicht implementiert" für diesen Befehl zurück.
+Vorbehältlich für eine zukünftige Quellsprachen-Überarbeitung. Die Rust-Befehlszeilenschnittstelle liefert derzeit einen 'not-implemented'-Fehler für diesen Befehl.
 
 ```bash
 glossia revisit
 ```
 
-## Globale Optionen
+## Globale Flags
 
-| Option | Beschreibung |
+| Flag | Beschreibung |
 |---|---|
-| `--path <PATH>` | Das Projekt-Wurzelverzeichnis überschreiben |
+| `--path <PATH>` | Ordner des Projektroot überschreiben |
 | `--no-color` | Farbige Ausgabe deaktivieren |

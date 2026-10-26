@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "6cfcf00bd9dcf6f810205c77de35b94d77ea2d2a17ea53907b791339b86bc311",
+  "hash": "c8797ff3685105695bb00005938dbf6daaa2f1711102b5cb3ae1a0202260b7eb",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
+          "hash": "f80c234aa8b77bbb91f7d7d99698183dc8fe9113d9066582b99f7012a7f19e58",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "6cfcf00bd9dcf6f810205c77de35b94d77ea2d2a17ea53907b791339b86bc311",
+      "hash": "c8797ff3685105695bb00005938dbf6daaa2f1711102b5cb3ae1a0202260b7eb",
       "kind": "translation_input",
       "label": "app/priv/docs/how-to/define-a-glossary.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "a48bc3660e31e3e4be333cab00c1775de42e34de239a1c5a1bbfb9aeb240e197",
+  "output_hash": "104e07a2e70b7580a92e29502b337ff394f7c296a1ba2e90203e84c812748aad",
   "output_path": "app/priv/i18n/fr/docs/how-to/define-a-glossary.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/docs/how-to/define-a-glossary.md",
-  "translated_at": "2026-10-20T07:42:37.697367Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-25T21:48:07.881436Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

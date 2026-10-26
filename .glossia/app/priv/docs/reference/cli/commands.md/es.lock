@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "04409eb0374431fb9a7536c8d304959f0ff24fcf2e5529d140dfce042fd9b90b",
+  "hash": "c706e41bfa256d54612d0582a2e3085c0bb520eaacde59d4730fcd773756fab0",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "81609a618b7c79073ed8272293cc71ca5b6fccd60c46a47d33c56fa3cad06514",
+          "hash": "f5e82ede8d4b0959c24c9ac7e96b6b28f9a912488370cbce5a14521ad7647d86",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "04409eb0374431fb9a7536c8d304959f0ff24fcf2e5529d140dfce042fd9b90b",
+      "hash": "c706e41bfa256d54612d0582a2e3085c0bb520eaacde59d4730fcd773756fab0",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/cli/commands.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "fc36b9d931fb85c542325ee7533c8bd778596b3d291b13d5219d42f7180d123b",
+  "output_hash": "cfc6a925f8846e4bc670ff07eccb5e3c20a2c678350e19197e18f0f9a03efd2f",
   "output_path": "app/priv/i18n/es/docs/reference/cli/commands.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "750defe7f7a61f1ff173cec3f9dafbecdd687721",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/docs/reference/cli/commands.md",
-  "translated_at": "2026-10-20T07:43:08.854732Z",
-  "translation_session_id": "01a15841-80c7-78e5-991d-6dae5043ff59"
+  "translated_at": "2026-10-25T22:59:31.103948Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

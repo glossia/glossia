@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "5e0b9cdb41ee1620adbf8ff308a714bacfbf5a1480a469497560db9a163a3519",
+  "hash": "8222c69f6fd741b5e0276e5eecc9f0a467ebf63905b5ff412ae41562123ed10f",
   "hash_tree": {
     "root": {
       "children": [
@@ -38,11 +38,11 @@
           "children": [
             {
               "children": [],
-              "hash": "b4ffb3239a6f5363f3bec17d459153c4b7fc65192131e0eb10cbd0c89a286343",
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
               "kind": "context",
               "label": "project",
               "metadata": {
-                "content_hash": "3c46bb93bda9abbabac898cb3acce2d182be85b42e6361e12a6a59395ba2bfa3"
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
               }
             },
             {
@@ -84,20 +84,20 @@
               }
             }
           ],
-          "hash": "3bc0d7fff1a18e861744d756462c37b503b35c259fa2e6efbc35e68d04864844",
+          "hash": "f80c234aa8b77bbb91f7d7d99698183dc8fe9113d9066582b99f7012a7f19e58",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "5e0b9cdb41ee1620adbf8ff308a714bacfbf5a1480a469497560db9a163a3519",
+      "hash": "8222c69f6fd741b5e0276e5eecc9f0a467ebf63905b5ff412ae41562123ed10f",
       "kind": "translation_input",
       "label": "app/priv/gettext/errors.pot",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "fddaf5ab2793f22df6ff414480f21747ed7f38edb6f591d42dec2909a44f86a7",
+  "output_hash": "ac87f5224640d3a58904f4e3d8fdfe08540d28ba9b5705233255b0e3e090dd04",
   "output_path": "app/priv/gettext/pt-BR/LC_MESSAGES/errors.po",
   "po_units": {
     "114bd5b37943d4f03de94da7c593e82eebf9c44432d5fc702bb9620df2658eb5": "2154e0838fb241677288780a1aa73bb06413e0ddc3866677cdbc3010edfb8c8f",
@@ -142,8 +142,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "8c946ab2f6b10f009391d70fc5133dad149ab8a2",
+  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
   "source_path": "app/priv/gettext/errors.pot",
-  "translated_at": "2026-10-21T18:13:32.239476Z",
-  "translation_session_id": "01a15f5f-f115-757e-9113-1d0e7d250066"
+  "translated_at": "2026-10-26T04:17:27.689942Z",
+  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
 }

@@ -1,53 +1,53 @@
 %{
-  title: "Glossia 対 Phrase",
-  summary: "公開ソース、自らのモデルトークン、および再利用可能なデリバリーチェックを備えたリポジトリネイティブな言語ワークフローを選択してください。",
-  category: "説明",
+  title: "Glossia vs Phrase",
+  summary: "公開ソースコード、独自のモデルトークン、および再利用可能な配信チェックを備えたリポジトリネイティブな言語ワークフローを選択してください。",
+  category: "解説",
   markdown_only: true,
   section: "translation",
   order: 22
 }
 ---
 
-**言語作業をプロダクトの配送システムに従うようにしたい場合は Glossia を選び、別途並列の翻訳管理プロセスを構築する必要はありません。** コンテンツを Git に保持し、独自認証情報を使ってサポートモデルを選択し、レポジトリが既に信頼しているチェックで結果を検証してください。
+**製品のデリバリーシステムに従って言語作業を行いたい場合は Glossia を選んでください。それらに対して並行して翻訳管理のプロセスを構築するのではなく。** コンテンツを Git に保持し、独自の認証情報でサポートされるモデルを選択し、リポジトリが既に信頼しているチェックを使用して結果を検証します。
 
-[Phrase](https://phrase.com/) は、ソフトウェア局および管理翻訳ニーズ向けの Phrase Strings と Phrase TMS を含む局査スイートを提供しています。Glossia は集中的アプローチを採用し、開発チームのために既存のレビューと交付ループに適合する言語 OS を提供します。
+[Phrase](https://phrase.com/) はローカライゼーションスイートを提供します。ソフトウェアローカライゼーションおよびマネージド翻訳のさまざまなニーズに対応する Phrase Strings および Phrase TMS が含まれます。Glossia は集中的なアプローチを採用します：ソフトウェアチームに、既存のレビューおよびデリバリーループに適合する言語 OS を提供します。
 
-## Why choose Glossia
+## Glossia を選ぶ理由
 
-| Your priority | Glossia's advantage |
+| 優先事項 | Glossia の利点 |
 |---|---|
-| Deliver language changes with software | Repository changes drive localization, and outputs return as reviewable changes. |
-| Inspect and own the processing | Public source exposes the application and deployment implementation, with modification and self-hosting allowed under the license terms. |
-| Bring your own tokens | Configure your own supported model-provider credentials; select models through account handles in repository configuration. |
-| Reuse validation pipelines | Run repository-native checks on translation candidates instead of treating linguistic approval as proof that a file will build. |
-| Keep durable ownership | Published files, configuration, and pull-request history remain with the repository. |
+| ソフトウェアと共に言語変更を配信 | リポジトリの変更はローカライゼーションを推進し、結果はレビュー可能な変更として返されます。 |
+| 処理を検証し所有 | 公開ソースはアプリケーションおよびデプロイメントの実装を公開し、ライセンス条件のもとでの修正とセルフホスティングが可能です。 |
+| 独自のトークンを導入 | サポートされたモデルプロバイダーの認証情報を独自に設定し、リポジトリ設定におけるアカウントハンドルを通じてモデルを選択します。 |
+| 検証パイプラインを再利用 | 翻訳候補に対してリポジトリネイティブチェックを実行し、言語的承認をファイルがビルドされる証拠として扱う必要はありません。 |
+| 永続的な所有を保持 | 公開ファイル、設定、プルリクエスト履歴は引き続きリポジトリに保持されます。 |
 
-## Make localization part of continuous delivery
+## ローカライゼーションを継続配信の一部にします
 
-Glossia's change detection avoids repeating translation work for unchanged inputs. Its repository workflow keeps one open translation pull request per project and publishes progress in batches, so a fast-moving source repository does not need a new translation process for every small change.
+Glossia の変更検出機能は、変更されていない入力に対して翻訳作業を反復するのを避けます。リポジトリワークフローは各プロジェクトに対して 1 つの公開翻訳プルリクエストを保持し、バッチで発行されるため、高速なソースリポジトリでも小さな変更ごとに新しい翻訳プロセスを必要としません。
 
-The objective is not an unreviewed race to production. It is to make language work continuously reviewable and deliverable through the pipeline your team already uses.
+目的はレビューされていない生産への競争を行うことではありません。言語作業を常にレビュー可能かつあなたのチームがすでに使用するパイプラインを通じて配信可能にすることです。
 
-Phrase offers APIs, integrations, and automation too. The advantage Glossia emphasizes is architectural alignment: the repository remains the content authority and the delivery boundary, rather than only being a place to synchronize the results of another workspace.
+Phrase も API、統合、および自動化を提供します。Glossia が強調する利点はアーキテクチャ的な整合性です：リポジトリはコンテンツの権威とデリバリー境界として残ります。別のワークスペースの結果を同期させる場所としてのみ機能することはありません。
 
-## Keep model choice and credentials under your control
+## モデル選択と認証情報を自分で管理
 
-Glossia accepts your own provider API tokens for supported models. Credentials stay in account settings; repositories select stable handles. A team can rotate a token or change the model behind a handle without rewriting its repository instructions.
+Glossia はサポートするモデルに対して独自のプロバイダー API トークンを受け入れます。認証情報はアカウント設定に保持され、リポジトリは安定したハンドルを選択します。チームはリポジトリインストラクションを書き直すことなく、ハンドルに裏付けられたモデルを回転または変更できます。
 
-Different content scopes and target languages can use different configured models. Optional decision models can assess complete translations and request correction, while humans remain responsible for linguistic judgment. See [アカウントモデル](./account-models) for the current behavior and limits.
+異なるコンテンツスコープおよびターゲット言語は異なる構成モデルを使用できます。オプションの決定モデルは完全な翻訳を評価し訂正を要求できますが、言語的判定については人間が引き続き責任を負います。現在の動作と制限については [アカウントモデル](./account-models) を参照してください。
 
-## Your repository already knows what valid content means
+## あなたのリポジトリは有効なコンテンツの意味をすでに理解しています
 
-A translation-management system's view of a string is not necessarily the application's view of a file. A repository may have its own parser, compiler, component rules, documentation build, and placeholder checks.
+翻訳管理システムによる文字列の捉え方は、必ずしもアプリケーションによるファイルの捉え方と一致するわけではありません。リポジトリには独自のパーサー、コンパイラー、コンポーネントルール、ドキュメントビルド、プレースホルダーチェックが存在する場合があります。
 
-Glossia can reuse those checks through `L10N.md` 検証コマンド。It writes the candidate temporarily to its real target path for validation and accepts it only after the required checks pass. The command and its dependencies must be available in the execution environment.
+Glossia はそれらのチェックを `L10N.md` 検証コマンドを通じて再利用できます。その実際のターゲットパスに一時的に候補を書き込み、必要なチェックが通過した後にのみそれを承認します。コマンドとその依存関係は実行環境で利用可能である必要があります。
 
-This lets the team extend its existing quality boundary rather than maintain a separate definition of "valid" solely inside a translation workspace. See [L10N.md](/docs/reference/l10n-md).
+これにより、チームは既存の品質境界を拡張し、翻訳ワークスペースの内部だけで「有効」の定義を維持するのではなくします。詳細は [L10N.md](/docs/reference/l10n-md) を参照してください。
 
-## Public implementation, not a black box
+## 公開された実装であり、ブラックボックスではありません
 
 Glossia のアプリケーション、CLI、SDK、インフラのソースは公開されています。コアは [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) に基づき、その条件の下で商用利用、変更、配布、セルフホスティング、競合するホスト型サービスの提供が可能です。`ee/` のコードには別の [Enterprise ライセンス](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) が適用され、本番環境での利用には書面による商用契約が必要です。
 
-A broader translation suite can make sense for specialist translation operations and complex coordination. If your priority is **独自のトークンとリポジトリチェックによるソフトウェア配信速度の同期**, Glossia is designed to keep that workflow direct.
+より包括的なローカライゼーションスイートは、専門的な翻訳運用および複雑な調整には理にかなっています。優先事項が **独自のトークンとリポジトリチェックによるソフトウェア配信速度の一致** の場合、Glossia はそのワークフローを直接保つように設計されています。
 
-Moving an established translation program still requires a plan for its memories, terminology, and history. This page does not promise an automatic Phrase importer or full suite parity, or assert that Phrase lacks all equivalent integrations. Consult [Phrase のドキュメント](https://support.phrase.com/) for the specific product's current capabilities.
+確立された翻訳プログラムを気持ちでもその翻訳記憶、用語、および歴史の計画が必要です。このページは、自動 Phrase インポーターまたはスイート全体のパリティを保証するものではありませんし、Phrase が同等のすべての統合を欠いていると主張するものではありません。特定製品の現在の機能については [Phrase のドキュメント](https://support.phrase.com/) の確認してください。
