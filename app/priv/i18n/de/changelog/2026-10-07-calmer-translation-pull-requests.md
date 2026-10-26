@@ -1,18 +1,18 @@
 %{
-  title: "Sanftere Übersetzungs-Pull-Requests",
+  title: "Ruhigere Übersetzungs-Pull-Requests",
   summary:
-    "Was wir aus dem Einsatz von Glossia in einem sehr aktiven Repository gelernt haben und wie sich Übersetzungs-Pull-Requests dadurch veränderten."
+    "Was wir aus dem Einsatz von Glossia auf einem aktiv genutzten Repository gelernt haben, und wie Übersetzungs-Pull-Requests sich dadurch veränderten."
 }
 ---
 
-Man lernt viel beim ersten Mal, wenn Ihr Tool auf ein echtes Repository trifft. Für uns war das Tuist. Ihr Team merge in `main` viele Male am Tag, und Glossia tat genau das, wofür wir es gebaut haben: Es übersetzte jede Änderung und schob jede Datei ab, sobald sie bereit war. Das Ergebnis war für fast jeden Merge ein neuer Pull Request, jeder mit rund 150 Commits, und eine CI-Warteschlange voller Prüfungen, die niemand angefordert hatte. Auch einige ihrer Dokumentationsseiten kehrten mit in reinen Text entkommenden Komponenten und Alerts zurück. Nicht die stille, im Hintergrund stattfindende Erfahrung, die wir immer noch besprechen.
+Du lernst viel das erste Mal, wenn dein Tool auf ein echtes Repository trifft. Für uns war das Tuist. Ihr Team merge viele Mal am Tag zu `main` und Glossia tat genau das, wofür wir es gebaut hatten: es übersetzte jede Änderung und schob jede Datei sofort, sobald sie bereit war. Das Ergebnis war ein neuer Pull Request für fast jeden Merge, jeder mit etwa 150 Commits, und eine CI-Warteschlange voller Checks, die niemand angefordert hatte. Einige ihrer Dokumentationsseiten kamen mit Komponenten und Warnmeldungen zurück, die als Klartext ausfielen. Nicht die leise, Hintergrund-Erfahrung, von der wir ständig sprechen.
 
-Das stach, denn wir haben immer gesagt, dass das beste Übersetzungssystem eines ist, über das man nicht nachdenken muss. Ein Pull Request, der Ihre CI überflutet oder Ihre Dokumente zerbricht, ist das genaue Gegenteil davon. Also sind wir zurückgegangen und haben nachgedacht, wie Übersetzungen in Ihr Repository gelangt werden.
+Das stach, weil wir schon immer sagten, das beste Übersetzungssystem ist eines, über das man nicht nachdenken muss. Ein Pull Request, der deine CI überflutet oder deine Docs zerstört, ist das Gegenteil davon. Deshalb sind wir zurückgegangen und haben neu darüber nachgedacht, wie Übersetzungen zu deinem Repository gelangen.
 
-Glossia hält nun einen Pull Request pro Projekt und lässt ihn wachsen, je nach Ihren Inhaltsänderungen. Es liest die Lockdateien, die bereits auf diesem Branch stehen, übersetzt also nur das Neue und schiebt in Chunks statt Datei um Datei. In einem Repository wie Tuist sind das nur ein paar Pushes, wo früher einhundertfünfzig waren.
+Glossia hält nun pro Projekt nur einen einzigen Pull Request und erweitert diesen, wenn sich dein Inhalt ändert. Es liest die Lock-Dateien, die bereits auf diesem Branch liegen, sodass es nur das Übersetzt, was Neu ist, und schiebt es in Batches statt Datei für Datei. Bei einem Repository wie Tuist ist das ein paar Schüben, wo früher hundertfünfzig waren.
 
-Wir haben auch aufgehört, Teile Ihrer Dokumente zu berühren, die nicht zu unseren gehören. Glossia hat früher jede Seite neu aufgebaut, die es übersetzt, und womöglich alles, was es nicht vollständig verstand, wie eine Phoenix-Komponente oder eine GitHub-Warnung, die auf der anderen Seite zurückkam, heil. Jetzt tauscht es nur die Sätze aus, die es übersetzt, und lässt alles andere genau so, wie Sie es geschrieben haben. Es gab einen schönen Nebeneffekt, den wir nicht erwartet haben: Weil das Modell nun ganze Sätze und den Rest der Seite sieht, lesen sich die Übersetzungen besser. Auf Japanisch muss ein Link nicht mehr unbequem dastehen, wo er im Englischen Satz stand.
+Wir haben auch aufgehört, Teile deiner Dokumente an der Hand zu haben, die nicht unsere Verantwortung sind. Glossia baute früher jede Seite neu auf, die es übersetzte, und alles, was es nicht vollständig verstand, wie eine Phoenix-Komponente oder eine GitHub-Warnung, konnte auf der anderen Seite in Klartext kommen. Nun tauscht es nur die von ihm übersetzten Sätze aus und hinterlässt alles andere exakt so, wie du es geschrieben hast. Es gab einen schönen Nebeneffekt, den wir nicht erwartet hatten: weil das Modell nun ganze Sätze und den Rest der Seite sieht, lesen die Übersetzungen besser. Im Japanischen muss ein Link nicht mehr unangenehm dort sitzen, wo er im Satz war.
 
-Schließlich erzählt der Pull Request nun, was passiert ist. Welche Sprachen und Dateien übersetzt wurden, aus welchen Commits, wie sie bewertet wurden, welche Glossarbegriffe sie prägten und was, falls vorhanden, Ihre Aufmerksamkeit benötigt.
+Schließlich sagt dir jetzt der Pull Request, was passiert ist. Welche Sprachen und Dateien übersetzt wurden, aus welchen Commits, wie sie bewertet wurden, welche Glossar-Begriffe sie prägen, und was, falls etwas, deine Aufmerksamkeit benötigt. Wir denken es als die Notiz, die ein sorgsamer Kollege dir hinterlassen würde, bevor er eine Überprüfung anfordert.
 
-Danke an das Tuist-Team für ihre Geduld, während wir das geklärt haben. Wenn Glossia jemals so in Ihren Weg kommt, würden wir uns freuen, davon zu hören.
+Danke an das Tuist-Team für ihre Geduld, während wir das herausfanden. Wenn Glossia jemals auf deinem Weg wie dies im Weg steht, würden wir gerne darüber hören.
