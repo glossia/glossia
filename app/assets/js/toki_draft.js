@@ -34,6 +34,13 @@ export default {
       }
     } catch (_) { /* An unavailable or obsolete draft must not break the chat. */ }
     this.el.addEventListener("input", this.persist)
+    if (this.el.id === "toki-composer") {
+      this.handleEvent("toki-draft-suggested", ({content}) => {
+        this.textarea.value = content
+        this.persist()
+        this.textarea.focus()
+      })
+    }
     this.handleEvent("toki-draft-saved", ({form}) => {
       if (form !== this.el.id) return
       this.textarea.value = ""

@@ -47,8 +47,67 @@
   }
   & summary { cursor: pointer; }
   & [data-part="excerpts"] p, & [data-part="message"] p, & [data-part="decision"] { white-space: pre-wrap; }
-  & [data-part="message"] { padding: var(--noora-spacing-6) var(--noora-spacing-7); }
-  & [data-part="message"][data-role="user"] { background: var(--noora-surface-background-secondary); }
+  & #toki-discussion {
+    gap: var(--noora-spacing-0);
+    padding: var(--noora-spacing-0);
+    background: var(--noora-surface-background-primary);
+
+    & > [data-part="header"] {
+      flex-direction: row;
+      flex-wrap: wrap;
+      padding: var(--noora-spacing-6) var(--noora-spacing-8);
+    }
+    & .noora-card__section {
+      box-shadow: none;
+      border-radius: var(--noora-radius-0);
+    }
+    & > [data-part="empty"] {
+      gap: var(--noora-spacing-6);
+      padding: var(--noora-spacing-9) var(--noora-spacing-8);
+      text-align: center;
+    }
+    & .noora-table-empty-state {
+      padding: var(--noora-spacing-6) var(--noora-spacing-0);
+
+      & > [data-part="title"] {
+        color: var(--noora-surface-label-primary);
+        font: var(--noora-font-weight-medium) var(--noora-font-heading-large);
+      }
+      & > [data-part="subtitle"] {
+        max-inline-size: var(--max-width-empty);
+        color: var(--noora-surface-label-secondary);
+        font: var(--noora-font-body-medium);
+      }
+    }
+    & [data-part="conversation-starters"] {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--noora-spacing-4);
+    }
+    & #toki-messages {
+      display: flex;
+      flex-direction: column;
+      gap: var(--noora-spacing-8);
+      padding: var(--noora-spacing-8);
+
+      &[data-empty] { display: none; }
+    }
+    & [data-part="message"] {
+      padding: var(--noora-spacing-0);
+      min-inline-size: var(--noora-spacing-0);
+    }
+    & [data-part="message"][data-role="user"] {
+      margin-inline-start: var(--noora-spacing-9);
+      padding: var(--noora-spacing-6);
+      border-radius: var(--noora-radius-6);
+      background: var(--noora-surface-background-secondary);
+    }
+    & > [data-part="composer-section"] {
+      padding: var(--noora-spacing-8);
+      border-block-start: var(--space-px) solid var(--noora-content-divider-line);
+    }
+  }
   & [data-part="message-heading"] { margin-block-end: var(--noora-spacing-3); }
   & [data-part="message-heading"] time { font: var(--noora-font-body-small); }
   & [data-part="decision"] {
@@ -56,38 +115,53 @@
     padding-inline-start: var(--noora-spacing-4);
   }
 
-  /* AtlasThreadComposer's rounded material surface, using Noora's field and
-     button rather than an imitation control. Unsupported media actions are
-     deliberately absent. Opaque surface remains the accessible fallback. */
   & [data-part="composer"] {
     display: flex;
-    align-items: end;
-    gap: var(--noora-spacing-4);
-    border-radius: var(--noora-radius-8);
-    box-shadow: var(--noora-border-light-default);
-    padding: var(--noora-spacing-5);
-    background: var(--noora-surface-background-secondary);
-    backdrop-filter: blur(var(--noora-spacing-4));
+    flex-direction: column;
+    gap: var(--noora-spacing-5);
+    min-inline-size: var(--noora-spacing-0);
   }
-  & [data-part="composer"] .noora-text-area { flex: 1; min-inline-size: var(--noora-spacing-0); }
-  & [data-part="composer"] .noora-button { flex-shrink: 0; }
+  & [data-part="composer"] .noora-text-area {
+    min-inline-size: var(--noora-spacing-0);
+
+    & > [data-part="wrapper"]:focus-within {
+      background: var(--noora-surface-background-primary);
+      box-shadow: var(--noora-border-light-focus);
+    }
+    & textarea { min-inline-size: var(--noora-spacing-0); }
+  }
+  & [data-part="composer-actions"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--noora-spacing-5);
+
+    & > span { flex: 1; font: var(--noora-font-body-small); }
+    & .noora-button { flex-shrink: 0; margin-inline-start: auto; }
+  }
   & #toki-resolution > .noora-button, & #toki-guidance-scope { align-self: flex-start; }
 
-  @supports (backdrop-filter: blur(var(--noora-spacing-4))) {
-    & [data-part="composer"] { background: var(--noora-surface-overlay); }
-  }
   @media (max-width: 768px) {
     & [data-part="excerpts"] { grid-template-columns: minmax(var(--noora-spacing-0), 1fr); }
-    & [data-part="composer"] { flex-direction: column; align-items: stretch; }
-  }
-  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-    & [data-part="composer"] { backdrop-filter: none; background: var(--noora-surface-background-primary); }
+    & #toki-discussion {
+      & > [data-part="header"], & > [data-part="empty"],
+      & > [data-part="composer-section"], & #toki-messages {
+        padding: var(--noora-spacing-6);
+      }
+    }
+    & [data-part="composer-actions"] { align-items: flex-start; }
   }
 }
 
 /* Keep a long account handle from colliding with the header controls on the
    narrow conversation view, in either writing direction. */
 #noora-shell:has(#toki-page) {
+  & #toki-page[data-view="conversation"] {
+    max-inline-size: var(--max-width-docs);
+    margin-inline: auto;
+  }
+
   @media (max-width: 768px) {
     & .noora-shell__context .noora-breadcrumbs {
       min-inline-size: var(--noora-spacing-0);
