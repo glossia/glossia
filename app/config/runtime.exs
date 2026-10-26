@@ -120,6 +120,12 @@ config :glossia, Glossia.Translations,
       "0"
     ]
 
+# Toki never borrows a local session implicitly. Only an explicit development
+# server opt-in selects the tool-less host adapter; production ignores the env.
+config :glossia,
+       Glossia.Toki.HostHarness,
+       Glossia.Toki.HostHarness.config(config_env(), System.get_env())
+
 smolanalytics_url = System.get_env("GLOSSIA_SMOLANALYTICS_URL")
 smolanalytics_write_key = System.get_env("GLOSSIA_SMOLANALYTICS_WRITE_KEY")
 

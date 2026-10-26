@@ -7,20 +7,21 @@ defmodule Glossia.Toki.Agent do
   request runs synchronously in the Oban worker with retries and redirects
   disabled after provider attachment. No session or detached inference task
   can outlive that worker. Oban supplies the hard wall-clock deadline.
+
+  Development can explicitly opt into the server's isolated, tool-less Claude
+  harness instead. Both paths receive the same authorized, bounded context.
   """
 
   alias Glossia.{Authz, Repo, Toki}
   alias Glossia.Accounts.User
   alias Glossia.Models.ModelIdentifier
-  alias Glossia.Toki.Conversation
+  alias Glossia.Toki.{Conversation, HostHarness}
   alias Glossia.TranslationSessions
   alias Glossia.Translations.Credentials
 
   def reply(user, project, messages, scopes, conversation_id \\ nil) do
     with :ok <- Toki.authorize_project(:toki_write, user, project, scopes: scopes),
-         {:ok, source} <- source_context(user, project, scopes, conversation_id),
-         {:ok, credential} <- Credentials.resolve(project.account, nil),
-         {:ok, auth_opts} <- credential_options(credential) do
+         {:ok, source} <- source_context(user, project, scopes, conversation_id) do
       # History is data, not additional system instructions. Both the number
       # of messages and each excerpt are bounded independently of storage.
       transcript =
@@ -46,9 +47,26 @@ defmodule Glossia.Toki.Agent do
         end)
         |> JSON.encode!()
 
+      prompt = system_prompt(user, project, scopes, source, conversation_id)
+
+      case Application.get_env(:glossia, HostHarness, []) do
+        [] -> api_reply(project, prompt, transcript)
+        config -> HostHarness.reply(prompt, transcript, config)
+      end
+    else
+      {:error, :unauthorized} = error -> error
+      {:error, :insufficient_scope, _scope} = error -> error
+      {:error, :not_found} = error -> error
+      _ -> {:error, :provider_unavailable}
+    end
+  end
+
+  defp api_reply(project, prompt, transcript) do
+    with {:ok, credential} <- Credentials.resolve(project.account, nil),
+         {:ok, auth_opts} <- credential_options(credential) do
       context =
         ReqLLM.Context.new([
-          ReqLLM.Context.system(system_prompt(user, project, scopes, source, conversation_id)),
+          ReqLLM.Context.system(prompt),
           ReqLLM.Context.user(transcript)
         ])
 
@@ -83,9 +101,6 @@ defmodule Glossia.Toki.Agent do
         _ -> {:error, :invalid_provider_response}
       end
     else
-      {:error, :unauthorized} = error -> error
-      {:error, :insufficient_scope, _scope} = error -> error
-      {:error, :not_found} = error -> error
       _ -> {:error, :provider_unavailable}
     end
   end
@@ -112,8 +127,8 @@ defmodule Glossia.Toki.Agent do
     {:ok, [model: model, api_key: key, base_url: base_url]}
   end
 
-  # Local CLI/OAuth sessions do not support the bounded, tool-less API
-  # credential contract. Never launch a shell or borrow interactive sessions.
+  # Local sessions never implicitly opt Toki into a host harness. Only the
+  # server's explicit dev configuration may select that separate path.
   defp credential_options(_), do: {:error, :provider_unavailable}
 
   defp system_prompt(user, project, scopes, source, conversation_id) do
