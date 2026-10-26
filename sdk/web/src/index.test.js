@@ -7,10 +7,22 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 // restore them every time we load the SDK.
 const originalPushState = window.history.pushState;
 const originalReplaceState = window.history.replaceState;
+const originalDocumentAddEventListener = document.addEventListener;
+const languageClickHandlers = [];
+
+function removeLanguageClickHandlers() {
+  for (const handler of languageClickHandlers) document.removeEventListener("click", handler, true);
+  languageClickHandlers.length = 0;
+}
 
 async function loadFresh() {
   window.history.pushState = originalPushState;
   window.history.replaceState = originalReplaceState;
+  removeLanguageClickHandlers();
+  vi.spyOn(document, "addEventListener").mockImplementation(function (type, handler, options) {
+    if (type === "click" && options === true) languageClickHandlers.push(handler);
+    return originalDocumentAddEventListener.call(this, type, handler, options);
+  });
   vi.resetModules();
   return import("./index.js");
 }
@@ -123,6 +135,8 @@ async function readBeaconBody(call) {
 // --- Cleanup ----------------------------------------------------------------
 
 afterEach(() => {
+  removeLanguageClickHandlers();
+  document.querySelectorAll("[data-glossia-language], base[target]").forEach((element) => element.remove());
   window.history.pushState = originalPushState;
   window.history.replaceState = originalReplaceState;
   vi.restoreAllMocks();
@@ -281,6 +295,234 @@ describe("page languages", () => {
     const { init } = await loadFresh();
     init({ domain: "example.com" });
     expect(await readBeaconBody(sendBeacon.mock.calls[0])).toMatchObject({ sl: "", al: "" });
+  });
+});
+
+describe("explicit language selection", () => {
+  // jsdom cannot generate trusted user input. Invoke the registered handler
+  // with a trusted event shape; a separate test covers real synthetic clicks.
+  function activate(link, overrides = {}) {
+    const event = {
+      target: link,
+      isTrusted: true,
+      defaultPrevented: false,
+      button: 0,
+      ...overrides,
+    };
+    for (const handler of languageClickHandlers) handler(event);
+  }
+
+  function languageLink(language = "zh-Hans", attributes = {}) {
+    const link = document.createElement("a");
+    link.href = "/zh-hans/docs";
+    link.setAttribute("data-glossia-language", language);
+    for (const [key, value] of Object.entries(attributes)) link.setAttribute(key, value);
+    document.body.appendChild(link);
+    return link;
+  }
+
+  it("leaves selection unknown until explicitly recorded, even if the page language changes", async () => {
+    const sendBeacon = stubSendBeacon();
+    const { init, pageview } = await loadFresh();
+    document.documentElement.lang = "en";
+    init({ domain: "example.com" });
+    document.documentElement.lang = "zh-Hans";
+    pageview();
+
+    expect(await readBeaconBody(sendBeacon.mock.calls[0])).toMatchObject({ sl: "en", cl: "" });
+    expect(await readBeaconBody(sendBeacon.mock.calls[1])).toMatchObject({ sl: "zh-Hans", cl: "" });
+  });
+
+  it("records the choice immediately, separately from browser and served languages", async () => {
+    const { map } = stubSessionStorage();
+    vi.spyOn(navigator, "languages", "get").mockReturnValue(["en-US", "en"]);
+    document.documentElement.lang = "en";
+    const sendBeacon = stubSendBeacon();
+    const { init, selectLanguage, default: glossia } = await loadFresh();
+    expect(glossia.selectLanguage).toBe(selectLanguage);
+    init({ domain: "example.com", autoPageviews: false });
+    selectLanguage(" zh-hans ");
+
+    expect(sendBeacon).toHaveBeenCalledTimes(1);
+    expect(await readBeaconBody(sendBeacon.mock.calls[0])).toMatchObject({
+      n: "language_selection", l: "en-US,en", sl: "en", cl: "zh-Hans",
+    });
+    expect(map.get("__glossia_selected_language")).toBe("zh-Hans");
+  });
+
+  it("includes the choice on subsequent events and restores it after navigation", async () => {
+    stubSessionStorage();
+    const sendBeacon = stubSendBeacon();
+    const sdk = await loadFresh();
+    sdk.init({ domain: "example.com", autoPageviews: false });
+    sdk.selectLanguage("zh-Hans");
+    document.documentElement.lang = "zh-Hans";
+    sdk.pageview();
+    sdk.track("signup");
+
+    const reloaded = await loadFresh();
+    reloaded.init({ domain: "example.com" });
+    expect(sendBeacon).toHaveBeenCalledTimes(4);
+    for (const call of sendBeacon.mock.calls.slice(1)) {
+      expect(await readBeaconBody(call)).toMatchObject({ sl: "zh-Hans", cl: "zh-Hans" });
+    }
+  });
+
+  it("replaces the choice when the visitor selects another language", async () => {
+    const { map } = stubSessionStorage();
+    const sendBeacon = stubSendBeacon();
+    const { init, selectLanguage, pageview } = await loadFresh();
+    init({ domain: "example.com", autoPageviews: false });
+    selectLanguage("zh-Hans");
+    selectLanguage("es-MX");
+    pageview();
+    expect(map.get("__glossia_selected_language")).toBe("es-MX");
+    expect(await readBeaconBody(sendBeacon.mock.calls[2])).toMatchObject({ cl: "es-MX" });
+  });
+
+  it("does not carry a choice into a new tab session with empty storage", async () => {
+    stubSessionStorage();
+    const sendBeacon = stubSendBeacon();
+    const sdk = await loadFresh();
+    sdk.init({ domain: "example.com", autoPageviews: false });
+    sdk.selectLanguage("es");
+
+    window.sessionStorage.clear();
+    const reloaded = await loadFresh();
+    reloaded.init({ domain: "example.com" });
+    expect(await readBeaconBody(sendBeacon.mock.calls[1])).toMatchObject({ cl: "" });
+  });
+
+  it("ignores invalid tags without overwriting the previous choice", async () => {
+    const { map } = stubSessionStorage();
+    const sendBeacon = stubSendBeacon();
+    const { init, selectLanguage } = await loadFresh();
+    init({ domain: "example.com", autoPageviews: false });
+    selectLanguage("es");
+    for (const language of [null, undefined, 1, {}, "", " ", "en_US", "en,es", "x-default", "a".repeat(65)]) {
+      expect(() => selectLanguage(language)).not.toThrow();
+    }
+    expect(sendBeacon).toHaveBeenCalledTimes(1);
+    expect(map.get("__glossia_selected_language")).toBe("es");
+  });
+
+  it("ignores invalid values in storage", async () => {
+    const { map } = stubSessionStorage();
+    map.set("__glossia_selected_language", "en,es");
+    const sendBeacon = stubSendBeacon();
+    const { init } = await loadFresh();
+    init({ domain: "example.com" });
+    expect(await readBeaconBody(sendBeacon.mock.calls[0])).toMatchObject({ cl: "" });
+  });
+
+  it("keeps the choice in memory when storage is blocked", async () => {
+    stubSessionStorageUnavailable();
+    const sendBeacon = stubSendBeacon();
+    const { init, selectLanguage, pageview } = await loadFresh();
+    init({ domain: "example.com", autoPageviews: false });
+    expect(() => selectLanguage("zh-Hans")).not.toThrow();
+    pageview();
+    for (const call of sendBeacon.mock.calls) {
+      expect(await readBeaconBody(call)).toMatchObject({ cl: "zh-Hans" });
+    }
+  });
+
+  it("keeps the choice in memory when storage writes fail", async () => {
+    const { mock } = stubSessionStorage();
+    const sendBeacon = stubSendBeacon();
+    const { init, selectLanguage, pageview } = await loadFresh();
+    init({ domain: "example.com", autoPageviews: false });
+    mock.setItem.mockImplementation(() => { throw new Error("quota exceeded"); });
+    expect(() => selectLanguage("es")).not.toThrow();
+    pageview();
+    expect(await readBeaconBody(sendBeacon.mock.calls[1])).toMatchObject({ cl: "es" });
+  });
+
+  it("does nothing before initialization", async () => {
+    const { mock } = stubSessionStorage();
+    const sendBeacon = stubSendBeacon();
+    const { selectLanguage } = await loadFresh();
+    selectLanguage("zh-Hans");
+    expect(mock.setItem).not.toHaveBeenCalled();
+    expect(sendBeacon).not.toHaveBeenCalled();
+  });
+
+  it("handles dynamically added annotated links, including nested and text targets", async () => {
+    const sendBeacon = stubSendBeacon();
+    const { init } = await loadFresh();
+    init({ domain: "example.com", autoPageviews: false });
+    const link = languageLink();
+    const label = document.createElement("span");
+    label.textContent = "简体中文";
+    link.appendChild(label);
+    activate(label);
+    activate(label.firstChild);
+    expect(sendBeacon).toHaveBeenCalledTimes(2);
+    expect(await readBeaconBody(sendBeacon.mock.calls[0])).toMatchObject({
+      n: "language_selection", cl: "zh-Hans",
+    });
+  });
+
+  it("supports keyboard activation and installs the listener only once", async () => {
+    const sendBeacon = stubSendBeacon();
+    const { init } = await loadFresh();
+    init({ domain: "example.com", autoPageviews: false });
+    init({ domain: "example.com", autoPageviews: false });
+    expect(languageClickHandlers).toHaveLength(1);
+    activate(languageLink("es"), { detail: 0 });
+    expect(sendBeacon).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not treat a programmatic click as an explicit selection", async () => {
+    const sendBeacon = stubSendBeacon();
+    const { init } = await loadFresh();
+    init({ domain: "example.com", autoPageviews: false });
+    const link = languageLink();
+    // Cancel jsdom navigation without changing the synthetic click's trust.
+    link.addEventListener("click", (event) => event.preventDefault());
+    link.click();
+    expect(sendBeacon).not.toHaveBeenCalled();
+  });
+
+  it("ignores modified, non-primary, and already cancelled clicks", async () => {
+    const sendBeacon = stubSendBeacon();
+    const { init } = await loadFresh();
+    init({ domain: "example.com", autoPageviews: false });
+    const link = languageLink();
+    for (const overrides of [
+      { ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { altKey: true },
+      { button: 1 }, { button: 2 }, { defaultPrevented: true },
+    ]) activate(link, overrides);
+    expect(sendBeacon).not.toHaveBeenCalled();
+  });
+
+  it("ignores unannotated, invalid, cross-origin, download, and new-tab links", async () => {
+    const sendBeacon = stubSendBeacon();
+    const { init } = await loadFresh();
+    init({ domain: "example.com", autoPageviews: false });
+    const unannotated = languageLink();
+    unannotated.removeAttribute("data-glossia-language");
+    activate(unannotated);
+    unannotated.remove();
+    for (const [language, attributes] of [
+      ["", {}], ["en_US", {}], ["es", { href: "https://other.example/es" }],
+      ["es", { download: "" }], ["es", { target: "_blank" }],
+      ["es", { target: "other-frame" }], ["es", { href: "javascript:void(0)" }],
+    ]) activate(languageLink(language, attributes));
+    expect(sendBeacon).not.toHaveBeenCalled();
+  });
+
+  it("respects a base target that opens another tab", async () => {
+    const base = document.createElement("base");
+    base.target = "_blank";
+    document.head.appendChild(base);
+    const sendBeacon = stubSendBeacon();
+    const { init } = await loadFresh();
+    init({ domain: "example.com", autoPageviews: false });
+    activate(languageLink());
+    expect(sendBeacon).not.toHaveBeenCalled();
+    activate(languageLink("es", { target: "_self" }));
+    expect(sendBeacon).toHaveBeenCalledTimes(1);
   });
 });
 

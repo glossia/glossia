@@ -150,6 +150,19 @@ defmodule Glossia.Accounts do
     |> Repo.update()
   end
 
+  @doc """
+  Replaces explicitly chosen fluent languages, independently of the UI locale.
+
+  Tags use CLDR-backed BCP 47 casing and retain explicit scripts and regions
+  (for example, `zh-Hant-TW`). Duplicates are removed in first-occurrence order;
+  missing scripts or regions are not inferred. An empty list clears the choice.
+  """
+  def update_user_fluent_languages(%User{} = user, languages) do
+    user
+    |> User.fluent_languages_changeset(%{fluent_languages: languages})
+    |> Repo.update()
+  end
+
   def list_user_identities(user) do
     Identity
     |> where(user_id: ^user.id)

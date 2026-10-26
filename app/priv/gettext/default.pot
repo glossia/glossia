@@ -372,6 +372,12 @@ msgid "Agentic localization and content revisiting"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "All conversations"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "All files are up to date. No translations were needed."
 msgstr ""
@@ -488,6 +494,16 @@ msgstr ""
 msgid "Apply suggestion"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Approval uses the latest completed Toki reply, not the opening question. Continue the discussion if the decision is not ready."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Approve final decision"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Approved terms and translations to keep your content consistent."
@@ -531,6 +547,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Are you sure? Existing integrations using the current secret will stop working."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Ask about your project's translations, terminology, or cultural context."
 msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex
@@ -811,6 +832,11 @@ msgstr ""
 msgid "Check the model provider credentials, then retry this translation session."
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Check your text: messages and guidance must be at most 8,000 characters. Your draft is saved."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Checking %{checked} of %{total} file for updates"
@@ -911,6 +937,7 @@ msgstr ""
 
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Closed"
 msgstr ""
@@ -1078,6 +1105,16 @@ msgstr ""
 msgid "Continuous localization"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Conversation history"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Conversations"
+msgstr ""
+
 #: lib/glossia_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "Cookie Policy"
@@ -1232,6 +1269,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Could not save web analytics. Enter a valid domain like example.com."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Could not save. Check your access and try again. Your draft is saved."
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -1389,6 +1431,16 @@ msgstr ""
 msgid "Decision"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Decision approved."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Decision approved. This discussion is now read-only."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Decision model"
@@ -1492,6 +1544,16 @@ msgstr ""
 #: lib/glossia_web/components/dashboard_components.ex
 #, elixir-autogen, elixir-format
 msgid "Discard"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Discuss the ambiguity together. When the latest Toki reply captures the final decision, explicitly approve it below."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Discuss the goal with Toki first. A completed reply is required before approval."
 msgstr ""
 
 #: lib/glossia_web/components/layouts/admin.html.heex
@@ -1639,6 +1701,11 @@ msgstr ""
 #: lib/glossia_web/controllers/oauth/device_html/verify.html.heex
 #, elixir-autogen, elixir-format
 msgid "Enter the code shown in your mobile app to continue."
+msgstr ""
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "Enter up to 50 supported language tags, separated by commas."
 msgstr ""
 
 #: lib/glossia_web/live/authentication_settings_live.ex
@@ -1803,6 +1870,21 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Finished %{step}"
+msgstr ""
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "Fluent languages"
+msgstr ""
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "Fluent languages updated."
+msgstr ""
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "For example: en, es-MX, zh-Hant"
 msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex
@@ -2061,6 +2143,12 @@ msgid "Handle"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Help requested"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "High priority"
 msgstr ""
@@ -2236,6 +2324,11 @@ msgstr ""
 msgid "Invited by"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Invited fluent teammates"
+msgstr ""
+
 #: lib/glossia_web/components/core_components.ex
 #, elixir-autogen, elixir-format
 msgid "Join teams that ship content with the same confidence they ship code."
@@ -2298,6 +2391,11 @@ msgstr ""
 #: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
 msgid "Languages"
+msgstr ""
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "Languages you can help with"
 msgstr ""
 
 #: lib/glossia_web/live/llm_usage_live.ex
@@ -2416,6 +2514,11 @@ msgstr ""
 msgid "Live"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Locale guidance"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Locale-gap visits"
@@ -2502,6 +2605,11 @@ msgstr ""
 msgid "Manage who has access to this organization."
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Manage your fluent languages"
+msgstr ""
+
 #: lib/glossia_web/live/profile_live.ex
 #, elixir-autogen, elixir-format
 msgid "Manage your personal profile and account information."
@@ -2568,6 +2676,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Merge pull request #%{number} to activate this project's localization baseline."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Message"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -2683,6 +2796,11 @@ msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
+msgid "Needs linguistic input"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
 msgid "Never"
 msgstr ""
 
@@ -2694,6 +2812,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "New application"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "New conversation"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -2709,6 +2832,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "New override"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "New private conversation"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -2740,6 +2868,11 @@ msgstr ""
 #: lib/glossia_web/controllers/changelog_html/index.html.heex
 #, elixir-autogen, elixir-format
 msgid "New updates and improvements to Glossia."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Next"
 msgstr ""
 
 #: lib/glossia_web/components/dashboard_components.ex
@@ -2776,6 +2909,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "No content translated"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "No conversations yet"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -2971,11 +3109,6 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Not recorded"
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "Not reported"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -3187,6 +3320,7 @@ msgid "Overview"
 msgstr ""
 
 #: lib/glossia_web/components/dashboard_components.ex
+#: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Page %{page} of %{total}"
 msgstr ""
@@ -3269,6 +3403,7 @@ msgid "Preview"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Previous"
 msgstr ""
@@ -3292,6 +3427,11 @@ msgstr ""
 #: lib/glossia_web/controllers/auth_html/login.html.heex
 #, elixir-autogen, elixir-format
 msgid "Privacy Policy"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Private conversation"
 msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex
@@ -3349,6 +3489,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Project created. Add an L10N.md file to the repository to start translating."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Project guidance"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -3479,6 +3624,7 @@ msgid "Pull request created"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Queued"
 msgstr ""
@@ -3536,6 +3682,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Recent activity"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Recent help requests"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -3640,6 +3791,11 @@ msgstr ""
 msgid "Reopen suggestion"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Reply failed"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Repository"
@@ -3649,6 +3805,11 @@ msgstr ""
 #: lib/glossia_web/controllers/oauth/device_html/verify.html.heex
 #, elixir-autogen, elixir-format
 msgid "Requested permissions:"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Resolved"
 msgstr ""
 
 #: lib/glossia_web/live/llm_usage_live.ex
@@ -3674,6 +3835,16 @@ msgstr ""
 #: lib/glossia_web/components/layouts/docs.html.heex
 #, elixir-autogen, elixir-format
 msgid "Return to top"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Reusable L10N guidance (optional)"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Reusable guidance"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -3795,6 +3966,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Save changes"
+msgstr ""
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "Save fluent languages"
 msgstr ""
 
 #: lib/glossia_web/live/member_permissions_live.ex
@@ -3973,6 +4149,16 @@ msgstr ""
 msgid "Send invitation"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Send message"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Separate from this decision. Leave empty to approve without changing repository guidance."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Served"
@@ -4092,6 +4278,11 @@ msgstr ""
 msgid "Setup update"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Shared translation goals will appear here when help is needed. You can also start a private conversation with Toki."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Short summary of the suggested change"
@@ -4173,8 +4364,14 @@ msgid "Something went wrong."
 msgstr ""
 
 #: lib/glossia_web/components/layouts/app.html.heex
+#: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Source"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Source and current translation"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -4279,6 +4476,11 @@ msgstr ""
 msgid "Table of contents"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Talk it through with Toki"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Target audience"
@@ -4307,6 +4509,11 @@ msgstr ""
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format
 msgid "Team members must belong to this Google Workspace domain. Personal Google accounts do not qualify."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Teammate"
 msgstr ""
 
 #: lib/glossia/docs.ex
@@ -4341,9 +4548,19 @@ msgstr ""
 msgid "Test user not found. Run: mix run priv/repo/seeds.exs"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Text messages only. Attachments and voice input are not available on the web yet."
+msgstr ""
+
 #: lib/glossia_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Thanks for your interest! We’ll get back to you by email to help you get started."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "That guidance scope is not available for this goal. Your draft is saved."
 msgstr ""
 
 #: lib/glossia_web/controllers/auth_controller.ex
@@ -4369,6 +4586,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "The decision model could not evaluate this translation."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "The discussion changed. Read the latest reply before approving. Your guidance draft is saved."
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -4463,11 +4685,6 @@ msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
-msgid "The tracker did not report a page language. Older tracker versions and pages without an HTML lang attribute can cause this."
-msgstr ""
-
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
 msgid "The translation did not meet the decision model's quality requirements."
 msgstr ""
 
@@ -4499,6 +4716,11 @@ msgstr ""
 #: lib/glossia_web/controllers/oauth/device_html/verify.html.heex
 #, elixir-autogen, elixir-format
 msgid "This code is not active."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "This conversation is unavailable. It may have been removed or your access changed."
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -4554,6 +4776,16 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "This generative model is used for project setup and translations without an explicit model handle."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "This goal is closed or no longer current. Your draft has not been discarded."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "This goal is closed. Your unsaved guidance is kept below so you can copy it. It has not been applied to repository guidance."
 msgstr ""
 
 #: lib/glossia/emails.ex
@@ -4641,6 +4873,11 @@ msgstr ""
 msgid "This translation can no longer be cancelled."
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "This translation is no longer current. This discussion is read-only."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "This user is already a member."
@@ -4726,6 +4963,37 @@ msgstr ""
 msgid "Tokens you have generated that can be used to access Glossia programmatically."
 msgstr ""
 
+#: lib/glossia_web/components/layouts/platform.html.heex
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Toki"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Toki could not finish the reply. Send another message to continue."
+msgstr ""
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "Toki invites matching fluent teammates to shared translation discussions. This does not change your dashboard language. Leave empty to opt out."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Toki is replying"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Toki is replying. You can keep drafting while you wait."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Toki is replying. Your draft is saved; wait for the reply and try again."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Tone"
@@ -4744,6 +5012,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Too many files"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Too many pending messages. Please try again later. Your draft is saved."
 msgstr ""
 
 #: lib/glossia_web/controllers/auth_controller.ex
@@ -4823,6 +5096,7 @@ msgstr ""
 
 #: lib/glossia/docs.ex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Translation"
 msgstr ""
@@ -4847,6 +5121,11 @@ msgstr ""
 msgid "Translation concurrency"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Translation continues after all open goals are resolved and the current run has paused."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Translation engine"
@@ -4855,6 +5134,16 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Translation failed"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Translation goal"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Translation goals"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
@@ -4900,6 +5189,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Translation sessions will show up here once content is translated."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Translation write access is required to approve a decision."
 msgstr ""
 
 #: lib/glossia_web/components/layouts/platform.html.heex
@@ -5158,6 +5452,12 @@ msgstr ""
 msgid "View as Markdown"
 msgstr ""
 
+#: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "View continued translation"
+msgstr ""
+
 #: lib/glossia_web/controllers/legal_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "View current version"
@@ -5171,6 +5471,11 @@ msgstr ""
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "View the translation this run continued"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "View translation"
 msgstr ""
 
 #: lib/glossia_web/live/admin_live.ex
@@ -5344,6 +5649,21 @@ msgstr ""
 msgid "Work email domain"
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Work through a decision with Toki…"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Work through these decisions with Toki and your fluent teammates to continue the translation."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Work through translation decisions together, with Toki and your fluent teammates."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Working on %{step}"
@@ -5462,6 +5782,11 @@ msgstr ""
 msgid "You have joined %{org}."
 msgstr ""
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "You have read-only access to this conversation."
+msgstr ""
+
 #: lib/glossia_web/controllers/claimable_organization_controller.ex
 #, elixir-autogen, elixir-format
 msgid "You now own this organization."
@@ -5475,6 +5800,11 @@ msgstr ""
 #: lib/glossia_web/live/profile_live.ex
 #, elixir-autogen, elixir-format
 msgid "Your display name"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Your guidance draft"
 msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex

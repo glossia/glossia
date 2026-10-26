@@ -1,4 +1,4 @@
-use crate::{PendingLogin, Registration, Session, begin, complete, error, restore, workspace};
+use crate::{PendingLogin, Registration, Session, Transport, error, navigation, toki, workspace};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::ffi::{CStr, CString, c_char};
@@ -28,42 +28,141 @@ enum Command {
     },
     Resource {
         session: Session,
+        #[serde(default)]
         selection: workspace::Selection,
         resource: workspace::Resource,
+        #[serde(default = "workspace::default_page")]
+        page: u32,
+        #[serde(default = "crate::analytics::default_days")]
+        days: u32,
     },
+    FluentLanguages {
+        session: Session,
+        #[serde(flatten)]
+        input: crate::profile::FluentLanguages,
+    },
+    Conversation {
+        session: Session,
+        selection: workspace::Selection,
+        #[serde(flatten)]
+        action: toki::Action,
+    },
+    Translation {
+        session: Session,
+        selection: workspace::Selection,
+        id: String,
+    },
+    TranslationReviews {
+        session: Session,
+        selection: workspace::Selection,
+        #[serde(flatten)]
+        action: crate::reviews::Action,
+    },
+    TranslationLive {
+        #[serde(flatten)]
+        action: crate::translation_live::Action,
+    },
+    Navigation {
+        #[serde(flatten)]
+        action: navigation::Action,
+    },
+    Themes {
+        server: String,
+    },
+    ValidateThemes {
+        catalog: Value,
+    },
+    Push {
+        session: Session,
+        #[serde(flatten)]
+        action: crate::push::Action,
+    },
+    Destinations,
 }
 
 pub fn execute(input: &str) -> String {
-    let result = std::panic::catch_unwind(|| -> crate::Result<Value> {
-        if input.len() > 1024 * 1024 {
-            return Err(crate::invalid());
-        }
-        let command: Command = serde_json::from_str(input).map_err(|_| crate::invalid())?;
-        match command {
-            Command::Begin {
-                server,
-                registration,
-            } => serde_json::to_value(begin(&server, registration)?),
-            Command::ValidateCallback { pending, callback } => {
-                crate::callback_code(&pending, &callback)?;
-                return Ok(json!({}));
+    execute_using(&crate::Network, input)
+}
+
+pub(crate) fn execute_using(network: &impl Transport, input: &str) -> String {
+    let result =
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> crate::Result<Value> {
+            if input.len() > 1024 * 1024 {
+                return Err(crate::invalid());
             }
-            Command::Complete { pending, callback } => {
-                serde_json::to_value(complete(pending, &callback)?)
+            let command: Command = serde_json::from_str(input).map_err(|_| {
+                if serde_json::from_str::<Value>(input)
+                    .ok()
+                    .is_some_and(|value| value["operation"] == "navigation")
+                {
+                    navigation::invalid_link()
+                } else {
+                    crate::invalid()
+                }
+            })?;
+            match command {
+                Command::Begin {
+                    server,
+                    registration,
+                } => serde_json::to_value(crate::begin_using(network, &server, registration)?),
+                Command::ValidateCallback { pending, callback } => {
+                    crate::callback_code(&pending, &callback)?;
+                    return Ok(json!({}));
+                }
+                Command::Complete { pending, callback } => {
+                    serde_json::to_value(crate::complete_using(network, pending, &callback)?)
+                }
+                Command::Restore { session } => {
+                    serde_json::to_value(crate::restore_using(network, session)?)
+                }
+                Command::Workspace { session, selection } => {
+                    return workspace::load(network, session, selection);
+                }
+                Command::Resource {
+                    session,
+                    selection,
+                    resource,
+                    page,
+                    days,
+                } => return workspace::resource(network, session, selection, resource, page, days),
+                Command::Conversation {
+                    session,
+                    selection,
+                    action,
+                } => {
+                    return toki::conversation(network, &session, &selection, action);
+                }
+                Command::FluentLanguages { session, input } => {
+                    return crate::profile::save_languages(network, &session, input);
+                }
+                Command::Translation {
+                    session,
+                    selection,
+                    id,
+                } => return crate::translations::show(network, &session, &selection, &id),
+                Command::TranslationReviews {
+                    session,
+                    selection,
+                    action,
+                } => {
+                    return crate::reviews::execute(network, &session, &selection, action);
+                }
+                Command::TranslationLive { action } => {
+                    return crate::translation_live::execute(action);
+                }
+                Command::Navigation { action } => return navigation::execute(action),
+                Command::Themes { server } => return crate::themes::fetch(network, &server),
+                Command::ValidateThemes { catalog } => return crate::themes::validate(catalog),
+                Command::Push { session, action } => {
+                    return crate::push::execute(network, session, action);
+                }
+                Command::Destinations => {
+                    return Ok(json!({"destinations": crate::navigation::DESTINATIONS}));
+                }
             }
-            Command::Restore { session } => serde_json::to_value(restore(session)?),
-            Command::Workspace { session, selection } => {
-                return workspace::load(&crate::Network, session, selection);
-            }
-            Command::Resource {
-                session,
-                selection,
-                resource,
-            } => return workspace::resource(&crate::Network, session, selection, resource),
-        }
-        .map_err(|_| crate::invalid())
-    })
-    .unwrap_or_else(|_| Err(error("internal", "Could not complete the request.")));
+            .map_err(|_| crate::invalid())
+        }))
+        .unwrap_or_else(|_| Err(error("internal", "Could not complete the request.")));
     match result {
         Ok(value) => json!({"ok": value}).to_string(),
         Err(error) => json!({"error": error}).to_string(),

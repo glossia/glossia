@@ -28,11 +28,22 @@ The project is resolved by the site domain the snippet declares. `d` is authorit
 | `l`   | string | Browser languages (`navigator.languages.join(",")`).         |
 | `sl`  | string | Actual page language (`document.documentElement.lang`). Empty if undeclared. |
 | `al`  | string | Comma-separated translation languages from `link[rel="alternate"][hreflang]`, excluding `x-default`. |
+| `cl`  | string | Explicitly chosen language, or empty when no selection was observed. The SDK canonicalizes BCP 47 tags and limits input to 64 characters. |
 | `tz`  | string | IANA timezone (`Intl.DateTimeFormat().resolvedOptions().timeZone`). |
 | `sw`  | number | Screen width in CSS pixels.                                  |
 | `sid` | string | Per-tab session id (sessionStorage, cleared on close).       |
 
 CORS is open (`Access-Control-Allow-Origin: *`) because the endpoint accepts no credentials.
+
+## Explicit language selection
+
+`selectLanguage(language)` is available as a named export, on the default SDK export, and on the hosted script's `glossia` global. Call it after initialization from a user-action handler, before navigation. Invalid language tags and calls before initialization are ignored.
+
+The method sends a `language_selection` event immediately. Its `sl` still describes the current page, not the destination. Subsequent events include the choice in `cl` until another explicit choice replaces it. Without an observed selection, `cl` is empty. The choice is stored as `__glossia_selected_language` in same-origin, per-tab `sessionStorage`; when storage fails it is retained only in memory until unload.
+
+For links, `data-glossia-language="zh-Hans"` enables delegated tracking of trusted, unmodified primary clicks, including keyboard activation. Scripted clicks, already cancelled clicks, downloads, cross-origin links, and links targeting another tab or frame are ignored. The listener runs in the capture phase before routers navigate, does not prevent navigation, and also handles dynamically inserted links. Use either the annotation or the API for an action, not both.
+
+This is a client-reported intent signal, not proof that navigation succeeded. URL changes, redirects, and HTML language changes are not interpreted as choices. The selection does not override `l` or `sl`, or currently change `has_locale_gap` or dashboard badges.
 
 ## Server-derived fields
 
@@ -49,7 +60,8 @@ These are computed at ingestion and stored server-side. The raw IP and User-Agen
 | `pathname`        | Page URL      | Path component.                                                     |
 | `referrer_source` | Referrer      | Referrer host, leading `www.`/`m.` stripped.                        |
 | `browser_language`| Languages     | Most preferred normalized locale (e.g. `pt-BR`).                    |
-| `served_locale`   | Page language | Normalized `sl`, or empty (shown as Not reported) if it was not collected. |
+| `served_locale`   | Page language | Normalized `sl`, or empty if it was not collected. Rows with an empty page language are omitted from the browser-language breakdown. |
+| `selected_locale` | Explicit choice | Normalized `cl`, or empty for missing, malformed, or oversized input. Stored separately from browser preference and page language. |
 | `has_locale_gap`  | Computed      | `1` when none of the visitor's preferred languages match the project targets, advertised translations (`al`), or page language (`sl`). Missing preferences do not count as a gap. |
 
 ### Client IP resolution
@@ -68,11 +80,11 @@ Without a configured MaxMind database, fallback lookups use `api.ipapi.is`, then
 
 ### Missing page language
 
-The dashboard displays **Not reported** when an event has no `sl`. This includes events collected by older tracker versions and pages without an HTML `lang` attribute. The page language is not inferred from browser preferences or the URL. Historical events retain the metadata collected at the time; new tracker versions do not backfill them.
+The browser-language breakdown omits events with no `sl`. This includes events collected by older tracker versions and pages without an HTML `lang` attribute. These events still contribute to overall traffic. The page language is not inferred from browser preferences or the URL. Historical events retain the metadata collected at the time; new tracker versions do not backfill them.
 
 ## Privacy model
 
-- **No persistent cross-session identifier.** The SDK sets no cookies and stores only a per-tab session id in `sessionStorage`, which the browser clears on close.
+- **No persistent cross-session identifier.** The SDK sets no cookies and stores only a per-tab session id and an explicitly selected language in `sessionStorage`, which the browser clears on close.
 - **No fingerprinting.** Canvas, WebGL, font, and audio fingerprints are not collected. The daily-rotated server hash provides uniques without them.
 - **No raw identifiers persisted.** IP and User-Agent are read once, hashed with a server secret and a daily salt, then discarded.
 - **Per-project scoping.** The same browser on two projects yields unrelated visitor ids, so visitors cannot be tracked across Glossia customers.

@@ -129,6 +129,7 @@ defmodule GlossiaWeb.AnalyticsController do
        country_code: country || "",
        browser_language: browser_language,
        served_locale: served_locale,
+       selected_locale: selected_locale(params["cl"]),
        has_locale_gap: has_locale_gap,
        device: device,
        browser: browser,
@@ -166,6 +167,18 @@ defmodule GlossiaWeb.AnalyticsController do
       preferred -> preferred
     end
   end
+
+  defp selected_locale(value) when is_binary(value) and byte_size(value) <= 64 do
+    value = String.trim(value)
+
+    if Regex.match?(~r/^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$/, value) do
+      value |> Client.parse_languages() |> List.first() || ""
+    else
+      ""
+    end
+  end
+
+  defp selected_locale(_), do: ""
 
   defp accept_language(conn) do
     conn |> get_req_header("accept-language") |> List.first() || ""

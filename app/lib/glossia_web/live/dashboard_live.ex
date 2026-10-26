@@ -1215,7 +1215,7 @@ defmodule GlossiaWeb.DashboardLive do
       |> Enum.filter(&visible_translation_session_event?/1)
 
     socket =
-      if connected?(socket) and session.status in ["pending", "running"] do
+      if connected?(socket) and session.status in ["pending", "running", "awaiting_input"] do
         Glossia.TranslationSessions.subscribe_session_events(session)
         socket
       else
@@ -1237,6 +1237,7 @@ defmodule GlossiaWeb.DashboardLive do
       sidebar_project: project
     )
     |> assign_translation_progress(translation_session_progress(session))
+    |> assign_linguistic_reviews()
   end
 
   defp apply_action(socket, :project_translations, %{"project" => project_handle}) do
@@ -3692,7 +3693,9 @@ defmodule GlossiaWeb.DashboardLive do
 
     socket =
       if session do
-        assign(socket, session: refetch_translation_session(session, status))
+        socket
+        |> assign(session: refetch_translation_session(session, status))
+        |> assign_linguistic_reviews()
       else
         socket
       end
@@ -3751,6 +3754,7 @@ defmodule GlossiaWeb.DashboardLive do
               )
           )
           |> assign_translation_progress(translation_session_progress(session))
+          |> assign_linguistic_reviews()
 
         :project_translations ->
           apply_url_params_translations(socket, socket.assigns[:settings_query_params] || %{})
@@ -4221,6 +4225,7 @@ defmodule GlossiaWeb.DashboardLive do
           session={@session}
           can_write={@can_write}
           session_events={assigns[:session_events] || []}
+          linguistic_reviews={assigns[:linguistic_reviews] || []}
           translation_progress_items={assigns[:translation_progress_items] || []}
           translation_progress_summary={
             assigns[:translation_progress_summary] ||
@@ -4246,6 +4251,7 @@ defmodule GlossiaWeb.DashboardLive do
           translations_sort_dir={assigns[:translations_sort_dir] || "desc"}
           available_filters={assigns[:available_filters] || []}
           active_filters={assigns[:active_filters] || []}
+          toki_goals={assigns[:toki_goals] || []}
           can_write={@can_write}
         />
     <% end %>
@@ -7175,6 +7181,27 @@ defmodule GlossiaWeb.DashboardLive do
     <div id="project-overview" class="dash-page">
       <.page_header title={@project_name} />
 
+      <Noora.Card.card
+        :if={@toki_goals != []}
+        id="project-toki-goals"
+        title={gettext("Recent help requests")}
+        icon="message_circle"
+      >
+        <:actions>
+          <Noora.Button.button
+            navigate={~p"/#{@handle}/#{@project.handle}/-/toki"}
+            label={gettext("All conversations")}
+            variant="secondary"
+          />
+        </:actions>
+        <Noora.Card.card_section :for={conversation <- @toki_goals} data-part="toki-goal">
+          <.link navigate={~p"/#{@handle}/#{@project.handle}/-/toki/#{conversation.id}"}>
+            {conversation.linguistic_review.question}
+          </.link>
+          <Noora.Tag.tag label={gettext("Help requested")} />
+        </Noora.Card.card_section>
+      </Noora.Card.card>
+
       <%= if @project && @project.setup_status in ["pending", "running"] do %>
         <.setup_progress_panel
           status={@project.setup_status}
@@ -8262,6 +8289,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_session_status_badge("failed"), do: "error"
   defp translation_session_status_badge("running"), do: "in_progress"
   defp translation_session_status_badge("pending"), do: "attention"
+  defp translation_session_status_badge("awaiting_input"), do: "attention"
   defp translation_session_status_badge("cancelled"), do: "disabled"
   defp translation_session_status_badge(_), do: "disabled"
 
@@ -8269,10 +8297,12 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_session_status_label("failed"), do: gettext("Failed")
   defp translation_session_status_label("running"), do: gettext("Running")
   defp translation_session_status_label("pending"), do: gettext("Pending")
+  defp translation_session_status_label("awaiting_input"), do: gettext("Needs linguistic input")
   defp translation_session_status_label("cancelled"), do: gettext("Cancelled")
   defp translation_session_status_label(status), do: status
 
-  defp translation_session_cancellable?(%{status: status}), do: status in ["pending", "running"]
+  defp translation_session_cancellable?(%{status: status}),
+    do: status in ["pending", "running", "awaiting_input"]
 
   # The commit's subject line reads as the natural page title; it tells a
   # returning viewer what the run was about without opening the overview card.
@@ -8435,6 +8465,41 @@ defmodule GlossiaWeb.DashboardLive do
             >
               {gettext("View the translation this run continued")}
             </.link>
+          </div>
+        </Noora.Card.card_section>
+      </Noora.Card.card>
+
+      <Noora.Card.card
+        :if={@linguistic_reviews != []}
+        id="translation-linguistic-reviews"
+        title={gettext("Translation goals")}
+        icon="message_circle"
+      >
+        <Noora.Card.card_section data-part="linguistic-reviews">
+          <p>
+            {gettext(
+              "Work through these decisions with Toki and your fluent teammates to continue the translation."
+            )}
+          </p>
+          <div :for={review <- @linguistic_reviews} data-part="review">
+            <div data-part="review-copy">
+              <.link
+                :if={review.conversation_id}
+                navigate={~p"/#{@handle}/#{@project.handle}/-/toki/#{review.conversation_id}"}
+              >
+                {review.question}
+              </.link>
+              <span>{review.locale} · {review.output_path}</span>
+              <.link
+                :if={review.resumed_session_id}
+                navigate={~p"/#{@handle}/#{@project.handle}/-/sessions/#{review.resumed_session_id}"}
+              >
+                {gettext("View continued translation")}
+              </.link>
+            </div>
+            <Noora.Tag.tag label={
+              if review.status == "open", do: gettext("Help requested"), else: gettext("Closed")
+            } />
           </div>
         </Noora.Card.card_section>
       </Noora.Card.card>
@@ -8793,6 +8858,7 @@ defmodule GlossiaWeb.DashboardLive do
   end
 
   defp translation_item_noora_status(:running), do: "in_progress"
+  defp translation_item_noora_status(:awaiting_input), do: "attention"
   defp translation_item_noora_status(:done), do: "success"
   defp translation_item_noora_status(:failed), do: "error"
   defp translation_item_noora_status(:cancelled), do: "disabled"
@@ -8801,7 +8867,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_progress_display_running(%{running: running}) when running > 0, do: running
 
   defp translation_progress_display_running(summary) do
-    processed = summary.done + summary.failed
+    processed = summary.done + summary.failed + Map.get(summary, :awaiting_input, 0)
 
     if translation_progress_assessing?(summary, processed) do
       0
@@ -8863,6 +8929,23 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_session_progress(session),
     do: Glossia.TranslationSessions.session_progress(session.id)
 
+  defp assign_linguistic_reviews(socket) do
+    project = %{socket.assigns.project | account: socket.assigns.account}
+    user = socket.assigns.current_user
+
+    reviews =
+      with :ok <- Glossia.Toki.authorize_project(:toki_read, user, project),
+           :ok <- Glossia.Toki.authorize_project(:toki_write, user, project),
+           {:ok, reviews} <-
+             Glossia.LinguisticReviews.list(user, project, socket.assigns.session.id) do
+        Enum.map(reviews, &Glossia.LinguisticReviews.serialize/1)
+      else
+        _ -> []
+      end
+
+    assign(socket, linguistic_reviews: reviews)
+  end
+
   defp schedule_translation_refresh(socket) do
     if ref = socket.assigns[:translation_session_refresh_ref] do
       Process.cancel_timer(ref)
@@ -8881,7 +8964,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_refresh_active?(%{
          assigns: %{live_action: :project_session, session: session}
        }),
-       do: translation_session_in_flight?(session)
+       do: translation_session_in_flight?(session) or session.status == "awaiting_input"
 
   defp translation_refresh_active?(%{
          assigns: %{live_action: :project_translations, translations: sessions}
@@ -8894,6 +8977,7 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_refresh_active?(_socket), do: false
 
   defp translation_item_status_label(:running), do: gettext("Translating")
+  defp translation_item_status_label(:awaiting_input), do: gettext("Needs linguistic input")
   defp translation_item_status_label(:done), do: gettext("Done")
   defp translation_item_status_label(:failed), do: gettext("Failed")
   defp translation_item_status_label(:cancelled), do: gettext("Cancelled")
@@ -12667,7 +12751,24 @@ defmodule GlossiaWeb.DashboardLive do
   defp current_filters(_socket, _), do: %{}
 
   defp apply_url_params_activity(socket, params) do
-    apply_project_translation_params(socket, params, "/" <> socket.assigns.project.handle)
+    project = %{socket.assigns.project | account: socket.assigns.account}
+
+    goals =
+      case Glossia.Toki.list_conversations(socket.assigns.current_user, project, %{
+             "page_size" => 50
+           }) do
+        {:ok, {conversations, _meta}} ->
+          conversations
+          |> Enum.filter(&match?(%{linguistic_review: %{status: "open"}}, &1))
+          |> Enum.take(5)
+
+        _ ->
+          []
+      end
+
+    socket
+    |> assign(toki_goals: goals)
+    |> apply_project_translation_params(params, "/" <> socket.assigns.project.handle)
   end
 
   defp apply_url_params_translations(socket, params) do
@@ -14643,22 +14744,7 @@ defmodule GlossiaWeb.DashboardLive do
                 <Noora.Table.text_cell label={row.browser_language} />
               </:col>
               <:col :let={row} label={gettext("Served as")}>
-                <.tooltip
-                  :if={row.served_locale == ""}
-                  id={"page-language-help-#{row.browser_language}-#{row.has_locale_gap}"}
-                  title={
-                    gettext(
-                      "The tracker did not report a page language. Older tracker versions and pages without an HTML lang attribute can cause this."
-                    )
-                  }
-                >
-                  <:trigger :let={attrs}>
-                    <div {attrs} tabindex="0">
-                      <Noora.Table.text_cell label={gettext("Not reported")} />
-                    </div>
-                  </:trigger>
-                </.tooltip>
-                <Noora.Table.text_cell :if={row.served_locale != ""} label={row.served_locale} />
+                <Noora.Table.text_cell label={row.served_locale} />
               </:col>
               <:col :let={row} label={gettext("Gap?")}>
                 <Noora.Table.status_badge_cell

@@ -13,6 +13,12 @@ ONCE_CACHE_PROVIDER = "local"
 [tasks."prepare:rust"]
 run = "cargo vendor --quiet --locked .once/vendor > /dev/null"
 
+[tasks."localize:extract"]
+run = "python3 -B tools/extract_localizations.py"
+
+[tasks."localize:check"]
+run = "python3 -B tools/extract_localizations.py --check"
+
 [tasks.check]
 depends = ["prepare:rust"]
 run = ["once query validate-workspace", "cargo fmt --all -- --check", "cargo clippy --locked --workspace --all-targets -- -D warnings", "once test GlossiaCoreTests"]
@@ -31,6 +37,10 @@ export PATH="$PWD/.once/android-tools:$tools:$PATH"
 once build GlossiaAndroid
 '''
 
+[tasks."test:android"]
+depends = ["build:android"]
+run = "gradle -p android testDebugUnitTest testReleaseUnitTest lintDebug -x stageNative --console=plain"
+
 [tasks."build:ios"]
 depends = ["prepare:rust"]
 run = "once build GlossiaIOS"
@@ -38,3 +48,15 @@ run = "once build GlossiaIOS"
 [tasks."build:ios-device"]
 depends = ["prepare:rust"]
 run = "once build GlossiaIOSDevice"
+
+[tasks."test:ios"]
+depends = ["prepare:rust"]
+run = "once test GlossiaIOSTests"
+
+[tasks."preview:ios"]
+depends = ["prepare:rust"]
+run = "once build GlossiaIOSPreview"
+
+[tasks."test:ios-ui"]
+depends = ["prepare:rust"]
+run = "once test GlossiaIOSUITests"

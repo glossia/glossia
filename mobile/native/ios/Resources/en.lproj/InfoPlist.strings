@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Use your microphone for on-device dictation into an editable Toki draft. Audio is not uploaded.";
+"NSSpeechRecognitionUsageDescription" = "Transcribe speech on this device into an editable Toki draft. Nothing sends automatically.";

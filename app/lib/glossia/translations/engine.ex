@@ -153,26 +153,56 @@ defmodule Glossia.Translations.Engine do
       {:ok, report} ->
         if report, do: state.on_event.({:quality_assessed, report})
 
-        if is_nil(report) or report.passed do
-          state.on_event.({:translation_output, final})
+        cond do
+          report && Map.get(report, :human_input, "none") != "none" ->
+            linguistic_input(
+              state,
+              final,
+              report.human_input,
+              Quality.question(report.human_input)
+            )
 
-          {:ok,
-           %{
-             text: final,
-             output_path: state.work_item.output_path,
-             output_abs: state.work_item.output_abs,
-             locale: state.work_item.locale,
-             model: translated.model,
-             provider: translated.provider,
-             quality: report
-           }}
-        else
-          retry_validation(state, Quality.feedback(report), "translation_quality")
+          is_nil(report) or report.passed ->
+            state.on_event.({:translation_output, final})
+
+            {:ok,
+             %{
+               text: final,
+               output_path: state.work_item.output_path,
+               output_abs: state.work_item.output_abs,
+               locale: state.work_item.locale,
+               model: translated.model,
+               provider: translated.provider,
+               quality: report
+             }}
+
+          Map.get(state.work_item, :human_review, false) and state.attempt >= state.max_attempt ->
+            linguistic_input(
+              state,
+              final,
+              "quality_exhausted",
+              "How should this translation be corrected? Automatic corrections exhausted their budget.\n\n" <>
+                Quality.feedback(report)
+            )
+
+          true ->
+            retry_validation(state, Quality.feedback(report), "translation_quality")
         end
 
       {:error, reason} ->
         {:error, {:decision_evaluation_failed, reason}}
     end
+  end
+
+  defp linguistic_input(state, final, reason, question) do
+    {:error,
+     {:linguistic_input_needed,
+      %{
+        reason: reason,
+        question: question,
+        source: state.source_text,
+        translation: final
+      }}}
   end
 
   defp translate_segments(state) do

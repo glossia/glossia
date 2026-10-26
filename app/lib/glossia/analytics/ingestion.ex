@@ -21,6 +21,8 @@ defmodule Glossia.Analytics.Ingestion do
 
   @spec record_event(map()) :: :ok
   def record_event(attrs) do
+    attrs = Map.put_new(attrs, :selected_locale, "")
+
     if write_through_repo?() do
       %{fields: fields} = Event.buffer_opts()
 
@@ -60,7 +62,8 @@ defmodule Glossia.Analytics.Ingestion do
         attrs.browser,
         attrs.os,
         attrs.screen_width,
-        attrs.timezone
+        attrs.timezone,
+        attrs.selected_locale
       ]
 
       row_binary = Ch.RowBinary.encode_row(row, buffer_opts.encoding_types)

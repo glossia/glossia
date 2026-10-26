@@ -179,19 +179,20 @@ defmodule Glossia.Translations.QualityTest do
   end
 
   @tag :tmp_dir
-  test "quality failures exhaust the existing retry budget", %{tmp_dir: dir} do
+  test "exhausted quality corrections escalate only when human review is enabled", %{tmp_dir: dir} do
     source = Path.join(dir, "guide.txt")
     File.write!(source, "Hello")
     item = %{item(source) | retries: 0}
 
-    Mimic.expect(Translations, :translate_stream, fn _, _, _, _ ->
+    Mimic.stub(Translations, :translate_stream, fn _, _, _, _ ->
       {:ok, %{text: "Hola", model: "writer", provider: "test"}}
     end)
 
     evaluator = fn _, _, _, _, _ ->
       {:ok,
        response(Quality.dimensions(item), %{
-         "meaning_score" => %{"type" => "score", "score" => 2.0, "confidence" => 0.9}
+         "meaning_score" => %{"type" => "score", "score" => 2.0, "confidence" => 0.9},
+         "human_input" => %{"type" => "choice", "choice" => "none", "confidence" => 0.9}
        })}
     end
 
@@ -201,6 +202,20 @@ defmodule Glossia.Translations.QualityTest do
              )
 
     assert message =~ "Translation quality failed"
+
+    assert {:error, {:linguistic_input_needed, detail}} =
+             Engine.apply_item(
+               Map.put(item, :human_review, true),
+               %Account{id: 1},
+               fn _ -> :ok end,
+               fn _, _ -> :ok end,
+               decision_evaluator: evaluator
+             )
+
+    assert detail.reason == "quality_exhausted"
+    assert detail.source == "Hello"
+    assert detail.translation == "Hola"
+    assert detail.question =~ "Meaning preservation"
   end
 
   @tag :tmp_dir

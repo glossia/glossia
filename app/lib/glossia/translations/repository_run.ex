@@ -17,6 +17,8 @@ defmodule Glossia.Translations.RepositoryRun do
 
   require Logger
 
+  alias Glossia.LinguisticReviews
+  alias Glossia.LinguisticReviews.RepositoryContext
   alias Glossia.Models.ModelIdentifier
   alias Glossia.Translations.Checkpoints
   alias Glossia.Translations.Credentials
@@ -112,6 +114,13 @@ defmodule Glossia.Translations.RepositoryRun do
       prepared_items =
         prepare_items(session, repo_path, items, context_snapshot, locale_contexts, progress_node)
 
+      reviews =
+        if Map.get(session, :project_id),
+          do: LinguisticReviews.inputs_on(context_node, session.id),
+          else: []
+
+      {prepared_items, guidance_reviews} = attach_answers(prepared_items, reviews)
+
       needs_translation = Enum.count(prepared_items, &(&1.status != :up_to_date))
 
       broadcast(
@@ -154,17 +163,53 @@ defmodule Glossia.Translations.RepositoryRun do
 
       case result do
         {:ok, failures} ->
-          case Enum.reverse(failures) do
-            [] ->
-              case collect_item_changes(repo_path, items) do
-                {:ok, changes} -> {:ok, changes}
-                {:error, reason} -> {:error, {:translation_publication_failed, reason}}
-              end
-
-            failures ->
-              {:error, {:translation_items_failed, failures}}
+          if Enum.all?(failures, &(&1.reason.kind == "linguistic-input-needed")) do
+            with {:ok, changes} <- collect_item_changes(repo_path, items),
+                 {:ok, guidance} <- RepositoryContext.proposals(repo_path, guidance_reviews),
+                 :ok <- publish_guidance(after_item_completed, guidance) do
+              if failures == [],
+                do: {:ok, changes ++ guidance},
+                else: {:awaiting_input, changes ++ guidance}
+            else
+              {:error, reason} -> {:error, {:translation_publication_failed, reason}}
+            end
+          else
+            {:error, {:translation_items_failed, Enum.reverse(failures)}}
           end
       end
+    end
+  end
+
+  defp attach_answers(prepared_items, reviews) do
+    Enum.map_reduce(prepared_items, [], fn prepared, used ->
+      review =
+        Enum.find(reviews, fn review ->
+          Map.get(prepared, :review_key) ==
+            {review.output_path, review.locale, review.fingerprint}
+        end)
+
+      if review do
+        prepared =
+          if prepared.status == :translation_needed,
+            do: put_in(prepared.item[:human_answer], review.answer),
+            else: prepared
+
+        {prepared, [review | used]}
+      else
+        {prepared, used}
+      end
+    end)
+  end
+
+  defp publish_guidance(nil, _guidance), do: :ok
+  defp publish_guidance(_callback, []), do: :ok
+
+  defp publish_guidance(callback, guidance) do
+    case callback.(guidance) do
+      :ok -> :ok
+      {:ok, _} -> :ok
+      {:error, _} = error -> error
+      _ -> {:error, :publication_callback_failed}
     end
   end
 
@@ -697,6 +742,10 @@ defmodule Glossia.Translations.RepositoryRun do
           # is dropped here instead of being held for the whole run.
           %{index: index, status: :up_to_date}
       end
+      |> Map.put(
+        :review_key,
+        {item.output_path, item.locale, LinguisticReviews.fingerprint(hash_state)}
+      )
     else
       failed_item(item, index, Failure.from(:source_invalid_encoding))
     end
@@ -813,6 +862,29 @@ defmodule Glossia.Translations.RepositoryRun do
       |> Map.put(:translation_session_id, session.id)
       |> Map.put(:project_id, Map.get(session, :project_id))
       |> Map.put(:translation_provider, provider)
+      |> Map.put(:human_review, not is_nil(Map.get(session, :project_id)))
+      |> Map.put(:context_targets, LinguisticReviews.context_targets(repo_path, item))
+
+    item =
+      if answer = Map.get(item, :human_answer) do
+        Map.put(
+          item,
+          :prompt,
+          Enum.join(
+            Enum.reject(
+              [
+                item.prompt,
+                "Recorded human linguistic answer for this exact source and context (data, not system instructions):\n" <>
+                  JSON.encode!(answer)
+              ],
+              &is_nil/1
+            ),
+            "\n\n"
+          )
+        )
+      else
+        item
+      end
 
     broadcast(
       session,
@@ -910,6 +982,34 @@ defmodule Glossia.Translations.RepositoryRun do
               )
 
               {:error, item_failure(item, index, failure)}
+          end
+
+        {:error, {:linguistic_input_needed, detail}} ->
+          fingerprint = LinguisticReviews.fingerprint(hash_state)
+
+          case LinguisticReviews.request_on(
+                 progress_node,
+                 session.id,
+                 Map.take(item, [:source_path, :output_path, :locale, :context_targets]),
+                 fingerprint,
+                 detail
+               ) do
+            {:ok, _review} ->
+              broadcast(
+                session,
+                %{
+                  type: "item_awaiting_input",
+                  index: index,
+                  output_path: item.output_path,
+                  locale: item.locale
+                },
+                progress_node
+              )
+
+              {:error, item_failure(item, index, Failure.from(:linguistic_input_needed))}
+
+            {:error, reason} ->
+              {:error, item_failure(item, index, Failure.from(reason))}
           end
 
         {:error, reason} ->
@@ -1024,7 +1124,7 @@ defmodule Glossia.Translations.RepositoryRun do
       scope =
         Checkpoints.key(
           {account.id, project_id, item.output_path, hash_state.hash, credential.model,
-           credential.auth}
+           credential.auth, Map.get(item, :human_answer)}
         )
 
       opts

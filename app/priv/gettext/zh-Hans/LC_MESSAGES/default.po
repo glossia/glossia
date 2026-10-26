@@ -366,6 +366,12 @@ msgid "Agentic localization and content revisiting"
 msgstr "智能体本地化与内容回顾"
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "All conversations"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "All files are up to date. No translations were needed."
 msgstr "所有文件均为最新，无需翻译。"
@@ -482,6 +488,16 @@ msgstr "应用"
 msgid "Apply suggestion"
 msgstr "应用建议"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Approval uses the latest completed Toki reply, not the opening question. Continue the discussion if the decision is not ready."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Approve final decision"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Approved terms and translations to keep your content consistent."
@@ -526,6 +542,11 @@ msgstr "您确定要撤销此令牌吗？使用此令牌的任何应用程序将
 #, elixir-autogen, elixir-format
 msgid "Are you sure? Existing integrations using the current secret will stop working."
 msgstr "您确定吗？使用当前密钥的现有集成将停止工作。"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Ask about your project's translations, terminology, or cultural context."
+msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
@@ -805,6 +826,11 @@ msgstr "请检查决策模型配置和提供方可用性，然后重试。未经
 msgid "Check the model provider credentials, then retry this translation session."
 msgstr "请检查模型提供商凭据，然后重试此翻译会话。"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Check your text: messages and guidance must be at most 8,000 characters. Your draft is saved."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Checking %{checked} of %{total} file for updates"
@@ -904,6 +930,7 @@ msgstr "关闭建议"
 
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Closed"
 msgstr "已关闭"
@@ -1071,6 +1098,16 @@ msgstr "继续使用您的组织"
 msgid "Continuous localization"
 msgstr "持续本地化"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Conversation history"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Conversations"
+msgstr ""
+
 #: lib/glossia_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "Cookie Policy"
@@ -1227,6 +1264,11 @@ msgstr "无法保存成员权限。"
 msgid "Could not save web analytics. Enter a valid domain like example.com."
 msgstr "无法保存网站分析。请输入有效的域名，例如 example.com。"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Could not save. Check your access and try again. Your draft is saved."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Could not send invitation."
@@ -1382,6 +1424,16 @@ msgstr "日期"
 msgid "Decision"
 msgstr "决策"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Decision approved."
+msgstr "决策"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Decision approved. This discussion is now read-only."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Decision model"
@@ -1486,6 +1538,16 @@ msgstr "已禁用"
 #, elixir-autogen, elixir-format
 msgid "Discard"
 msgstr "放弃"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Discuss the ambiguity together. When the latest Toki reply captures the final decision, explicitly approve it below."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Discuss the goal with Toki first. A completed reply is required before approval."
+msgstr ""
 
 #: lib/glossia_web/components/layouts/admin.html.heex
 #, elixir-autogen, elixir-format
@@ -1633,6 +1695,11 @@ msgstr "此处无法更改邮箱。"
 #, elixir-autogen, elixir-format
 msgid "Enter the code shown in your mobile app to continue."
 msgstr "请输入手机应用中显示的代码以继续。"
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "Enter up to 50 supported language tags, separated by commas."
+msgstr ""
 
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format
@@ -1797,6 +1864,21 @@ msgstr "完成 Glossia 设置"
 #, elixir-autogen, elixir-format
 msgid "Finished %{step}"
 msgstr "完成 %{step}"
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "Fluent languages"
+msgstr ""
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "Fluent languages updated."
+msgstr ""
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "For example: en, es-MX, zh-Hant"
+msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
@@ -2054,6 +2136,12 @@ msgid "Handle"
 msgstr "用户名"
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Help requested"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "High priority"
 msgstr "高优先级"
@@ -2229,6 +2317,11 @@ msgstr "邀请成员"
 msgid "Invited by"
 msgstr "邀请人"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Invited fluent teammates"
+msgstr ""
+
 #: lib/glossia_web/components/core_components.ex
 #, elixir-autogen, elixir-format
 msgid "Join teams that ship content with the same confidence they ship code."
@@ -2292,6 +2385,11 @@ msgstr "语言已更新。"
 #, elixir-autogen, elixir-format
 msgid "Languages"
 msgstr "语言"
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "Languages you can help with"
+msgstr ""
 
 #: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
@@ -2409,6 +2507,11 @@ msgstr "LinkedIn"
 msgid "Live"
 msgstr "实时"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Locale guidance"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Locale-gap visits"
@@ -2495,6 +2598,11 @@ msgstr "管理连接至您的 Glossia 账户的第三方服务。"
 msgid "Manage who has access to this organization."
 msgstr "管理谁可以访问本组织。"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Manage your fluent languages"
+msgstr ""
+
 #: lib/glossia_web/live/profile_live.ex
 #, elixir-autogen, elixir-format
 msgid "Manage your personal profile and account information."
@@ -2562,6 +2670,11 @@ msgstr "菜单"
 #, elixir-autogen, elixir-format
 msgid "Merge pull request #%{number} to activate this project's localization baseline."
 msgstr "合并拉取请求 #%{number} 以激活此项目的本地化基线。"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Message"
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -2676,6 +2789,11 @@ msgstr "导航"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
+msgid "Needs linguistic input"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
 msgid "Never"
 msgstr "从未"
 
@@ -2688,6 +2806,11 @@ msgstr "新的 OAuth 应用"
 #, elixir-autogen, elixir-format
 msgid "New application"
 msgstr "新应用"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "New conversation"
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -2703,6 +2826,11 @@ msgstr "新建组织"
 #, elixir-autogen, elixir-format
 msgid "New override"
 msgstr "新建覆盖"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "New private conversation"
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -2734,6 +2862,11 @@ msgstr "新令牌"
 #, elixir-autogen, elixir-format
 msgid "New updates and improvements to Glossia."
 msgstr "对 Glossia 的最新更新和改进。"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Next"
+msgstr "下一页"
 
 #: lib/glossia_web/components/dashboard_components.ex
 #, elixir-autogen, elixir-format
@@ -2770,6 +2903,11 @@ msgstr "尚未建立连接"
 #, elixir-autogen, elixir-format
 msgid "No content translated"
 msgstr "无翻译内容"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "No conversations yet"
+msgstr "尚未建立连接"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -2965,11 +3103,6 @@ msgstr "未检测到"
 #, elixir-autogen, elixir-format
 msgid "Not recorded"
 msgstr "未记录"
-
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
-msgid "Not reported"
-msgstr "未报告"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3180,6 +3313,7 @@ msgid "Overview"
 msgstr "概览"
 
 #: lib/glossia_web/components/dashboard_components.ex
+#: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Page %{page} of %{total}"
 msgstr "第 %{page} 页，共 %{total} 页"
@@ -3262,6 +3396,7 @@ msgid "Preview"
 msgstr "预览"
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Previous"
 msgstr "之前"
@@ -3286,6 +3421,11 @@ msgstr "优先级"
 #, elixir-autogen, elixir-format
 msgid "Privacy Policy"
 msgstr "隐私政策"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Private conversation"
+msgstr ""
 
 #: lib/glossia_web/controllers/page_html/home.html.heex
 #, elixir-autogen, elixir-format
@@ -3343,6 +3483,11 @@ msgstr "项目已创建"
 #, elixir-autogen, elixir-format
 msgid "Project created. Add an L10N.md file to the repository to start translating."
 msgstr "项目已创建。向仓库添加一个 L10N.md 文件即可开始翻译。"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Project guidance"
+msgstr "项目"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3472,6 +3617,7 @@ msgid "Pull request created"
 msgstr "已创建拉取请求"
 
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Queued"
 msgstr "已排队"
@@ -3530,6 +3676,11 @@ msgstr "模拟身份原因..."
 #, elixir-autogen, elixir-format
 msgid "Recent activity"
 msgstr "近期活动"
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Recent help requests"
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3633,6 +3784,11 @@ msgstr "重新开启讨论"
 msgid "Reopen suggestion"
 msgstr "重新打开建议"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Reply failed"
+msgstr "设置失败"
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Repository"
@@ -3643,6 +3799,11 @@ msgstr "仓库"
 #, elixir-autogen, elixir-format
 msgid "Requested permissions:"
 msgstr "请求的权限："
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Resolved"
+msgstr "已删除"
 
 #: lib/glossia_web/live/llm_usage_live.ex
 #, elixir-autogen, elixir-format
@@ -3668,6 +3829,16 @@ msgstr "请重试此翻译会话。如果问题持续，请检查提供商。"
 #, elixir-autogen, elixir-format
 msgid "Return to top"
 msgstr "返回顶部"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Reusable L10N guidance (optional)"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Reusable guidance"
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3789,6 +3960,11 @@ msgstr "保存认证设置"
 #, elixir-autogen, elixir-format
 msgid "Save changes"
 msgstr "保存更改"
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "Save fluent languages"
+msgstr ""
 
 #: lib/glossia_web/live/member_permissions_live.ex
 #, elixir-autogen, elixir-format
@@ -3966,6 +4142,16 @@ msgstr "选择此令牌应拥有的权限。仅授予所需的最低范围。"
 msgid "Send invitation"
 msgstr "发送邀请"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Send message"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Separate from this decision. Leave empty to approve without changing repository guidance."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Served"
@@ -4085,6 +4271,11 @@ msgstr "设置拉取请求已关闭"
 msgid "Setup update"
 msgstr "设置更新"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Shared translation goals will appear here when help is needed. You can also start a private conversation with Toki."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Short summary of the suggested change"
@@ -4166,9 +4357,15 @@ msgid "Something went wrong."
 msgstr "出错了。"
 
 #: lib/glossia_web/components/layouts/app.html.heex
+#: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Source"
 msgstr "源"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Source and current translation"
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -4272,6 +4469,11 @@ msgstr "一目了然的系统级指标"
 msgid "Table of contents"
 msgstr "目录"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Talk it through with Toki"
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Target audience"
@@ -4301,6 +4503,11 @@ msgstr "团队成员可在登录页面输入工作邮箱，并选择“继续使
 #, elixir-autogen, elixir-format
 msgid "Team members must belong to this Google Workspace domain. Personal Google accounts do not qualify."
 msgstr "团队成员必须属于此 Google Workspace 域名。个人 Google 账户不符合要求。"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Teammate"
+msgstr ""
 
 #: lib/glossia/docs.ex
 #, elixir-autogen, elixir-format
@@ -4334,10 +4541,20 @@ msgstr "添加后条款将在此显示。"
 msgid "Test user not found. Run: mix run priv/repo/seeds.exs"
 msgstr "未找到测试用户。运行：mix run priv/repo/seeds.exs"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Text messages only. Attachments and voice input are not available on the web yet."
+msgstr ""
+
 #: lib/glossia_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
 msgid "Thanks for your interest! We’ll get back to you by email to help you get started."
 msgstr "感谢您的关注！我们将通过邮件回复您，协助您开始使用。"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "That guidance scope is not available for this goal. Your draft is saved."
+msgstr ""
 
 #: lib/glossia_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
@@ -4363,6 +4580,11 @@ msgstr "完整文档超出了决策模型的评估限制。"
 #, elixir-autogen, elixir-format
 msgid "The decision model could not evaluate this translation."
 msgstr "决策模型无法评估此翻译。"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "The discussion changed. Read the latest reply before approving. Your guidance draft is saved."
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -4456,11 +4678,6 @@ msgstr "集成用于启动授权的稳定标识符。"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
-msgid "The tracker did not report a page language. Older tracker versions and pages without an HTML lang attribute can cause this."
-msgstr "追踪器未报告页面语言。旧版追踪器版本和没有 HTML lang 属性的页面可能会导致此问题。"
-
-#: lib/glossia_web/live/dashboard_live.ex
-#, elixir-autogen, elixir-format
 msgid "The translation did not meet the decision model's quality requirements."
 msgstr "翻译未满足决策模型的质量要求。"
 
@@ -4493,6 +4710,11 @@ msgstr "此代码已过期。请重新进入应用。"
 #, elixir-autogen, elixir-format
 msgid "This code is not active."
 msgstr "此代码未激活。"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "This conversation is unavailable. It may have been removed or your access changed."
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -4548,6 +4770,16 @@ msgstr "此文件已翻译，但其输出或锁文件未能发布。"
 #, elixir-autogen, elixir-format
 msgid "This generative model is used for project setup and translations without an explicit model handle."
 msgstr "此生成模型用于项目设置和无需显式模型句柄的翻译。"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "This goal is closed or no longer current. Your draft has not been discarded."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "This goal is closed. Your unsaved guidance is kept below so you can copy it. It has not been applied to repository guidance."
+msgstr ""
 
 #: lib/glossia/emails.ex
 #, elixir-autogen, elixir-format
@@ -4634,6 +4866,11 @@ msgstr "本次会话暂无活动记录。"
 msgid "This translation can no longer be cancelled."
 msgstr "此翻译已无法取消。"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "This translation is no longer current. This discussion is read-only."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "This user is already a member."
@@ -4719,6 +4956,37 @@ msgstr "无过期时间的令牌存在安全风险。"
 msgid "Tokens you have generated that can be used to access Glossia programmatically."
 msgstr "您生成的可用于程序化访问 Glossia 的令牌。"
 
+#: lib/glossia_web/components/layouts/platform.html.heex
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Toki"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Toki could not finish the reply. Send another message to continue."
+msgstr ""
+
+#: lib/glossia_web/live/profile_live.ex
+#, elixir-autogen, elixir-format
+msgid "Toki invites matching fluent teammates to shared translation discussions. This does not change your dashboard language. Leave empty to opt out."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Toki is replying"
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Toki is replying. You can keep drafting while you wait."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Toki is replying. Your draft is saved; wait for the reply and try again."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Tone"
@@ -4738,6 +5006,11 @@ msgstr "尝试次数过多。请稍候片刻，稍后重试。"
 #, elixir-autogen, elixir-format
 msgid "Too many files"
 msgstr "文件过多"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Too many pending messages. Please try again later. Your draft is saved."
+msgstr ""
 
 #: lib/glossia_web/controllers/auth_controller.ex
 #, elixir-autogen, elixir-format
@@ -4816,6 +5089,7 @@ msgstr "正在翻译"
 
 #: lib/glossia/docs.ex
 #: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Translation"
 msgstr "翻译"
@@ -4840,6 +5114,11 @@ msgstr "翻译图表图例"
 msgid "Translation concurrency"
 msgstr "翻译并发数"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Translation continues after all open goals are resolved and the current run has paused."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Translation engine"
@@ -4849,6 +5128,16 @@ msgstr "翻译引擎"
 #, elixir-autogen, elixir-format
 msgid "Translation failed"
 msgstr "翻译失败"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Translation goal"
+msgstr "翻译"
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Translation goals"
+msgstr "翻译记录"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -4894,6 +5183,11 @@ msgstr "本项目的翻译会话。"
 #, elixir-autogen, elixir-format
 msgid "Translation sessions will show up here once content is translated."
 msgstr "内容翻译完成后，翻译会话将在此处显示。"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Translation write access is required to approve a decision."
+msgstr ""
 
 #: lib/glossia_web/components/layouts/platform.html.heex
 #: lib/glossia_web/live/dashboard_live.ex
@@ -5151,6 +5445,12 @@ msgstr "查看所有帖子"
 msgid "View as Markdown"
 msgstr "以 Markdown 查看"
 
+#: lib/glossia_web/live/dashboard_live.ex
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "View continued translation"
+msgstr ""
+
 #: lib/glossia_web/controllers/legal_html/show.html.heex
 #, elixir-autogen, elixir-format
 msgid "View current version"
@@ -5165,6 +5465,11 @@ msgstr "查看拉取请求"
 #, elixir-autogen, elixir-format
 msgid "View the translation this run continued"
 msgstr "查看本次运行的翻译"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format, fuzzy
+msgid "View translation"
+msgstr "添加翻译"
 
 #: lib/glossia_web/live/admin_live.ex
 #, elixir-autogen, elixir-format
@@ -5337,6 +5642,21 @@ msgstr "工作邮箱"
 msgid "Work email domain"
 msgstr "工作邮箱域名"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Work through a decision with Toki…"
+msgstr ""
+
+#: lib/glossia_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Work through these decisions with Toki and your fluent teammates to continue the translation."
+msgstr ""
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Work through translation decisions together, with Toki and your fluent teammates."
+msgstr ""
+
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Working on %{step}"
@@ -5455,6 +5775,11 @@ msgstr "您已被邀请在 Glossia 上加入 %{org}，担任 %{role}。"
 msgid "You have joined %{org}."
 msgstr "您已加入 %{org}。"
 
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "You have read-only access to this conversation."
+msgstr ""
+
 #: lib/glossia_web/controllers/claimable_organization_controller.ex
 #, elixir-autogen, elixir-format
 msgid "You now own this organization."
@@ -5469,6 +5794,11 @@ msgstr "您的 GitHub 应用安装请求已发送给组织管理员。"
 #, elixir-autogen, elixir-format
 msgid "Your display name"
 msgstr "显示名称"
+
+#: lib/glossia_web/live/toki_live.ex
+#, elixir-autogen, elixir-format
+msgid "Your guidance draft"
+msgstr ""
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format

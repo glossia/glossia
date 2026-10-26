@@ -156,8 +156,31 @@ defmodule Glossia.Translations.Planner do
       context_body: ctx.resolved.merged_body,
       locale_override_body: override.merged_body,
       glossary: ctx.resolved.merged_frontmatter.glossary,
-      glossary_translations: override.glossary
+      glossary_translations: override.glossary,
+      context_paths: context_paths(ctx.resolved.files, override.files, ctx.locale)
     }
+  end
+
+  defp context_paths(files, overlays, locale) do
+    project =
+      case List.last(files) do
+        nil -> "L10N.md"
+        file -> file.relative_path
+      end
+
+    localized =
+      case List.last(overlays) do
+        nil ->
+          case Path.dirname(project) do
+            "." -> Path.join("L10N", "#{locale}.md")
+            directory -> Path.join([directory, "L10N", "#{locale}.md"])
+          end
+
+        file ->
+          file.relative_path
+      end
+
+    %{"project" => project, "locale" => localized}
   end
 
   defp ensure_safe_format(path, nil) do

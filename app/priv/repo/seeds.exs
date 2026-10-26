@@ -29,6 +29,7 @@ defmodule Glossia.Seeds do
   alias Glossia.TranslationRouting
   alias Glossia.Github.Installations
   alias Glossia.Glossaries
+  alias Glossia.LinguisticReviews.Review
   alias Glossia.OAuth.FirstPartyClient
   alias Glossia.Organizations
   alias Glossia.Projects
@@ -64,6 +65,15 @@ defmodule Glossia.Seeds do
         email: "maria.rossi@glossia.test",
         name: "Maria Rossi"
       )
+
+    for {user, languages} <- [
+          {dev, ["en", "es"]},
+          {alex, ["en", "zh-Hant"]},
+          {maria, ["it", "es"]}
+        ],
+        user.fluent_languages == [] do
+      {:ok, _} = Glossia.Accounts.update_user_fluent_languages(user, languages)
+    end
 
     ensure_visibility!(dev.account, "public")
 
@@ -202,6 +212,29 @@ defmodule Glossia.Seeds do
 
     # Translation sessions for the "blog" project to exercise the activity timeline
     if blog_project, do: ensure_translation_sessions!(blog_project, dev)
+
+    # Private companion history, intentionally unanswered rather than pretending
+    # that seed data came from a model. No inference jobs run from the seeds.
+    if blog_project do
+      ensure_toki_conversation!(
+        blog_project,
+        dev,
+        "Which blog translations should I review first?"
+      )
+
+      ensure_toki_conversation!(blog_project, alex, "How can I prioritize the next blog locale?")
+
+      source = Repo.get_by(TranslationSession, project_id: blog_project.id, commit_sha: "a1b2c3d")
+
+      if source do
+        ensure_toki_conversation!(
+          blog_project,
+          dev,
+          "Explain the Spanish and French run from its session summary.",
+          source.id
+        )
+      end
+    end
 
     # A local git remote that stands in for the blog project's GitHub repo, so the
     # full clone → translate → PR flow can run end-to-end locally (dev only).
@@ -989,6 +1022,37 @@ defmodule Glossia.Seeds do
     end
   end
 
+  defp ensure_toki_conversation!(%Project{} = project, %User{} = user, content, origin_id \\ nil) do
+    title = String.slice(content, 0, 80)
+
+    conversation =
+      Repo.get_by(Glossia.Toki.Conversation,
+        user_id: user.id,
+        project_id: project.id,
+        title: title
+      ) ||
+        Repo.insert!(%Glossia.Toki.Conversation{
+          user_id: user.id,
+          project_id: project.id,
+          translation_session_id: origin_id,
+          title: title,
+          status: "failed",
+          error: "provider_unavailable"
+        })
+
+    unless Repo.exists?(
+             from m in Glossia.Toki.Message, where: m.conversation_id == ^conversation.id
+           ) do
+      Repo.insert!(%Glossia.Toki.Message{
+        conversation_id: conversation.id,
+        user_id: user.id,
+        role: "user",
+        content: content,
+        status: "failed"
+      })
+    end
+  end
+
   defp ensure_analytics_settings!(%Project{} = project, opts) do
     domain = Keyword.fetch!(opts, :domain)
 
@@ -1037,6 +1101,7 @@ defmodule Glossia.Seeds do
   #   * repeat visitors (so the uniqExact aggregate is not 1:1 with events)
   #   * a handful of custom events (so `name != "pageview"` is exercised)
   #   * a referrer (so the referrer breakdown shows something)
+  #   * explicit language choices kept separate from browser preferences
   defp seed_analytics_events!(%Project{} = project) do
     project_id_str = to_string(project.id)
     target_languages = project.setup_target_languages || []
@@ -1146,7 +1211,16 @@ defmodule Glossia.Seeds do
         timezone = Enum.random(timezones)
         {ref, ref_source} = Enum.random(referrers)
         path = Enum.random(paths)
-        name = if :rand.uniform(20) == 1, do: "signup", else: "pageview"
+        # Some visitors explicitly chose English despite a different browser
+        # preference. Most visits have no observed choice, not an inferred one.
+        selected_locale = if browser_lang in ["nl", "sv"], do: served_locale, else: ""
+
+        name =
+          cond do
+            selected_locale != "" and :rand.uniform(5) == 1 -> "language_selection"
+            :rand.uniform(20) == 1 -> "signup"
+            true -> "pageview"
+          end
 
         # Scatter timestamps across the last 14 days.
         seconds_ago =
@@ -1179,6 +1253,7 @@ defmodule Glossia.Seeds do
           country_code: country,
           browser_language: browser_lang,
           served_locale: served_locale,
+          selected_locale: selected_locale,
           has_locale_gap: has_gap,
           device: device,
           browser: browser,
@@ -1410,6 +1485,7 @@ defmodule Glossia.Seeds do
     backfill_seeded_translation_progress!(project)
     ensure_translation_dashboard_history!(project, user)
     ensure_translation_pagination_history!(project, user)
+    ensure_linguistic_reviews!(project, user)
 
     # Demo execution provenance is separate from the content SHA. Keep existing
     # local seeds current without overwriting any real recorded engine version.
@@ -1419,6 +1495,126 @@ defmodule Glossia.Seeds do
       where: s.project_id == ^project.id and not is_nil(s.started_at) and is_nil(s.engine_image)
     )
     |> Repo.update_all(set: [engine_image: demo_image])
+  end
+
+  defp ensure_linguistic_reviews!(project, user) do
+    for {sha, status, answer, guidance} <- [
+          {"seed-review-open", "open", nil, nil},
+          {"seed-review-answered", "answered", "A source-control branch for a release.",
+           "Branch means a source-control branch, never a tree limb."}
+        ] do
+      session =
+        Repo.one(
+          from s in TranslationSession,
+            where:
+              s.project_id == ^project.id and s.commit_sha == ^sha and
+                is_nil(s.continued_from_session_id)
+        ) ||
+          elem(
+            TranslationSessions.create_session(user.account, project, %{
+              status: "awaiting_input",
+              commit_sha: sha,
+              commit_message: "Clarify release-branch terminology",
+              source_language: "en",
+              target_languages: ["es"],
+              started_at: DateTime.add(DateTime.utc_now(), -900)
+            }),
+            1
+          )
+
+      continuation =
+        if status == "answered" do
+          Repo.get_by(TranslationSession, continued_from_session_id: session.id) ||
+            elem(
+              TranslationSessions.create_session(user.account, project, %{
+                continued_from_session_id: session.id,
+                status: "completed",
+                outcome: "translated",
+                commit_sha: sha,
+                commit_message: "Translate using the linguist's release-branch decision",
+                source_language: "en",
+                target_languages: ["es"],
+                translated_content_count: 1,
+                summary:
+                  "Translated the release guide and proposed Spanish terminology guidance.",
+                completed_at: DateTime.utc_now()
+              }),
+              1
+            )
+        end
+
+      review =
+        Repo.get_by(Review, translation_session_id: session.id) ||
+          Repo.insert!(%Review{
+            translation_session_id: session.id,
+            source_path: "docs/releases.txt",
+            output_path: "es/releases.txt",
+            locale: "es",
+            fingerprint: Base.encode16(:crypto.hash(:sha256, sha), case: :lower),
+            reason: "missing_context",
+            question: "Does branch mean a source-control branch or a tree limb?",
+            source_excerpt: "Create a branch before launching the release.",
+            translation_excerpt: "Crea una rama antes de publicar la versión.",
+            status: status,
+            answer: answer,
+            guidance: guidance,
+            answered_by_id: if(answer, do: user.id),
+            resumed_session_id: continuation && continuation.id,
+            context_path: if(guidance, do: "L10N/es.md"),
+            context_targets: %{"locale" => %{"path" => "L10N/es.md", "digest" => nil}}
+          })
+
+      ensure_goal_conversation!(review, project, user)
+
+      seed_progress_events!(session, [
+        %{type: "plan", seq: 1, total: 1},
+        %{type: "plan_assessed", seq: 2, total: 1, needs_translation: 1, up_to_date: 0},
+        %{
+          type: "item_awaiting_input",
+          seq: 3,
+          index: 0,
+          output_path: "es/releases.txt",
+          locale: "es"
+        }
+      ])
+    end
+  end
+
+  defp ensure_goal_conversation!(review, project, user) do
+    conversation = Glossia.Toki.ensure_review_conversation(review, project.id)
+    now = DateTime.utc_now()
+
+    Repo.insert_all(
+      Glossia.LinguisticReviews.Participant,
+      [%{linguistic_review_id: review.id, user_id: user.id, inserted_at: now, updated_at: now}],
+      on_conflict: :nothing
+    )
+
+    # Explicit demo dialogue, not a model call or an inferred production decision.
+    human =
+      Repo.get_by(Glossia.Toki.Message, conversation_id: conversation.id, role: "user") ||
+        Repo.insert!(%Glossia.Toki.Message{
+          conversation_id: conversation.id,
+          user_id: user.id,
+          role: "user",
+          status: "completed",
+          content: "This release guide is about source control, not trees."
+        })
+
+    proposal =
+      Repo.get_by(Glossia.Toki.Message, reply_to_id: human.id) ||
+        Repo.insert!(%Glossia.Toki.Message{
+          conversation_id: conversation.id,
+          reply_to_id: human.id,
+          role: "assistant",
+          status: "completed",
+          content:
+            "Proposed decision: branch means a source-control release branch. Resolve the goal to approve it; optionally save the terminology as Spanish repository guidance."
+        })
+
+    if review.status == "answered" and is_nil(review.resolution_message_id) do
+      review |> Ecto.Changeset.change(resolution_message_id: proposal.id) |> Repo.update!()
+    end
   end
 
   defp seed_translation_sessions!(%Project{} = project, %User{} = user) do

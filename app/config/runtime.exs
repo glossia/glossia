@@ -84,6 +84,8 @@ config :glossia, :managed_runner,
 # extras in Finch's checkout queue until they time out.
 config :glossia, :http_pool_size, integer_env.("GLOSSIA_HTTP_POOL_SIZE", 50)
 
+config :glossia, Glossia.Push, Glossia.Push.Config.parse!(System.get_env())
+
 # Cloudflare Turnstile enforcement for the sign-up surface. Single
 # per-environment toggle; site + secret keys are projected from the
 # operator-materialized Secret in the workload cluster.
@@ -117,6 +119,12 @@ config :glossia, Glossia.Translations,
       "false",
       "0"
     ]
+
+# Toki never borrows a local session implicitly. Only an explicit development
+# server opt-in selects the tool-less host adapter; production ignores the env.
+config :glossia,
+       Glossia.Toki.HostHarness,
+       Glossia.Toki.HostHarness.config(config_env(), System.get_env())
 
 smolanalytics_url = System.get_env("GLOSSIA_SMOLANALYTICS_URL")
 smolanalytics_write_key = System.get_env("GLOSSIA_SMOLANALYTICS_WRITE_KEY")

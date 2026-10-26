@@ -15,6 +15,12 @@ defmodule GlossiaWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
 
+  socket "/native/socket", GlossiaWeb.NativeSocket,
+    auth_token: true,
+    websocket: [max_frame_size: 1_048_576],
+    longpoll: false,
+    log: false
+
   if Code.ensure_loaded?(Tidewave) do
     plug Tidewave
   end
@@ -63,7 +69,7 @@ defmodule GlossiaWeb.Endpoint do
     json_decoder: Phoenix.json_library(),
     body_reader: {GlossiaWeb.BodyReader, :read_body, []}
 
-  plug Sentry.PlugContext
+  plug Sentry.PlugContext, body_scrubber: {__MODULE__, :scrub_request_body}
 
   plug Plug.MethodOverride
   plug Plug.Head
@@ -71,4 +77,11 @@ defmodule GlossiaWeb.Endpoint do
   plug GlossiaWeb.Plugs.NoIndex, only_if_unset: true
   plug GlossiaWeb.Plugs.SiteMarkdown
   plug GlossiaWeb.Router
+
+  @doc false
+  def scrub_request_body(conn) do
+    conn
+    |> Sentry.PlugContext.default_body_scrubber()
+    |> Phoenix.Logger.filter_values()
+  end
 end

@@ -132,35 +132,152 @@ sdk = "iphoneos"
 name = "GlossiaIOS"
 kind = "apple_application"
 srcs = ["ios/Sources/**/*.swift"]
-deps = ["./GlossiaCoreIOS", "./GlossiaCoreFFI", "./GlossiaSimulatorSDK"]
+deps = ["./GlossiaCoreIOS", "./GlossiaCoreFFI", "./GlossiaSimulatorSDK", "./GlossiaTokiActivity"]
 [target.attrs]
 platform = "ios"
-sdk_frameworks = ["AuthenticationServices", "Security"]
+sdk_frameworks = ["AuthenticationServices", "Security", "ActivityKit", "Speech", "AVFoundation"]
 bundle_id = "ai.glossia.mobile"
 product_name = "Glossia"
 asset_catalogs = ["ios/Resources/Assets.xcassets"]
 app_icon = "AppIcon"
-resources = ["android/res/raw/third_party_notices.txt"]
+resources = ["android/res/raw/third_party_notices.txt", "ios/Resources/*.lproj/*.strings"]
 minimum_os = "17.0"
 sdk_variant = "simulator"
 families = ["iphone", "ipad"]
 info_plist = "ios/Info.plist"
 entitlements = "ios/Simulator.entitlements"
+postbuild_actions = ['{"name":"Embed Toki Live Activity","cacheable":true,"inputs":[".once/out/GlossiaTokiActivity/TokiLiveActivity.appex"],"outputs":[".once/out/GlossiaIOS/Glossia.app/PlugIns/TokiLiveActivity.appex"],"argv":["/usr/bin/ditto",".once/out/GlossiaTokiActivity/TokiLiveActivity.appex",".once/out/GlossiaIOS/Glossia.app/PlugIns/TokiLiveActivity.appex"]}']
 
 [[target]]
 name = "GlossiaIOSDevice"
 kind = "apple_application"
 srcs = ["ios/Sources/**/*.swift"]
-deps = ["./GlossiaCoreDevice", "./GlossiaCoreFFI", "./GlossiaDeviceSDK"]
+deps = ["./GlossiaCoreDevice", "./GlossiaCoreFFI", "./GlossiaDeviceSDK", "./GlossiaTokiActivityDevice"]
 [target.attrs]
 platform = "ios"
-sdk_frameworks = ["AuthenticationServices", "Security"]
+sdk_frameworks = ["AuthenticationServices", "Security", "ActivityKit", "Speech", "AVFoundation"]
 bundle_id = "ai.glossia.mobile"
 product_name = "Glossia"
 asset_catalogs = ["ios/Resources/Assets.xcassets"]
 app_icon = "AppIcon"
-resources = ["android/res/raw/third_party_notices.txt"]
+resources = ["android/res/raw/third_party_notices.txt", "ios/Resources/*.lproj/*.strings"]
 minimum_os = "17.0"
 sdk_variant = "device"
 families = ["iphone", "ipad"]
 info_plist = "ios/Info.plist"
+postbuild_actions = ['{"name":"Embed Toki Live Activity","cacheable":true,"inputs":[".once/out/GlossiaTokiActivityDevice/TokiLiveActivity.appex"],"outputs":[".once/out/GlossiaIOSDevice/Glossia.app/PlugIns/TokiLiveActivity.appex"],"argv":["/usr/bin/ditto",".once/out/GlossiaTokiActivityDevice/TokiLiveActivity.appex",".once/out/GlossiaIOSDevice/Glossia.app/PlugIns/TokiLiveActivity.appex"]}']
+
+[[target]]
+name = "GlossiaIOSPreview"
+kind = "apple_application"
+srcs = ["ios/Previews/**/*.swift", "ios/Sources/GlossiaLoginView.swift", "ios/Sources/GlossiaSession.swift", "ios/Sources/GlossiaLanguage.swift", "ios/Sources/GlossiaPushNotifications.swift", "ios/Sources/GlossiaNavigation.swift", "ios/Sources/GlossiaBrand.swift", "ios/Sources/GlossiaAppearance.swift", "ios/Sources/GlossiaWorkspaceView.swift", "ios/Sources/WorkspacePicker.swift", "ios/Sources/TokiView.swift", "ios/Sources/TokiGoalView.swift", "ios/Sources/TokiComposer.swift", "ios/Sources/TokiVoiceInput.swift", "ios/Sources/FluentLanguages.swift", "ios/Sources/TokiSprite.swift", "ios/Sources/TokiActivityAttributes.swift", "ios/Sources/TokiLiveActivities.swift", "ios/Sources/TokiWorkController.swift", "ios/Sources/TokiWorkStatusView.swift", "ios/Sources/TranslationsView.swift", "ios/Sources/AnalyticsView.swift", "ios/Sources/ProfileView.swift"]
+deps = ["./GlossiaCoreIOS", "./GlossiaCoreFFI", "./GlossiaSimulatorSDK", "./GlossiaTokiActivityPreview"]
+[target.attrs]
+platform = "ios"
+sdk_frameworks = ["AuthenticationServices", "Security", "ActivityKit", "Speech", "AVFoundation"]
+bundle_id = "ai.glossia.mobile.preview"
+product_name = "GlossiaPreview"
+asset_catalogs = ["ios/Resources/Assets.xcassets"]
+resources = ["ios/Resources/*.lproj/*.strings"]
+minimum_os = "17.0"
+sdk_variant = "simulator"
+families = ["iphone", "ipad"]
+info_plist = "ios/Previews/Info.plist"
+postbuild_actions = ['{"name":"Embed Toki Live Activity","cacheable":true,"inputs":[".once/out/GlossiaTokiActivityPreview/TokiLiveActivity.appex"],"outputs":[".once/out/GlossiaIOSPreview/GlossiaPreview.app/PlugIns/TokiLiveActivity.appex"],"argv":["/usr/bin/ditto",".once/out/GlossiaTokiActivityPreview/TokiLiveActivity.appex",".once/out/GlossiaIOSPreview/GlossiaPreview.app/PlugIns/TokiLiveActivity.appex"]}']
+
+[[target]]
+name = "GlossiaIOSTests"
+kind = "apple_test_bundle"
+srcs = ["ios/Tests/**/*.swift", "ios/Sources/GlossiaSession.swift", "ios/Sources/GlossiaLanguage.swift", "ios/Sources/GlossiaPushNotifications.swift", "ios/Sources/GlossiaNavigation.swift", "ios/Sources/GlossiaBrand.swift", "ios/Sources/GlossiaAppearance.swift", "ios/Sources/TokiView.swift", "ios/Sources/TokiGoalView.swift", "ios/Sources/TokiComposer.swift", "ios/Sources/TokiVoiceInput.swift", "ios/Sources/FluentLanguages.swift", "ios/Sources/TokiSprite.swift", "ios/Sources/TokiActivityAttributes.swift", "ios/Sources/TokiLiveActivities.swift", "ios/Sources/TokiWorkController.swift", "ios/Sources/TokiWorkStatusView.swift", "ios/Sources/TranslationsView.swift", "ios/Sources/AnalyticsView.swift"]
+deps = ["./GlossiaCoreIOS", "./GlossiaCoreFFI", "./GlossiaSimulatorSDK"]
+[target.attrs]
+platform = "ios"
+minimum_os = "17.0"
+sdk_variant = "simulator"
+bundle_id = "ai.glossia.mobile.tests"
+sdk_frameworks = ["AuthenticationServices", "Security", "ActivityKit", "Speech", "AVFoundation"]
+# Once 0.68.2 hashes test resource inputs literally, without expanding globs.
+# Application targets above still package every translated .lproj catalog.
+resources = ["ios/Resources/en.lproj/Localizable.strings"]
+swift_testing = true
+
+[[target]]
+name = "GlossiaIOSUITests"
+kind = "apple_test_bundle"
+srcs = ["ios/UITests/**/*.swift"]
+deps = ["./GlossiaIOSPreview"]
+[target.attrs]
+platform = "ios"
+minimum_os = "17.0"
+sdk_variant = "simulator"
+bundle_id = "ai.glossia.mobile.uitests"
+ui_testing = true
+
+[[target]]
+name = "GlossiaTokiActivityExecutable"
+kind = "apple_application"
+srcs = ["ios/LiveActivity/*.swift", "ios/Sources/TokiActivityAttributes.swift"]
+deps = ["./GlossiaSimulatorSDK"]
+[target.attrs]
+platform = "ios"
+bundle_id = "ai.glossia.mobile.toki-activity"
+product_name = "TokiLiveActivity"
+application_extension = true
+minimum_os = "17.0"
+sdk_variant = "simulator"
+families = ["iphone", "ipad"]
+sdk_frameworks = ["WidgetKit", "SwiftUI", "ActivityKit"]
+resources = ["ios/Resources/Assets.xcassets/TokiFocused.imageset/TokiFocused.png", "ios/Resources/*.lproj/*.strings"]
+info_plist = "ios/LiveActivity/Info.plist"
+info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.mobile.toki-activity" }
+
+[[target]]
+name = "GlossiaTokiActivity"
+kind = "glossia_widget_extension"
+deps = ["./GlossiaTokiActivityExecutable"]
+
+[[target]]
+name = "GlossiaTokiActivityDeviceExecutable"
+kind = "apple_application"
+srcs = ["ios/LiveActivity/*.swift", "ios/Sources/TokiActivityAttributes.swift"]
+deps = ["./GlossiaDeviceSDK"]
+[target.attrs]
+platform = "ios"
+bundle_id = "ai.glossia.mobile.toki-activity"
+product_name = "TokiLiveActivity"
+application_extension = true
+minimum_os = "17.0"
+sdk_variant = "device"
+families = ["iphone", "ipad"]
+sdk_frameworks = ["WidgetKit", "SwiftUI", "ActivityKit"]
+resources = ["ios/Resources/Assets.xcassets/TokiFocused.imageset/TokiFocused.png", "ios/Resources/*.lproj/*.strings"]
+info_plist = "ios/LiveActivity/Info.plist"
+info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.mobile.toki-activity" }
+
+[[target]]
+name = "GlossiaTokiActivityDevice"
+kind = "glossia_widget_extension"
+deps = ["./GlossiaTokiActivityDeviceExecutable"]
+
+[[target]]
+name = "GlossiaTokiActivityPreviewExecutable"
+kind = "apple_application"
+srcs = ["ios/LiveActivity/*.swift", "ios/Sources/TokiActivityAttributes.swift"]
+deps = ["./GlossiaSimulatorSDK"]
+[target.attrs]
+platform = "ios"
+bundle_id = "ai.glossia.mobile.preview.toki-activity"
+product_name = "TokiLiveActivity"
+application_extension = true
+minimum_os = "17.0"
+sdk_variant = "simulator"
+families = ["iphone", "ipad"]
+sdk_frameworks = ["WidgetKit", "SwiftUI", "ActivityKit"]
+resources = ["ios/Resources/Assets.xcassets/TokiFocused.imageset/TokiFocused.png", "ios/Resources/*.lproj/*.strings"]
+info_plist = "ios/LiveActivity/Info.plist"
+info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.mobile.preview.toki-activity" }
+
+[[target]]
+name = "GlossiaTokiActivityPreview"
+kind = "glossia_widget_extension"
+deps = ["./GlossiaTokiActivityPreviewExecutable"]
