@@ -1,6 +1,6 @@
 {
   "baseline_schema_version": 1,
-  "hash": "6751c805a15d852566aebf0b01aff8215f82fff3cc1ed388ee6519db7fbc8811",
+  "hash": "1a1b040a9bf8e5959f60e533c0c22d40b1fecdbbbb44b42e4da75f82bfb1d685",
   "hash_tree": {
     "root": {
       "children": [
@@ -15,7 +15,7 @@
         },
         {
           "children": [],
-          "hash": "7728e957f901c693a4181111fadcd543da569049f9c9f59ed07693bd044025f6",
+          "hash": "c026d8712383029009d95e5a9b53588fc4d1d713b60dc020ea0f9880685052d1",
           "kind": "translation_config",
           "label": "generation",
           "metadata": {
@@ -31,7 +31,7 @@
             "retries": 3,
             "segmentation_version": 1,
             "source_language": "en",
-            "validation_hash": "ae3606ed9b1629c1a55145739b0db6174aa75ed71272a6af6089832cad7abbfc"
+            "validation_hash": "064760dc472b525acbc80c5ce08973a94fc7a5b06ba42cfab835324c7c048924"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "6751c805a15d852566aebf0b01aff8215f82fff3cc1ed388ee6519db7fbc8811",
+      "hash": "1a1b040a9bf8e5959f60e533c0c22d40b1fecdbbbb44b42e4da75f82bfb1d685",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/glossary.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "1eb4cf9157e57ed530df9657d1ec64c701e952d4c9b7dbab8dec0d02d7d66f6c",
+  "output_hash": "40624ca59b138fc989b08746e105312b3c71b5eacb8ef6552a4e74144fd1b9e2",
   "output_path": "app/priv/i18n/pt-BR/docs/explanation/glossary.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "57f484cf34215985850f4b24b427584a3c434b64",
+  "source_commit_sha": "1ac90e1d94bb5f37055065e97cb38e16d10d9525",
   "source_path": "app/priv/docs/explanation/glossary.md",
-  "translated_at": "2026-10-26T11:06:58.991422Z",
-  "translation_session_id": "01a177c8-691e-7edb-9e0a-7e6eeb58673d"
+  "translated_at": "2026-10-26T16:46:02.080448Z",
+  "translation_session_id": "01a17912-943b-74aa-ab23-d2762549ca15"
 }

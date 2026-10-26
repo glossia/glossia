@@ -1,7 +1,7 @@
 %{
   title: "Glossia gegen Crowdin",
   summary:
-    "Wählen Sie Glossia, um die Lokalisierung in Git zu behalten, Ihre eigenen Modelltokens zu verwenden und mit den Prüfungen Ihres Repositories zu validieren.",
+    "Wählen Sie Glossia, um die Lokalisierung in Git zu beibehalten, eigene Modell-Tokens zu nutzen und mit den Prüfungen Ihres Repositories zu validieren.",
   category: "Erklärung",
   markdown_only: true,
   section: "translation",
@@ -9,39 +9,39 @@
 }
 ---
 
-**Wählen Sie Glossia, wenn die Lokalisierung so schnell wie Ihre Softwarebereitstellung vorankommen muss.** Ihr Repository definiert bereits, wie Änderungen überprüft, validiert und ausgeliefert werden. Glossia bringt sprachliche Arbeit in diesen Prozesskreis ein, anstatt einen separaten Übersetzungsarbeitsbereich zum Mittelpunkt Ihres Prozesses zu machen.
+**Wählen Sie Glossia, wenn Lokalisierung mit der Geschwindigkeit Ihrer Softwareauslieferung gehen muss.** Ihr Repository definiert bereits, wie Änderungen überprüft, validiert und bereitgestellt werden. Glossia bringt Spracharbeit in diesen Prozesskreis ein, statt einen separaten Übersetzungsworkspace zum Schwerpunkt Ihres Prozesses zu machen.
 
-[Crowdin](https://crowdin.com/) bietet kollaboratives Übersetzungsmanagement, Review-Workflows, Übersetzungsspeicher und Repository-Integrationen. Der Vorteil von Glossia für ein Software-Team ist die Kombination aus Repository-inhalt, überprüfbarer Quelle, Ihren eigenen Modell-Credentials und einer Validierung, die das tatsächliche Projekt versteht.
+[Crowdin](https://crowdin.com/) bietet kollaboratives Übersetzungsmanagement, Review-Workflows, Translation Memories und Repository-Integrationen. Der Vorteil von Glossia für ein Softwareteam ist die Kombination aus Repository-eigenem Inhalt, überprüfbarem Quellcode, Ihren eigenen Modell-Anmeldeinformationen und Validierung, die das tatsächliche Projekt versteht.
 
 ## Warum Glossia wählen
 
 | Ihre Priorität | Vorteil von Glossia |
 |---|---|
-| Kontinuierlich ausliefern | Übersetzungsabläufe folgen Quellenänderungen und liefern überprüfbare Repository-Updates zurück. Inhalt benötigt keinen eigenen unabhängigen Veröffentlichungsprozess. |
-| Kontrolle über die Implementierung behalten | Die öffentliche Anwendung, die CLI und der Bereitstellungscode können unter den Lizenzbedinungen geprüft, angepasst und selbst gehostet werden. |
-| Bringen Sie Ihre eigenen Token mit | Konfigurieren Sie unterstützte Modelle mit Ihren eigenen Provider-API-Token. Repository-Dateien verweisen auf stabile Modell-Handles, nicht auf Geheimnisse. |
-| Verwenden Sie die Prüfungen, denen Sie vertrauen | Führen Sie einen Repository-Validierungsbefehl gegen den Kandidaten an dessen echtem Zielpfad aus, bevor Sie diesen akzeptieren. |
-| Behalten Sie den Inhalt in Ihrem Besitz | Quelldateien, übersetzte Ausgaben, Konfiguration und Pull-Request-Historie verbleiben in Ihrem Repository. |
+| Kontinuierlich liefern | Übersetzungsläufe folgen Quellcode-Änderungen und liefern überprüfbare Repository-Updates zurück. Inhalte benötigen keinen eigenen, unabhängigen Vertriebsprozess. |
+| Kontrolle über die Implementierung behalten | Öffentliche Anwendung, CLI und Bereitstellungscode können unter den Lizenzbedingungen inspiziert, geändert und selbst gehostet werden. |
+| Bringen Sie Ihre eigenen Tokens | Konfigurieren Sie unterstützte Modelle mit Ihren eigenen Provider-API-Tokens. Repository-Dateien verweisen auf stabile Modell-Handles, nicht auf Geheimnisse. |
+| Wiederverwenden der Prüfungen, denen Sie vertrauen | Führen Sie einen Repository-Validierungsbefehl gegen den Kandidaten an seinem tatsächlichen Zielpfad aus, bevor Sie ihn akzeptieren. |
+| Behalten Sie den Inhalt als Ihren | Quelldateien, übersetzte Ausgaben, Konfigurationen und Pull-Request-Geschichte bleiben in Ihrem Repository. |
 
-## Lokalisierung, die mit Commits mithalten kann
+## Lokalisierung, die mit Commits Schritt hält
 
-Glossia funktioniert von versionierten `L10N.md` Anweisungen ausgehend und erkennt, welche Inhalte aktualisiert werden müssen. Unveränderte Eingaben müssen nicht erneut übersetzt werden. Ein Projekt verwaltet einen offenen Übersetzungs-Pull-Request und veröffentlicht Fortschritte in Batches, wodurch unnötige Pull-Requests und wiederholte CI-Läufe vermieden werden, je nach Entwicklung der Quelle.
+Glossia arbeitet von versionierten `L10N.md` Anweisungen aus und erkennt, welche Inhalte aktualisiert werden müssen. Unveränderte Eingaben müssen nicht erneut übersetzt werden. Ein Projekt hält einen offenen Übersetzungs-Pull-Request und veröffentlicht Fortschritte in Chargen, was unnötige Pull-Requests und wiederholte CI-Läufe reduziert, während sich der Quellcode entwickelt.
 
-Das Ergebnis ist ein Sprach-Workflow, der um dieselben kleinen, überprüfbaren Änderungen herum konzipiert ist, die Ihr Team bereits ausliefert. Kontinuierlich bedeutet nicht unüberprüft: Reviewer entscheiden weiterhin, was sicher isIn den Merge gezählt werden kann.
+Das Ergebnis ist ein Sprach-Workflow, der um die gleichen kleinen, überprüfbaren Änderungen herum gestaltet ist, die Ihr Team bereits einsendet. Kontinuierlich bedeutet nicht unüberprüft: Reviewer entscheiden weiterhin, was sicher zu mergen ist.
 
-Crowdin unterstützt ebenfalls Git-Integrationen und Automatisierung. Der Grund, Glossia zu wählen, ist nicht, dass Crowdin sich nicht mit einem Repository verbinden kann; es ist, dass Repository-Bereitstellung die Grundlage des Glossia-Workflows ist und nicht nur eine Integrationsgrenze.
+Crowdin unterstützt ebenfalls Git-Integrationen und Automatisierung. Der Grund, Glossia zu wählen, ist nicht, dass Crowdin nicht mit einem Repository verbinden kann; es ist, dass Repository-Auslieferung das Fundament des Glossia-Workflows ist, nicht nur eine Integrationsgrenze.
 
-## Ihre Token, Ihre Modellwahl
+## Ihre Tokens, Ihre Modellentscheidungen
 
-Sie müssen die Repository-Konfiguration nicht neu erstellen, um einen Provider-Token zu wechseln oder das Modell hinter einem Übersetzungs-Workflow zu ändern. Glossia speichert Credentials in Account-Einstellungen und stellt stabile Handles dem Repository zur Verfügung. Unterschiedliche Inhaltsbereiche oder Ziel-L10Ns können verschiedene konfigurierte Modelle auswählen.
+Sie sollten nicht darauf angewiesen sein, die Repository-Konfiguration neu aufzubauen, um ein Provider-Token zu rotieren oder das Modell hinter einem Übersetzungs-Workflow zu ändern. Glossia speichert Anmeldeinformationen in Kontoeinstellungen und gibt stabile Handles an das Repository aus. Unterschiedliche Inhaltsbereiche oder Ziel-Lokale können verschiedene konfigurierte Modelle auswählen.
 
-Dadurch erhält Ihr Team Kontrolle über die unterstützten Provider-Beziehungen und Modellwahl-Optionen, die es verwendet. Siehe [Ein Modellprovider konfigurieren](/docs/how-to/configure-a-model-provider).
+Dies gibt Ihrem Team Kontrolle über die unterstützten Provider-Beziehungen und die von ihm verwendeten Modellentscheidungen. Siehe [Ein Modell-Provider konfigurieren](/docs/how-to/configure-a-model-provider).
 
-## Validierung der Ausgabe als Bestandteil Ihres Produkts
+## Output als Teil Ihres Produkts validieren
 
-Eine Übersetzung kann gut lesbar sein und dennoch einen Dokumentationsbuild, eine Komponente, einen Platzhalter oder einen Anwendungsparser beschädigen. Glossia ermöglicht Ihnen, eine Repository-Prüfung zu wiederverwenden, statt sich bei der Bewertung des Editors beim Text aufzuhalten.
+Eine Übersetzung kann gut lesbar sein und dennoch einen Dokumentenaufbau, Komponente, Platzhalter oder Anwendungsparser brechen. Glossia ermöglicht es Ihnen, eine Repository-Prüfung zu wiederverwenden, statt bei der Bewertung eines Editors am Text aufzuhören.
 
-Falls Ihr Repository bereits ein Dokumentationsvalidierungsskript bereitstellt, verweisen Sie direkt darauf:
+Wenn Ihr Repository bereits ein Dokumentenvalidierungsskript bereitstellt, beziehen Sie sich direkt darauf:
 
 ```yaml
 validation:
@@ -49,14 +49,14 @@ validation:
   - --strict
 ```
 
-Der Validator empfängt den Kandidaten am tatsächlichen Zielpfad, gibt bei einem Fehler einen nicht-null-Status zurück und läuft innerhalb des konfigurierten Retry-Budgets. Seine Abhängigkeiten müssen in der Validierungsumgebung verfügbar sein. Sie [L10N.md](/docs/reference/l10n-md) für den Vertrag.
+Der Validierer empfängt den Kandidaten an seinem tatsächlichen Zielpfad, gibt bei Fehlern einen nicht-null-Status zurück und läuft innerhalb des konfigurierten Wiederholbudgets. Seine Abhängigkeiten müssen in der Validierungsumgebung verfügbar sein. Siehe [L10N.md](/docs/reference/l10n-md) für den Vertrag.
 
-## Öffentlicher Quellcode, ohne das Repository aufzugeben
+## Öffentlicher Quellcode, ohne das Repository zu preiszugeben
 
-Sie können überprüfen, wie Glossia-Pläne funktionieren, Credentials verarbeiten, Markdown bewahren und Ergebnisse validieren. Bestehende übersetzte Dateien können auch dann weiterhin über Ihre Repository-Pipeline veröffentlicht werden, wenn der Sprachdienst nicht verfügbar ist.
+Sie können prüfen, wie Glossia-Pläne funktionieren, wie Anmeldeinformationen gehandhabt werden, wie Markdown erhalten bleibt und Ergebnisse validiert werden. Existierende übersetzte Dateien bleiben über die Pipeline Ihres Repository öffentlich machbar, selbst wenn der Sprachdienst nicht verfügbar ist.
 
-Glossia folgt einem Open-Core-Modell. Der Kern steht unter [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), die kommerzielle Nutzung, Änderungen, Weitergabe, Self-Hosting und konkurrierende gehostete Dienste gemäß ihren Bedingungen erlaubt. Der Code unter `ee/` ist einsehbar, aber nicht Open Source. Er unterliegt einer separaten [Enterprise-Lizenz](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md); der Produktionseinsatz erfordert eine schriftliche kommerzielle Vereinbarung.
+Glossia ist Open Core: [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE) deckt das Kernpaket ab und erlaubt Self-Hosting sowie konkurrierende gehostete Dienste. Quellverfügbares Enterprise-Code unter `ee/` hat einen separaten [Lizenzvertrag](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md), der für den produktiven Einsatz einen schriftlichen kommerziellen Vertrag erfordert.
 
-Crowdin kann auch weiterhin geeignet sein für ein Programm, das sich auf Mitwirkenden-Koordination und einen dedizierten Übersetzungsredakteur konzentriert. Für ein Software-Team, dessen Priorität **Inhalt im Git-Eigentum, bestehende Validierung und Lokalisierung sind, die der Lieferung folgen**, ist Glossia für diese Aufgabe konzipiert.
+Crowdin kann weiterhin angebracht sein für ein Programm, das auf Koordinierung von Mitwirkenden und einem dedizierten Übersetzer basiert. Für ein Software-Team, dessen Priorität **Git-eigener Inhalt, bestehende Validierung und Lokalisierung, die der Lieferung folgt**, ist Glossia für diese Aufgabe gemacht.
 
-Dieser Vergleich behauptet nicht, dass Crowdin Automation oder jede Form von Provider-Integration fehlt, oder dass Glossia seine Speicher und Historie automatisch migriert. Konsultieren Sie [Crowdin-Dokumentation](https://support.crowdin.com/) für aktuelle Fähigkeiten.
+Dieser Vergleich beansprucht nicht, dass Crowdin an Automatisierung oder jeder Form von Provider-Integration mangelt, oder dass Glossia seine Erinnerungen und Geschichte automatisch migriert. Sehen Sie [Dokumentation von Crowdin](https://support.crowdin.com/) für aktuelle Funktionen.

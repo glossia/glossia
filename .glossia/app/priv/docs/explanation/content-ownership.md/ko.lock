@@ -1,21 +1,21 @@
 {
   "baseline_schema_version": 1,
-  "hash": "c0cbfac457dff5a842d501d7d7bc4b12f3d480e7514ff7eba7ad5902840bfc69",
+  "hash": "051ccd5b08f5eb444524186b7d7609dd13a4a9ff2c3aa22483d2c7a71b652597",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "8d13d3dc510fbb5fe3434069734273d5b01e5881a90fa3425b7edd8ef7572802",
+          "hash": "2947ee8922a189a41419ecc232d352b9bdbcca9d6327642fcabd8b2023e5d980",
           "kind": "source",
           "label": "app/priv/docs/explanation/content-ownership.md",
           "metadata": {
-            "content_hash": "4049b9b66c2f3d2e35e234122ec58f0cd08727d9afb00cbfd595b0d754e66c6f"
+            "content_hash": "63348418024c6abe27ab902819d04eac4257ad058cfba3e9eaf3f99fd1530220"
           }
         },
         {
           "children": [],
-          "hash": "a7509511e8ee7585ea2c749d1b5e62df1cb55c4a9185b7518614e21d47226e16",
+          "hash": "d25621d7e46513a03253f1f559a2b55b7842384469a895892b17f8366f17e37a",
           "kind": "translation_config",
           "label": "generation",
           "metadata": {
@@ -31,7 +31,7 @@
             "retries": 3,
             "segmentation_version": 1,
             "source_language": "en",
-            "validation_hash": "ae3606ed9b1629c1a55145739b0db6174aa75ed71272a6af6089832cad7abbfc"
+            "validation_hash": "064760dc472b525acbc80c5ce08973a94fc7a5b06ba42cfab835324c7c048924"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "c0cbfac457dff5a842d501d7d7bc4b12f3d480e7514ff7eba7ad5902840bfc69",
+      "hash": "051ccd5b08f5eb444524186b7d7609dd13a4a9ff2c3aa22483d2c7a71b652597",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/content-ownership.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "9926469b35463d3462ef43bb9628f78f5c43bad38fb9a028acabf7058817ca17",
+  "output_hash": "6efe3527da36cc399f5738a37290c8b1b6c4b81d437f4247928facd0c93da7ef",
   "output_path": "app/priv/i18n/ko/docs/explanation/content-ownership.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "57f484cf34215985850f4b24b427584a3c434b64",
+  "source_commit_sha": "1ac90e1d94bb5f37055065e97cb38e16d10d9525",
   "source_path": "app/priv/docs/explanation/content-ownership.md",
-  "translated_at": "2026-10-26T11:00:33.419322Z",
-  "translation_session_id": "01a177c8-691e-7edb-9e0a-7e6eeb58673d"
+  "translated_at": "2026-10-26T16:39:49.021219Z",
+  "translation_session_id": "01a17912-943b-74aa-ab23-d2762549ca15"
 }
