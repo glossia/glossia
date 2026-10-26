@@ -86,8 +86,9 @@
       gap: var(--noora-spacing-4);
     }
     & #toki-messages {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: minmax(var(--noora-spacing-0), var(--max-width-docs));
+      justify-content: center;
       gap: var(--noora-spacing-8);
       padding: var(--noora-spacing-8);
 
@@ -157,11 +158,6 @@
 /* Keep a long account handle from colliding with the header controls on the
    narrow conversation view, in either writing direction. */
 #noora-shell:has(#toki-page) {
-  & #toki-page[data-view="conversation"] {
-    max-inline-size: var(--max-width-docs);
-    margin-inline: auto;
-  }
-
   @media (max-width: 768px) {
     & .noora-shell__context .noora-breadcrumbs {
       min-inline-size: var(--noora-spacing-0);
