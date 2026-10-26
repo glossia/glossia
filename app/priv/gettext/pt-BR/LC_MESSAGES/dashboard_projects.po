@@ -24,17 +24,17 @@ msgstr "Idiomas do navegador"
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Top countries"
-msgstr "Principais países"
+msgstr "Países principais"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Top pages"
-msgstr "Principais páginas"
+msgstr "Páginas principais"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
-msgstr "Onde traduzir a seguir"
+msgstr "O que traduzir a seguir"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
