@@ -15,6 +15,7 @@ defmodule Glossia.Analytics.QueriesTest do
         pathname: "/inside",
         country_code: "DE",
         browser_language: "ja",
+        served_locale: "en",
         has_locale_gap: 1,
         visitor_id: 1
       }),
@@ -41,7 +42,7 @@ defmodule Glossia.Analytics.QueriesTest do
     assert Queries.browser_languages(project_id, ["en"], opts) == [
              %{
                browser_language: "ja",
-               served_locale: "",
+               served_locale: "en",
                has_locale_gap: 1,
                visits: 1,
                is_served: false
@@ -84,6 +85,47 @@ defmodule Glossia.Analytics.QueriesTest do
 
     assert %{pageviews: 2} =
              Enum.find(monthly_traffic.points, &(&1.bucket == "2026-08-01T00:00:00Z"))
+  end
+
+  test "browser languages omits unreported languages before applying the limit" do
+    project_id = Ecto.UUID.generate()
+    since = datetime("2026-08-16T10:00:00Z")
+    until = datetime("2026-08-16T12:00:00Z")
+    inserted_at = datetime("2026-08-16T11:00:00Z")
+
+    insert_events([
+      event(project_id, inserted_at, %{browser_language: "en-US", served_locale: ""}),
+      event(project_id, inserted_at, %{browser_language: "en-US", served_locale: ""}),
+      event(project_id, inserted_at, %{browser_language: "", served_locale: "en"}),
+      event(project_id, inserted_at, %{browser_language: "", served_locale: "en"}),
+      event(project_id, inserted_at, %{browser_language: "en-US", served_locale: "en"})
+    ])
+
+    assert Queries.browser_languages(project_id, ["en"],
+             since: since,
+             until: until,
+             limit: 1
+           ) == [
+             %{
+               browser_language: "en-US",
+               served_locale: "en",
+               has_locale_gap: 0,
+               visits: 1,
+               is_served: false
+             }
+           ]
+  end
+
+  test "browser languages is empty when no page languages were reported" do
+    project_id = Ecto.UUID.generate()
+    since = datetime("2026-08-16T10:00:00Z")
+    until = datetime("2026-08-16T12:00:00Z")
+
+    insert_events([
+      event(project_id, datetime("2026-08-16T11:00:00Z"), %{served_locale: ""})
+    ])
+
+    assert Queries.browser_languages(project_id, ["en"], since: since, until: until) == []
   end
 
   test "traffic granularity follows the selected period" do

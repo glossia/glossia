@@ -2,7 +2,7 @@
 // - ESM (`glossia-web.js`) — used by bundlers and modern `<script type="module">`.
 // - CJS (`glossia-web.cjs`) — used by older Node.js tooling.
 // - IIFE (`glossia-web.iife.js`) — used by the classic `<script>` snippet,
-//   exposed as the `glossia` global so callers can do `glossia("track", "...")`.
+//   exposed as the `glossia` global so callers can do `glossia.track("...")`.
 import { build } from "esbuild";
 import { copyFileSync, rmSync } from "node:fs";
 

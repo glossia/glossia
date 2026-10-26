@@ -32,6 +32,10 @@
     <string name="native_94c116ee118a7299" formatted="false">"Analyse"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_5b454a5ec511ff3c" formatted="false">"AndroidKeyStore"</string>
+    <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
+    <string name="native_b8352b44a588721c" formatted="false">"App-Sprache"</string>
+    <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
+    <string name="native_5eebf1828971d514" formatted="false">"App-Sprache: %1$s"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_f7c3b47055a1c9c9" formatted="false">"Wartung auf linguistischen Input"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
@@ -68,6 +72,8 @@
     <string name="native_11f15d2945a1c91b" formatted="false">"Wählen Sie eine Organisation aus, um deren Projekte anzuzeigen."</string>
     <!-- android/res/layout, android/res/menu -->
     <string name="native_94b211b56e22d4d9" formatted="false">"Workspace auswählen"</string>
+    <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
+    <string name="native_bdb1df7e63362fc3" formatted="false">"Wählen Sie die Sprache für diese App. Ihre fließend gesprochenen Sprachen werden dadurch nicht geändert."</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_9e496f1dd6dbd48d" formatted="false">"ClickableViewAccessibility"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt, android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
@@ -480,6 +486,8 @@
     <string name="native_8e76a94ac8320d51" formatted="false">"Zusammenfassung"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_ec70b4a614bf5040" formatted="false">"Workspace wechseln"</string>
+    <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
+    <string name="native_b0459211f9f76871" formatted="false">"Systemstandard"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_7a6926673c555300" formatted="false">"Klicken Sie auf Toki, um Hallo zu sagen"</string>
     <!-- android/src/ai/glossia/mobile/TokiTextImport.kt -->
