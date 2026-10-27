@@ -8,26 +8,28 @@
 }
 ---
 
-Escolher para qual idioma traduzir a seguir é uma aposta: custa tempo e dinheiro, e o retorno depende da demanda que você geralmente não consegue ver. A análise de localização torna essa demanda visível.
+Escolher qual idioma traduzir a seguir é uma aposta: custa tempo e dinheiro, e o retorno depende de uma demanda que você normalmente não consegue ver. A análise de localização torna essa demanda visível.
 
-## A decisão, não o painel
+## ## A decisão, não o painel
 
-O propósito de coletar análises aqui é estreito e deliberado: responder "devemos localizar para o idioma X?" Os sinais são escolhidos para alimentar essa pergunta, não para serem um conjunto de análises de uso geral.
+O propósito de coletar análises aqui é estreito e intencional: para responder "deveríamos localizar para o idioma X?" Os sinais são escolhidos para alimentar essa pergunta, não para ser um conjunto de análises de uso geral.
 
 Três entradas impulsionam a decisão:
 
-1. **Demanda.** Quantos visitantes querem este idioma? As línguas do navegador e o país telling onde está o interesse.
-2. **A brecha.** Essa demanda já foi atendida? Ao comparar as preferências de idioma com as línguas-alvo do seu projeto, o idioma da página e suas traduções anunciadas, revela-se a parcela de tráfego que encontra uma parede.
-3. **Valor.** A localização valerá a pena? O engajamento por lacuna de localização, as páginas nas quais o tráfego não atendido aterrissa e a origem desse tráfego indicam se uma nova localização converte.
+1. **Demanda.** Quantos visitantes querem esse idioma? Idiomas do navegador e país indicam onde está o interesse.
+2. **O hiato.** Essa demanda já está sendo atendida? Comparando idiomas preferidos contra as línguas-alvo do projeto, o idioma da página e suas traduções anunciadas revela a proporção de tráfego que tropeça em um obstáculo.
+3. **Valor.** A localização compensaria? O engajamento por lacuna de localidade, as páginas onde o tráfego subatendido aterrissa e a origem desse tráfego indicam se uma nova localidade converte.
 
-## Por que a brecha é calculada no momento da ingestão
+## Por que o hiato é computado no momento da ingestão
 
-`served_locale` registra o idioma real da página declarado em `<html lang>`, não o idioma que assumimos que o visitante recebeu. `has_locale_gap` compara as preferências do navegador contra os objetivos do seu projeto, o idioma da página e as traduções anunciadas através dos links `hreflang`. Ambos são armazenados por evento conforme eram no momento da visita. Isso significa que os dados históricos refletem a oportunidade que você enfrentava naquela época, não um recálculo contra os objetivos de hoje. Se você adicionar português no próximo mês, a brecha do mês passado não diminui retroativamente; você mantém um registro honesto de quanto da demanda estava sem ser atendida.
+`served_locale` registra o idioma real da página declarado em `<html lang>`, não o idioma que presumimos que o visitante recebeu. `has_locale_gap` compara uma escolha explícita e válida de idioma, ou preferências do navegador quando nenhuma escolha é conhecida, contra os alvos do seu projeto, o idioma da página e traduções anunciadas através de links `hreflang`. Uma escolha indica demanda, não disponibilidade: escolher um idioma não suportado ainda deixa um hiato. Preferência do navegador, escolha e idioma da página permanecem sinais separados.
+
+A decisão do hiato é armazenada por evento conforme era no momento da visita. Bandeiras históricas, incluindo aquelas coletadas antes das escolhas explícitas afetarem o cálculo do hiato, não são recomputadas com base nos alvos de hoje ou em escolhas futuras. A lista completa de preferências de navegador e traduções anunciadas não são retidas, portanto não podem ser reconstituídas de forma confiável. Se você adicionar português no próximo mês, o hiato do mês passado não é retroativamente reduzido; você mantém o registro original da demanda.
 
 ## Por que sem cookies, especificamente
 
-O instinto quando você quer "visitantes únicos" é definir um cookie ou obter a impressão digital do navegador. Ambos criam identificadores de longa duração, e a obtenção de impressão digital, sob a maioria dos regimes de privacidade, é mais difícil de limpar do que um cookie. Nenhum dos dois é necessário aqui.
+O instinto, ao desejar "visitantes únicos", é definir um cookie ou gerar uma impressão digital do navegador. Ambos criam identificadores de longa duração, e o fingerprinting é, sob a maioria dos regimes de privacidade, mais difícil de remover do que um cookie. Nenhum dos dois é necessário aqui.
 
-Visitantes únicos para um dia exigem apenas um identificador que seja estável *dentro do mesmo dia*. Um hash do IP e do User-Agent, rotacionado diariamente e com escopo por projeto, suporta contagens diárias de visitantes enquanto torna impossível vincular um visitante entre dias ou entre sites. Isso não fornece rastreamento de longo prazo de visitantes que retornam.
+Visitantes únicos para um dia exigem apenas um identificador que seja estável *no decorrer do dia*. Um hash do IP e User-Agent, rotacionado diariamente e escopo por projeto, suporta contagens diárias de visitantes enquanto torna impossível vincular um visitante entre dias ou entre sites. Isso não fornece rastreamento de visitantes retornantes de longo prazo.
 
-Este design limita os identificadores retidos pela análise. Não estabelece se um site específico requer consentimento; isso depende de como o site usa as análises e das regras que se aplicam a ele.
+Este design limita os identificadores retidos pela análise. Não determina se um site em particular requer consentimento; isso depende de como o site usa análise e das regras que se aplicam a ele.

@@ -1,33 +1,35 @@
 %{
-  title: "Por qué el análisis de localización",
+  title: "¿Por qué la analítica de localización?",
   summary:
-    "Cómo las señales recopiladas se convierten en decisiones de localización y por qué la métrica de brecha importa.",
+    "Cómo las señales recopiladas se convierten en decisiones de localización y por qué importa la métrica de brecha.",
   category: "explicación",
   section: "analytics",
   order: 2
 }
 ---
 
-Elegir el idioma en el que traducir a continuación es una apuesta: cuesta tiempo y dinero, y el retorno depende de la demanda que habitualmente no puedes ver. La analítica de localización hace que esa demanda sea visible.
+Elegir en qué idioma traducir a continuación es una apuesta: cuesta tiempo y dinero, y el retorno depende de la demanda que usualmente no puedes ver. Los análisis de localización hacen visible esa demanda.
 
-## La decisión, no el panel
+## La decisión, no el panel de control
 
-El propósito de recopilar analíticas aquí es estrecho y deliberado: responder «¿deberíamos localizar al idioma X?». Las señales se eligen para alimentar esa pregunta, no para ser un conjunto de analíticas de propósito general.
+El propósito de recopilar análisis aquí es limitado y deliberado: responder "¿deberíamos localizar al idioma X?". Las señales se eligen para alimentar esa pregunta, no para ser un conjunto de análisis de propósito general.
 
-Tres insumos impulsan la decisión:
+Tres factores impulsan la decisión:
 
-1. **Demanda.** ¿Cuántos visitantes desean este idioma? Los idiomas del navegador y el país te indican dónde está el interés.
-2. **La brecha.** ¿Esa demanda ya está atendida? Comparar los idiomas preferidos contra los idiomas objetivo del proyecto, el idioma de la página y sus traducciones anunciadas revela la porción del tráfico que choca con un muro.
-3. **Valor.** ¿Importaría la localización? El compromiso por brecha de idioma, las páginas en las que aterriza el tráfico subatendido y de dónde proviene ese tráfico indican si un nuevo idioma convierte.
+1. **Demanda.** ¿Cuántos visitantes quieren este idioma? Los idiomas del navegador y el país indican dónde está el interés.
+2. **La brecha.** ¿Esa demanda ya está cubierta? Comparando los idiomas preferidos contra los idiomas objetivo de tu proyecto, el idioma de la página y sus traducciones anunciadas, se revela la proporción de tráfico que choca contra un muro.
+3. **Valor.** ¿Volvería la decisión a la par? El compromiso por la brecha de localización, las páginas a las que aterriza el tráfico subatendido y de dónde proviene ese tráfico indican si una nueva localización convierte.
 
-## Por qué la brecha se calcula en tiempo de ingesta
+## Por qué se calcula la brecha en el momento de la ingestión
 
-`served_locale` registra el idioma real de la página declarado en `<html lang>`, no el idioma que asumimos que recibió el visitante. `has_locale_gap` compara las preferencias del navegador contra los objetivos del proyecto, el idioma de la página y las traducciones anunciadas a través de `hreflang` enlaces. Ambos se almacenan por evento como estaban en el momento de la visita. Esto significa que los datos históricos reflejan la oportunidad que enfrentaste entonces, no una recomputación contra los objetivos de hoy. Si añades portugués el mes que viene, la brecha del mes pasado no se reduce retroactivamente; mantienes un registro honesto de cuánto la demanda permanecía sin atender.
+`served_locale` registra el idioma real de la página declarado en `<html lang>`, no el idioma que asumimos que recibió un visitante. `has_locale_gap` compara una elección explícita y válida de idioma, o las preferencias del navegador cuando no se conoce una elección, contra los objetivos de tu proyecto, el idioma de la página y las traducciones anunciadas a través de enlaces `hreflang`. Una elección indica demanda, no disponibilidad: elegir un idioma sin soporte deja aún una brecha. La preferencia del navegador, la elección y el idioma de la página permanecen como señales separadas.
 
-## ¿Por qué sin cookies, específicamente?
+La decisión de la brecha se almacena por evento como estaba en el momento de la visita. Banderas históricas, incluidos aquellos recopilados antes de que las elecciones explícitas afectaran el cálculo de la brecha, no se recalculan con los objetivos de hoy o elecciones posteriores. La lista completa de preferencias del navegador y las traducciones anunciadas no se retiene, por lo que no se pueden reconstruir de manera fiable. Si agregas el portugués el mes próximo, la brecha del mes pasado no retrocede; mantienes el registro original de la demanda.
 
-El instinto cuando quieres «visitantes únicos» es establecer una cookie o emprender un registro digital del navegador. Ambas crean identificadores de larga duración, y el fingerprinting es, bajo la mayoría de los marcos de privacidad, más difícil de borrar que una cookie. Ninguna es necesaria aquí.
+## ¿Por qué sin cookies, específicamente
 
-Los usuarios únicos de un día solo requieren un identificador que sea estable *dentro del día*. Un hash de la IP y el User-Agent, rotado diariamente y limitado por proyecto, soporta los conteos diarios de visitantes mientras hace imposible vincular a un visitante a través de días o sitios. Esto no proporciona rastreo a largo plazo de visitantes recurrentes.
+El instinto cuando deseas "visitantes únicos" es establecer una cookie o dar huella digital al navegador. Ambos crean identificadores de larga vida, y dar huella digital es, bajo la mayoría de regímenes de privacidad, más difícil de eliminar que una cookie. Ninguno es necesario aquí.
 
-Este diseño limita los identificadores retenidos por analíticas. No establece si un sitio web particular requiere consentimiento; eso depende de cómo el sitio usa las analíticas y las reglas que le aplican.
+Los visitantes únicos de un día solo requieren un identificador que sea estable *dentro del día*. Un hash de la IP y del User-Agent, rotado diariamente y limitado al ámbito de cada proyecto, soporta los conteos diarios de visitantes mientras hace imposible vincular a un visitante entre días o entre sitios. Esto no proporciona seguimiento a largo plazo de visitantes recurrentes.
+
+Este diseño limita los identificadores retenidos por los análisis. No establece si un sitio web en particular requiere consentimiento; eso depende de cómo el sitio utiliza los análisis y las reglas que se aplican a él.

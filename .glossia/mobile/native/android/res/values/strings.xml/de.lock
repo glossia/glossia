@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "4e0a92bba37a32ae476485f8e2236bb2e62c0b5df6f17cb0927f217e4c13564c",
+  "hash": "7e3fffcaa4721413b15d228415b174dec8b754a0da754fe2e78fef255ec421e9",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "692d662aba33b6b9700de1b3a911642b733daa22731bc92415a241e615928136",
+          "hash": "5ca5ca3cca5ff67f06a8c67e9c629826444aa57e836d59b227b8bd9d0124828c",
           "kind": "source",
           "label": "mobile/native/android/res/values/strings.xml",
           "metadata": {
-            "content_hash": "bce64d76a84c906055136f6ab03b6417410152500a75f479fef82fa38e89e8fa"
+            "content_hash": "32b8577e02f6e7e598733bcc4460ac966fd2d6bfaeae4d5750e49950efac94bd"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "4e0a92bba37a32ae476485f8e2236bb2e62c0b5df6f17cb0927f217e4c13564c",
+      "hash": "7e3fffcaa4721413b15d228415b174dec8b754a0da754fe2e78fef255ec421e9",
       "kind": "translation_input",
       "label": "mobile/native/android/res/values/strings.xml",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "9e108f3ed8e4417be877c6aeee02b510de73fd40b3ea3e151eadd25c9fe7779b",
+  "output_hash": "2d427bcbe9da1f42e8f96adecb550c639e070e8ddb47f59018f00ec9d2c8d008",
   "output_path": "mobile/native/locales/de/android/strings.xml",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
+  "source_commit_sha": "07ec458de27b67405f5483e5735e0896c6538861",
   "source_path": "mobile/native/android/res/values/strings.xml",
-  "translated_at": "2026-10-26T05:08:06.516883Z",
-  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
+  "translated_at": "2026-10-26T18:03:20.303807Z",
+  "translation_session_id": "01a17929-32ae-7db6-b5ff-862304be0a86"
 }

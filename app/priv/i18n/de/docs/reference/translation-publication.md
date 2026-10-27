@@ -1,24 +1,31 @@
 %{
-  title: "Veröffentlichung der Übersetzung",
-  summary: "Pull-Request-Wiederverwendung, Batching und das projektweite Push-Limit.",
+  title: "Veröffentlichung von Übersetzungen",
+  summary:
+    "Wiederverwendung von Pull-Requests, Bündelung und die Push-Obergrenze für das gesamte Projekt.",
   category: "Referenz",
   section: "translation",
   order: 10
 }
 ---
 
-Glossia führt pro Projekt genau einen offenen Übersetzungs-Pull-Request. Neue Commits auf dem Standard-Zweig aktualisieren stets denselben Zweig, statt für jeden Quell-Commit einen separaten Pull-Request zu eröffnen. Ein neuer Pull-Request wird erstellt, wenn der vorherige verbunden oder geschlossen wurde.
+Glossia hält pro Projekt eine offene Übersetzungs-Pull Request bereit. Neue Commits auf dem Hauptzweig setzen den Zweig fort anstatt einen Pull-Request für jeden Quell-Commit zu öffnen. Ein neuer Pull-Request wird erstellt, nachdem der vorherige zusammengeführt oder geschlossen wurde. Eine abgeschlossene Veröffentlichung erhält einen frischen Zweignamen, auch wenn derselbe Quell-Commit erneut versucht wird; ihre abgelehnten Ausgaben werden nicht als abgeschlossene Arbeit wieder verwendet.
 
-Veröffentlichung und Sitzungsersatz teilen sich eine durch eine Datenbank unterlegte Projektsperrung, auch wenn sie auf verschiedenen Anwendungsreplikaten oder losgelösten Runnern ausgeführt werden. Erstellt ein Runner einen Pull-Request, konnte dessen Metadaten jedoch nicht gespeichert werden, stellt die nachfolgende Veröffentlichung den offenen Glossia-Pull-Request aus GitHub wieder her, bevor sie einen anderen erstellt. Ein offener Pull-Request wird nicht verworfen, wenn sein Zweig mit dem Quellcode kollidiert oder die Quellgeschichte umgeschrieben wird: Die Sitzung schlägt fehl und behält die bestehende Veröffentlichung zur Lösung.
+Die Quellsynchronisation erfolgt vor der Bewertung in einem wegschmeissbaren lokalen Checkout, wobei die abgeschlossenen Übersetzungen und Sperrdateien des offenen Zweigs erhalten bleiben. Ein Durchlauf, der keine Ausgaben oder Sperrdatei-Änderungen findet, schreitet den Remote-Zweig nicht weiter, um mit dem Standardzweig aufzuholen, und verbraucht keinen Veröffentlichungs-Platz. Wenn ein Batch bereit ist, werden die Quellsynchronisation und die validierten Änderungen in einer einzigen nicht erzwungenen Zweig-Update gemeinsam veröffentlicht. Der Commit behält sowohl die vorherige Veröffentlichung als auch den bewerteten Quell-Commit als Vorfahren.
+
+Veröffentlichung und Session-Ersatz teilen sich eine datenbankgestützte Projektsperre, auch wenn sie auf unterschiedlichen Anwendungsrepliken oder detached Runnern ausgeführt werden. Wenn ein Runner eine Pull-Request erstellt hat, aber seine Metadaten nicht speichern konnte, stellt die nächste Veröffentlichung die offene Glossia-Pull-Request aus GitHub wieder her, bevor eine neue erstellt wird. Eine offene Pull-Request wird nicht aufgegeben, wenn ihr Zweig mit der Quelle konfl or die Quellen historii umgeschrieben wird: die Session versagt und behält die bestehende Veröffentlichung zur Klärung.
 
 ## Push-Limit
 
-Das Limit ist **4 Pushes pro Stunde pro Projekt** festgesetzt, gemeinsam genutzt über Sitzungen und Repliken. Es ist zurzeit nicht konfigurierbar.
+Das Limit ist **4 Pushes pro Stunde pro Projekt** festgelegt, wird auf Sitzungen und Repliken verteilt. Es ist derzeit nicht konfigurierbar.
 
-Pushes sind gleichmäßig verteilt und werden nicht in festen Stundenzeitfenstern gezählt. Zweig-Updates liegen minimal 15 Minuten auseinander. Das nächste Intervall beginnt, wenn ein Veröffentlichungsversuch abgeschlossen ist, sodass ein langsamer Batch nicht sofort von einem schnellen gefolgt werden kann. Quellzweig-Merges, Zwischengruppen, Wiederholungen und Abschlüsse teilen sich das gleiche Budget. Mehrdeutige fehlgeschlagene Versuche verbrauchen ebenfalls ein Slot, da GitHub den Zweig möglicherweise weiterentwickelt hat, bevor die Verbindung fehlgeschlagen ist. Das Budget wird in PostgreSQL gespeichert und wird durch eine neue Sitzung oder Prozessneustart nicht zurückgesetzt.
+Pushes sind gleichmäßig verteilt, nicht in feste Uhrenstunde-Boxen eingefügt. Zweig-Updates liegen mindestens 15 Minuten auseinander. Das nächste Intervall startet, wenn ein Veröffentlichungs-Versuch abgeschlossen ist, so dass ein langsames Batch nicht sofort von einem schnellen gefolgt werden kann. Zwischen-Batches, Neuversuche und finale Flushes teilen sich alle dasselbe Budget. Zweideutige gescheiterte Versuche verbrauchen ebenfalls einen Slot, weil GitHub den Zweig möglicherweise vor einem Verbindungs-Error advance hat. Das Budget wird in PostgreSQL gespeichert und nicht durch eine neue Session oder Prozess-Neustart zurückgesetzt.
+
+Bevor veröffentlicht wird, liest Glossia den Remote-Head erneut und fusioniert die Quellcode der Session lokal erneut. Dies bewahrt frühere Batches und erkennt Konflikte ohne den Zweig zu verschieben. Wenn ein frühes Update erfolgreich war, aber seine Antwort verloren ging, werden bereits vorhandene Änderungen nicht erneut commited; Veröffentlichungsmetadaten und der Pull-Request werden ohne weiteren Zweig-Update wiederhergestellt. Wenn der Ref erstellt wurde, aber der Runner vor der Erstellung seiner Pull-Request stoppte, erstellt eine kein-Änderungs-Bewertung dennoch den fehlenden Pull-Request, ohne einen Zweig-Update-Slot zu verbrauchen.
+
+Ein unerwarteter Remote-Advancement wird nur akzeptiert, wenn seine Unterschiede von der synchronisierten erwarteten Struktur bereits vorhandene Teile des ausstehenden Batches sind. Andere Änderungen, die während der Bewertung vorgenommen wurden, führen zu Veröffentlichungsfehlern statt überschrieben zu werden oder Übersetzungen zu veröffentlichen, die gegen veraltete Eingaben überprüft wurden. Der bestehende Pull-Request wird zur Klärung beibehalten.
 
 ## Batching
 
-Ein Durchlauf sammelt geprüfte Dateiänderungen und fordert Veröffentlichung an, sobald 25 Dateien oder 15 Minuten vergangen sind. Diese Schwellenwerte umgehen das Push-Limit nicht. Während einer Abkühlphase fügen weitere abgeschlossene Dateien dem ausstehenden Batch hinzu; wiederholte Änderungen am gleichen Pfad bewahren den neuesten Inhalt.
+Ein Durchlauf sammelt validierte Datei-Änderungen und bittet um Veröffentlichung nach 25 Dateien oder 15 Minuten. Diese Schwellenwerte umgehen das Push-Limit nicht. Während einer Abkühlphase schließen sich zusätzliche abgeschlossene Dateien dem pending Batch an; wiederholte Änderungen zum gleichen Pfad behalten den neuesten Inhalt.
 
-Am Ende des Durchlaufs wartet der Abschluss auf dasselbe Budget. Die Sitzung bleibt aktiv und sendet Pings, während sie wartet. Sie überprüft regelmäßig Absage und Zulassung, ohne im Ruhezustand eine Datenbanktransaktion offen zu halten.
+Am Ende des Durchlaufs wartet der finale Flush auf das gleiche Budget. Die Session bleibt aktiv und sendet Herzschläge, während sie wartet. Sie prüft periodisch Stornierung und Zulassung, ohne eine Datenbank-Transaktion offen zu halten, während sie schläft.

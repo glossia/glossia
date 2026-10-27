@@ -1,73 +1,73 @@
 %{
-  title: "Konto-Modelle",
+  title: "Account-Modelle",
   summary:
-    "Warum Modell-Anbieter einmal pro Konto konfiguriert werden und per Handle referenziert werden.",
+    "Warum Modellanbieter einmal pro Account konfiguriert und über handle referenziert werden.",
   category: "Erklärung",
   section: "platform",
   order: 2
 }
 ---
 
-Glossia trennt Repository-Anweisungen von Modell-Anbieter-Zugangsdaten. Repositories beschreiben, was übersetzt werden soll, während Accounts entscheiden, welches [großes Sprachmodell](https://en.wikipedia.org/wiki/Large_language_model) die Arbeit ausführt.
+Glossia trennt Repository-Anweisungen von Modell-Anbieter-Zugangsdaten. Repositorien beschreiben, was übersetzt werden soll, während Konten entscheiden, welches [große Sprachmodell](https://en.wikipedia.org/wiki/Large_language_model) die Arbeit erledigt.
 
-## Warum Modelle Accounts gehören
+## Warum Modelle zu Konten gehören
 
-Ein Team übersetzt oft mehrere Repositories mit derselben Anbieter-Beziehung. Modelle, die einem Account zugeordnet sind, ermöglichen es Administratoren, einen Anbieter-Schlüssel zu rotieren oder das zugrundeliegende Modell einmal zu wechseln, ohne jedes Repository zu bearbeiten.
+Ein Team übersetzt oft mehrere Repositorien mit der gleichen Anbieter-Beziehung. Konten-spezifische Modelle es ermöglichen Administratoren, einen Anbieter-Schlüssel zu rotieren oder das zugrundeliegende Modell einmal zu wechseln, ohne jedes Repository zu bearbeiten.
 
-Diese Trennung hält Zugangsdaten zudem aus der Quellcodeverwaltung fern. Ein Repository enthält eine lesbare Bezeichnung wie `translation-default`, nicht den Anbieter-Schlüssel.
+Diese Trennfläche hält Zugangsdaten auch aus der Versionskontrolle aus. Ein Repository enthält einen lesbaren Handle, wie `translation-default`, nicht den Anbieter-Schlüssel.
 
-## Handles bieten stabile Intentionen
+## Handles bieten stabile Absichten
 
-Das `model`-Feld in `L10N.md` bezieht sich auf einen Account-Modell-Handle:
+Das `model`-Feld in `L10N.md` bezieht sich auf einen Konten-Modell-Handle:
 
 ```yaml
 model: translation-default
 ```
 
-Der Handle drückt die Absicht des Repositorys aus. Ein Administrator kann später aktualisieren, welches Anbieter-Modell dieser Handle auswählt, während die Repository-Konfiguration stabil bleibt.
+Der Handle drückt die Absicht des Repositories aus. Ein Administrator kann später aktualisieren, welchen Anbieter-Modell-Handle dieser Handle auswählt, während die Repository-Konfiguration stabil bleibt.
 
 ## Wie mehrere Modelle verwendet werden
 
-Glossia verwendet ein konfiguriertes **generatives** Modell für jede Dokumentübersetzung. Das Hinzufügen mehrerer Modelle führt kein Ensemble, keine Fallback-Kette oder eine automatische Qualitätsstufe herbei. Der Repository-Autor wählt seinen Zweck durch stabile Handles wie `translation-default`, `long-form` oder `japanese-specialist` aus.
+Glossia verwendet für jede Dokumentübersetzung ein konfiguriertes **generativ** Modell. Das Hinzufügen mehrerer Modelle erzeugt kein Ensemble, keine Fallback-Kette oder eine automatische Qualitätsebene. Der Autor des Repositories wählt seinen Zweck durch stabile Handles wie `translation-default`, `long-form` oder `japanese-specialist` aus.
 
-Die Auswahl folgt der Kontexthierarchie für das Dokument und das Zielsprachgebiet:
+Die Auswahl folgt der Kontexthierarchie für das Dokument und das Ziel-Locale:
 
-1. Die nächstgelegene `L10N/<locale>.md`-Datei, die `model` deklariert, gewinnt für dieses Sprachgebiet.
-2. Falls nicht, gewinnt die nächstgelegene `L10N.md`-Datei, die `model` dekariert, für sein Verzeichnis.
-3. Eltern-`L10N.md`-Einstellungen werden vererbt, wenn eine näherliegende Datei kein Modell deklariert.
-4. Wenn keine anwendbare Kontextdatei einen Handle deklariert, verwendet Glossia das Standard-Generativ-Modell des Accounts.
+1. Die nächstgelegene `L10N/<locale>.md`-Datei, die `model` deklariert, gewinnt für dieses Locale.
+2. Ansonsten gewinnt die nächstgelegene `L10N.md`-Datei, die `model` deklariert, für ihr Verzeichnis.
+3. Eltern- `L10N.md` -Einstellungen werden vererbt, wenn eine näherliegende Datei kein Modell deklariert.
+4. Wenn keine anwendbare Kontextdatei einen Handle deklariert, verwendet Glossia das Standard-generative Modell des Kontos.
 
-Ein explizit konfigurierter Handle muss existieren. Glossia meldet einen Fehler für einen unbekannten Handle, anstatt schweigend auf das Account-Standard zu wechseln.
+Ein explizit konfigurierter Handle muss existieren. Glossia meldet einen Fehler bei einem unbekannten Handle statt schweigsam auf die Konto-Standardumstellung zu wechseln.
 
 ## Standardauswahl
 
-Die Projekt-Einrichtung benötigt ein Modell, bevor ein Repository sein eigenes `L10N.md` hat. Glossia wählt daher das Account-Standard aus. Das erste hinzugefügte Modell jeder Kategorie wird das Standardmodell dieser Kategorie, und ein Administrator kann ein anderes Modell von seiner Einstellungsseite zum Standard machen.
+Die Projekteinrichtung benötigt ein Modell, bevor ein Repository sein eigenes `L10N.md` hat. Glossia wählt daher das Konto-Standardmodell aus. Das erste hinzugefügte Modell jeder Kategorie wird zu deren Standardmodell, und ein Administrator kann aus seiner Einstellungsseite ein anderes Modell zum Standard machen.
 
-Sobald ein Repository `L10N.md` hat, macht das Verwenden eines expliziten Handles die Wahl für Rezensenten klar. Das Unterlassen von `model` hält das Repository beim Account-Standard.
+Sobald ein Repository `L10N.md` hat, macht die Verwendung eines expliziten Handles seine Wahl für Prüfer deutlich. Das Auslassen von `model` hält das Repository am Konto-Standard.
 
-## Generative und Entscheidende Modelle
+## Generative und Entscheidungsmodelle
 
-Modell-Konfigurationen haben zwei Kategorien:
+Modellkonfigurationen haben zwei Kategorien:
 
-- **Generative** Modelle schreiben Übersetzungen und versorgen die Projekt-Einrichtung. Repository-Modell-Handles und Sprachgebietsrouting-Regeln wählen nur diese Kategorie aus.
-- **Decision** Modelle bewerten Übersetzungen gegen eine feste Qualitätsrubrik. Wenn ein Account ein Entscheidmodells دارد, überprüft sein Standard-Entscheidungsmeld automatisches jedes übersetzte Repository-Dokument nach struktureller Validierung und vollständigen, einzelnen Dokument-Übersetzungen vom Content-Endpunkt. Fragmentbuchungen sind Generierungs-Primitiven; Repository-Läufe bewerten ihre zusammengelegten Ausgaben.
+- **Generativ** Modelle schreiben Übersetzungen und betreiben die Projekteinrichtung. Repository-Modelle-Handles und Lokale-Verkehrsregeln wählen nur diese Kategorie aus.
+- **Entscheidungs** Modelle bewerten Übersetzungen gegen ein festes Qualitätsraster. Wenn ein Konto ein Entscheidungsmodell hat, prüft sein Standard-Entscheidungsmodell automatisch jedes übersetzte Repository-Dokument nach struktureller Validierung und vollständigen, einzelndokumentären Übersetzungen vom Inhalt-Endpunkt. Fragment-Anfragen sind Erstellungsprimitive; Repositoryläufe bewerten ihre zusammengesetzten Ausgabe.
 
-Kategorien haben unabhängige Standards. Das Hinzufügen von Jev ändert niemals das Modell, das Ihre Übersetzungen erstellt. Das erste Entscheidungsmodell ermöglicht die Bewertung für nachfolgende Übersetzungsläufe; das Löschen des letzten deaktiviert die Bewertung. Konten ohne Entscheidungsmodelle behalten ihr bestehendes Verhalten bei.
+Die Kategorien haben unabhängige Standards. Das Hinzufügen von Jev ändert niemals das Modell, das deine Übersetzungen schreibt. Das erste Entscheidungsmodell ermöglicht die Bewertung für nachfolgende Übersetzungsläufe; das Löschen des letzten deaktiviert die Bewertung. Konten ohne Entscheidungsmodelle behalten ihr bestehendes Verhalten.
 
-Glossia unterstützt derzeit [TypeSafe Jev](https://docs.typesafe.ai/introduction) als Entscheidungsanbieter. Jev liefert vorgegebene Optionen und Scores statt Fließtext. Glossia wandelt Schwächenoptionen in Korrekturhinweise um, ohne sie als lokalisierte oder eigenständig überprüfte Fehler darzustellen.
+Glossia unterstützt derzeit [TypeSafe Jev](https://docs.typesafe.ai/introduction) als Entscheidungsanbieter. Jev gibt vordefinierte Entscheidungen und Scores zurück statt Text. Glossia wandelt Schwäch-Entscheidungen in Korrekturvorschläge um, ohne sie als üblicherweise verortete oder unabhängig verifizierte Fehler vorzustellen.
 
-## Qualitätsüberprüfungen und Überarbeitungen
+## Qualitätsprüfungen und Revisionen
 
-Der Evaluierer empfängt die Quelle, Übersetzung, Zielsprache, Inhaltsformat, Projektanweisungen und gelösten Organisationskontext. Er bewertet Bedeutungserhalt, Vollständigkeit, Terminologie, Sprachfluss, Dokumentenkohärenz, Zweck und Zielgruppenpassung sowie Sprachraumtauglichkeit. Stimme und Register werden bewertet, wenn Stimm-, Projekt- oder Dokumentführung verfügbar ist.
+Der Evaluator erhält die Quelle, die Übersetzung, das Ziel-Locale, das Inhaltsformat, die Projektanweisungen und den aufgelösten Organisationskontext. Er bewertet Bedeutungserhaltung, Vollständigkeit, Terminologie, Flüssigkeit, Dokumentkohärenz, Zweck und Publikumsanziehung sowieLocale-Eignung. Stimme und Register werden bewertet, wenn Stimme, Projekt- oder Dokumenten-Anleitung verfügbar ist.
 
-Jede Dimension muss das konfigurierte Mindestergebnis erreichen, das standardmäßig 7 von 10 ist. Ein wichtiger oder kritischer Fehler fordert jederzeit Korrektur an, unabhängig vom Ergebnis. Zuversicht ist in Live-Bewertungsevents enthalten und ändert die Annahme nicht. Diese Events werden derzeit nicht gespeichert oder im Armaturenbrett angezeigt. Eine Schwelle von 10 erfordert ein perfektes Gewichtetergebnis und ist meist zu streng.
+Jede Dimension muss das konfigurierte Mindestscore erreichen, der standardmäßig von 10 als 7 default ist. Ein großer oder kritischer Fehler fordert immer Korrektur, unabhängig vom Score. Vertrauen ist in Live-Bewertungs-Ereignisse enthalten und ändert keine Annahme. Diese Ereignisse werden derzeit nicht gespeichert oder im Dashboard angezeigt. Eine Schwelle von 10 erfordert einen perfekten gewichteten Score und ist in der Regel zu streng.
 
-Gescheiterte Dimensionen füttern ihre vorgegebenen Korrekturhinweise in den nächsten Übersetzungsversuch. Die bestehende `retries`-Einstellung des Repositorys begrenzt diese Überarbeitungen; der Content-Endpunkt erlaubt drei Korrektur-Retrys, konfigurierbar von null bis drei mit seinem `retries`-Feld. Das vollständige revidierte Dokument passiert Strukturprüfungen und Qualitätsbewertung erneut, bevor es akzeptiert wird.
+Fehlgeschlagene Dimensionen füttern ihre vordefinierten Korrekturvorschläge zur nächsten Übersetzungsversuch. Das bestehende `retries`-Setting des Repositories begrenzt diese Revisionen; der Inhalt-Endpunkt erlaubt drei Korrektur-Rückversuche, konfigurierbar von null bis drei mit seinem `retries`-Feld. Das vollständige überarbeitete Dokument passiert strukturellen Checks und Qualitätsbewertung erneut, bevor es akzeptiert wird.
 
-Transientie Providerfehler undergon exponentialen Backoff bis zu drei Versuchen; ungültige Credentials und fehlerhafte Antworten scheitern sofort. Erschöpfte Providerfehler stoppen die Übersetzung des Dokuments; ungeprüfte Ausgabe wird niemals akzeptiert. Bewertungen verwenden vollständige Dokumente, und oversized Eingaben werden abgewiesen statt abgeschnitten. Serialisierte Eingaben werden vorsichtig auf 30.000 Bytes für Status plus die längste Frage und 60.000 Bytes über die gesamte Anfrage begrenzt, um innerhalb der [Jev-Context-Grenzen](https://docs.typesafe.ai/models) zu bleiben. Automatisierte Scores sind Modellurteile und erfordern weiterhin Kalibrierung gegenüber spracheigenen menschlichen Prüfungen.
+Vorübergehende Anbieterfehler wiederholen mit exponentiellem Backoff bis zu drei Mal; ungültige Zugangsdaten und fehlerhafte Antworten versagen sofort. Erschöpfte Anbieterfehler stoppen die Datei-Übersetzung; ungeprüfte Ausgabe wird niemals akzeptiert. Bewertungen verwenden vollständige Dokumente, und übergröße Bewertungs-Eingabe wird verworfen statt zerkleinert. Serialisierte Eingaben werden konservativ auf 30.000 Bytes für Status plus die längste Frage begrenzt, und 60.000 Bytes über die vollständige Anfrage, um innerhalb von [Jevs Kontextgrenzen](https://docs.typesafe.ai/models) zu bleiben. Automatisierte Scores sind Modellurteile und erfordern weiterhin Kalibrierung gegenüber zweisprachiger menschlicher Überprüfung.
 
-Die Evaluierungs-Konfiguration und Rubrik-Version sind in Übersetzungs-Lockfiles enthalten. Das Aktivieren der Evaluation, das Ändern von Modellen oder Schwellenwerten oder das Entfernen der Evaluation macht vorherige Übersetzungen für den nächsten Lauf veraltet. Provider-Schlüssel werden von Lockfiles ausgeschlossen.
+Die Evaluator-Konfiguration und die Rubrik-Version nehmen an Übersetzungs-Lockdateien teil. Aktivierung der Bewertung, Änderung von Modellen oder Schwellenwerten oder Entfernen der Bewertung macht frühere Übersetzungen für den nächsten Lauf veraltet. Anbieter-Schlüssel sind von Lockdateien ausgenommen.
 
-## Die menschliche Prüfgrenze
+## Die menschliche Überprüfungsantige
 
-Modellausgabe ist vorgeschlagene Arbeit, kein automatischer Merge. Setup und Übersetzungsaktivität bleibt in Glossia sichtbar, während Repository-Änderungen über einen Pull Request veröffentlicht werden, damit das Team überprüfen kann. Dies bewahrt dieselbe Qualitäts- und Eigentums-Grenze, die Teams bereits für Code verwenden.
+Modell-Ausgabe ist vorgeschlagene Arbeit, kein automatisches Zusammenführen. Setup- und Übersetzungsaktivität bleibt in Glossia sichtbar, während Repository-Änderungen über eine Pull-Anfrage veröffentlicht werden, damit das Team sie überprüfen kann. Dies bewahrt die gleiche Qualitäts- und Besitzgrenze, die Teams bereits für Code verwenden.

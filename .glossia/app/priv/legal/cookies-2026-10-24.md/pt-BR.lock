@@ -1,0 +1,122 @@
+{
+  "baseline_schema_version": 1,
+  "hash": "41fb32747364a3abc897d1ef6bcbdd19b34d5b652834c1ef2da4999e91380b07",
+  "hash_tree": {
+    "root": {
+      "children": [
+        {
+          "children": [],
+          "hash": "5c2c7b65383d414174b7a825165a68b4e45c7780bde7919d761dc7055bc543b5",
+          "kind": "source",
+          "label": "app/priv/legal/cookies-2026-10-24.md",
+          "metadata": {
+            "content_hash": "903999f30e1db08f0130a488e9b39bcbe32f323ce5a7fb1edcad63e017ba8bc7"
+          }
+        },
+        {
+          "children": [],
+          "hash": "c026d8712383029009d95e5a9b53588fc4d1d713b60dc020ea0f9880685052d1",
+          "kind": "translation_config",
+          "label": "generation",
+          "metadata": {
+            "custom_prompt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "format": "markdown",
+            "frontmatter_mode": "translate",
+            "language": "pt-BR",
+            "locale": "pt-BR",
+            "model": "",
+            "preserve": [],
+            "prompt_version": 8,
+            "provider": "",
+            "retries": 3,
+            "segmentation_version": 1,
+            "source_language": "en",
+            "validation_hash": "064760dc472b525acbc80c5ce08973a94fc7a5b06ba42cfab835324c7c048924"
+          }
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "hash": "f0c27b854008ce7ef48269143dad913306d87c7f6f1e842392ddb87197db2b8b",
+              "kind": "context",
+              "label": "project",
+              "metadata": {
+                "content_hash": "90d5c8d3a12196bbfdfc18e2935d8114faf6f8bcc875c7bfff1aaf6a5cc99f5d"
+              }
+            },
+            {
+              "children": [],
+              "hash": "a92a1d3a18c1e1be86e613b194613064b411b73893253185405d19abfb685e7d",
+              "kind": "context",
+              "label": "locale",
+              "metadata": {
+                "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              }
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "hash": "1ce1060bb675f8cc75ef107e56162abcff4ca3e6f9f3adcd41022326a1dff73e",
+                  "kind": "context",
+                  "label": "voice",
+                  "metadata": {
+                    "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126"
+                  }
+                },
+                {
+                  "children": [],
+                  "hash": "70a46d36422990ac658b3e9615b5a3ec8c9ab24e53c20ac6e06aaafb9ac57183",
+                  "kind": "context",
+                  "label": "terminology",
+                  "metadata": {
+                    "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+                  }
+                }
+              ],
+              "hash": "dcebe04e5b7d13287ceb7e484de7b00a697c7ae291f406ec32563e84ccfe7c11",
+              "kind": "server_context",
+              "label": "organization",
+              "metadata": {
+                "compiler_version": 3,
+                "selector_version": 2
+              }
+            }
+          ],
+          "hash": "f80c234aa8b77bbb91f7d7d99698183dc8fe9113d9066582b99f7012a7f19e58",
+          "kind": "context_bundle",
+          "label": "context",
+          "metadata": {}
+        }
+      ],
+      "hash": "41fb32747364a3abc897d1ef6bcbdd19b34d5b652834c1ef2da4999e91380b07",
+      "kind": "translation_input",
+      "label": "app/priv/legal/cookies-2026-10-24.md",
+      "metadata": {}
+    }
+  },
+  "model": "",
+  "output_hash": "51c4cd57f7550fadeb2a03c5360c2c4fc5dcdd84c388aff7c52719dc9f2df708",
+  "output_path": "app/priv/i18n/pt-BR/legal/cookies-2026-10-24.md",
+  "protection_state": "recorded",
+  "provider": "",
+  "server_context": {
+    "compiler_version": 3,
+    "glossary": {
+      "applied": [],
+      "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "shadowed": [],
+      "version": null
+    },
+    "selector_version": 2,
+    "voice": {
+      "content_hash": "12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126",
+      "version": null
+    }
+  },
+  "source_commit_sha": "07ec458de27b67405f5483e5735e0896c6538861",
+  "source_path": "app/priv/legal/cookies-2026-10-24.md",
+  "translated_at": "2026-10-26T17:52:25.146683Z",
+  "translation_session_id": "01a17929-32ae-7db6-b5ff-862304be0a86"
+}

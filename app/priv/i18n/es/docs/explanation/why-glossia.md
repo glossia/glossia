@@ -1,51 +1,51 @@
 %{
   title: "¿Por qué Glossia?",
   summary:
-    "Un sistema operativo para idiomas que mantiene el contenido, el contexto y la revisión alineados con la entrega continua.",
+    "Un sistema operativo de idiomas que mantiene contenido, contexto y revisión alineados con entrega continua.",
   category: "explicación",
   section: "translation",
   order: 1
 }
 ---
 
-Un producto puede lanzarse de manera continua mientras sus traducciones permanecen atascadas en un ciclo de lanzamiento separado. Los cambios del contenido fuente ocurren en Git, alguien lo exporta a un sistema de traducción, los editores trabajan allí, y alguien importa el resultado. El producto y sus versiones de idioma se alejan entre sí.
+Un producto puede lanzarse continuamente mientras sus traducciones permanecen atrapadas en un ciclo de lanzamiento separado. El contenido fuente cambia en Git, alguien lo exporta a un sistema de traducción, los editores trabajan allí, y alguien importa el resultado. El producto y sus versiones del idioma divergen.
 
-Glossia es un sistema operativo de idiomas construido alrededor de una premisa diferente: el trabajo lingüístico debe seguir el mismo bucle de entrega versionado y revisable que el propio producto.
+Glossia es un sistema operativo para el idioma construido alrededor de una premisa diferente: el trabajo lingüístico debe seguir el mismo ciclo de entrega versionado y revisable que el propio producto.
 
-## ## El problema es más grande que la traducción
+## El problema es más grande que la traducción
 
-Los equipos necesitan preservar el significado, aplicar la terminología, coincidir con el tono de la audiencia y actualizar el contenido a medida que evoluciona el producto. Esas decisiones afectan a la documentación, las cadenas de la interfaz de usuario, las páginas de marketing y la escritura generada por los agentes por igual.
+Los equipos deben preservar el significado, aplicar la terminología, adaptar el tono a la audiencia y actualizar el contenido a medida que evoluciona el producto. Esas decisiones afectan a la documentación, las cadenas de la interfaz de usuario, las páginas de marketing y la redacción generada por agentes por igual.
 
-Un modelo puede producir un borrador útil. Por sí solo, no conoce las decisiones lingüísticas de tu organización, registra por qué cambió una frase, valida tus formatos de archivo o sincroniza la siguiente revisión de origen. Repetir un prompt no es un sistema de entrega.
+Un modelo puede producir un borrador útil. Sin embargo, por sí solo, no conoce las decisiones lingüísticas de su organización, registra por qué cambió una frase, valida los formatos de archivo ni sincroniza la siguiente revisión de fuente. Repetir una instrucción no es un sistema de entrega.
 
-Glossia combina el contexto de idioma con la mecánica alrededor de la generación: configuración, detección de cambios, validación, recuperación de fallos, historial de revisiones y revisión.
+Glossia combina el contexto lingüístico con los mecanismos en torno a la generación: configuración, detección de cambios, validación, recuperación ante fallos, historial de revisiones y revisión.
 
-## ## El contenido se queda con el producto
+## El contenido permanece con el producto
 
-El repositorio permanece como la autoridad para el contenido publicado. Los archivos fuente, la configuración, las traducciones generadas y los cambios revisables pueden viajar a través de Git y pull requests. Los equipos no necesitan hacer que una interfaz de edición alojada sea la autoridad para cada oración antes de poder entregar una versión localizada.
+El repositorio sigue siendo la autoridad para el contenido publicado. Los archivos fuente, la configuración, las traducciones generadas y los cambios sujetos a revisión pueden viajar a través de Git y las pull requests. Los equipos no necesitan designar una interfaz de edición alojada como autoridad para cada frase antes de poder lanzar una versión localizada.
 
-Esto hace que los cambios de idioma sean visibles junto al cambio del producto que los motivó. Un revisor puede inspeccionar el diff, la CI puede validar la salida y la misma línea de entrega puede publicarla.
+Esto hace que los cambios lingüísticos sean visibles junto al cambio del producto que los motivó. Un revisor puede inspeccionar las diferencias, CI puede validar la salida y el mismo pipeline de entrega puede publicarla.
 
-Lee [Localización continua](./continuous-localization) para el modelo de entrega y [Propiedad del contenido](./content-ownership) para sus implicaciones de portabilidad.
+Lea [localización continua](./continuous-localization) para el modelo de entrega y [Propiedad del contenido](./content-ownership) para sus implicaciones de portabilidad.
 
-## ## El contexto es una entrada, no una jaula
+## El contexto es una entrada, no una jaula
 
-Las guías de voz y la terminología ayudan tanto a humanos como a agentes a escribir de manera consistente. Son decisiones lingüísticas reutilizables, no solo un conjunto propietario de pares de segmentos de origen-destino.
+La orientación de voz y la terminología ayudan tanto a los humanos como a los agentes a escribir de manera consistente. Son decisiones lingüísticas reutilizables, no solo una colección propietaria de pares de segmentos de origen a destino.
 
-Las memorias de traducción siguen siendo útiles para traducciones establecidas y contenido repetitivo. El punto no es descartarlas. El punto es evitar hacer que el formato de memoria de un proveedor o el flujo de trabajo de edición sea el único lugar donde puede vivir el conocimiento lingüístico de una empresa.
+Las memorias de traducción siguen siendo útiles para las traducciones consolidadas y el contenido repetitivo. No se trata de descartarlas. Se trata de evitar que el formato de memoria de un proveedor específico o el flujo de trabajo de edición sea el único lugar en el que el conocimiento lingüístico de una empresa pueda residir.
 
-## ## La mejora es un bucle
+## La mejora es un ciclo
 
-El modelo de refinamiento progresivo de Glossia utiliza hash de contenido para evitar trabajo redundante, ejecuta validación alrededor de las transformaciones y expone fallos para que una ejecución pueda recuperarse. Las correcciones humanas pueden informar la siguiente iteración en lugar de desaparecer en una generación aislada.
+El modelo de refinamiento progresivo de Glossia utiliza hashes de contenido para evitar trabajo redundante, ejecuta validaciones en las transformaciones y expone fallos para que una ejecución pueda recuperarse. Las correcciones humanas pueden informar la siguiente iteración en lugar de desaparecer en una generación aislada.
 
-El análisis de localización proporciona otra entrada: comprender los idiomas y los lugares que usa una audiencia puede ayudar a un equipo a decidir dónde invertir. Es evidencia para la priorización, no una promesa de que una traducción producirá crecimiento.
+El análisis de localización ofrece otra entrada: comprender los idiomas y los lugares que utiliza una audiencia puede ayudar a un equipo a decidir dónde invertir. Es evidencia para la priorización, no una promesa de que una traducción generará crecimiento.
 
-## ## A quién va dirigido
+## A quién le conviene
 
-Glossia es especialmente relevante cuando los desarrolladores, lingüistas y equipos de producto quieren colaborar en contenido gestionado por repositorio y publicarlo de manera continua. No es una afirmación de que cada organización debería abandonar su TMS existente. Un equipo cuyo requisito central sea un editor basado en el navegador maduro, la coordinación con una agencia de traducción o una memoria establecida grande puede preferir otro flujo de trabajo.
+Glossia es especialmente relevante cuando los desarrolladores, los lingüistas y los equipos de producto desean colaborar en el contenido administrado por repositorio y lanzarlo continuamente. No se afirma que cada organización deba abandonar su TMS existente. Un equipo cuya necesidad central sea un editor maduro basado en el navegador, la coordinación con agencias de traducción o una memoria consolidada grande puede preferir otro flujo de trabajo.
 
-## ## Implementación inspeccionable
+## Implementación inspeccionable
 
-El código de Glossia está disponible públicamente, incluido su aplicación Phoenix, CLI de Rust, SDK web e infraestructura de despliegue. Eso hace que la mecánica del trabajo lingüístico sea inspeccionable en lugar de una caja negra.
+El código de Glossia está disponible públicamente, incluida su aplicación Phoenix, la CLI de Rust, el SDK web y la infraestructura de despliegue. Eso hace que los mecanismos del trabajo lingüístico sean inspeccionables en cambio de una caja negra.
 
-Glossia sigue un modelo de núcleo abierto. El núcleo utiliza [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), que permite el uso comercial, la modificación, la distribución, el autoalojamiento y los servicios alojados competidores conforme a sus términos. El código de `ee/` tiene una [licencia Enterprise](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) independiente: su código es visible, pero no es de código abierto, y su uso en producción requiere un acuerdo comercial por escrito.
+Glossia sigue un modelo open-core. El núcleo utiliza [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), lo que permite el uso comercial, el auto-alojamiento y los servicios hospedados competidores. El directorio `ee/` tiene una [Licencia empresarial](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md) separada que requiere un acuerdo comercial escrito para el uso en producción. Consulte la licencia aplicable antes de redistribuir u operar funciones empresariales.

@@ -97,7 +97,7 @@
     }
   },
   "model": "",
-  "output_hash": "dc8571f990e565afd9bc152db990fe83e7982b3151e98a0e7d42db6418c6e74f",
+  "output_hash": "469998884e4d9547fda40b7534abd215dbaa8cd9a9959a7b3ba106cb2fe9a953",
   "output_path": "app/priv/i18n/de/blog/2026-10-01-translation-is-the-easy-part.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "26830cdcfd6f490f114691d716513712dcf0b715",
+  "source_commit_sha": "1ac90e1d94bb5f37055065e97cb38e16d10d9525",
   "source_path": "app/priv/blog/2026-10-01-translation-is-the-easy-part.md",
-  "translated_at": "2026-10-25T19:30:23.407279Z",
-  "translation_session_id": "01a17483-888b-7240-a485-4b167654c2f3"
+  "translated_at": "2026-10-26T16:43:57.483918Z",
+  "translation_session_id": "01a17912-943b-74aa-ab23-d2762549ca15"
 }

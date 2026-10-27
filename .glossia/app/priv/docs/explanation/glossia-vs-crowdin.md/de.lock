@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "7e119a19464c54487b90b016594cb9d29cbabae984719ced5102f114930f8212",
+  "hash": "c46d6bb49421efcf383a8b629292064efbd12f5f6a66bc9851ee72ea02590bee",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "d516ed62d83cbf211c5d0b4feaf444d67850cedc92024f794a3288eeb576cac8",
+          "hash": "91ef5e1ab5135a28ceb0dad84477120586ecff9325399fcbd2833c4bd8467762",
           "kind": "source",
           "label": "app/priv/docs/explanation/glossia-vs-crowdin.md",
           "metadata": {
-            "content_hash": "f489553fc8e98f3e27499a96fec62c1e632bbb9713ac61fa1e5f4e342748f981"
+            "content_hash": "47debe71d62956d02f996bcde2967ad328f91a0dbdad2d973e314f7db85f3bff"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "7e119a19464c54487b90b016594cb9d29cbabae984719ced5102f114930f8212",
+      "hash": "c46d6bb49421efcf383a8b629292064efbd12f5f6a66bc9851ee72ea02590bee",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/glossia-vs-crowdin.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "9867ccefe54e874c06fd1a53d49aabf5ac588109cbdde8acffa744e897c6a32c",
+  "output_hash": "f1953e86b3f16758b2f10299917c413e4f4f4f154555de8c849d67a8a8338b30",
   "output_path": "app/priv/i18n/de/docs/explanation/glossia-vs-crowdin.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "4af8e3d7b56d9aa30ea1f330b414ee3a1ed1fec1",
+  "source_commit_sha": "1ac90e1d94bb5f37055065e97cb38e16d10d9525",
   "source_path": "app/priv/docs/explanation/glossia-vs-crowdin.md",
-  "translated_at": "2026-10-25T20:31:28.075225Z",
-  "translation_session_id": "01a174ad-9815-72eb-be16-f16f32338de0"
+  "translated_at": "2026-10-26T16:49:42.330074Z",
+  "translation_session_id": "01a17912-943b-74aa-ab23-d2762549ca15"
 }

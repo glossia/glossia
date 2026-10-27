@@ -1,73 +1,73 @@
 %{
   title: "Modèles de compte",
   summary:
-    "Pourquoi les fournisseurs de modèles sont configurés une fois par compte et référencés par handle.",
-  category: "Explication",
+    "Pourquoi les fournisseurs de modèles sont configurés une fois par compte et référencés par identifiant.",
+  category: "explication",
   section: "platform",
   order: 2
 }
 ---
 
-Glossia sépare les instructions du dépôt des identifiants du modèle-fournisseur. Les dépôts décrivent ce qui doit être traduit, tandis que les comptes déterminent quel [modèle de langage à grande échelle](https://en.wikipedia.org/wiki/Large_language_model) effectue le travail.
+Glossia sépare les instructions de dépôt des identifiants modèle-fournisseur. Les dépôts décrivent ce qui doit être traduit, tandis que les comptes décident quel [modèle de langage de grande taille](https://en.wikipedia.org/wiki/Large_language_model) effectue le travail.
 
-## Pourquoi les modèles appartiennent aux comptes
+## ## Pourquoi les modèles appartiennent aux comptes
 
-Une équipe traduit souvent plusieurs dépôts avec la même relation avec le fournisseur. Les modèles à portée de compte permettent aux administrateurs de changer la clé du fournisseur ou de basculer le modèle sous-jacent une fois sans modifier chaque dépôt.
+Une équipe traduit souvent plusieurs dépôts avec la même relation fournisseur. Les modèles à portée de compte permettent aux administrateurs de faire tourner une clé fournisseur ou de changer le modèle sous-jacent sans éditer chaque dépôt.
 
-Cette frontière garde également les identifiants hors de la source de contrôle. Un dépôt contient un identifiant lisible tel que `translation-default` , et non la clé du fournisseur.
+Cette frontière maintient également les identifiants hors du contrôle de source. Un dépôt contient un identifiant lisible tel que `translation-default`, pas la clé fournisseur.
 
-## Les poignées fournissent une intention stable
+## ## Les identifiants fournissent une intention stable
 
-Le champ `model` dans `L10N.md` fait référence à un identifiant de modèle du compte :
+Le `model` champ dans `L10N.md` fait référence à un identifiant de modèle de compte:
 
 ```yaml
 model: translation-default
 ```
 
-L'identifiant exprime l'intention du dépôt. Un administrateur peut plus tard mettre à jour quel modèle du fournisseur cet identifiant sélectionne, alors que la configuration du dépôt reste stable.
+L'identifiant exprime l'intention du dépôt. Un administrateur peut mettre à jour plus tard quel modèle fournisseur celui-ci sélectionne, tandis que la configuration du dépôt reste stable.
 
-## Comment plusieurs modèles sont utilisés
+## ## Comment plusieurs modèles sont utilisés
 
-Glossia utilise un modèle **génératif** configuré pour chaque traduction de document. Ajouter plusieurs modèles ne crée pas un ensemble, une chaîne de basculement, ni un niveau de qualité automatique. L'auteur du dépôt choisit son but à travers des poignées stables telles que `translation-default` , `long-form` , ou `japanese-specialist`.
+Glossia utilise un **modèle génératif** configuré pour chaque traduction de document. Ajouter plusieurs modèles ne crée pas un ensemble, une chaîne de secours ou un niveau de qualité automatique. L'auteur du dépôt choisit sa finalité via des identifiants stables tels que `translation-default`, `long-form` ou `japanese-specialist`.
 
-La sélection suit la hiérarchie de contexte pour le document et la cible locale :
+La sélection suit la hiérarchie de contexte pour le document et la cible locale:
 
-1. Le fichier `L10N/<locale>.md` le plus proche qui déclare `model` remporte pour cette cible locale.
-2. Sinon, le fichier `L10N.md` le plus proche qui déclare `model` remporte pour son répertoire.
-3. Les paramètres parent `L10N.md` sont hérités lorsqu'un fichier plus proche ne déclare pas un modèle.
-4. Lorsqu'aucun fichier de contexte applicable ne déclare un identifiant, Glossia utilise le modèle génératif par défaut du compte.
+1. Le fichier `L10N/<locale>.md` le plus proche qui déclare `model` gagne pour ce locale.
+2. Sinon, le fichier `L10N.md` le plus proche qui déclare `model` gagne pour son répertoire.
+3. Les paramètres `L10N.md` parent sont hérités lorsqu'un fichier plus proche ne déclare pas de modèle.
+4. Lorsqu'aucun fichier de contexte pertinent ne déclare d'identifiant, Glossia utilise le modèle génératif par défaut du compte.
 
-Un identifiant-configuré explicitement doit exister. Glossia signale une erreur pour un identifiant inconnu au lieu de passer silencieusement au modèle par défaut du compte.
+Un identifiant explicitement configuré doit exister. Glossia signale une erreur pour un identifiant inconnu au lieu de basculer silencieusement vers celui par défaut du compte.
 
-## Sélection par défaut
+## ## Sélection par défaut
 
-La configuration du projet a besoin d'un modèle avant qu'un dépôt n'ait sa propre `L10N.md`. Glossia sélectionne donc le modèle par défaut du compte. Le premier modèle ajouté à chaque catégorie devient le modèle par défaut de cette catégorie, et un administrateur peut faire d'un autre modèle le par défaut depuis la page de ses paramètres.
+Mise en place de projet nécessite un modèle avant qu'un dépôt n'ait son propre `L10N.md`. Glossia sélectionne donc le défaut du compte. Le premier modèle ajouté à chaque catégorie devient le défaut de cette catégorie, et un administrateur peut en faire un autre modèle par défaut depuis sa page de paramètres.
 
-Une fois qu'un dépôt a `L10N.md` , utiliser un identifiant explicite rend son choix clair pour les revues. L'omission de `model` maintient le dépôt sur le modèle par défaut du compte.
+Une fois qu'un dépôt a `L10N.md`, utiliser un identifiant explicite rend le choix clair pour les réviseurs. Omettre `model` maintient le dépôt sur le défaut du compte.
 
-## Modèles génératifs et décisionnels
+## ## Modèles génératifs et décisionnels
 
-Les configurations de modèle ont deux catégories :
+Les configurations de modèles ont deux catégories:
 
-- **Génératif** les modèles écrivent les traductions et actionnent la configuration de projet. Les identifiants de modèle de dépôt et les règles de routage de cible locale ne sélectionnent que cette catégorie.
-- **Décision** les modèles évaluent les traductions par rapport à une grille de qualité fixe. Lorsqu'un compte dispose d'un modèle décisionnel, son modèle décisionnel par défaut vérifie automatiquement chaque document de dépôt traduit après la validation structurelle et les traductions complètes, monodocumentaires depuis le point de terminaison de contenu. Les requêtes de fragment sont des primitives de génération ; les exécutions de dépôt évaluent leur produit assemblé.
+- Les **modèles génératifs** écrivent les traductions et propulsent la mise en place de projet. Les identifiants de modèle de dépôt et les règles de routage de locale ne sélectionnent que cette catégorie.
+- Les **modèles de décision** évaluent les traductions selon une grille de qualité fixe. Lorsqu'un compte a un modèle de décision, son modèle de décision par défaut vérifie automatiquement chaque document de dépôt traduit après validation structurelle et traductions complètes, un document à la fois, depuis l'endpoint de contenu. Les requêtes de fragment sont des primitives de génération; les exécutions de dépôt valident leur assemblage.
 
-Les catégories disposent de par défauts indépendants. L'ajout de Jev ne change jamais le modèle qui écrit vos traductions. Le premier modèle décisionnel active l'évaluation pour les cycles de traduction ultérieurs ; la suppression du dernier modèle désactive l'évaluation. Les comptes sans modèles décisionnels conservent leur comportement existant.
+Les catégories ont des par défauts indépendants. Ajouter Jev ne change jamais le modèle qui écrit vos traductions. Le premier modèle de décision active l'évaluation pour les exécutions de traduction ultérieures; supprimer le dernier désactive l'évaluation. Les comptes sans modèles de décision conservent leur comportement.
 
-Glossia prend actuellement en charge [TypeSafe Jev](https://docs.typesafe.ai/introduction) en tant que fournisseur de décision. Jev retourne des choix et des points prédéfinis au lieu de la prose. Glossia transforme les faiblesses de choix en indices de correction, sans les présenter comme des erreurs localisées ou indépendamment vérifiées.
+Glossia soutient actuellement [TypeSafe Jev](https://docs.typesafe.ai/introduction) comme fournisseur de décision. Jev renvoie des choix et des scores prédéfinis plutôt que du texte. Glossia convertit les choix de faiblesse en indices de correction, sans les présenter comme des erreurs localisées ou vérifiées indépendamment.
 
-## Contrôles de qualité et révisions
+## ## Contrôles de qualité et révisions
 
-L'évaluateur reçoit le source, la traduction, la cible locale, le format de contenu, les instructions de projet et le contexte d'organisation résolu. Il évalue la préservation de sens, la complétude, la terminologie, la fluidité, la cohérence du document, l'adéquation au but et au public, ainsi que la pertinence locale. La voix et le registre sont évalués lorsque la voix, le projet ou les instructions du document sont disponibles.
+L'évaluateur reçoit la source, la traduction, la locale cible, le format de contenu, les instructions de projet et le contexte d'organisation résolu. Il évalue la préservation du sens, la complétude, la terminologie, la fluidité, la cohérence du document, l'adéquation à la finalité et à l'auditoire, et l'adéquation locale. Le ton et le registre sont évalués lorsque des directives sur le ton, le projet ou le document sont disponibles.
 
-Chaque dimension doit atteindre le score minimum configuré, qui par défaut est de 7 sur 10. Un grave ou une erreur critique demande toujours une correction, sans considération du score. La confiance est incluse dans les événements d'évaluation en direct et ne change pas l'acceptation. Ces événements ne sont pas actuellement conservés ou affichés dans le tableau de bord. Un seuil de 10 nécessite un score pondéré parfait et est généralement trop strict.
+Chaque dimension doit atteindre le minimum de score configuré, qui par défaut est 7 sur 10. Une erreur majeure ou critique demande toujours une correction, indépendamment du score. La confiance est incluse dans les événements d'évaluation en direct et ne change pas l'acceptation. Ces événements ne sont actuellement pas conservés ou affichés dans le tableau de bord. Un seuil de 10 demande un score pondéré parfait et est généralement trop strict.
 
-Les dimensions échouées poussent leurs indices de correction prédéfinis dans la prochaine tentative de traduction. Le paramètre `retries` existant du dépôt limite ces révisions ; le point de terminaison de contenu autorise trois rééssais de correction, configurables de zéro à trois avec son champ `retries`. Le document révisé complet passe les vérifications structurelles et l'évaluation de qualité à nouveau avant d'être accepté.
+Les dimensions échouées alimentent leurs indices de correction prédéfinis dans la prochaine tentative de traduction. La configuration `retries` existante du dépôt borde ces révisions; l'endpoint de contenu permet trois réessais de correction, configurable de zéro à trois avec son champ `retries`. Le document révisé complet passe à nouveau les vérifications structurelles et l'évaluation de qualité avant d'être accepté.
 
-Les échecs transitoires du fournisseur réessaient avec backoff exponentiel jusqu'à trois fois ; les identifiants invalides et les réponses malformatées échouent immédiatement. Les échecs du fournisseur épuisés arrêtent la traduction du fichier ; la sortie non vérifiée n'est jamais acceptée. Les évaluations utilisent des documents complets, et une entrée d'évaluation trop grande est refusée plutôt que tronquée. L'entrée sérialisée est conservatrice limitée à 30 000 octets pour l'état plus la plus longue question, et 60 000 octets tout au long de la requête complète, pour rester dans [limites de contexte de Jev](https://docs.typesafe.ai/models) . Les scores automatisés sont un jugement de modèle et nécessitent encore une calibration par rapport à une revue bilingue humaine.
+Les échecs de fournisseur transitoires réessaient avec recul exponentiel jusqu'à trois fois; les identifiants invalides et les réponses malformées échouent immédiatement. Les échecs de fournisseur épuisés arrêtent la traduction du fichier; la sortie non vérifiée n'est jamais acceptée. Les évaluations utilisent des documents complets, et une entrée d'évaluation surdimensionnée est rejetée plutôt que tronquée. L'entrée sérialisée est conservatrice limitée à 30 000 octets pour l'état plus la question la plus longue, et 60 000 octets sur la demande complète, pour rester dans [limites de contexte de Jev](https://docs.typesafe.ai/models). Les scores automatisés sont des jugements de modèle et nécessitent toujours une calibration contre une revue humaine bilingue.
 
-La configuration de l'évaluateur et la version de la grille participent aux fichiers de verrouillage de traduction. Activer l'évaluation, changer des modèles ou des seuils, ou supprimer l'évaluation rend les traductions antérieures obsolètes pour le cycle suivant. Les clés fournisseurs sont exclues des fichiers de verrouillage.
+La configuration de l'évaluateur et la version de la grille participent aux fichiers de verrouillage de traduction. Activer l'évaluation, changer les modèles ou les seuils, ou retirer l'évaluation rend les traductions précédentes obsolètes pour la prochaine exécution. Les clés fournisseur sont exclues des fichiers de verrouillage.
 
-## La frontière de relecture humaine
+## ## La frontière de revue humaine
 
-La sortie du modèle est un travail proposé, pas une fusion automatique. L'activité de configuration et de traduction reste visible dans Glossia, tandis que les changements de dépôt sont publiés par une demande d'extraction pour que l'équipe la révise. Cela préserve la même frontière de qualité et de propriété d'équipe déjà utilisée pour le code.
+La sortie du modèle est du travail proposé, pas une fusion automatique. L'activité de configuration et de traduction reste visible dans Glossia, tandis que les changements de dépôt sont publiés via une Pull Request pour l'équipe à vérifier. Cela préserve la même limite de qualité et de propriété déjà utilisée par les équipes pour le code.

@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "4a2e2df80594b9f167f74db07253a540496f44604aabb3688d28a6633cbd9103",
+  "hash": "e8f346611c89f2f7247576881167c845bd910f6faab8b39d4b45ed7b14853138",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "9c8ac0537f64f5a531c4ab871aa0683c9a40619caa761bb7e24fce6a43d3a9d5",
+          "hash": "dbbb9cda8098fd05a80980a1d137aae5b9859963b9dcb7e4310986ebde06ce4b",
           "kind": "source",
           "label": "app/priv/docs/reference/translation-publication.md",
           "metadata": {
-            "content_hash": "a7b0bed3a85f57c9254d3df8246d9cdb61543ff5c2daf258df1ce09358a0c3f0"
+            "content_hash": "d2c9a9f8a06c12a52954189b2d232ac725c407d2e577128fe3ece110f3190362"
           }
         },
         {
@@ -67,15 +67,15 @@
                 },
                 {
                   "children": [],
-                  "hash": "70a46d36422990ac658b3e9615b5a3ec8c9ab24e53c20ac6e06aaafb9ac57183",
+                  "hash": "ea2167195b0aab99d3386e4f6db44094cd48916b7ba288bed69a4b11369983aa",
                   "kind": "context",
                   "label": "terminology",
                   "metadata": {
-                    "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+                    "content_hash": "25b97175b533acc2917139ffe72808afde46ec8fb2efcce87b0f6c06b360fd02"
                   }
                 }
               ],
-              "hash": "dcebe04e5b7d13287ceb7e484de7b00a697c7ae291f406ec32563e84ccfe7c11",
+              "hash": "5bf720fea610dca2194d4ede91d6bb69405f3e53b0505b7770821427113a9dd3",
               "kind": "server_context",
               "label": "organization",
               "metadata": {
@@ -84,28 +84,30 @@
               }
             }
           ],
-          "hash": "f5e82ede8d4b0959c24c9ac7e96b6b28f9a912488370cbce5a14521ad7647d86",
+          "hash": "16e994d7ab9a0a23d0c5b533427bbd30332042052d0647e31af6849eeb329c34",
           "kind": "context_bundle",
           "label": "context",
           "metadata": {}
         }
       ],
-      "hash": "4a2e2df80594b9f167f74db07253a540496f44604aabb3688d28a6633cbd9103",
+      "hash": "e8f346611c89f2f7247576881167c845bd910f6faab8b39d4b45ed7b14853138",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/translation-publication.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "9d9c54bcbec20d8d4a15c02451ad22d39a478311312e60edf218c6d5cf38c785",
+  "output_hash": "135ac22f13f4b46ee8d535b3ae2eac6e3f2b54190e2a046134f3520e5344c4c0",
   "output_path": "app/priv/i18n/es/docs/reference/translation-publication.md",
   "protection_state": "recorded",
   "provider": "",
   "server_context": {
     "compiler_version": 3,
     "glossary": {
-      "applied": [],
-      "content_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "applied": [
+        "repo:lockfile"
+      ],
+      "content_hash": "25b97175b533acc2917139ffe72808afde46ec8fb2efcce87b0f6c06b360fd02",
       "shadowed": [],
       "version": null
     },
@@ -115,8 +117,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
+  "source_commit_sha": "8a4210d2d0a92121ea500c0e991a33e3f0230c29",
   "source_path": "app/priv/docs/reference/translation-publication.md",
-  "translated_at": "2026-10-26T00:18:57.143511Z",
-  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
+  "translated_at": "2026-10-27T16:42:51.515505Z",
+  "translation_session_id": "01a17e3b-e2bb-7434-8992-5b5cdc54e9c4"
 }

@@ -3,9 +3,9 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_391b1cc67491732d" formatted="false">"%1$s %2$s"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_c7cbf81ce2899a3a" formatted="false">"%1$s / %2$s traduit"</string>
+    <string name="native_c7cbf81ce2899a3a" formatted="false">"%1$s / %2$s traduits"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_a10e0981d93b133e" formatted="false">"%1$s Actualisez la conversation avant de réessayer explicitement ; la décision peut déjà être enregistrée."</string>
+    <string name="native_a10e0981d93b133e" formatted="false">"%1$s Réactualisez la conversation avant de réessayer explicitement ; la décision peut déjà être enregistrée."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_debd3794fc2ca25e" formatted="false">"%1$s jours"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -13,23 +13,23 @@
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_9917cbf8075d0f37" formatted="false">"%1$s. %2$s. Ouvrir la conversation"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_4840ee205c78e386" formatted="false">"Une décision est en cours d'enregistrement. Attendez le résultat avant de quitter."</string>
+    <string name="native_4840ee205c78e386" formatted="false">"Une décision est enregistrée. Attendez le résultat avant de quitter."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_2fa7518ca5270013" formatted="false">"Un monde de compréhension"</string>
+    <string name="native_2fa7518ca5270013" formatted="false">"Un univers de compréhension"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_7e1b0d5641f2640c" formatted="false">"Compte"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_919bb4cb2182c322" formatted="false">"ID du compte"</string>
+    <string name="native_919bb4cb2182c322" formatted="false">"ID de compte"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_0689e32a7ec3a447" formatted="false">"Autoriser les notifications Glossia dans lesservices d'Android pour activer les alertes."</string>
+    <string name="native_0689e32a7ec3a447" formatted="false">"Autorisez les notifications Glossia dans Paramètres Android pour activer les alertes."</string>
     <!-- android/src/ai/glossia/mobile/TokiVoiceInput.kt -->
-    <string name="native_3cd264362c03ed7b" formatted="false">"Autoriser l'accès au microphone dans lesparamètres d'Android pour utiliser la dictée sur l'appareil."</string>
+    <string name="native_3cd264362c03ed7b" formatted="false">"Accès au micro dans Paramètres Android requis pour la dictée sur device."</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_69f2e5f981095e84" formatted="false">"Déjà à jour"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_662171c90652338c" formatted="false">"Une mise à jour est prête. Ouvrez Glossia pour la voir."</string>
+    <string name="native_662171c90652338c" formatted="false">"Mise à jour prête. Ouvrez Glossia pour la voir."</string>
     <!-- android/res/layout, android/res/menu, android/src/ai/glossia/mobile/GlossiaNavigation.kt, android/src/ai/glossia/mobile/GlossiaSession.kt, android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_94c116ee118a7299" formatted="false">"Analytiques"</string>
+    <string name="native_94c116ee118a7299" formatted="false">"Analyses"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_5b454a5ec511ff3c" formatted="false">"AndroidKeyStore"</string>
     <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
@@ -37,11 +37,11 @@
     <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
     <string name="native_5eebf1828971d514" formatted="false">"Langue de l'application : %1$s"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_7a16bc098c384817" formatted="false">"Approuvée par %1$s"</string>
+    <string name="native_7a16bc098c384817" formatted="false">"Approuvé par %1$s"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_dc70d73ff30abbc3" formatted="false">"Décision approuvée"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_f7c3b47055a1c9c9" formatted="false">"En attente d'une saisie linguistique"</string>
+    <string name="native_f7c3b47055a1c9c9" formatted="false">"En attente d'entrée linguistique"</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
     <string name="native_cf4f6f6c9d300e8a" formatted="false">"Balises BCP47, par exemple es, ar, zh-Hant"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
@@ -53,45 +53,45 @@
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_d353a99eb4556847" formatted="false">"Annulé"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_1dd3f46399ee2960" formatted="false">"Vérifier le ton du service client"</string>
+    <string name="native_1dd3f46399ee2960" formatted="false">"Vérifier le ton de soutien"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_e1e3912c7a2e55e7" formatted="false">"Vérifiez le ton du service client pour cet objectif (%1$s) : %2$s"</string>
+    <string name="native_e1e3912c7a2e55e7" formatted="false">"Vérifier le ton de soutien pour cet objectif (%1$s) : %2$s"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_c7f937836f5d82d5" formatted="false">"Choisir"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_d82fdc8c1494e2c8" formatted="false">"Utilisez Composer dans la barre d'outils pour démarrer une conversation avec Toki. Rien n'est envoyé tant que vous n'avez pas choisi Envoyer."</string>
+    <string name="native_d82fdc8c1494e2c8" formatted="false">"Choisissez Compose dans la barre d'outils pour lancer une conversation avec Toki. Aucune donnée n'est envoyée tant que vous n'choosez Envoyer."</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_bd2f848d07b03ab1" formatted="false">"Choisir des fichiers"</string>
+    <string name="native_bd2f848d07b03ab1" formatted="false">"Choisir les fichiers"</string>
     <!-- android/src/ai/glossia/mobile/TokiTextImport.kt -->
-    <string name="native_871bf5d3c170555f" formatted="false">"Choisir un fichier de texte UTF-8 d'une taille maximale de 16 Ko."</string>
+    <string name="native_871bf5d3c170555f" formatted="false">"Choisissez un fichier texte UTF-8 inférieur ou égal à 16 Ko."</string>
     <!-- android/src/ai/glossia/mobile/TokiTextImport.kt -->
-    <string name="native_402bd803910ebba9" formatted="false">"Choisir un fichier de texte UTF-8. Les fichiers binaires et les images ne sont pas pris en charge."</string>
+    <string name="native_402bd803910ebba9" formatted="false">"Choisissez un fichier texte UTF-8. Les fichiers binaires et les images ne sont pas supportés."</string>
     <!-- android/src/ai/glossia/mobile/TokiTextImport.kt -->
-    <string name="native_cb42cc0ed421ce66" formatted="false">"Choisir un fichier de texte UTF-8 qui n'est pas vide. Les fichiers binaires et les images ne sont pas pris en charge."</string>
+    <string name="native_cb42cc0ed421ce66" formatted="false">"Choisissez un fichier texte UTF-8 non vide. Les fichiers binaires et les images ne sont pas supportés."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_8ba607b13cd004a8" formatted="false">"Choisir un projet"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_995c08ae21a77c03" formatted="false">"Choisir un espace de travail"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_315624b57447fa48" formatted="false">"Choisissez une organisation et un projet ci-dessus\ntpour démarrer une conversation."</string>
+    <string name="native_315624b57447fa48" formatted="false">"Choisissez une organisation et un projet\ndessus pour lancer une conversation."</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_6cd7f3cfcd527712" formatted="false">"Choisissez une organisation et un projet ci-dessus pour voir vos conversations et en démarrer une nouvelle."</string>
+    <string name="native_6cd7f3cfcd527712" formatted="false">"Choisissez une organisation et un projet ci-dessus pour voir vos conversations et en lancer une nouvelle."</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
-    <string name="native_11f15d2945a1c91b" formatted="false">"Choisir une organisation pour voir ses projets."</string>
+    <string name="native_11f15d2945a1c91b" formatted="false">"Choisissez une organisation pour voir ses projets."</string>
     <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
-    <string name="native_bdb1df7e63362fc3" formatted="false">"Choisir la langue pour cette application. Cela ne change pas vos langues fluides."</string>
+    <string name="native_bdb1df7e63362fc3" formatted="false">"Choisissez la langue pour cette application. Cela ne change pas vos langues fluides."</string>
     <!-- android/res/layout, android/res/menu -->
-    <string name="native_94b211b56e22d4d9" formatted="false">"Choisir un espace de travail"</string>
+    <string name="native_94b211b56e22d4d9" formatted="false">"Choisir l'espace de travail"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_9e496f1dd6dbd48d" formatted="false">"ClickableViewAccessibility"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_7d9eb7acb13e2462" formatted="false">"Fermer"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_b322b65227bc3ec9" formatted="false">"Réduit"</string>
+    <string name="native_b322b65227bc3ec9" formatted="false">"Rétréci"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_724dcd659bae300c" formatted="false">"Comparer les exemples"</string>
+    <string name="native_724dcd659bae300c" formatted="false">"Comparer des exemples"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_37c6ae0d7712eebf" formatted="false">"Comparez les exemples pour cet objectif (%1$s) : %2$s"</string>
+    <string name="native_37c6ae0d7712eebf" formatted="false">"Comparer les exemples pour cet objectif (%1$s) : %2$s"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt, android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_22a970d2e5b1cc23" formatted="false">"Terminé"</string>
     <!-- android/res/layout, android/res/menu -->
@@ -101,131 +101,131 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_bbf70085e039651b" formatted="false">"Connexion aux mises à jour en direct…"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_0f2f376ae8f26413" formatted="false">"Poursuivre l'examen"</string>
+    <string name="native_0f2f376ae8f26413" formatted="false">"Continuer à revoir"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_ccca181757536587" formatted="false">"Conversation"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_19cd3398d0591398" formatted="false">"Impossible de finaliser la demande de manière sécurisée. Veuillez réessayer."</string>
+    <string name="native_19cd3398d0591398" formatted="false">"L'action ne peut pas être complétée en sécurité. Veuillez réessayer."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_77617ca9912b11fd" formatted="false">"Impossible de confirmer les langues fluides. Votre brouillon reste inchangé."</string>
+    <string name="native_77617ca9912b11fd" formatted="false">"Impossible de confirmer les langues fluides. Votre brouillon est inchangé."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_1e16e841f3a2c888" formatted="false">"Impossible de confirmer la décision enregistrée."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_eae9ad9b36d6f130" formatted="false">"Impossible de créer un lien de traduction. Essayez de partager à nouveau."</string>
+    <string name="native_eae9ad9b36d6f130" formatted="false">"Impossible de créer un lien de traduction. Essayez-à nouveau de partager."</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_b47b344b5ee0530d" formatted="false">"Impossible d'importer le fichier de texte. Votre brouillon reste inchangé."</string>
+    <string name="native_b47b344b5ee0530d" formatted="false">"Impossible d'importer le fichier de texte. Votre brouillon est inchangé."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_b9c2a78a46d9f2a4" formatted="false">"Impossible d'obtenir un jeton de notification. Les services Google Play et un projet Firebase configuré sont requis."</string>
+    <string name="native_b9c2a78a46d9f2a4" formatted="false">"Impossible d'obtenir un jeton de notification. Google Play services et un projet Firebase configuré sont requis."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_ff94844a3deff154" formatted="false">"Impossible d'ouvrir l'espace de travail lié. %1$s"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_53d3b8af43626e57" formatted="false">"Impossible d'ouvrir le fichier de texte. Votre brouillon reste inchangé."</string>
+    <string name="native_53d3b8af43626e57" formatted="false">"Impossible d'ouvrir le fichier de texte. Votre brouillon est inchangé."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_92dd6f1e4be1fd91" formatted="false">"Impossible de lire les paramètres de notification sécurisés."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_6991589e37baa96d" formatted="false">"Impossible de nettoyer la registration des notifications de manière sécurisée."</string>
+    <string name="native_6991589e37baa96d" formatted="false">"Impossible d'annuler la registration des notifications en sécurité."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_56244ef75ece74f4" formatted="false">"Impossible de désactiver les notifications de manière sécurisée. Réessayez avant de vous déconnecter."</string>
+    <string name="native_56244ef75ece74f4" formatted="false">"Impossible de désactiver les notifications en sécurité. Réessayez avant de vous déconnecter."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_59350707d79bb720" formatted="false">"Impossible de puissablement désactiver les notifications. Réessayez de vous déconnecter."</string>
+    <string name="native_59350707d79bb720" formatted="false">"Impossible de désactiver les notifications en sécurité. Réessayez la déconnexion."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_bc81eed8f9766bf4" formatted="false">"Impossible d'enregistrer la notification de manière sécurisée."</string>
+    <string name="native_bc81eed8f9766bf4" formatted="false">"Impossible d'enregistrer la registration des notifications en sécurité."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_8dea9dcf9786fff4" formatted="false">"Impossible d'enregistrer les paramètres de notification de manière sécurisée."</string>
+    <string name="native_8dea9dcf9786fff4" formatted="false">"Impossible d'enregistrer les paramètres de notification en sécurité."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_138a4ae1a20c1462" formatted="false">"Impossible de synchroniser les notifications. Retournez dans Glossia pour réessayer. %1$s"</string>
+    <string name="native_138a4ae1a20c1462" formatted="false">"Impossible de synchroniser les notifications. Retournez sur Glossia pour réessayer. %1$s"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_0023d97493d1f5ab" formatted="false">"Actuel : %1$s / %2$s"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaAppearance.kt -->
-    <string name="native_c668df228ae0a093" formatted="false">"DÉPRÉCATION"</string>
+    <string name="native_c668df228ae0a093" formatted="false">"OBSOLESCENCE"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_8e7ca387242cec0c" formatted="false">"Résumé de la décision"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
-    <string name="native_6b69f587519b7241" formatted="false">"Déconseillé sur Android"</string>
+    <string name="native_6b69f587519b7241" formatted="false">"Obsolète dans Android"</string>
     <!-- android/src/ai/glossia/mobile/TokiVoiceInput.kt -->
-    <string name="native_2798f229faea805b" formatted="false">"La dictée a atteint sa limite de temps. Votre brouillon manuscrit reste inchangé."</string>
+    <string name="native_2798f229faea805b" formatted="false">"La dictée a atteint sa limite de temps. Votre brouillon tapé est inchangé."</string>
     <!-- android/src/ai/glossia/mobile/TokiVoiceInput.kt -->
-    <string name="native_c0547c2cb297da39" formatted="false">"La dictée a été arrêtée. Votre brouillon manuscrit reste inchangé ; essayez à nouveau."</string>
+    <string name="native_c0547c2cb297da39" formatted="false">"La dictée a été arrêtée. Votre brouillon tapé est inchangé ; réessayez."</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
-    <string name="native_f9bfa3dc7c8fcdea" formatted="false">"Abandonner les modifications"</string>
+    <string name="native_f9bfa3dc7c8fcdea" formatted="false">"Annuler les modifications"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_3d2129b115793995" formatted="false">"Abandonner le brouillon de décision"</string>
+    <string name="native_3d2129b115793995" formatted="false">"Rejeter le brouillon de décision"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_b17f79a8a862494a" formatted="false">"Abandonner le brouillon de décision ?"</string>
+    <string name="native_b17f79a8a862494a" formatted="false">"Rejeter le brouillon de décision ?"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_96fd465eacf47330" formatted="false">"Abandonner la dictée"</string>
+    <string name="native_96fd465eacf47330" formatted="false">"Rejeter la dictée"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_12421a9fd32d4d4f" formatted="false">"Abandonner le travail local non envoyé"</string>
+    <string name="native_12421a9fd32d4d4f" formatted="false">"Rejeter le travail local non envoyé"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_f0268e6a5936fa96" formatted="false">"Abandonner le travail local non envoyé ?"</string>
+    <string name="native_f0268e6a5936fa96" formatted="false">"Rejeter le travail local non envoyé ?"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_58ff3402104158c0" formatted="false">"Abandonner le travail local"</string>
+    <string name="native_58ff3402104158c0" formatted="false">"Rejeter le travail local"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_43e29b3ed8bfc1d5" formatted="false">"Abandonner le message non envoyé"</string>
+    <string name="native_43e29b3ed8bfc1d5" formatted="false">"Rejeter le message non envoyé"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_4c82fde06e0ce332" formatted="false">"Discutez de chaque objectif dans sa conversation Toki partagée par le projet, puis enregistrez explicitement la décision convenue pour reprendre les travaux affectés dans une nouvelle traduction."</string>
+    <string name="native_4c82fde06e0ce332" formatted="false">"Discutez de chaque objectif dans la conversation Toki partagée par projet, puis enregistrez explicitement la décision arrêtée pour reprendre le travail affecté dans une nouvelle traduction."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_41347dfb4e90ac0b" formatted="false">"Discuter avec Toki"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_48845bff334a50a5" formatted="false">"Fermer"</string>
+    <string name="native_48845bff334a50a5" formatted="false">"Oublier"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_45f7b07697dfae67" formatted="false">"Brouillon · Enregistré sur cet appareil"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_b861fc6c117d1e45" formatted="false">"Modifier les langues fluides"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_969ccbd3cf6300ec" formatted="false">"E-mail"</string>
+    <string name="native_969ccbd3cf6300ec" formatted="false">"Courriel"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_8bbc995a5177c76e" formatted="false">"Activer les notifications push"</string>
+    <string name="native_8bbc995a5177c76e" formatted="false">"Activer les notifications"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_dac466d5e4deb54f" formatted="false">"Saisissez l'adresse HTTPS de votre serveur Glossia."</string>
+    <string name="native_dac466d5e4deb54f" formatted="false">"Entrez l'adresse HTTPS du serveur Glossia."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_9d165780db2799f3" formatted="false">"Tout mot, en mouvement"</string>
+    <string name="native_9d165780db2799f3" formatted="false">"Chaque mot, en mouvement"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_e72d5d8d0b167d21" formatted="false">"Développé"</string>
+    <string name="native_e72d5d8d0b167d21" formatted="false">"Déplié"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt, android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_031a8f0f659df890" formatted="false">"Échoué"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_b91bed18ec8e27ed" formatted="false">"Le déroulement du fichier apparaîtra lorsque le plan sera préparé."</string>
+    <string name="native_b91bed18ec8e27ed" formatted="false">"La progression du fichier apparaîtra lorsque le plan sera préparé."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_abc7e9892806b047" formatted="false">"Fichiers"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt, android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
     <string name="native_1c8ebe3becc2fe14" formatted="false">"Langues fluides"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_c2f16b30ab16a27a" formatted="false">"Recevez une alerte lorsque des traductions ou Toki réclament votre attention. Les alertes n'incluent jamais de contenu privé. Optionnel ; désactivez à tout moment."</string>
+    <string name="native_c2f16b30ab16a27a" formatted="false">"Recevez une alerte lorsque les traductions ou Toki ont besoin de votre attention. Les alertes ne contiennent jamais de contenu privé. Facultatif ; désactivez à tout moment."</string>
     <!-- android/res/layout, android/res/menu, android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_2c1526ca7ee29306" formatted="false">"Glossia"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_ed10c70b991acadb" formatted="false">"Glossia choisit le chemin le plus proche de L10N.md ou L10N/&lt;locale&gt;.md. Les conseils deviennent un diff à examiner dans le PR de traduction normal, jamais une modification directe du dépôt."</string>
+    <string name="native_ed10c70b991acadb" formatted="false">"Glossia choisit le chemin le plus proche L10N.md ou L10N/&lt;locale&gt;.md. Les directives deviennent un diff examiné dans la PR de traduction normale, jamais une modification directe du référentiel."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_ea169c3bb3f297fa" formatted="false">"Glossia pour Android"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_01d5c36add1e77c0" formatted="false">"Notifications Glossia"</string>
     <!-- android/src/ai/glossia/mobile/FeatureModels.kt -->
-    <string name="native_26706918d8ecf180" formatted="false">"Glossia a retourné une révision linguistique invalide."</string>
+    <string name="native_26706918d8ecf180" formatted="false">"Glossia a retourné une revue linguistique invalide."</string>
     <!-- android/src/ai/glossia/mobile/FeatureModels.kt -->
     <string name="native_a500f56162f899e9" formatted="false">"Glossia a retourné une conversation partagée invalide."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_7c739c5388e0312d" formatted="false">"Glossia a retourné une conversation partagée invalide. Actualiser pour réessayer."</string>
+    <string name="native_7c739c5388e0312d" formatted="false">"Glossia a retourné une conversation partagée invalide. Réactualisez pour réessayer."</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_a29321760b4f0483" formatted="false">"Objectif fermé. Votre décision et vos conseils non enregistrés sont conservés ; copiez-les ou détruisez-les explicitement."</string>
+    <string name="native_a29321760b4f0483" formatted="false">"Objectif fermé. Votre décision et vos directives non enregistrées sont conservées ; copiez ou rejetez explicitement."</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_03a31f4b9d9a0df2" formatted="false">"Objectif indisponible. Actualisez la conversation pour vérifier l'accès."</string>
+    <string name="native_03a31f4b9d9a0df2" formatted="false">"Objectif indisponible. Réactualisez la conversation pour vérifier l'accès."</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_b311977c0d80e30c" formatted="false">"Conseils proposés pour examen dans le PR"</string>
+    <string name="native_b311977c0d80e30c" formatted="false">"Directive proposée pour l'examen PR"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_fa04ae3d5198bd40" formatted="false">"Gérer"</string>
     <!-- android/src/ai/glossia/mobile/TokiCompanionView.kt -->
-    <string name="native_e6fb849d28725259" formatted="false">"Ravi de vous voir"</string>
+    <string name="native_e6fb849d28725259" formatted="false">"Content de vous voir"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_aa82031fea8df929" formatted="false">"Aidez-moi à démarrer"</string>
+    <string name="native_aa82031fea8df929" formatted="false">"M'aider à démarrer"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_d0f3bb92fd4b5450" formatted="false">"Bonjour, je suis Toki"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_c262a19c535501df" formatted="false">"Exécution historique · saisie linguistique répondu"</string>
+    <string name="native_c262a19c535501df" formatted="false">"Exécution historique · entrées linguistiques répondues"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_ebeb6456d7f73504" formatted="false">"L'envoi d'images n'est pas disponible. Choisissez un fichier de texte UTF-8 à la place."</string>
+    <string name="native_ebeb6456d7f73504" formatted="false">"Les envois d'images ne sont pas disponibles. Choisissez un fichier texte UTF-8."</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_7d89dcb70f2f2dfc" formatted="false">"Importer un fichier de texte ; les images non disponibles"</string>
+    <string name="native_7d89dcb70f2f2dfc" formatted="false">"Importer un fichier texte ; images indisponibles"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_f4482b894fa2cebe" formatted="false">"Règle réutilisable indépendante"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
@@ -237,33 +237,33 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_318655cea4bd2096" formatted="false">"Langues"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
-    <string name="native_80a3f42965acea02" formatted="false">"Dernière valeur connue : %1$s. Ouvrez Glossia pour mettre à jour."</string>
+    <string name="native_80a3f42965acea02" formatted="false">"Dernière fois : %1$s. Ouvrez Glossia pour rafraîchir."</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
-    <string name="native_321908411f03f5a7" formatted="false">"Dernier travail Toki observé. Ouvrez Glossia pour mettre à jour lorsque l'application n'est pas active."</string>
+    <string name="native_321908411f03f5a7" formatted="false">"Travail Toki observé. Ouvrez Glossia pour rafraîchir lorsque l'app n'est pas active."</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
-    <string name="native_3db8ce043f1467ba" formatted="false">"Dernière observation : %1$s"</string>
+    <string name="native_3db8ce043f1467ba" formatted="false">"Dernière fois : %1$s"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_8ece6158f988da80" formatted="false">"Linguiste"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_2ea9243d479b59d3" formatted="false">"Objectifs linguistiques"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_af19285940a75576" formatted="false">"Saisie linguistique répondue"</string>
+    <string name="native_af19285940a75576" formatted="false">"Entrées linguistiques répondues"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_56bf4f9913500179" formatted="false">"Mises à jour en direct"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_418a0b41f3b06fcc" formatted="false">"Mises à jour en direct en pause"</string>
+    <string name="native_418a0b41f3b06fcc" formatted="false">"Les mises à jour en direct sont suspendues"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_5b40f0411534a6b8" formatted="false">"Mises à jour en direct non disponibles"</string>
+    <string name="native_5b40f0411534a6b8" formatted="false">"Les mises à jour en direct ne sont pas disponibles"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_ac8991ef01019cf5" formatted="false">"Charger plus"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_3e09212128d9b2b0" formatted="false">"Chargement des insights du public…"</string>
+    <string name="native_3e09212128d9b2b0" formatted="false">"Chargement des insights sur l'audience…"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_1eec1dfc13a43e8f" formatted="false">"Chargement des conversations…"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_5eb1e4a3be4147b4" formatted="false">"Chargement de la conversation…"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_1f169558e301913b" formatted="false">"Chargement des revues linguistiques…"</string>
+    <string name="native_1f169558e301913b" formatted="false">"Chargement de revues linguistiques…"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_f5d7beb0a27c1f57" formatted="false">"Chargement du profil…"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
@@ -277,21 +277,21 @@
     <!-- android/res/layout, android/res/menu -->
     <string name="native_0eb92c0d19c93dfb" formatted="false">"Chargement de l'espace de travail"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_bb9c9644eaa21fcc" formatted="false">"Le travail local non envoyé a été abandonné. Un message déjà reçu par le serveur peut toutefois achever. Ouvrez le lien à nouveau lorsque vous êtes prêt."</string>
+    <string name="native_bb9c9644eaa21fcc" formatted="false">"Le travail local non envoyé a été rejeté. Un message déjà reçu par le serveur peut toujours être complété. Ouvrez le lien à nouveau lorsque vous êtes prêt."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_8fe2f15411762bc5" formatted="false">"Visites déficit locales"</string>
+    <string name="native_8fe2f15411762bc5" formatted="false">"Visites de lacunes de i18n"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_9d6322c1f4d9d3f3" formatted="false">"Se connecter"</string>
+    <string name="native_9d6322c1f4d9d3f3" formatted="false">"Connexion"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_cc07e81259a47184" formatted="false">"Toki…"</string>
+    <string name="native_cc07e81259a47184" formatted="false">"Discuter avec Toki…"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_dcd1d5223f73b3a9" formatted="false">"Nom"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt, android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_396c946f0c795aa6" formatted="false">"Nouvelle conversation"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_b7c03347b1e60d6a" formatted="false">"Aucune application n'est disponible pour partager ce lien de traduction."</string>
+    <string name="native_b7c03347b1e60d6a" formatted="false">"Aucune app disponible pour partager ce lien de traduction."</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_555e68788c6f2da9" formatted="false">"Aucun navigateur n'est disponible pour une connexion sécurisée."</string>
+    <string name="native_555e68788c6f2da9" formatted="false">"Aucun navigateur disponible pour une connexion sécurisée."</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_0d60084f056eb4cf" formatted="false">"Aucune conversation encore"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -307,15 +307,15 @@
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_0359b7c67916c885" formatted="false">"Aucune organisation"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_2f36c2b5e0835d1d" formatted="false">"Aucun nombre de visites pour cette période. Les données apparaîtront après que votre tracker ait reçu des visites."</string>
+    <string name="native_2f36c2b5e0835d1d" formatted="false">"Aucune pageview dans cette période. Les données apparaîtront après que votre tracker ait reçu des visites."</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_f34c2be0d1c5f562" formatted="false">"Aucun projet"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_0a1bd960d5e32b63" formatted="false">"Aucun projet dans cette organisation. Choisissez une autre organisation ou créez un projet sur Glossia."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_285f08d4923b040a" formatted="false">"Aucune connexion en attente. Lancez une nouvelle connexion."</string>
+    <string name="native_285f08d4923b040a" formatted="false">"Aucune connexion n'attend. Lancez une nouvelle connexion."</string>
     <!-- android/src/ai/glossia/mobile/TokiVoiceInput.kt -->
-    <string name="native_8b7e280a7241f778" formatted="false">"Aucun discours n'a été capturé. Votre brouillon tapé reste inchangé."</string>
+    <string name="native_8b7e280a7241f778" formatted="false">"Aucun speech capturé. Votre brouillon tapé est inchangé."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_15b7baaf1065a879" formatted="false">"Aucun résumé n'est disponible pour cette traduction."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -323,31 +323,31 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_fafddbba06ac3a37" formatted="false">"Aucun travail de traduction requis"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_557832355c8534ab" formatted="false">"Aucun sélectionné"</string>
+    <string name="native_557832355c8534ab" formatted="false">"Aucune sélection"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_67a926f7008e2b0e" formatted="false">"Non disponible"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_0303e18246708180" formatted="false">"Non connecté"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_67e2f1583da2ddb3" formatted="false">"Les notifications sont désactivées localement. L' nettoyage du serveur réessaiera à votre prochaine connexion."</string>
+    <string name="native_67e2f1583da2ddb3" formatted="false">"Les notifications sont désactivées localement. La mise en propre du serveur se réessaiera à votre prochaine connexion."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_ba17c83fe79b5df6" formatted="false">"Les notifications sont hors ligne. Autoriser les notifications Glossia dans les services d'Android pour activer les alertes."</string>
+    <string name="native_ba17c83fe79b5df6" formatted="false">"Les notifications sont désactivées. Autorisez les notifications Glossia dans Paramètres Android pour activer les alertes."</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_565339bc4d33d728" formatted="false">"OK"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
     <string name="native_64fa8a14a90feef5" formatted="false">"Observé"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
-    <string name="native_d8f42b6ec0385a7e" formatted="false">"Observé pendant %1$s"</string>
+    <string name="native_d8f42b6ec0385a7e" formatted="false">"Observé pour %1$s"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_8617effba434b6cc" formatted="false">"Obtention d'un jeton de notification expirée. Retournez dans Glossia pour réessayer."</string>
+    <string name="native_8617effba434b6cc" formatted="false">"Le délai d'attente pour l'obtention d'un jeton de notification a expiré. Retournez sur Glossia pour réessayer."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_ca7981b46ecf2c17" formatted="false">"Hors ligne"</string>
+    <string name="native_ca7981b46ecf2c17" formatted="false">"Off"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_130011756125313c" formatted="false">"En ligne"</string>
+    <string name="native_130011756125313c" formatted="false">"On"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_5ae3ddc35d9bf4a3" formatted="false">"La dictée sur l'appareil n'est pas disponible sur cet appareil. Vous pouvez tout de même taper."</string>
+    <string name="native_5ae3ddc35d9bf4a3" formatted="false">"La dictée sur device n'est pas disponible sur cet appareil. Vous pouvez toujours taper."</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
-    <string name="native_f7f0cd6dca9a0541" formatted="false">"Ouvrez Glossia pour voir l'état le plus récent."</string>
+    <string name="native_f7f0cd6dca9a0541" formatted="false">"Ouvrez Glossia pour afficher le dernier statut."</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_f1f10e75e39800cf" formatted="false">"Ouvrir la conversation Toki partagée"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt, android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
@@ -355,15 +355,15 @@
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_2fdb1d1e6e68427d" formatted="false">"Organisation : %1$s ▾"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_de7f62a5818c31e1" formatted="false">"Visites de pages"</string>
+    <string name="native_de7f62a5818c31e1" formatted="false">"Pageviews"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_02819ca3dee51a23" formatted="false">"Participants : %1$s"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
     <string name="native_331551b0de4157c9" formatted="false">"En attente"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_a508f4c84fae80b9" formatted="false">"Bibliothèque Photo indisponible : ce serveur n'appuie que le texte"</string>
+    <string name="native_a508f4c84fae80b9" formatted="false">"Bibliothèque Photo non disponible : ce serveur supporte le texte uniquement"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_1e13e0944485db8c" formatted="false">"Reprenez où vous en étiez, ou utilisez Composer dans la barre d'outils pour démarrer quelque chose de nouveau."</string>
+    <string name="native_1e13e0944485db8c" formatted="false">"Reprenez là où vous vous êtes arrêté, ou utilisez Compose dans la barre d'outils pour commencer quelque chose de nouveau."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_d6f88b76e6755ed2" formatted="false">"Planification des traductions ; la progression n'est pas encore connue"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -375,17 +375,17 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_9859597853197476" formatted="false">"Projet"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_1ecc262a05069c51" formatted="false">"Proposer des conseils réutilisables"</string>
+    <string name="native_1ecc262a05069c51" formatted="false">"Proposer des directives réutilisables"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_e4ee3e35bce9e320" formatted="false">"Décision proposée"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_b0eb80189ca928a1" formatted="false">"Les notifications push ne sont pas configurées dans cette version."</string>
+    <string name="native_b0eb80189ca928a1" formatted="false">"Les notifications push ne sont pas configurées dans cette construction."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_67889ceb815e0f8e" formatted="false">"Notifications push · %1$s"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
-    <string name="native_a9f42ced863266cb" formatted="false">"Jeton push indisponible"</string>
+    <string name="native_a9f42ced863266cb" formatted="false">"Irreversible Push token"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt, android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_661ff40a07e037bb" formatted="false">"En file d'attente"</string>
+    <string name="native_661ff40a07e037bb" formatted="false">"Mis en file d'attente"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_d6d1ff3280a6db2c" formatted="false">"Prêt pour vos premiers mots"</string>
     <!-- android/src/ai/glossia/mobile/TokiCompanionView.kt -->
@@ -395,27 +395,27 @@
     <!-- android/src/ai/glossia/mobile/TokiWaveformView.kt -->
     <string name="native_d106f2a154a5e79d" formatted="false">"Enregistrement sur cet appareil"</string>
     <!-- android/res/layout, android/res/menu -->
-    <string name="native_0e91610117029a62" formatted="false">"Actualiser"</string>
+    <string name="native_0e91610117029a62" formatted="false">"Rafraîchir"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_2b3d8ae96dc54325" formatted="false">"Actualiser les analytiques"</string>
+    <string name="native_2b3d8ae96dc54325" formatted="false">"Rafraîchir les analyses"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_4de70629c17a3e89" formatted="false">"Actualiser l'objectif et la conversation"</string>
+    <string name="native_4de70629c17a3e89" formatted="false">"Rafraîchir l'objectif et la conversation"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_fe3f80f0e59e10a2" formatted="false">"Actualisez si la conversation a changé ; abandonnez cette proposition avant de résoudre une réponse plus récente."</string>
+    <string name="native_fe3f80f0e59e10a2" formatted="false">"Rafraîchissez si la conversation a changé ; rejetez cette proposition avant de résoudre une réponse plus récente."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_b32b3b55f102ef96" formatted="false">"Actualiser le profil"</string>
+    <string name="native_b32b3b55f102ef96" formatted="false">"Rafraîchir le profil"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_d7467d67176deb43" formatted="false">"Actualiser les examens"</string>
+    <string name="native_d7467d67176deb43" formatted="false">"Rafraîchir les revues"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_442c4b893915d8df" formatted="false">"Actualiser l'état"</string>
+    <string name="native_442c4b893915d8df" formatted="false">"Rafraîchir le statut"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_3bbacc99cd31e98f" formatted="false">"Actualiser pour vérifier la reprise de la traduction."</string>
+    <string name="native_3bbacc99cd31e98f" formatted="false">"Rafraîchir pour vérifier la traduction reprise."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_d13a132f498879cb" formatted="false">"Actualiser les traductions"</string>
+    <string name="native_d13a132f498879cb" formatted="false">"Rafraîchir les traductions"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_e6c5c7ec5c6b7b66" formatted="false">"La demande a échoué."</string>
+    <string name="native_e6c5c7ec5c6b7b66" formatted="false">"Échec de la demande."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
-    <string name="native_f0260beb241acc2f" formatted="false">"Réinitialiser la connexion sécurisée enregistrée"</string>
+    <string name="native_f0260beb241acc2f" formatted="false">"Réinitialiser la connexion enregistrée"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
     <string name="native_942087cc2d41e013" formatted="false">"Réessayer"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
@@ -429,11 +429,11 @@
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_9752be688eec3462" formatted="false">"Retour au brouillon"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_beaf31ea8ef3e061" formatted="false">"Examiner la décision"</string>
+    <string name="native_beaf31ea8ef3e061" formatted="false">"Revoir la décision"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_1ecd8ff24dc9885f" formatted="false">"Examiner mes traductions"</string>
+    <string name="native_1ecd8ff24dc9885f" formatted="false">"Revoir mes traductions"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_f4ccae29e1bb0c20" formatted="false">"En cours"</string>
+    <string name="native_f4ccae29e1bb0c20" formatted="false">"En cours d'exécution"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_bbaa7f7371ed7c54" formatted="false">"TRADUCTION SOURCE"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
@@ -445,21 +445,21 @@
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
     <string name="native_32303078474786bd" formatted="false">"Enregistrement des langues fluides…"</string>
     <!-- android/src/ai/glossia/mobile/TokiCompanionView.kt -->
-    <string name="native_6d995dba1af03739" formatted="false">"Dire bonjour"</string>
+    <string name="native_6d995dba1af03739" formatted="false">"Dir bonjour"</string>
     <!-- android/src/ai/glossia/mobile/TokiCompanionView.kt -->
-    <string name="native_6590828065cefb3a" formatted="false">"Dire bonjour à Toki"</string>
+    <string name="native_6590828065cefb3a" formatted="false">"Dir bonjour à Toki"</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
     <string name="native_9e079c7df9f105b9" formatted="false">"Rechercher des projets"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
     <string name="native_7c8255d8c91afd0c" formatted="false">"La connexion sécurisée s'ouvre dans votre navigateur."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_58c2a45efe928029" formatted="false">"Voyez qui vous parvenez, et qui attend encore."</string>
+    <string name="native_58c2a45efe928029" formatted="false">"Voir qui vous atteint, et qui attend encore."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_59ea38175202e61e" formatted="false">"Sélectionnez un projet ci-dessus pour explorer son public."</string>
+    <string name="native_59ea38175202e61e" formatted="false">"Sélectionnez un projet ci-dessus pour explorer son audience."</string>
     <!-- android/src/ai/glossia/mobile/WorkspacePickerView.kt -->
-    <string name="native_376ff4f44622a212" formatted="false">"Sélectionnez un projet pour changer d'espace de travail."</string>
+    <string name="native_376ff4f44622a212" formatted="false">"Sélectionnez un projet pour changer l'espace de travail."</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_509ee73650b18afd" formatted="false">"Serveur auto-hébergé"</string>
+    <string name="native_509ee73650b18afd" formatted="false">"Hébergé par soi-même"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_93a26b1eaff99b3a" formatted="false">"Envoyer un message"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
@@ -477,13 +477,13 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt, android/src/ai/glossia/mobile/GlossiaNavigation.kt -->
     <string name="native_549592e6a9aee21b" formatted="false">"Partager le lien de traduction"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_5fd4078f3fd2e7a9" formatted="false">"Conversation partagée indisponible. Actualiser les examens pour réessayer."</string>
+    <string name="native_5fd4078f3fd2e7a9" formatted="false">"Conversation partagée non disponible. Rafraîchissez les revues pour réessayer."</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_bfd402b2f6f38125" formatted="false">"Se connecter"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_e4145feac9fa99a6" formatted="false">"Connectez-vous à Glossia à nouveau pour voir cette traduction."</string>
+    <string name="native_e4145feac9fa99a6" formatted="false">"Connectez-vous à nouveau sur Glossia pour voir cette traduction."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_1aa4a786262d6093" formatted="false">"Connectez-vous à Glossia à nouveau."</string>
+    <string name="native_1aa4a786262d6093" formatted="false">"Connectez-vous à nouveau sur Glossia."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
     <string name="native_f7670670bd2cfc64" formatted="false">"Connectez-vous pour accéder à votre espace de travail et\ncollaborer avec votre équipe"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
@@ -491,49 +491,49 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_48f0d3d397d49f13" formatted="false">"Se déconnecter"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_7cf34b1e6c3ddcf6" formatted="false">"Contexte source et de traduction"</string>
+    <string name="native_7cf34b1e6c3ddcf6" formatted="false">"Contexte source et traduction"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_fe4cfa338bc2ccaa" formatted="false">"Démarrer une conversation sur cette traduction. Rien n'est envoyé tant que vous n'avez pas choisi Envoyer."</string>
+    <string name="native_fe4cfa338bc2ccaa" formatted="false">"Lancez une conversation sur cette traduction. Rien n'est envoyé tant que vous n'choosez Envoyer."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_ecbc89cd37a03734" formatted="false">"Commencé"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_1bd68550c40f53b3" formatted="false">"État non disponible"</string>
+    <string name="native_1bd68550c40f53b3" formatted="false">"Statut non disponible"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_64f22bb2f8e34bd9" formatted="false">"Arrêter la dictée et éditer le transcript"</string>
+    <string name="native_64f22bb2f8e34bd9" formatted="false">"Arrêter la dictée et modifier la transcription"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_8e76a94ac8320d51" formatted="false">"Résumé"</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_ec70b4a614bf5040" formatted="false">"Changer d'espace de travail"</string>
+    <string name="native_ec70b4a614bf5040" formatted="false">"Changer l'espace de travail"</string>
     <!-- android/src/ai/glossia/mobile/AppLanguageView.kt -->
-    <string name="native_b0459211f9f76871" formatted="false">"Défaut du système"</string>
+    <string name="native_b0459211f9f76871" formatted="false">"Par défaut du système"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_7a6926673c555300" formatted="false">"Touchez Toki pour dire bonjour"</string>
+    <string name="native_7a6926673c555300" formatted="false">"Cliquez sur Toki pour dire bonjour"</string>
     <!-- android/src/ai/glossia/mobile/TokiTextImport.kt -->
-    <string name="native_c68724ae798bc47b" formatted="false">"Le texte importé et le brouillon doivent tenir dans 4 000 caractères. Votre brouillon reste inchangé."</string>
+    <string name="native_c68724ae798bc47b" formatted="false">"Le texte importé et le brouillon doivent tenir dans 4 000 caractères. Votre brouillon est inchangé."</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_897179e6b05e3583" formatted="false">"La dernière réponse n'a pas achevé. Actualiser l'état ou envoyer un nouveau message."</string>
+    <string name="native_897179e6b05e3583" formatted="false">"La dernière réponse n'a pas été complétée. Rafraîchissez le statut ou envoyez un nouveau message."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_a26b32e5894d6061" formatted="false">"L'organisation ou le projet lié n'est pas accessible. Demandez l'accès à un administrateur d'espace de travail, puis ouvrez le lien à nouveau."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_1b09dd907cc1ac08" formatted="false">"La traduction source n'est plus accessible."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_ea40433e81a910e2" formatted="false">"L'espace de travail a changé. Terminez votre brouillon Toki ou votre message non confirmé avant de recharger."</string>
+    <string name="native_ea40433e81a910e2" formatted="false">"L'espace de travail a changé. Finissez votre brouillon Toki ou votre message non confirmé avant de recharger."</string>
     <!-- android/src/ai/glossia/mobile/FluentLanguagesView.kt -->
-    <string name="native_1c6a830804d0fa80" formatted="false">"Ces langues aident à inviter des linguistes autorisés dans la même conversation de révision partagée. Elles ne changent pas la langue de l'application ni n'accordent l'accès au projet."</string>
+    <string name="native_1c6a830804d0fa80" formatted="false">"Ces langues aident à inviter des linguistes autorisés dans la même conversation de revue partagée. Elles ne changent pas la langue de l'application ni ne donnent accès au projet."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_d962fc471046eaab" formatted="false">"Ce lien Glossia est invalide ou non pris en charge."</string>
+    <string name="native_d962fc471046eaab" formatted="false">"Ce lien Glossia est invalide ou non supporté."</string>
     <!-- android/src/ai/glossia/mobile/MainActivity.kt -->
-    <string name="native_833b743b31ef7870" formatted="false">"Cela efface tous les brouillons Toki locaux et les réessayes non confirmés. Les messages déjà reçus par le serveur peuvent encore achever. Cela ne supprime pas les conversations ni n'annule les travaux du serveur."</string>
+    <string name="native_833b743b31ef7870" formatted="false">"Cela efface tous les brouillons Toki locaux et les réessais non confirmés. Les messages déjà reçus par le serveur peuvent toujours être complétés. Cela ne supprime pas les conversations ou annule le travail du serveur."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_de8cfb5a3e2aec3e" formatted="false">"Cette conversation n'est plus disponible. Réessayez pour vérifier l'accès, ou démarrer une nouvelle conversation."</string>
+    <string name="native_de8cfb5a3e2aec3e" formatted="false">"Cette conversation n'est plus disponible. Réessayez pour vérifier l'accès, ou lancez une nouvelle conversation."</string>
     <!-- android/src/ai/glossia/mobile/FeatureModels.kt -->
-    <string name="native_1e705769f6d9e8cd" formatted="false">"Cet objectif est fermé. Votre décision et vos conseils non enregistrés sont conservés ci-dessous. Copiez-les ou détruisez le brouillon explicitement ; il ne peut pas être enregistré dans un objectif fermé."</string>
+    <string name="native_1e705769f6d9e8cd" formatted="false">"Cet objectif est fermé. Votre décision et vos directives non enregistrées sont conservées ci-dessous. Copiez ou rejetez explicitement le brouillon ; il ne peut pas être sauvegardé dans un objectif fermé."</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_531f837b1144c8c1" formatted="false">"Cet objectif n'est plus actuel. La chat et la résolution sont en lecture seule."</string>
+    <string name="native_531f837b1144c8c1" formatted="false">"Cet objectif n'est plus actuel. Discussion et résolution en lecture seule."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_69b94e8e4837d5d8" formatted="false">"Ce lien appartient à un serveur Glossia différent. Déconnectez-vous, connectez-vous à %1$s, puis ouvrez le lien à nouveau."</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_6e135109be03f2d6" formatted="false">"Cette localisation"</string>
+    <string name="native_6e135109be03f2d6" formatted="false">"Cette i18n locale"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_0a52fe0ce081cb70" formatted="false">"Cette organisation n'est plus disponible. Choisissez une autre organisation."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
@@ -543,9 +543,9 @@
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
     <string name="native_fca32040067f74d4" formatted="false">"Activité Toki"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
-    <string name="native_a4084b68000488b8" formatted="false">"Toki n'a pas pu finir. Ouvrez la conversation."</string>
+    <string name="native_a4084b68000488b8" formatted="false">"Toki n'a pas fini. Ouvrez la conversation."</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_b8a98f3361230935" formatted="false">"Toki n'a pas pu finir"</string>
+    <string name="native_b8a98f3361230935" formatted="false">"Toki n'a pas fini"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_c853de6455d0004a" formatted="false">"Toki réfléchit…"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
@@ -553,11 +553,11 @@
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
     <string name="native_a803ad3eb0e5bcad" formatted="false">"Trop de demandes. Veuillez réessayer."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_f1a1a6939db2c54b" formatted="false">"Langue principale du navigateur"</string>
+    <string name="native_f1a1a6939db2c54b" formatted="false">"Langue des navigateur supérieur"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_f33de7ab0f0f6533" formatted="false">"Pays principal"</string>
+    <string name="native_f33de7ab0f0f6533" formatted="false">"Meilleur pays"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_3515b818b5c95d73" formatted="false">"Pages principales"</string>
+    <string name="native_3515b818b5c95d73" formatted="false">"Vues principales"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_77e1e11c03107d5a" formatted="false">"Transcrire un message vocal"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
@@ -567,7 +567,7 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_d146f7b81608f119" formatted="false">"Éléments traduits : %1$s"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_a784a358b55c0df4" formatted="false">"Traduction des fichiers"</string>
+    <string name="native_a784a358b55c0df4" formatted="false">"Traduction de fichiers"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_244955302e2c23c4" formatted="false">"Activité de traduction pour votre projet."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -575,29 +575,29 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_50f25efd54dbed91" formatted="false">"Progression de la traduction"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt, android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_2987ee3535d7ff3f" formatted="false">"Session de traduction"</string>
+    <string name="native_2987ee3535d7ff3f" formatted="false">"Séance de traduction"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_214728cf53324f28" formatted="false">"Les sessions de traduction apparaîtront ici lorsque votre projet commence à traduire."</string>
+    <string name="native_214728cf53324f28" formatted="false">"Les sessions de traduction apparaîtront ici lorsque votre projet commencera à être traduit."</string>
     <!-- android/res/layout, android/res/menu, android/src/ai/glossia/mobile/GlossiaNavigation.kt, android/src/ai/glossia/mobile/GlossiaSession.kt, android/src/ai/glossia/mobile/MainActivity.kt -->
     <string name="native_266a41b90d4f831e" formatted="false">"Traductions"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_a0c2cc1374d94994" formatted="false">"Réessayez."</string>
+    <string name="native_a0c2cc1374d94994" formatted="false">"Réessayer."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaPushNotifications.kt -->
     <string name="native_a6d99209f7019b50" formatted="false">"Désactiver les notifications"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_344178c4f155b981" formatted="false">"Message non confirmé · Réessayage disponible"</string>
+    <string name="native_344178c4f155b981" formatted="false">"Message non confirmé · Réessayez disponible"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_8782c9e27e945ea5" formatted="false">"Comprendre mon public"</string>
+    <string name="native_8782c9e27e945ea5" formatted="false">"Comprendre mon audience"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_a8edb2959cd65e37" formatted="false">"Visiteurs uniques"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_b764cdc0eab71374" formatted="false">"Inconnu"</string>
     <!-- android/src/ai/glossia/mobile/TranslationReviewsView.kt -->
-    <string name="native_15eebb6f74cc8a5a" formatted="false">"État inconnu"</string>
+    <string name="native_15eebb6f74cc8a5a" formatted="false">"Status inconnu"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
     <string name="native_2a37f0319acb2e5f" formatted="false">"Message non envoyé conservé sur cet appareil"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_b8be8f419a1171b0" formatted="false">"Utilisez au maximum 4 000 caractères (%1$s)."</string>
+    <string name="native_b8be8f419a1171b0" formatted="false">"Utilisez jusqu'à 4 000 caractères (%1$s)."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_f53a3d76a5214b23" formatted="false">"Utilisez le sélecteur d'espace de travail ci-dessus pour voir ses traductions."</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
@@ -611,17 +611,17 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_9fe979aa46f80f65" formatted="false">"Visites dans une langue que votre projet n'offre pas encore."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_821d80ec4eb5371b" formatted="false">"En attente d'une saisie linguistique"</string>
+    <string name="native_821d80ec4eb5371b" formatted="false">"En attente d'entrée linguistique"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_d8a7070382cce76b" formatted="false">"En attente de permission…"</string>
+    <string name="native_d8a7070382cce76b" formatted="false">"En attente d'autorisation…"</string>
     <!-- android/src/ai/glossia/mobile/TokiCompanionView.kt -->
     <string name="native_1cdc7c9456cb6ed2" formatted="false">"Saluer"</string>
     <!-- android/src/ai/glossia/mobile/GlossiaViews.kt -->
     <string name="native_6dc5f34d889050b2" formatted="false">"Bienvenue sur Glossia"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_29cf5336179c0bbd" formatted="false">"Que voulez-vous discuter de cette traduction ?\nrrien n'est envoyé tant que vous n'avez pas choisi Envoyer."</string>
+    <string name="native_29cf5336179c0bbd" formatted="false">"Que voulez-vous discuter sur cette traduction ?\nRien n'est envoyé tant que vous n'choosez Envoyer."</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_28ff734e9722c069" formatted="false">"Projet complet"</string>
+    <string name="native_28ff734e9722c069" formatted="false">"Projet entier"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
     <string name="native_a92f0449a9f7235b" formatted="false">"En cours"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -635,27 +635,27 @@
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_d55d84957c47a7bb" formatted="false">"Vous · Envoi…"</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_84f0cd4cd061c106" formatted="false">"Votre approbation résout cette question. Les conseils sont uniquement proposés dans le PR de traduction pour examen."</string>
+    <string name="native_84f0cd4cd061c106" formatted="false">"Votre approbation règle cette question. La directive est seulement proposée dans la PR de traduction pour le просмотр."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_3ef3b689433715b1" formatted="false">"Votre public"</string>
+    <string name="native_3ef3b689433715b1" formatted="false">"Votre audience"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_92b94bd2e9e02195" formatted="false">"Votre compagnon pour chaque langue.\nSur quoi devons-nous travailler ensemble ?"</string>
+    <string name="native_92b94bd2e9e02195" formatted="false">"Votre compagnon pour chaque langue.\nÀ quoi allons-nous travailler ensemble ?"</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
     <string name="native_903532e033973e3d" formatted="false">"Vos conversations"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_9cb1a7438da71f7b" formatted="false">"Vos identifiants sont chiffrés avec Android Keystore. Se déconnecter efface votre espace de travail, vos conversations et vos brouillons depuis cette application."</string>
+    <string name="native_9cb1a7438da71f7b" formatted="false">"Vos identifiants sont cryptés avec Android KeyStore. La déconnexion vide votre espace de travail, vos conversations et brouillons de cette app."</string>
     <!-- android/src/ai/glossia/mobile/TokiGoalViews.kt -->
-    <string name="native_cc79effb18422360" formatted="false">"Votre décision et les conseils facultatifs n'ont pas été enregistrés."</string>
+    <string name="native_cc79effb18422360" formatted="false">"Votre décision et directives optionnelles non enregistrées."</string>
     <!-- android/src/ai/glossia/mobile/GlossiaSession.kt -->
-    <string name="native_b18368148b3aa106" formatted="false">"Votre brouillon ou réponse non confirmé reste en sécurité. Retournez pour le finir, ou abandonnez explicitement le travail local non envoyé, puis ouvrez le lien à nouveau."</string>
+    <string name="native_b18368148b3aa106" formatted="false">"Votre brouillon ou réponse non confirmée est en sécurité. Retournez le terminer, ou rejetez explicitement le travail local non envoyé, puis ouvrez le lien à nouveau."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_528d89ad72cba22e" formatted="false">"Votre profil"</string>
     <!-- android/src/ai/glossia/mobile/TokiNotifications.kt -->
     <string name="native_a17daa220def9ce0" formatted="false">"Votre réponse est prête. Ouvrez la conversation."</string>
     <!-- android/src/ai/glossia/mobile/TokiView.kt -->
-    <string name="native_996764a320badf68" formatted="false">"Votre brouillon de décision non enregistré est conservé. Examinez-le ou abandonnez-le explicitement avant de passer à une autre décision."</string>
+    <string name="native_996764a320badf68" formatted="false">"Votre brouillon de décision non enregistré est conservé. Relevez ou rejetez explicitement avant de commencer une autre décision."</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_8f1701c365574ec7" formatted="false">"en attente de saisie linguistique"</string>
+    <string name="native_8f1701c365574ec7" formatted="false">"en attente d'entrée linguistique"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_8b47045eb7b8ca42" formatted="false">"annulé"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
@@ -667,9 +667,9 @@
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_9b0f1b10aff55228" formatted="false">"planifié"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_d36be6494248ee06" formatted="false">"ajourné"</string>
+    <string name="native_d36be6494248ee06" formatted="false">"mis en file d'attente"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
-    <string name="native_c071cf5f5ed6f884" formatted="false">"en cours"</string>
+    <string name="native_c071cf5f5ed6f884" formatted="false">"en cours d'exécution"</string>
     <!-- android/src/ai/glossia/mobile/FeatureViews.kt -->
     <string name="native_bef6a4bb30a9d489" formatted="false">"à jour"</string>
 </resources>

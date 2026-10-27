@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "357c993d2489be55afba5c3d78d506c2fc75f216528439267fceed020c7005a7",
+  "hash": "bc50e669404f486e641891974bf56185ad9b638e47607e67ec050e41420520db",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "8d13d3dc510fbb5fe3434069734273d5b01e5881a90fa3425b7edd8ef7572802",
+          "hash": "2947ee8922a189a41419ecc232d352b9bdbcca9d6327642fcabd8b2023e5d980",
           "kind": "source",
           "label": "app/priv/docs/explanation/content-ownership.md",
           "metadata": {
-            "content_hash": "4049b9b66c2f3d2e35e234122ec58f0cd08727d9afb00cbfd595b0d754e66c6f"
+            "content_hash": "63348418024c6abe27ab902819d04eac4257ad058cfba3e9eaf3f99fd1530220"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "357c993d2489be55afba5c3d78d506c2fc75f216528439267fceed020c7005a7",
+      "hash": "bc50e669404f486e641891974bf56185ad9b638e47607e67ec050e41420520db",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/content-ownership.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "37f4eb8df74d9571b68a6ed2a652b3e34252a82f5b0c4d9b3209d1b3b027b725",
+  "output_hash": "6d6f285d0e33c0dc0e253e999f0815cd6a20573f2c7232f04924c9a5536c7078",
   "output_path": "app/priv/i18n/fr/docs/explanation/content-ownership.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "c33204ce58c039efb0399d698b8df3c53a1f9fa3",
+  "source_commit_sha": "1ac90e1d94bb5f37055065e97cb38e16d10d9525",
   "source_path": "app/priv/docs/explanation/content-ownership.md",
-  "translated_at": "2026-10-25T19:58:16.663304Z",
-  "translation_session_id": "01a17495-c385-7245-90c7-4dc8db7e5c7f"
+  "translated_at": "2026-10-26T16:39:14.562323Z",
+  "translation_session_id": "01a17912-943b-74aa-ab23-d2762549ca15"
 }

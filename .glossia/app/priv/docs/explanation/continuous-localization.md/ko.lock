@@ -97,7 +97,7 @@
     }
   },
   "model": "",
-  "output_hash": "ad2cc84a26cc4002b664fe8b2a2c76d66d54988db270785c1926951415d8b1cf",
+  "output_hash": "7e6c71c6f34fc079af56973e94a2b4e22fa7397f7688f7fff3f1ece620ff5bd0",
   "output_path": "app/priv/i18n/ko/docs/explanation/continuous-localization.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "c33204ce58c039efb0399d698b8df3c53a1f9fa3",
+  "source_commit_sha": "1ac90e1d94bb5f37055065e97cb38e16d10d9525",
   "source_path": "app/priv/docs/explanation/continuous-localization.md",
-  "translated_at": "2026-10-25T20:05:04.856426Z",
-  "translation_session_id": "01a17495-c385-7245-90c7-4dc8db7e5c7f"
+  "translated_at": "2026-10-26T16:46:43.334689Z",
+  "translation_session_id": "01a17912-943b-74aa-ab23-d2762549ca15"
 }

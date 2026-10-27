@@ -1,33 +1,35 @@
 %{
-  title: "Pourquoi l'analyse de localisation",
+  title: "Pourquoi les analyses de localisation",
   summary:
-    "Comment les signaux collectés se transforment en décisions de localisation et pourquoi la métrique d'écart est importante.",
+    "Comment les signaux collectés se traduisent en décisions de localisation, et pourquoi la métrique d'écart est importante.",
   category: "explication",
   section: "analytics",
   order: 2
 }
 ---
 
-Choisir quelle langue traduire ensuite est un pari : cela coûte du temps et de l'argent, et le rendement dépend de la demande que vous ne pouvez généralement pas voir. Les analyses de localisation rendent cette demande visible.
+Choisir la langue cible pour la traduction suivante est un pari : cela coûte du temps et de l'argent, et le retour sur investissement dépend d'une demande que vous ne pouvez généralement pas voir. L'analyse de localisation rend cette demande visible.
 
 ## La décision, pas le tableau de bord
 
-L'objectif de la collecte d'analyses ici est limité et délibéré : répondre à « devrions-nous traduire dans la langue X ? ». Les signaux sont choisis pour servir cette question, pas pour former une suite d'analyse à usage général.
+Le but de la collecte d'analyses ici est précis et délibéré : répondre à 'devrions-nous localiser en langue X ?'. Les signaux sont choisis pour éclairer cette question, et non pour former une suite d'analyse à vocation générale.
 
-Trois entrées pilotent la décision :
+Trois facteurs pilotent la décision :
 
-1. **Demande.** Combien de visiteurs souhaitent cette langue ? Les langues des navigateurs et le pays vous indiquent où se situe l'intérêt.
-2. **L'écart.** Cette demande est-elle déjà desservie ? La comparaison des langues préférées avec les langues cibles de votre projet, la langue de la page et ses traductions annoncées révèle la part de trafic qui se heurte à un mur.
-3. **Valeur.** La localisation rentabilisera-t-elle ? L'engagement par écart de localisation, les pages sur lesquelles atterrit le trafic non desservi, et l'origine de ce trafic indiquent si une nouvelle localisation est rentable.
+1. **La demande.** Combien de visiteurs souhaitent cette langue ? Les langages du navigateur et le pays vous indiquent où réside l'intérêt.
+2. **L'écart.** Cette demande est-elle déjà comblée ? La comparaison des langues préférées avec les langues cibles de votre projet, la langue de la page et ses traductions annoncées révèle la part de trafic qui se heurte à une limitation.
+3. **La valeur.** La localisation serait-elle rentable ? L'engagement par écart de localisation, les pages sur lesquelles aboutit le trafic sous-servi, et l'origine de ce trafic indiquent si une nouvelle localisation se traduit par des conversions.
 
-## Pourquoi le décalage est calculé à l'ingestion
+## Pourquoi l'écart est calculé au moment de l'ingestion
 
-`served_locale` enregistre la langue réelle de la page déclarée dans `<html lang>`, pas la langue que nous supposons reçue. `has_locale_gap` compare les préférences du navigateur avec les cibles de votre projet, la langue de la page et les traductions annoncées via `hreflang` liens. Les deux sont stockés par événement tel qu'ils étaient au moment de la visite. Cela signifie que les données historiques reflètent l'opportunité que vous affrontiez alors, pas un recalcul contre les cibles de ce jour. Si vous ajoutez le portugais ce mois-ci, le décalage du dernier mois ne rétrécit pas rétroactivement ; vous gardez un enregistrement honnête de combien de demande était non desservie.
+`served_locale` enregistre la langue réelle de la page déclarée dans `<html lang>`, non la langue supposée reçue par le visiteur. `has_locale_gap` compare un choix de langue explicite valide, ou les préférences du navigateur en l'absence de choix, avec les cibles de projet, la langue de la page et les traductions annoncées via `hreflang`. Un choix indique la demande, pas la disponibilité : choisir une langue non prise en charge laisse toujours un écart. Préférence navigateur, choix et langue de la page restent des signaux distincts.
 
-## Pourquoi sans cookie, spécifiquement
+La décision relative à l'écart est stockée par événement telle qu'elle était au moment de la visite. Les indicateurs historiques, y compris ceux collectés avant que les choix explicites n'aient affecté le calcul, ne sont pas recalculés à partir des cibles d'aujourd'hui ou de choix ultérieurs. La liste complète des préférences du navigateur et les traductions annoncées ne sont pas conservées ; elles ne peuvent pas être reconstruites de manière fiable. Si vous ajoutez le portugais le mois prochain, l'écart du mois dernier ne rétrécit pas rétroactivement ; vous conservez l'enregistrement initial de la demande.
 
-L'instinct quand vous voulez des « visiteurs uniques » est de créer un cookie ou d'identifier le navigateur. Les deux créent des identifiants persistants, et l'identification par empreinte est, dans la plupart des régimes de confidentialité, plus difficile à effacer qu'un cookie. L'un ni l'autre n'est nécessaire ici.
+## Pourquoi 'sans cookie', spécifiquement
 
-Les visiteurs uniques pour une journée nécessitent uniquement un identifiant stable *dans la journée*. Un hash de l'IP et de User-Agent, généré quotidiennement et limité par projet, permet les comptes quotidiens de visiteurs tout en rendant impossible de relier un visiteur entre les jours ou entre les sites. Ce design ne fournit pas le suivi à long terme des visiteurs revenants.
+Le réflexe lorsqu'on souhaite avoir des visiteurs uniques est de configurer un cookie ou d'identifier le navigateur par son empreinte. Tous deux créent des identifiants durables, et l'empreinte numérique est, sous la plupart des régimes de confidentialité, plus difficile à supprimer qu'un cookie. Aucun n'est nécessaire ici.
 
-Ce design limite les identifiants conservés par les analyses. Il ne détermine pas si un site particulier nécessite un consentement ; cela dépend de la manière dont le site utilise les analyses et des règles qui s'y appliquent.
+Les visiteurs uniques d'un jour nécessitent uniquement un identifiant stable *pendant la journée*. Un hachage de l'IP et du User-Agent, renouvelé quotidiennement et limité par projet, soutient les comptes de visiteurs quotidiens tout en rendant impossible de lier un visiteur entre les jours ou les sites. Cela ne fournit pas de suivi à long terme des visiteurs réguliers.
+
+Cette conception limite les identifiants retenus par l'analyse. Elle ne détermine pas si un site web particulier nécessite un consentement ; cela dépend de la manière dont le site utilise les analyses et des règles qui lui sont applicables.

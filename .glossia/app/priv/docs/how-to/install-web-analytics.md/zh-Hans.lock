@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "86c457b529418f65ee6aa0856d75b849825fae740173a2a94f4d023e536bb541",
+  "hash": "3d01d42b68c060b8f0eae9a3e9f75715c5eb246c7fd9d68aa21b5d05d0a2eced",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "2a0307ffca999528180a56db683afab8a0040903581e08a1062019cfd640da03",
+          "hash": "6db1759ed4d2127aa959ba0ed11dc52944e0894ddd5ad4d63a6fe6450b2dcf81",
           "kind": "source",
           "label": "app/priv/docs/how-to/install-web-analytics.md",
           "metadata": {
-            "content_hash": "fdb75f0bb9b4b4f29a0b425d1ec37beb29f57d0f152852ffeb22d0a3d30b431d"
+            "content_hash": "54b2263a5ac68ead776c04a0d7bd4137db64f731862d22c1f7d2bbaa0c6f33f0"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "86c457b529418f65ee6aa0856d75b849825fae740173a2a94f4d023e536bb541",
+      "hash": "3d01d42b68c060b8f0eae9a3e9f75715c5eb246c7fd9d68aa21b5d05d0a2eced",
       "kind": "translation_input",
       "label": "app/priv/docs/how-to/install-web-analytics.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "b39d679e58eac7317c8d8fe0f670870cc38d6f2913ac323f313698a1afab6bd4",
+  "output_hash": "ab7346e82353ab9b3ffd4616e90be64bd08d8d3e2c4640aac4f2ab1a15b62084",
   "output_path": "app/priv/i18n/zh-Hans/docs/how-to/install-web-analytics.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "fdd1f276ac0f526d8e5a6f46b2140bcddaac76c5",
+  "source_commit_sha": "2ed4088b26814cac7fd9952efc079298b794a4fd",
   "source_path": "app/priv/docs/how-to/install-web-analytics.md",
-  "translated_at": "2026-10-26T09:52:30.139512Z",
-  "translation_session_id": "01a17798-2645-77e0-bdfa-89b8412214c5"
+  "translated_at": "2026-10-27T11:33:44.281665Z",
+  "translation_session_id": "01a17d19-9e5e-7cd2-8eb4-d8f70ef3450e"
 }

@@ -1,33 +1,35 @@
 %{
-  title: "Warum Lokalisierungs-Analytik",
+  title: "Warum Lokalisierungsanalysen",
   summary:
-    "Wie die gesammelten Signale in Lokalisierungsentscheidungen umgesetzt werden und warum die Lückenmetrik wichtig ist.",
+    "Wie die gesammelten Signale in Lokalisierungsentscheidungen umgesetzt werden und warum die Gap-Metrik wichtig ist.",
   category: "Erklärung",
   section: "analytics",
   order: 2
 }
 ---
 
-Die Wahl der nächsten Übersetzungssprache ist eine Wette: Sie kostet Zeit und Geld, und der Gewinn hängt von einer Nachfrage ab, die Sie in der Regel nicht sehen können. Lokalisierungsanalyse macht diese Nachfrage sichtbar.
+Die Wahl der Sprache für die nächste Übersetzung ist eine Wette: Sie kostet Zeit und Geld, und die Auszahlung hängt von der Nachfrage ab, die man normalerweise nicht sieht. Lokalisierungsanalysen machen diese Nachfrage sichtbar.
 
 ## Die Entscheidung, nicht das Dashboard
 
-Der Zweck der Datensammlung hier ist eng und durchdacht: um die Frage zu beantworten „Sollten wir in Sprache X lokalisiert werden?“. Die Signale sind so gewählt, um diese Frage zu zünden, nicht als allgemeine Analyseeinheit zu dienen.
+Der Zweck der Datenerhebung hier ist eng und zielgerichtet: Um die Frage zu beantworten, "Sollten wir in die Sprache X übersetzen?". Die Signale sind darauf ausgerichtet, diese Frage zu beantworten, nicht als allgemeine Analyseinstrumente zu dienen.
 
-Drei Faktoren treiben die Entscheidung an:
+Drei Einträge treiben die Entscheidung an:
 
-1. **Nachfrage.** Wie viele Besucher wünschen sich diese Sprache? Browser-Sprachen und Land berichten Ihnen, wo das Interesse liegt.
-2. **Die Lücke.** Ist diese Nachfrage bereits bedient? Der Vergleich der bevorzugten Sprachen mit den Zielsprachen des Projekts, der Seitensprache und der angekündigten Übersetzungen zeigt den Anteil des Verkehrs auf, der an eine Mauer stößt.
-3. **Wert.** Lohnt sich die Lokalisierung? Engagement durch Lücken, die Seiten, auf die unbedienter Traffic landet, und der Ursprung dieses Traffics deuten an, ob eine neue Sprach-Lokalsprache konvertiert.
+1. **Nachfrage.** Wie viele Besucher möchten diese Sprache? Browser-Sprachen und das Land zeigen, wo das Interesse liegt.
+2. **Die Lücke.** Ist diese Nachfrage bereits gedeckt? Der Vergleich der bevorzugten Sprachen mit den Zielsprachen Ihres Projekts, der Seitensprache und den angekündigten Übersetzungen zeigt den Anteil des Traffics, der auf eine Barriere trifft.
+3. **Wert.** Lohnt sich die Lokalisierung? Engagement je nach Lückendefizit, die Seiten, auf die verarbeiteter Traffic landet, und die Herkunft dieses Traffics zeigen, ob eine neue Lokallösung konvertiert.
 
-## Warum die Lücke beim Erfassungszeitpunkt berechnet wird
+## Warum die Lücke zum Zeitpunkt der Eingabe berechnet wird
 
-`served_locale` registriert die tatsächliche Seitensprache, die in `<html lang>` angegeben ist, nicht die Sprache, die wir annehmen, dass ein Besucher erhalten hat. `has_locale_gap` vergleicht Browserpräferenzen gegenüber Ihren Projektzielen, der Seitensprache und Übersetzungen, die über `hreflang`-Links angezeigt werden. Beide werden pro Ereignis gespeichert, genau so wie sie zum Zeitpunkt des Besuchs vorlagen. Das bedeutet, dass historische Daten die Chance widerspiegeln, der Sie damals ausgesetzt waren, nicht eine Neuberechnung gegen heutige Ziele. Wenn Sie als nächsten Monat Portugiesisch hinzufügen, schrumpft die Lücke des Vormonats nicht retrospektiv; Sie behalten ein ehrliches Protokoll davon, wie viel Nachfrage unbedient blieb.
+`served_locale` protokolliert die tatsächlich in `<html lang>` deklarierte Seitensprache, nicht die Sprache, die wir einem Besucher unterstellen. `has_locale_gap` vergleicht eine gültige explizite Sprachwahl oder Browserpräferenzen, wenn keine Wahl bekannt ist, gegen die Zielsprachen Ihres Projekts, die Seitensprache und `hreflang` Links beworbene Übersetzungen. Eine Wahl zeigt Bedarf, nicht Verfügbarkeit an: Wenn eine nicht unterstützte Sprache ausgewählt wird, bleibt trotzdem eine Lücke. Browserpräferenz, Auswahl und Seitensprache bleiben separate Signale.
 
-## Warum ohne Cookies, speziell
+Die Lückenentscheidung wird pro Ereignis so gespeichert, wie sie zum Zeitpunkt des Besuchs war. Historische Flags, einschließlich derer, die gesammelt wurden, bevor explizite Wahlen die Lückenberechnung beeinflussten, werden nicht anhand der heutigen Zielsprachen oder späterer Wahlen neu berechnet. Die komplette Browserpräferenzliste und die beworbenen Übersetzungen werden nicht beherrscht, sodass sie nicht zuverlässig rekonstruiert werden können. Wenn Sie nächsten Monat Portugiesisch hinzufügen, schrumpft die Lücke des letzten Monats nicht retroaktiv; Sie behalten das ursprüngliche Aufzeichnen der Nachfrage.
 
-Die Intuition, wenn Sie „einzigartige Besucher" wollen, ist ein Cookie zu setzen oder den Browser zu fingerprinten. Beide schaffen langlebige Identifikatoren, und Fingerprinting ist unter den meisten Datenschutzregimen schwieriger zu löschen als ein Cookie. Beides ist hier nicht notwendig.
+## Warum cookieless, insbesondere
 
-Einzigartige Besucher für einen Tag erfordern nur eine Identifikation, die stabil *innerhalb des Tages* ist. Ein Hash der IP und User-Agent, täglich aktualisiert und pro Projekt eingebaut, unterstützt tägliche Besucherzähler, macht es aber unmöglich, einen Besucher über Tage hinweg zu verknüpfen. Dies erlaubt keine langfristige Verfolgung von Wiederkehrenden.
+Der Instinkt, wenn man "einzigartige Besucher" will, besteht darin, ein Cookie zu setzen oder den Browser zu fingerprinten. Beides erstellt langlebige Kennungen, und unter den meisten Datenschutzbestimmungen ist Fingerprinting schwieriger zu löschen als ein Cookie. Weder ist hier notwendig.
 
-Dieses Design begrenzt die Identifikatoren, die von der Analyse beibehalten werden. Es stellt nicht fest, ob eine bestimmte Website einer Einwilligung bedarf; das hängt davon ab, wie die Website Analysen verwendet und welche Regeln darauf anwendbar sind.
+Einzigartige Besucher für einen Tag erfordern lediglich einen Identifikator, der *innerhalb des Tages* stabil ist. Ein Hash aus der IP und dem User-Agent, der täglich rotiert und pro Projekt begrenzt ist, unterstützt tägliche Besucherzahlen, während es unmöglich macht, einen Besucher über Tage oder Webseiten hinweg zu verknüpfen. Dies bietet keine langfristige Nachverfolgung von wiederkehrenden Besuchern.
+
+Dieses Design begrenzt die Kennungen, die von den Analysen beherrschen. Es klärt nicht, ob eine bestimmte Webseite Einwilligung erfordert; das hängt davon ab, wie die Webseite Analysen verwendet und denen Regeln, die auf sie anwendbar sind.

@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "fff9b70f9a57eb4d7b9dcd535ac44ac0c78f417f892445e7e1c2aa590ff60cc9",
+  "hash": "958dc612ab54dc245c9f100a90eb4d24840ac1de70cc2d4c11ee7968b8750c54",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "e2d083b4c5c1ac50de709231c1a91979b2cdf04e17e979420c5a88778117cf01",
+          "hash": "6c5c87b69c7016092568b431f725e20bd45f5aa45f0346ec9fcbe3f2fe4f9520",
           "kind": "source",
           "label": "app/priv/docs/explanation/localization-analytics.md",
           "metadata": {
-            "content_hash": "c86358e6ff6b97ab5d3ab9b2e5eb8a4c2bbce8a76ca765fc67b09d04185e5925"
+            "content_hash": "470b3442eeb3f2fa750a70e833612718be5b209605f1ac9f099c05704b9b8c76"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "fff9b70f9a57eb4d7b9dcd535ac44ac0c78f417f892445e7e1c2aa590ff60cc9",
+      "hash": "958dc612ab54dc245c9f100a90eb4d24840ac1de70cc2d4c11ee7968b8750c54",
       "kind": "translation_input",
       "label": "app/priv/docs/explanation/localization-analytics.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "fcb6d69c740ad7cc2a03326ba2d5461eccedd2db493f14a1ae8b35985dfb1ba3",
+  "output_hash": "37c9ce3f1e24a2c1f1a85e23c1d5ef2efc77f192803ba0814bdc3096bfa711af",
   "output_path": "app/priv/i18n/fr/docs/explanation/localization-analytics.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
+  "source_commit_sha": "2ed4088b26814cac7fd9952efc079298b794a4fd",
   "source_path": "app/priv/docs/explanation/localization-analytics.md",
-  "translated_at": "2026-10-25T21:12:22.895285Z",
-  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
+  "translated_at": "2026-10-27T11:26:37.239735Z",
+  "translation_session_id": "01a17d19-9e5e-7cd2-8eb4-d8f70ef3450e"
 }

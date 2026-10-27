@@ -1,2 +1,2 @@
-"NSMicrophoneUsageDescription" = "このデバイスで編集可能な「Toki」ドラフトへの音声入力を可能にするためにマイクを使用します。音声はアップロードされません。";
+"NSMicrophoneUsageDescription" = "このデバイスで編集可能な「Toki」ドラフトへの音声入力を可能にするためにマイクを使用します。音声はアップロードされません。";  
 "NSSpeechRecognitionUsageDescription" = "このデバイスでの音声文字起こしにより編集可能な「Toki」ドラフトを作成します。自動的に何も送信されません。";

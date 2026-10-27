@@ -97,7 +97,7 @@
     }
   },
   "model": "",
-  "output_hash": "f0b1b6b3e8175635760ff530808afba6642138037663aa1c4a1c365ac5de0354",
+  "output_hash": "00e5ba45e76979814dcc5d78da871c7d3fa5826f6e99b3f61c09f8921cf1dc09",
   "output_path": "app/priv/i18n/fr/docs/explanation/account-models.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "c33204ce58c039efb0399d698b8df3c53a1f9fa3",
+  "source_commit_sha": "461dc6894fee0089850ed47a460f0e8bf9ca38ac",
   "source_path": "app/priv/docs/explanation/account-models.md",
-  "translated_at": "2026-10-25T19:55:45.978942Z",
-  "translation_session_id": "01a17495-c385-7245-90c7-4dc8db7e5c7f"
+  "translated_at": "2026-10-26T12:42:14.091559Z",
+  "translation_session_id": "01a17825-88be-7408-838b-f6938d109b5a"
 }

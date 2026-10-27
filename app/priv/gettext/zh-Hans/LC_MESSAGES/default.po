@@ -270,7 +270,7 @@ msgstr "活动"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Adapt the tone"
-msgstr ""
+msgstr "调整语气"
 
 #: lib/glossia_web/live/authentication_settings_live.ex
 #, elixir-autogen, elixir-format
@@ -441,7 +441,7 @@ msgstr "任意区域"
 #: lib/glossia_web/components/layouts/app.html.heex
 #, elixir-autogen, elixir-format
 msgid "Apache-2.0 core + Enterprise License"
-msgstr ""
+msgstr "Apache-2.0 核心 + 企业许可证"
 
 #: lib/glossia_web/controllers/oauth/device_html/verify.html.heex
 #, elixir-autogen, elixir-format
@@ -745,12 +745,12 @@ msgstr "缓存输入令牌"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Can you help me find the right term for this context?\n\n"
-msgstr ""
+msgstr "您能帮我为这个语境找到合适的术语吗？\n\n"
 
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Can you help me review this translation?\n\n"
-msgstr ""
+msgstr "您能帮我审阅这段翻译吗？\n\n"
 
 #: lib/glossia_web/components/dashboard_components.ex
 #: lib/glossia_web/live/admin_live.ex
@@ -1119,9 +1119,9 @@ msgid "Conversation history"
 msgstr "对话历史"
 
 #: lib/glossia_web/live/toki_live.ex
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Conversation starters"
-msgstr "对话"
+msgstr "对话提示"
 
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
@@ -1671,7 +1671,7 @@ msgstr "每个（国家，语言）对的优先级是存在语言差异的访客
 #: lib/glossia/docs.ex
 #, elixir-autogen, elixir-format
 msgid "Ecosystems"
-msgstr ""
+msgstr "生态系统"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -1878,7 +1878,7 @@ msgstr "筛选"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Find the right term"
-msgstr ""
+msgstr "查找合适的术语"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -2179,7 +2179,7 @@ msgstr "主页 URL"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "How can I make this translation sound more natural?\n\n"
-msgstr ""
+msgstr "我如何让这段翻译听起来更自然？\n\n"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -3218,7 +3218,7 @@ msgstr "仅显示提供商报告的活动。历史翻译、本地 Pi 会话和�
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Only you and Toki can see this conversation"
-msgstr ""
+msgstr "只有您和Toki可以看到此对话"
 
 #: lib/glossia_web/live/admin_live.ex
 #: lib/glossia_web/live/dashboard_live.ex
@@ -3878,7 +3878,7 @@ msgstr "可复用指导"
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Review a translation"
-msgstr ""
+msgstr "审阅翻译"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
@@ -4319,7 +4319,7 @@ msgstr "需要帮助时，共享翻译目标将显示在这里。您也可以与
 #: lib/glossia_web/live/toki_live.ex
 #, elixir-autogen, elixir-format
 msgid "Shared with invited teammates"
-msgstr ""
+msgstr "与受邀团队成员共享"
 
 #: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format

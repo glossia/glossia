@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
+  "source_commit_sha": "07ec458de27b67405f5483e5735e0896c6538861",
   "source_path": "app/priv/docs/explanation/language-memory-and-translation-memory.md",
-  "translated_at": "2026-10-25T21:07:44.042411Z",
-  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
+  "translated_at": "2026-10-26T17:19:22.833813Z",
+  "translation_session_id": "01a17929-32ae-7db6-b5ff-862304be0a86"
 }

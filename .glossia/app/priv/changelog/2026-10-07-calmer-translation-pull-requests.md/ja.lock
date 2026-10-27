@@ -97,7 +97,7 @@
     }
   },
   "model": "",
-  "output_hash": "41849e6256f42512c39daa6c6825e0a7ad1e2ac10f64ad6cfeca510d33cbcd1c",
+  "output_hash": "823b5dcdde9adae384092c6b49e1ceebf883dd702bf681687faf93f4c6513673",
   "output_path": "app/priv/i18n/ja/changelog/2026-10-07-calmer-translation-pull-requests.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "c33204ce58c039efb0399d698b8df3c53a1f9fa3",
+  "source_commit_sha": "461dc6894fee0089850ed47a460f0e8bf9ca38ac",
   "source_path": "app/priv/changelog/2026-10-07-calmer-translation-pull-requests.md",
-  "translated_at": "2026-10-25T19:52:52.228331Z",
-  "translation_session_id": "01a17495-c385-7245-90c7-4dc8db7e5c7f"
+  "translated_at": "2026-10-26T12:39:42.913852Z",
+  "translation_session_id": "01a17825-88be-7408-838b-f6938d109b5a"
 }

@@ -1,26 +1,26 @@
 %{
   title: "Web-Analytik installieren",
   summary:
-    "Integrieren Sie den Glossia Web-SDK in Ihre Webseite mit einer einzigen Zeile HTML oder via npm und beginnen Sie mit der Erfassung von Lokalisierungssignalen.",
+    "Fügen Sie das Glossia-Web-SDK mit einer HTML-Zeile oder über npm zu Ihrer Website hinzu und beginnen Sie, Lokalisierungssignale zu sammeln.",
   category: "Anleitung",
   section: "analytics",
   order: 1
 }
 ---
 
-Dieser Leitfaden setzt voraus, dass Sie ein Glossia-Projekt haben, dessen Website-Domain in den Analyse-Einstellungen des Projekts konfiguriert ist. Die Erfassung wird durch diese Domäne identifiziert, sodass es keinen Schlüssel oder ein Geheimnis gibt, das kopiert werden kann.
+Dieser Leitfaden geht davon aus, dass Sie ein Glossia-Projekt besitzen, dessen Site-Domain in den Analyseneinstellungen des Projekts konfiguriert ist. Die Erfassung erfolgt anhand dieser Domain, sodass es keinen zum Kopieren bestimmten Schlüssel oder geheimen Wert gibt.
 
 ## Option A: Script-Tag
 
-Fügen Sie diesen Codeabschnitt auf jede Seite ein, idealerweise in `<head>`:
+Fügen Sie diesen Snippet jeder Seite hinzu, idealerweise in `<head>`:
 
 ```html
 <script defer data-domain="example.com" src="https://glossia.ai/assets/glossia-web.js"></script>
 ```
 
-Das SDK initialisiert sich automatisch, sendet bei Laden einen Page-View und protokolliert weitere Page-Views bei der Client-Seiten-Navigation in Single-Page-Anwendungen. `data-domain` wird auf `window.location.hostname` gesetzt, wenn es weggelassen wird, sodass Sie es auf einer Single-Domain-Seite weglassen können. Um einen benutzerdefinierten Erfassungsendpunkt zu verwenden, fügen Sie `data-endpoint="https://collect.your-host.com"` hinzu.
+Das SDK initialisiert sich automatisch, sendet beim Laden einen Seitenaufruf und protokolliert nachfolgende Seitenaufrufe bei Client-seitiger Navigation in Single-Page-Apps. `data-domain` wird standardmäßig auf `window.location.hostname` gesetzt, wenn weggelassen, sodass Sie es auf einer Single-Domain-Seite entfallen lassen können. Um einen benutzerdefinierten Collection Endpoint zu verwenden, fügen Sie `data-endpoint="https://collect.your-host.com"` hinzu.
 
-Wenn Ihre Website eine Content-Security-Policy verwendet, erlauben Sie `https://glossia.ai` sowohl in `script-src` (oder `script-src-elem`, wenn vorhanden) als auch in `connect-src`. Das Skript lädt von `/assets/glossia-web.js` und sendet Events an `/v1/collect` auf derselben Herkunft.
+Wenn Ihre Website eine Content-Security-Policy verwendet, erlauben Sie `https://glossia.ai` sowohl in `script-src` (bzw. `script-src-elem` wenn vorhanden) als auch in `connect-src`. Das Script lädt von `/assets/glossia-web.js` und sendet Ereignisse an `/v1/collect` am selben Origin.
 
 ## Option B: npm
 
@@ -30,7 +30,7 @@ Installieren Sie das Paket:
 npm install @glossia/web
 ```
 
-Initialisieren Sie es einmal im Einstiegspunkt Ihrer Anwendung:
+Initialisieren Sie es einmalig in Ihrem Anwendungseintrittspunkt:
 
 ```ts
 import glossia from "@glossia/web";
@@ -38,68 +38,68 @@ import glossia from "@glossia/web";
 glossia.init({ endpoint: "https://glossia.ai/v1/collect" });
 ```
 
-Stellen Sie den Erfassungsendpunkt explizit fest, wenn Sie das Paket in Ihrem eigenen Bundle verwenden, da es keinen gehosteten Skript-Adresse gibt, von der ausgeleitet werden kann.
+Stellen Sie den Collection Endpoint explizit ein, wenn Sie das Paket in Ihrem eigenen Bundle verwenden, da es keinen gehosteten Script-Adresse gibt, von der man ihn ableiten könnte.
 
-`domain` wird aus `window.location.hostname` abgeleitet, sodass das SDK gegen das Projekt einzeichnet, das für Ihre Website registriert ist. Übergeben Sie `{ domain: "example.com" }` zur Überschreibung, beispielsweise, um Ereignisse von einem Staging-Ursprung an dasselbe Projekt wie Production zu senden.
+Der `domain` wird aus `window.location.hostname` abgeleitet, sodass das SDK für das in Ihrem System registrierte Projekt protokolliert. Geben Sie `{ domain: "example.com" }` an, um dies zu überschreiben, z. B. um Ereignisse von einem Staging-Endpunkt an dasselbe Projekt wie die Produktion zu senden.
 
-Um ein benutzerdefiniertes Event zu protokollieren, beispielsweise eine Anmeldung:
+Um ein benutzerdefiniertes Ereignis zu protokollieren, z. B. eine Anmeldung:
 
 ```ts
 glossia.track("signup");
 ```
 
-## Verfolgung expliziter Sprachauswahlen
+## Erfassen Sie explizite Sprachauswahlen (Track explicit language choices)
 
-Um die Auswahl eines Besuchers von der Browserpräferenz abzugrenzen, rufen Sie das SDK im Benutzer-Aktions-Handler Ihres Sprachauswahlmenüs auf, bevor Sie navigieren:
+Um die Besucherwahl von ihrer Browser-Einstellung zu unterscheiden, rufen Sie das SDK im Nutzer-Aktions-Handler Ihrer Sprachauswahlkomponente auf, bevor Sie navigieren:
 
 ```js
 glossia.selectLanguage("zh-Hans");
 ```
 
-Diese Methode ist auf dem importierten SDK nach `glossia.init()` verfügbar und auf dem `glossia`-Globalbereich beim Verwenden des gehosteten Skripts.
+Diese Methode ist auf dem importierten SDK nach `glossia.init()` verfügbar, und auf dem `glossia` global, wenn das gehostete Script verwendet wird.
 
-Alternativ können Sie same-origin-Links zum Sprachwechsel kennzeichnen:
+Alternativ können Sie gleichursprüngliche Sprachumschalt-Links annotieren:
 
 ```html
 <a href="/zh-hans/docs" data-glossia-language="zh-Hans">简体中文</a>
 ```
 
-Verwenden Sie eine Integration pro Aktion, nicht beide. Annotierte Links protokollieren echte Benutzeraktivierung, einschließlich Tastaturaktivierung. Sie ignorieren skriptgesteuerte Klicks, Downloads, modifizierte Klicks, fremdursprachige Ziele und Links, die ein anderes Tab oder einen Rahmen öffnen, ohne Navigation zu verhindern.
+Verwenden Sie eine Integration pro Aktion, nicht beide. Annotierte Links erfassen echte Benutzeraktivierung, einschließlich Tastaturaktivierung. Sie ignorieren skriptierte Klicks, Downloads, bearbeitete Klicks, Ziele mit fremden Origins und Links, die einen Tab öffnen, sodass die Navigation nicht verhindert wird.
 
-Das SDK sendet sofort ein `language_selection`-Event und enthält die gewählte Sprache (`cl`) in nachfolgenden Events. Die Auswahl wird in `sessionStorage` für das aktuelle Tab und die Herkunft bis ersetzt bis eine andere Auswahl diese ersetzt. Ist der Speicher nicht verfügbar, dauert es nur so lange, bis die Seite entlädt. Keine Auswahl wird aus Umleitungen, URLs oder Änderungen an `<html lang>` abgeleitet.
+Das SDK sendet sofort ein `language_selection`-Ereignis und enthält die ausgewählte Sprache (`cl`) in nachfolgenden Ereignissen. Die Wahl wird in `sessionStorage` für den aktuellen Tab und Ursprung gespeichert, bis eine andere Wahl sie ersetzt. Wenn Speicher nicht verfügbar ist, dauert es nur bis zum Unerladen der Seite. Keine Wahl wird abgeleitet von Umleitungen, URLs oder Änderungen an `<html lang>`.
 
-Die Auswahl protokolliert die Absicht, nicht die erfolgreiche Navigation. Browserpräferenz, tatsächliche Pagesprache und explizite Auswahl bleiben getrennt. Der Sammler speichert die Auswahl; die berechnete Lückenberechnung auf Dashboard basierend auf Browser ist unverändert.
+Die Auswahl protokolliert die Absicht, nicht die erfolgreiche Navigation. Browser-Einstellung, tatsächliche Seiten-Sprache und explizite Wahl bleiben getrennt. Der Collector prüft eine gültige Wahl statt der Browser-Einstellungen bei der Berechnung der Lokalisierungslücke. Eine Wahl setzt die Lücke nur, wenn sie einem Projektziel, einer beworbenen Übersetzung oder der tatsächlichen Seiten-Sprache entspricht; eine nicht verfügbare gewählte Sprache führt zwar noch zu einer Lücke. Fehlende oder ungültige Wahlen verwenden Browser-Einstellungen wie zuvor. Dashboard-Gesamtsummen und Abzeichen verwenden die gespeicherte Entscheidung jedes Ereignisses; historische Flaggen bleiben unverändert.
 
-## Verifizieren Sie Ihre Domäne
+## Verifizieren Sie Ihre Domain
 
-In den **Analyse-Einstellungen** Ihres Projekts speichern Sie Ihre Website-Domain. Die **Verifizierung der Domainbesitz**-Karte zeigt den genauen Datensatznamen und den Wert für Ihr Projekt an. Fügen Sie einen Textdatensatz mit Ihrem Domain-Provider hinzu:
+In Ihren Projekt-**Analyseneinstellungen** speichern Sie Ihre Site-Domain. Die **Domainbesitz verifizieren**-Karte zeigt den genauen Record-Namen und Wert für Ihr Projekt. Fügen Sie einen Text-Eintrag mit Ihrem Domain-Anbieter hinzu:
 
 | Feld | Wert |
 | --- | --- |
-| Typ | `TXT` ([Textdatensatz](https://www.cloudflare.com/learning/dns/dns-records/dns-txt-record/)) |
+| Typ | `TXT` ([Text-Eintrag](https://www.cloudflare.com/learning/dns/dns-records/dns-txt-record/)) |
 | Name | `_glossia-verify.example.com` |
 | Wert | `glossia-site-verification=YOUR_VERIFICATION_TOKEN` |
 
-Verwenden Sie die Domäne und das Token, die in Ihren Einstellungen angezeigt werden. Einige Provider fügen die Domäne automatisch hinzu; in diesem Fall geben Sie nur `_glossia-verify` als Namen ein. Nach der Veröffentlichung des Datensatzes klicken Sie auf **Domain verifizieren**. Änderungen benötigen möglicherweise Zeit, um verfügbar zu werden, führen Sie den Versuch erneut aus, falls der Datensatz nicht sofort gefunden wird.
+Verwenden Sie die Domain und den Token, die in Ihren Einstellungen angezeigt werden. Einige Anbieter fügen die Domain automatisch hinzu; geben Sie in diesem Fall nur `_glossia-verify` als Namen ein. Nach dem Veröffentlichen des Records klicken Sie **Domain verifizieren**. Änderungen können Zeit benötigen, um verfügbar zu werden, also wiederholen Sie es, wenn der Record nicht sofort gefunden wird.
 
-Wenn Sie Ihre Domain-Datensätze nicht bearbeiten können, erweitern Sie **Alternative: Verifizierung mit einem Homepage-Metadatensatz**. Kopieren Sie das generierte Tag in das `<head>` Ihrer Homepage und veröffentlichen Sie es:
+Wenn Sie Ihre Domain-Records nicht bearbeiten können, erweitern Sie **Alternative: Verifizierung mit einem Homepage-Meta-Tag**. Kopieren Sie das generierte Tag in das `<head>` Ihrer Homepage und veröffentlichen Sie es:
 
 ```html
 <meta name="glossia-site-verification" content="YOUR_VERIFICATION_TOKEN">
 ```
 
-Jede der Methoden beweist Kontrolle über die konfigurierte Domäne. Glossia überprüft den Datensatz oder die Homepage der Domäne, sodass das Kopieren des Tokens auf eine andere Website den Besitz nicht bestätigt. Das Token ist öffentlicher Beweis, kein Passwort.
+Beide Methoden beweisen Kontrolle über die konfigurierte Domain. Glossia prüft den Record oder die Homepage dieser Domain, sodass das Kopieren des Tokens auf eine andere Website den Besitz nicht verifiziert. Der Token ist öffentlicher Beweis, kein Passwort.
 
-Sobald die Domäne verifiziert ist, protokolliert Glossia Events von Ihrem Tracking-Codeabschnitt. Der Codeabschnitt allein bestätigt den Besitz nicht. Eine Änderung des konfigurierten Domänenabschnitts erfordert erneut eine Verifizierung.
+Sobald die Domain verifiziert ist, protokolliert Glossia Ereignisse aus Ihrem Tracking-Snippet. Das Snippet allein verifiziert den Besitz nicht. Eine Änderung der konfigurierten Domain erfordert erneut eine Verifizierung.
 
 ## Überprüfen Sie, ob es funktioniert
 
 1. Öffnen Sie Ihre Website in einem Browser.
-2. Öffnen Sie den Netzwerk-Tab und bestätigen Sie, dass eine `POST` Anfrage an `https://glossia.ai/v1/collect` `202 Accepted` zurückgibt.
-3. Nach der Erfassung und Verarbeitung erscheint der Page-View unter **Analytik** im Dashboard Ihres Projekts. Übersetzungen, die auf der Übersicht-Seite laufen, sind getrennt vom Website-Volumen.
+2. Öffnen Sie den Netzwerk-Tab und bestätigen Sie, dass eine `POST`-Anfrage an `https://glossia.ai/v1/collect` `202 Accepted` zurückgibt.
+3. Nach der Sammlung und Verarbeitung erscheint der Seitenaufruf unter **Analytik** in Ihrem Dashboard des Projekts. Übersetzungsabläufe auf der Übersichtsseite sind von Website-Verkehr getrennt.
 
-Eine `202 Accepted`-Antwort bestätigt, dass die Anfrage den Sammler erreicht hat. Unbekannte oder unverifizierte Domänen werden ebenfalls akzeptiert, protokollieren jedoch keine Events, also bestätigen Sie, dass die konfigurierte Domäne in den Analyse-Einstellungen des Projekts verifiziert wurde.
+Eine `202 Accepted`-Antwort bestätigt, dass die Anfrage den Collector erreicht hat. Unbekannte oder nicht verifizierte Domains werden auch akzeptiert, protokollieren aber keine Ereignisse, so bestätigen Sie, dass die konfigurierte Domain in den Projekt-Analyseaestellungen verifiziert ist.
 
-## Was wird erfasst
+## Was wird gesammelt
 
-Der Browser sendet die Page-URL, den Referrer, `navigator.languages`, die tatsächliche Page-Sprache (`<html lang>`) angebotene Übersetzungen (`hreflang` Links), explizit gewählte Sprache, wenn beobachtet, Zeitzone und Bildschirmbreite, sowie eine pro Tab-Session-ID. Der Server fügt das Land hinzu (aus GeoIP) und berechnet die Lokalisierungslücke im Vergleich zu Ihren Projekt-Zielsprachen, angebotenen Übersetzungen und tatsächlichen Pagesprache. Die Session-ID und explizite Wahl verwenden `sessionStorage`; keine Cookies werden gesetzt und nichts wird vollständig gefingerzeichent.
+Der Browser sendet die Seiten-URL, Referrer, `navigator.languages` (navigator.languages), tatsächliche Seiten-Sprache (`<html lang>`), beworbene Übersetzungen (`hreflang` Links), explizit gewählte Sprache, wenn beobachtet, Zeitzone und Bildschirmbreite, sowie eine pro-Tab Session-ID. Der Server fügt das Land hinzu (via GeoIP) und berechnet die Lokalisierungslücke gegenüber den Projekt-Zielsprachen, beworbenen Übersetzungen und tatsächlichen Seiten-Sprache. Die Session-ID und die explizite Wahl verwenden `sessionStorage`; keine Cookies werden gesetzt und nichts wird identifiziert.

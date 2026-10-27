@@ -1,16 +1,16 @@
 {
   "baseline_schema_version": 1,
-  "hash": "18ca6d55a42efa23178865c9ce310eafb800d8bf0e0ddec150b51c95490692e6",
+  "hash": "e2b3d858d7e8fd7ac1d655538cfa9fbeb1c2e23f5d0b5930daa25f9a28a0f246",
   "hash_tree": {
     "root": {
       "children": [
         {
           "children": [],
-          "hash": "9c8ac0537f64f5a531c4ab871aa0683c9a40619caa761bb7e24fce6a43d3a9d5",
+          "hash": "dbbb9cda8098fd05a80980a1d137aae5b9859963b9dcb7e4310986ebde06ce4b",
           "kind": "source",
           "label": "app/priv/docs/reference/translation-publication.md",
           "metadata": {
-            "content_hash": "a7b0bed3a85f57c9254d3df8246d9cdb61543ff5c2daf258df1ce09358a0c3f0"
+            "content_hash": "d2c9a9f8a06c12a52954189b2d232ac725c407d2e577128fe3ece110f3190362"
           }
         },
         {
@@ -90,14 +90,14 @@
           "metadata": {}
         }
       ],
-      "hash": "18ca6d55a42efa23178865c9ce310eafb800d8bf0e0ddec150b51c95490692e6",
+      "hash": "e2b3d858d7e8fd7ac1d655538cfa9fbeb1c2e23f5d0b5930daa25f9a28a0f246",
       "kind": "translation_input",
       "label": "app/priv/docs/reference/translation-publication.md",
       "metadata": {}
     }
   },
   "model": "",
-  "output_hash": "5ff30f845ac1762049a8482069add898db708cf848ca3ca9759bbc6e3e54535e",
+  "output_hash": "321ec1a8ecdfa6654dde2d27e5e24ee4a75658c671baf6b934476d0b69d26145",
   "output_path": "app/priv/i18n/pt-BR/docs/reference/translation-publication.md",
   "protection_state": "recorded",
   "provider": "",
@@ -115,8 +115,8 @@
       "version": null
     }
   },
-  "source_commit_sha": "870f6ed6f690bc083fd5a53555d2c9f8ca7705ea",
+  "source_commit_sha": "8a4210d2d0a92121ea500c0e991a33e3f0230c29",
   "source_path": "app/priv/docs/reference/translation-publication.md",
-  "translated_at": "2026-10-26T00:20:46.987548Z",
-  "translation_session_id": "01a174cb-47b0-715a-9257-e48f58fafd41"
+  "translated_at": "2026-10-27T16:46:04.171296Z",
+  "translation_session_id": "01a17e3b-e2bb-7434-8992-5b5cdc54e9c4"
 }
