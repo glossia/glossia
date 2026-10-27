@@ -272,7 +272,12 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
     %{fields: fields, types: types} = Event.buffer_opts()
     types = Enum.zip(fields, types) ++ [inserted_at: :datetime]
 
-    for {served_locale, gap} <- [{"", 1}, {"en", 0}, {"zh-Hans", 1}] do
+    for {served_locale, selected_locale, gap} <- [
+          {"", "", 1},
+          {"en", "en", 0},
+          {"en", "ja", 1},
+          {"zh-Hans", "", 1}
+        ] do
       row = %{
         id: Uniq.UUID.uuid7(),
         inserted_at: DateTime.add(DateTime.utc_now(), -60, :second),
@@ -287,6 +292,7 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
         country_code: "",
         browser_language: "en-US",
         served_locale: served_locale,
+        selected_locale: selected_locale,
         has_locale_gap: gap,
         device: "desktop",
         browser: "Chrome",
@@ -302,13 +308,15 @@ defmodule GlossiaWeb.DashboardLiveAnalyticsTest do
 
     refute has_element?(view, "#browser-languages-table #en-US--1")
     refute has_element?(view, "#browser-languages-table", "Not reported")
-    assert has_element?(view, "#browser-languages-table #en-US-en-0", "en")
+    assert has_element?(view, "#browser-languages-table #en-US-en-0", "Served")
+    assert has_element?(view, "#browser-languages-table #en-US-en-1", "Gap")
     assert has_element?(view, "#browser-languages-table #en-US-zh-Hans-1", "zh-Hans")
 
     send(view.pid, {:refresh_analytics, project.id, 1})
     refute has_element?(view, "#browser-languages-table #en-US--1")
     refute has_element?(view, "#browser-languages-table", "Not reported")
-    assert has_element?(view, "#browser-languages-table #en-US-en-0", "en")
+    assert has_element?(view, "#browser-languages-table #en-US-en-0", "Served")
+    assert has_element?(view, "#browser-languages-table #en-US-en-1", "Gap")
     assert has_element?(view, "#browser-languages-table #en-US-zh-Hans-1", "zh-Hans")
   end
 

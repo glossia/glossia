@@ -102,13 +102,14 @@ defmodule GlossiaWeb.AnalyticsController do
     ip = ClientIP.value(conn)
     user_agent = conn |> get_req_header("user-agent") |> List.first() || ""
     languages = client_languages(params, conn)
+    selected_locale = selected_locale(params["cl"])
 
     target_locales =
       (settings.target_languages || []) ++
         Client.parse_languages(bounded_string(params["al"], 2_048))
 
     {browser_language, served_locale, has_locale_gap} =
-      Client.localize(languages, target_locales, bounded_string(params["sl"]))
+      Client.localize(languages, target_locales, bounded_string(params["sl"]), selected_locale)
 
     country = cloudflare_country(conn) || lookup_country(ip)
 
@@ -129,7 +130,7 @@ defmodule GlossiaWeb.AnalyticsController do
        country_code: country || "",
        browser_language: browser_language,
        served_locale: served_locale,
-       selected_locale: selected_locale(params["cl"]),
+       selected_locale: selected_locale,
        has_locale_gap: has_locale_gap,
        device: device,
        browser: browser,

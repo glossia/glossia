@@ -313,48 +313,100 @@ defmodule GlossiaWeb.AnalyticsControllerTest do
     assert event.has_locale_gap == 1
   end
 
-  test "stores explicit choices separately from browser preference and actual page language", %{
-    conn: conn,
-    domain: domain
-  } do
-    for {name, page_language, gap} <- [
-          {"language_selection", "en", 0},
-          {"pageview", "zh-Hans", 1}
-        ] do
+  test "explicit choices determine the gap without changing browser preference or page language",
+       %{
+         conn: conn,
+         project: project,
+         domain: domain
+       } do
+    cases = [
+      {"language_selection", "ja", "en", "en", "", 0},
+      {"pageview", "ja", "en", "en", "", 0},
+      {"pageview", "en-US,en", "en", "zh-hans", "", 1},
+      {"language_selection", "en-US", "en", "zh-hans", "en,zh-Hans", 0},
+      {"pageview", "en-US", "zh-Hans", "zh-hans", "", 0},
+      {"pageview", "ja", "en", "fr", "", 0},
+      {"pageview", "ja", "", "de", "", 0},
+      {"pageview", "", "en", "ja", "", 1},
+      {"pageview", "", "en", "en", "", 0}
+    ]
+
+    for {{name, languages, page_language, choice, available, gap}, index} <-
+          Enum.with_index(cases) do
+      pathname = "/choice-#{index}"
+
       response =
         post(conn, ~p"/v1/collect", %{
           "d" => domain,
-          "u" => "https://#{domain}/#{name}",
+          "u" => "https://#{domain}#{pathname}",
           "n" => name,
-          "l" => "en-US",
+          "l" => languages,
           "sl" => page_language,
-          "cl" => "zh-hans"
+          "cl" => choice,
+          "al" => available
         })
 
       assert response.status == 202
 
       [event] =
-        from(e in Event, where: e.hostname == ^domain and e.name == ^name)
+        from(e in Event, where: e.hostname == ^domain and e.pathname == ^pathname)
         |> ClickHouseRepo.all()
 
-      assert event.browser_language == "en-US"
+      assert event.browser_language == languages |> String.split(",") |> List.first()
       assert event.served_locale == page_language
-      assert event.selected_locale == "zh-Hans"
+      assert event.selected_locale == if(choice == "zh-hans", do: "zh-Hans", else: choice)
       assert event.has_locale_gap == gap
     end
+
+    now = DateTime.utc_now()
+    since = DateTime.add(now, -60)
+    until = DateTime.add(now, 60)
+
+    assert %{pageviews: 9, locale_gap_visits: 2} = Queries.summary(project.id, since, until)
+
+    rows = Queries.browser_languages(project.id, ["de", "fr"], since: since, until: until)
+
+    assert %{browser_language: "ja", served_locale: "en", has_locale_gap: 0, visits: 3} =
+             Enum.find(rows, &(&1.browser_language == "ja" and &1.served_locale == "en"))
+
+    assert %{browser_language: "en-US", served_locale: "en", has_locale_gap: 1, visits: 1} =
+             Enum.find(rows, &(&1.browser_language == "en-US" and &1.has_locale_gap == 1))
   end
 
   test "ignores missing, malformed, and oversized choices without dropping the event", %{
     conn: conn,
     domain: domain
   } do
-    for choice <- [nil, "", "en,es", "en_US", "x-default", String.duplicate("a", 65), 1, %{}] do
+    for choice <- [
+          nil,
+          "",
+          " ",
+          "en,es",
+          "en_US",
+          "x-default",
+          String.duplicate("a", 65),
+          1,
+          %{},
+          []
+        ],
+        {languages, gap} <- [{"ja", 1}, {"en-US", 0}, {"", 0}] do
       expect(Ingestion, :record_event, fn event ->
-        assert event.selected_locale == ""
+        send(self(), {:collected, event})
         :ok
       end)
 
-      assert post(conn, ~p"/v1/collect", %{"d" => domain, "cl" => choice}).status == 202
+      assert post(conn, ~p"/v1/collect", %{
+               "d" => domain,
+               "cl" => choice,
+               "l" => languages,
+               "sl" => "en"
+             }).status == 202
+
+      assert_receive {:collected, event}
+      assert event.selected_locale == ""
+      assert event.browser_language == languages
+      assert event.served_locale == "en"
+      assert event.has_locale_gap == gap
     end
   end
 
