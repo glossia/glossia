@@ -14,8 +14,9 @@ defmodule Glossia.Analytics.Event do
     * `browser_language` - the visitor's most preferred normalized locale,
     * `served_locale` - the actual page language, or `""` when undeclared,
     * `selected_locale` - an explicitly chosen language reported by the SDK,
-      or `""` when no choice was observed. This does not override the measured
-      page language or the browser-based gap calculation,
+      or `""` when no valid choice was observed. It takes precedence over browser
+      preferences for the gap check, but never overrides the measured page
+      language or establishes availability by itself,
     * `has_locale_gap` - `1` when the visitor wanted a language the project does
       not serve.
 

@@ -3,9 +3,10 @@ defmodule Glossia.Analytics.Queries do
   Read-side queries over the `analytics_events` ClickHouse table.
 
   All queries scope by `project_id` (a string) and bound the time window to
-  `since` / `until`. Callers in the dashboard pass the project's target
-  languages so the localization-gap calculations stay consistent with what
-  the ingestion path computed.
+  `since` / `until`. Gap totals, badges, and priority filtering use the flag
+  stored at ingestion, including its explicit-choice decision. Historical
+  flags are never recomputed from current project targets or later choices;
+  the full browser preference list and advertised translations are not stored.
   """
 
   import Ecto.Query

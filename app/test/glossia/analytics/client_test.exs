@@ -116,6 +116,13 @@ defmodule Glossia.Analytics.ClientTest do
     end
   end
 
+  describe "localize/4 with an explicit choice" do
+    test "uses the existing normalization and base-language matching for choices" do
+      assert Client.localize(["ja"], ["zh-hans"], "en", "zh-Hans") == {"ja", "en", 0}
+      assert Client.localize(["ja"], ["es"], "en", "es-MX") == {"ja", "en", 0}
+    end
+  end
+
   describe "parse_user_agent/1" do
     test "classifies a desktop Chrome user agent" do
       ua =

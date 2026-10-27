@@ -21,7 +21,9 @@ Three inputs drive the decision:
 
 ## Why the gap is computed at ingestion time
 
-`served_locale` records the actual page language declared in `<html lang>`, not the language we assume a visitor received. `has_locale_gap` compares browser preferences against your project targets, the page language, and translations advertised through `hreflang` links. Both are stored per event as they were at the time of the visit. This means historical data reflects the opportunity you faced then, not a recomputation against today's targets. If you add Portuguese next month, last month's gap doesn't retroactively shrink; you keep an honest record of how much demand was going unserved.
+`served_locale` records the actual page language declared in `<html lang>`, not the language we assume a visitor received. `has_locale_gap` compares a valid explicit language choice, or browser preferences when no choice is known, against your project targets, the page language, and translations advertised through `hreflang` links. A choice indicates demand, not availability: choosing an unsupported language still leaves a gap. Browser preference, choice, and page language remain separate signals.
+
+The gap decision is stored per event as it was at the time of the visit. Historical flags, including those collected before explicit choices affected gap calculation, are not recomputed from today's targets or later choices. The full browser preference list and advertised translations are not retained, so they cannot be reconstructed reliably. If you add Portuguese next month, last month's gap doesn't retroactively shrink; you keep the original record of demand.
 
 ## Why cookieless, specifically
 

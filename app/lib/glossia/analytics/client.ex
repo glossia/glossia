@@ -204,14 +204,22 @@ defmodule Glossia.Analytics.Client do
 
   Missing page language stays unknown; it must not be displayed as though the
   visitor was actually served a matching target locale.
+
+  A validated, normalized explicit selection takes precedence over browser
+  preferences for the gap check only. The selection is not itself evidence
+  that the language is supported, and never changes the measured page language
+  or the recorded browser preference.
   """
-  def localize(preferred, target_locales, page_language) do
+  def localize(preferred, target_locales, page_language, selected_locale \\ "") do
     served_locale = page_language |> parse_languages() |> List.first() || ""
 
     supported =
       Enum.uniq(target_locales ++ if(served_locale == "", do: [], else: [served_locale]))
 
-    {browser_language, _matched_locale, has_locale_gap} = localize(preferred, supported)
+    intent = if selected_locale == "", do: preferred, else: [selected_locale]
+    {_intent_language, _matched_locale, has_locale_gap} = localize(intent, supported)
+    browser_language = List.first(preferred) || ""
+
     {browser_language, served_locale, has_locale_gap}
   end
 
