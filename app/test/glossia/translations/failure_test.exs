@@ -67,7 +67,12 @@ defmodule Glossia.Translations.FailureTest do
            "catalog-literal-count"},
           {"po text-literal rebuild expected 5 strings but got 4", "catalog-rebuild-count"},
           {"po text-literal response contained an empty translation", "catalog-literal-empty"},
-          {"po text-literal response changed a placeholder", "catalog-literal-preservation"}
+          {"po text-literal response changed a placeholder", "catalog-literal-preservation"},
+          {"native catalog source uses unsupported syntax", "native-source-syntax"},
+          {"native text-literal response must be a matching JSON array of strings",
+           "native-literal-shape"},
+          {"native text-literal response changed a format argument, isolate, or empty value",
+           "native-literal-preservation"}
         ] do
       failure = Failure.from({:validation_failed, message <> ": private source text"})
       assert failure.validation_code == code
