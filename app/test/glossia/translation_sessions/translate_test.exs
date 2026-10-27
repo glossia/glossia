@@ -21,6 +21,32 @@ defmodule Glossia.TranslationSessions.TranslateTest do
   # The pull request description is refreshed whenever a run publishes or
   # ends. Tests that care assert on it; the rest must never reach GitHub.
   setup do
+    # Real local synchronization and Git object/ref storage are covered by
+    # PublicationIntegrationTest. These tests isolate API errors and outcomes.
+    stub(Glossia.Translations.Repository, :prepare_publication, fn repository, changes ->
+      {:ok,
+       %{changes: changes, parents: [repository.publication_commit_sha || repository.commit_sha]}}
+    end)
+
+    stub(Glossia.Github.Client, :get_ref, fn _, "heads/" <> branch, _ ->
+      session =
+        Repo.one(
+          from(s in TranslationSession,
+            where: s.publication_branch == ^branch,
+            order_by: [desc: s.inserted_at],
+            limit: 1
+          )
+        )
+
+      if session && session.publication_commit_sha,
+        do: {:ok, %{"object" => %{"sha" => session.publication_commit_sha}}},
+        else: {:error, {:api_error, 404, %{}}}
+    end)
+
+    stub(Glossia.Github.Client, :get_pull_request, fn _, _, _ ->
+      {:ok, %{"state" => "open"}}
+    end)
+
     Mimic.stub(Glossia.Github.Client, :list_pull_requests, fn _repository, _token, _opts ->
       {:ok, []}
     end)
@@ -494,6 +520,10 @@ defmodule Glossia.TranslationSessions.TranslateTest do
 
       Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
 
+      expect(Glossia.Github.Client, :get_ref, fn _, "heads/glossia/translate-abc123456789", _ ->
+        {:ok, %{"object" => %{"sha" => "translation-commit-sha"}}}
+      end)
+
       Mimic.expect(Glossia.Github.Client, :get_commit, fn "glossia/demo",
                                                           "translation-commit-sha",
                                                           "github-token" ->
@@ -744,7 +774,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert_received {:repository, %{publication_branch: "glossia/translate-abc123456789"}}
   end
 
-  test "merges the new source commit into a continued translation branch" do
+  test "does not advance a continued translation branch when assessment finds no changes" do
     {user, project} =
       project_with_installation("translate-continuation@test.com", "translate-continuation")
 
@@ -776,13 +806,8 @@ defmodule Glossia.TranslationSessions.TranslateTest do
       {:ok, %{"status" => "ahead"}}
     end)
 
-    Mimic.expect(Glossia.Github.Client, :merge_branch, fn "glossia/demo",
-                                                          params,
-                                                          "github-token" ->
-      assert params.base == "glossia/translate-abc123456789"
-      assert params.head == "def9876543210"
-      {:ok, %{"sha" => "merge-commit"}}
-    end)
+    Mimic.reject(&Glossia.Github.Client.merge_branch/3)
+    Mimic.reject(&Glossia.Github.Client.update_ref/4)
 
     Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
                                                             _account,
@@ -802,7 +827,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
                      }}
 
     updated = Repo.get!(TranslationSession, session.id)
-    assert updated.publication_commit_sha == "merge-commit"
+    assert updated.publication_commit_sha == "checkpoint-commit"
     assert updated.status == "completed"
   end
 
@@ -872,12 +897,12 @@ defmodule Glossia.TranslationSessions.TranslateTest do
       {:ok, %{"status" => "ahead"}}
     end)
 
-    expect(Glossia.Github.Client, :merge_branch, fn _, _, _ ->
-      {:error, {:api_error, 409, %{"message" => "Merge conflict TOKEN=private-output"}}}
+    expect(Glossia.Translations.RepositoryRun, :run, fn _, _, _, _, _ ->
+      {:error, :translation_branch_conflict}
     end)
 
     reject(&Glossia.Github.Client.create_pull_request/3)
-    reject(&Glossia.Translations.RepositoryRun.run/5)
+    reject(&Glossia.Github.Client.merge_branch/3)
 
     log =
       capture_log(fn ->
@@ -986,7 +1011,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
       updated = Repo.get!(TranslationSession, session.id)
       assert is_nil(updated.pull_request_url)
       assert is_nil(updated.pull_request_number)
-      assert is_nil(updated.publication_branch)
+      assert String.starts_with?(updated.publication_branch, "glossia/translate-def987654321-")
       assert is_nil(updated.publication_commit_sha)
     end
   end

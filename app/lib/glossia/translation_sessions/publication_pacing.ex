@@ -5,7 +5,8 @@ defmodule Glossia.TranslationSessions.PublicationPacing do
   Admission runs under the project's database publication lock. Reserving a
   slot before calling GitHub also counts ambiguous failures: an HTTP timeout
   may mean GitHub advanced the branch even though we did not get its response.
-  Source merges and final flushes use the same budget as intermediate batches.
+  Final flushes use the same budget as intermediate batches. Source is merged
+  locally and only accompanies a batch that has changes to publish.
   Waiters release the database lock before sleeping and recheck admission when
   they wake. A new session or application restart does not reset the budget.
   """

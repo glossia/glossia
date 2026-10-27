@@ -53,6 +53,13 @@ defmodule Glossia.DataCase do
       Ecto.Adapters.SQL.Sandbox.stop_owner(clickhouse_pid)
       Ecto.Adapters.SQL.Sandbox.stop_owner(repo_pid)
     end)
+
+    # ClickHouse's sandbox transactions do no network I/O. Tests that never
+    # query it can return expired HTTP connections to the pool. Probe the owned
+    # connection before each test, using the existing bounded transport retry.
+    Glossia.IngestRepo.with_retry(fn -> Glossia.IngestRepo.query!("SELECT 1") end)
+
+    :ok
   end
 
   @doc """
