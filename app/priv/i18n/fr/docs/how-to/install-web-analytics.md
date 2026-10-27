@@ -1,36 +1,36 @@
 %{
-  title: "Installer les analyses Web",
+  title: "Installer des analyses web",
   summary:
-    "Ajoutez le SDK web Glossia à votre site en une seule ligne HTML ou via npm, et commencez à collecter des signaux de localisation.",
+    "Ajoutez le SDK web Glossia à votre site avec une seule ligne de HTML ou via npm, et commencez à collecter des signaux de localisation.",
   category: "Tutoriel",
   section: "analytics",
   order: 1
 }
 ---
 
-Ce guide suppose que vous avez un projet Glossia pour lequel le domaine du site est configuré dans les paramètres d'analyse du projet. La collecte est identifiée par ce domaine, il n'y a donc aucune clé ou secret à copier.
+Cet guide suppose que vous avez un projet Glossia dont le domaine du site est configuré dans les paramètres analytiques du projet. La collecte est identifiée par ce domaine, il n'y a donc pas de clé ni de secret à copier.
 
 ## Option A : balise script
 
-Ajoutez cet extrait à chaque page, idéalement dans le `<head>` :
+Ajoutez ce fragment à chaque page, idéalement dans le `<head>` :
 
 ```html
 <script defer data-domain="example.com" src="https://glossia.ai/assets/glossia-web.js"></script>
 ```
 
-Le SDK s'initialise automatiquement, envoie une consultation de page au chargement et enregistre les consultations de page ultérieures lors de la navigation côté client dans les applications monopages. `data-domain` se définit sur `window.location.hostname` par défaut lorsqu'il est omis, vous pouvez donc le supprimer sur un site à domaine unique. Pour utiliser un point de collecte personnalisé, ajoutez `data-endpoint="https://collect.your-host.com"`.
+Le SDK initialise automatiquement, envoie une vue de page au chargement et enregistre les vues de page ultérieures lors de la navigation côté client dans les applications one-page. `data-domain` est donc par défaut à `window.location.hostname` lorsqu'il est omis, vous pouvez donc l'ôter sur un site à domaine unique. Pour utiliser un endpoint de collecte personnalisé, ajoutez `data-endpoint="https://collect.your-host.com"`.
 
-Si votre site utilise une politique de sécurité du contenu, autorisez `https://glossia.ai` tant dans `script-src` (ou `script-src-elem` s'il est présent) que dans `connect-src`. Le script se charge depuis `/assets/glossia-web.js` et envoie des événements à `/v1/collect` sur la même origine.
+Si votre site utilise une politique de sécurité du contenu, autorisez `https://glossia.ai` dans `script-src` (ou `script-src-elem` lorsqu'il est présent) et `connect-src`. Le script charge depuis `/assets/glossia-web.js` et envoie les événements à `/v1/collect` de la même origine.
 
 ## Option B : npm
 
-Installez le package :
+Installez le paquet :
 
 ```bash
 npm install @glossia/web
 ```
 
-Initialisez-le une fois dans votre point d'entrée d'application :
+Initialisez-le une fois dans l'entrée de votre application :
 
 ```ts
 import glossia from "@glossia/web";
@@ -38,9 +38,9 @@ import glossia from "@glossia/web";
 glossia.init({ endpoint: "https://glossia.ai/v1/collect" });
 ```
 
-Définissez le point de collecte explicitement lorsque vous utilisez le package dans votre propre bundle, car il n'existe pas d'adresse de script hébergée à partir de laquelle le déduire.
+Définissez l'endpoint de collecte explicitement lorsque vous utilisez le paquet dans votre propre bundle, car il n'y a pas d'adresse de script hébergé à partir de laquelle le déduire.
 
-`domain` se déduit de `window.location.hostname` afin que le SDK enregistre sur le projet enregistré pour votre site. Passez `{ domain: "example.com" }` pour remplacer, par exemple pour envoyer des événements depuis une origine de test vers le même projet que la production.
+Le `domain` est inféré à partir de `window.location.hostname` si le SDK enregistre contre le projet enregistré pour votre site. Passez `{ domain: "example.com" }` pour surcharger, par exemple pour envoyer des événements depuis une origine de staging vers le même projet que la production.
 
 Pour enregistrer un événement personnalisé, par exemple une inscription :
 
@@ -48,58 +48,58 @@ Pour enregistrer un événement personnalisé, par exemple une inscription :
 glossia.track("signup");
 ```
 
-## Enregistrer les choix explicites de langue
+## Enregistrez les choix de langue explicites
 
-Pour distinguer le choix d'un visiteur de la préférence de son navigateur, appelez le SDK dans le gestionnaire d'action utilisateur de votre sélecteur de langue, avant la navigation :
+Pour distinguer le choix d'un visiteur de sa préférence de navigateur, appelez le SDK dans le gestionnaire d'action utilisateur de votre sélecteur de langue, avant de naviguer :
 
 ```js
 glossia.selectLanguage("zh-Hans");
 ```
 
-Cette méthode est disponible sur le SDK importé après `glossia.init()`/, et sur l'objet global `glossia` lorsque vous utilisez le script hébergé.
+Cette méthode est disponible sur le SDK importé après `glossia.init()`, et sur le global `glossia` lors de l'utilisation du script hébergé.
 
-Alternativement, annotez les liens de basculement de langue même origine :
+Alternativement, notez les liens de changement de langue d'origine du même :
 
 ```html
 <a href="/zh-hans/docs" data-glossia-language="zh-Hans">简体中文</a>
 ```
 
-Utilisez une seule intégration par action, pas les deux. Les liens annotés enregistrent l'activation réelle de l'utilisateur, y compris l'activation au clavier. Ils ignorent les clics scriptés, les téléchargements, les clics modifiés, les destinations cross-origin, et les liens qui ouvrent un autre onglet ou cadre, sans empêcher la navigation.
+Utilisez une intégration par action, pas les deux. Les liens annotés enregistrent la véritable activation de l'utilisateur, y compris l'activation au clavier. Ils ignorent les clics scriptés, les téléchargements, les clics modifiés, les destinations cross-origin et les liens qui ouvrent un autre onglet ou frame, sans empêcher la navigation.
 
-Le SDK envoie immédiatement un événement `language_selection` et inclut la langue choisie (`cl`) sur les événements ultérieurs. Le choix est stocké dans `sessionStorage` pour l'onglet et l'origine actuels jusqu'à ce qu'un autre choix le remplace. Si le stockage n'est pas disponible, il ne dure que jusqu'au déchargement de la page. Aucun choix n'est déduit des redirections, des URL, ou des modifications de `<html lang>`.
+Le SDK envoie immédiatement un `language_selection` événement et inclut la langue choisie (`cl`) sur les événements ultérieurs. Le choix est stocké dans `sessionStorage` pour l'onglet et l'origine actuels jusqu'à ce qu'un autre choix le remplace. Si le stockage n'est pas disponible, il ne dure que jusqu'à ce que la page se décharge. Aucun choix n'est inféré des redirections, URLs ou modifications à `<html lang>`.
 
-La sélection enregistre l'intention, pas la navigation réussie. La préférence du navigateur, la langue réelle de la page et le choix explicite restent séparés. Le collecteur stocke le choix, le calcul d'écart du tableau de bord basé sur le navigateur actuel est inchangé.
+Le sélecteur enregistre l'intention, pas la navigation réussie. Préférence navigateur, langue réelle de la page et choix explicite restent séparés. Le collecteur vérifie un choix valide au lieu des préférences de navigateur lors du calcul du fossé de localisation. Un choix ne vide le fossé que s'il correspond à une cible projet, à une traduction annoncée ou à la langue réelle de la page ; une langue choisie non disponible a encore un fossé. Les choix manquants ou invalides utilisent les préférences du navigateur comme auparavant. Les totaux et les badges du tableau de bord utilisent la décision stockée de chaque événement ; les flags historiques ne changent pas.
 
 ## Vérifiez votre domaine
 
-Dans les **Paramètres d'analyse** de votre projet, enregistrez le domaine de votre site. La carte **Vérifier la propriété du domaine** affiche le nom et la valeur exacts de l'enregistrement pour votre projet. Ajoutez un enregistrement texte avec votre fournisseur de domaine :
+Dans les **Paramètres analytiques** de votre projet, sauvegardez le domaine de votre site. La carte **Vérifier la propriété du domaine** montre le nom exact de l'enregistrement et la valeur pour votre projet. Ajoutez un enregistrement de texte avec votre fournisseur de domaine :
 
 | Champ | Valeur |
 | --- | --- |
-| Type | `TXT` ([enregistrement texte](https://www.cloudflare.com/learning/dns/dns-records/dns-txt-record/)) |
+| Type | `TXT` ([enregistrement de texte](https://www.cloudflare.com/learning/dns/dns-records/dns-txt-record/)) |
 | Nom | `_glossia-verify.example.com` |
 | Valeur | `glossia-site-verification=YOUR_VERIFICATION_TOKEN` |
 
-Utilisez le domaine et le jeton affichés dans vos paramètres. Certains fournisseurs ajoutent le domaine automatiquement ; dans ce cas, entrez seulement `_glossia-verify` comme nom. Après avoir publié l'enregistrement, cliquez sur **Vérifiez le domaine**. Les modifications peuvent mettre du temps à devenir disponibles, tentez donc à nouveau si l'enregistrement n'est pas trouvé immédiatement.
+Utilisez le domaine et le token affichés dans vos paramètres. Certains fournisseurs ajoutent le domaine automatiquement ; dans ce cas, entrez uniquement `_glossia-verify` comme nom. Après avoir publié l'enregistrement, cliquez sur **Vérifiez le domaine**. Les changements peuvent prendre du temps pour être disponibles, essayez à nouveau si l'enregistrement n'est pas trouvé immédiatement.
 
-Si vous ne pouvez pas modifier vos enregistrements de domaine, développez **Alternative : vérifier avec une balise méta de page d'accueil**. Copiez la balise générée dans le `<head>` de votre page d'accueil et publiez-la :
+Si vous ne pouvez pas modifier vos enregistrements de domaine, déployez **Alternative : vérifier avec une meta tag de page d'accueil**. Copiez le tag généré dans le `<head>` de votre page d'accueil et publiez-le :
 
 ```html
 <meta name="glossia-site-verification" content="YOUR_VERIFICATION_TOKEN">
 ```
 
-L'une ou l'autre méthode prouve le contrôle du domaine configuré. Glossia vérifie l'enregistrement ou la page d'accueil de ce domaine, de sorte que la copie du jeton sur un autre site ne vérifie pas la propriété. Le jeton est une preuve publique, pas un mot de passe.
+L'une ou l'autre méthode prouve le contrôle du domaine configuré. Glossia vérifie l'enregistrement ou la page d'accueil de ce domaine, alors copier le token sur un autre site web ne vérifie pas la propriété. Le token est une preuve publique, pas un mot de passe.
 
-Une fois le domaine vérifié, Glossia enregistre les événements depuis votre extrait de suivi. L'extrait seul ne vérifie pas la propriété. Il faut une nouvelle vérification pour modifier le domaine configuré.
+Une fois le domaine vérifié, Glossia enregistre des événements à partir de votre extrait de traçabilité. L'extrait seul ne vérifie pas la propriété. Changer le domaine configuré nécessite une nouvelle vérification.
 
-## Vérifiez qu'il fonctionne
+## Vérifiez que cela fonctionne
 
 1. Ouvrez votre site dans un navigateur.
-2. Ouvrez l'onglet réseau et confirmez qu'une demande `POST` vers `https://glossia.ai/v1/collect` retourne `202 Accepted`.
-3. Après collecte et traitement, la consultation de page apparaît sous **Analyses** dans le tableau de bord de votre projet. Les exécutions de traduction sur la page Vue d'ensemble sont séparées du trafic web.
+2. Ouvrez l'onglet réseau et confirmez qu'une demande `POST` vers `https://glossia.ai/v1/collect` renvoie `202 Accepted`.
+3. Après collecte et traitement, la vue de page apparaît sous **Analytiques** de votre tableau de bord de projet. Les exécutions de traduction sur la page Vue d'ensemble sont séparées du trafic web.
 
-Une réponse `202 Accepted` confirme que la demande a atteint le collecteur. Les domaines inconnus ou non vérifiés sont également acceptés mais n'enregistrent pas les événements, vérifiez donc que le domaine configuré est vérifié dans les paramètres d'analyse du projet.
+Une réponse `202 Accepted` confirme que la demande a atteint le collecteur. Les domaines inconnus ou non vérifiés sont également acceptés mais n'enregistrent pas d'événements, donc confirmez que le domaine configuré est vérifié dans les paramètres analytiques du projet.
 
-## Ce qui est collecté
+## Qu'est-ce qui est collecté
 
-Le navigateur envoie l'URL de la page, le referrer, `navigator.languages`, la langue réelle de la page (`<html lang>`), les traductions annoncées (liens `hreflang`), la langue explicitement choisie si observée, le fuseau horaire et la largeur d'écran, plus un identifiant de session par onglet. Le serveur ajoute le pays (via GeoIP) et calcule l'écart de localisation par rapport aux langues cibles de votre projet, aux traductions annoncées et à la langue réelle de la page. L'identifiant de session et le choix explicite utilisent `sessionStorage` ; aucun cookie n'est défini et rien n'est fingerprinté.
+Le navigateur envoie l'URL de la page, le référant, `navigator.languages`(), langue réelle de la page (`<html lang>`), traductions annoncées (`hreflang` liens), langue choisie explicitement observée, fuseau horaire et largeur d'écran, plus un id de session par onglet. Le serveur ajoute le pays (depuis GeoIP) et calcule le fossé de localisation par rapport aux langues cibles de votre projet, aux traductions annoncées et à la langue réelle de la page. L'id de session et le choix explicite utilisent `sessionStorage` ; aucun cookie n'est défini et rien n'est fingerprinté.
