@@ -43,7 +43,11 @@ The method sends a `language_selection` event immediately. Its `sl` still descri
 
 For links, `data-glossia-language="zh-Hans"` enables delegated tracking of trusted, unmodified primary clicks, including keyboard activation. Scripted clicks, already cancelled clicks, downloads, cross-origin links, and links targeting another tab or frame are ignored. The listener runs in the capture phase before routers navigate, does not prevent navigation, and also handles dynamically inserted links. Use either the annotation or the API for an action, not both.
 
-This is a client-reported intent signal, not proof that navigation succeeded. URL changes, redirects, and HTML language changes are not interpreted as choices. The selection does not override `l` or `sl`, or currently change `has_locale_gap` or dashboard badges.
+This is a client-reported intent signal, not proof that navigation succeeded. URL changes, redirects, and HTML language changes are not interpreted as choices. The selection does not override `l` or `sl`. A valid selection takes precedence over browser preferences only when computing `has_locale_gap`: the chosen language must match a project target, an advertised translation (`al`), or the actual page language (`sl`). The choice itself is not evidence of availability. Matching uses normalized exact-or-base-language matches, as it does for browser preferences.
+
+For example, a Japanese-preferring visitor who explicitly chooses an available English translation has no gap. An English-preferring visitor who chooses unavailable Japanese still has a gap, even on an English page. A selection event emitted before navigation keeps the current page's `sl`; the destination language can be recognized through project targets or `al` without assuming navigation succeeded.
+
+Missing, malformed, or oversized choices fall back to browser preferences. If neither a choice nor browser preferences are known, there is no gap. Dashboard totals and badges read the stored per-event flag. Historical flags, including those collected before choices affected gap calculation, are not recomputed: historical advertised translations and full browser preferences are not stored.
 
 ## Server-derived fields
 
@@ -62,7 +66,7 @@ These are computed at ingestion and stored server-side. The raw IP and User-Agen
 | `browser_language`| Languages     | Most preferred normalized locale (e.g. `pt-BR`).                    |
 | `served_locale`   | Page language | Normalized `sl`, or empty if it was not collected. Rows with an empty page language are omitted from the browser-language breakdown. |
 | `selected_locale` | Explicit choice | Normalized `cl`, or empty for missing, malformed, or oversized input. Stored separately from browser preference and page language. |
-| `has_locale_gap`  | Computed      | `1` when none of the visitor's preferred languages match the project targets, advertised translations (`al`), or page language (`sl`). Missing preferences do not count as a gap. |
+| `has_locale_gap`  | Computed      | `1` when a valid explicit choice has no match among project targets, advertised translations (`al`), or page language (`sl`). Without a valid choice, `1` only when browser preferences are nonempty and none match. |
 
 ### Client IP resolution
 

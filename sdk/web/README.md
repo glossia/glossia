@@ -64,7 +64,9 @@ Both integrations send a `language_selection` event immediately, with the choice
 
 The choice lasts for the current tab's session on the same origin, until another choice replaces it. If `sessionStorage` is blocked or full, the SDK retains it in memory until the page unloads. It does not follow cross-origin navigation. A page language change or redirect alone never establishes an explicit choice.
 
-The choice records intent, not proof that navigation succeeded. It stays separate from the browser preferences (`l`) and actual page language (`sl`), so a selection event on an English page can report `cl: "zh-Hans"` and `sl: "en"`. The collector stores it as `selected_locale`; it does not yet change the dashboard's browser-based gap calculation.
+The choice records intent, not proof that navigation succeeded. It stays separate from the browser preferences (`l`) and actual page language (`sl`), so a selection event on an English page can report `cl: "zh-Hans"` and `sl: "en"`. The collector stores it as `selected_locale` and checks that choice, instead of browser preferences, against the project's target languages, advertised translations, and actual page language. Choosing an available language clears the gap; choosing an unavailable language still reports a gap even if a browser-preferred language is available. Missing or invalid choices fall back to browser preferences. Matching uses the same normalized exact-or-base-language rules in either case.
+
+Dashboard gap totals and badges use the decision stored with each event. Historical events keep their original gap flags; they are not recomputed from today's targets or later selections.
 
 ## What gets collected
 

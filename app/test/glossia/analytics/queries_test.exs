@@ -128,6 +128,56 @@ defmodule Glossia.Analytics.QueriesTest do
     assert Queries.browser_languages(project_id, ["en"], since: since, until: until) == []
   end
 
+  test "gap reporting uses stored decisions for explicit choices and historical events" do
+    project_id = Ecto.UUID.generate()
+    since = datetime("2026-08-16T10:00:00Z")
+    until = datetime("2026-08-16T12:00:00Z")
+    inserted_at = datetime("2026-08-16T11:00:00Z")
+
+    # The last row predates choice-aware gap calculation. Neither it nor the
+    # row without a selection can be recomputed from today's project targets:
+    # historical advertised translations and full browser preferences are gone.
+    for overrides <- [
+          %{selected_locale: "en", has_locale_gap: 0},
+          %{selected_locale: "ko", has_locale_gap: 1},
+          %{has_locale_gap: 1},
+          %{selected_locale: "en", has_locale_gap: 1}
+        ] do
+      insert_events([
+        event(
+          project_id,
+          inserted_at,
+          Map.merge(%{browser_language: "ja", served_locale: "en"}, overrides)
+        )
+      ])
+    end
+
+    assert %{pageviews: 4, locale_gap_visits: 3, top_browser_language: "ja"} =
+             Queries.summary(project_id, since, until)
+
+    opts = [since: since, until: until]
+
+    assert Queries.browser_languages(project_id, ["ja", "en", "ko"], opts) == [
+             %{
+               browser_language: "ja",
+               served_locale: "en",
+               has_locale_gap: 1,
+               visits: 3,
+               is_served: true
+             },
+             %{
+               browser_language: "ja",
+               served_locale: "en",
+               has_locale_gap: 0,
+               visits: 1,
+               is_served: true
+             }
+           ]
+
+    assert [%{browser_language: "ja", visitors: 3}] =
+             Queries.localization_priority(project_id, ["ja", "en", "ko"], opts)
+  end
+
   test "traffic granularity follows the selected period" do
     start = datetime("2026-01-01T00:00:00Z")
 

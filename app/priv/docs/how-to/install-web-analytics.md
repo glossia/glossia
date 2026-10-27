@@ -67,7 +67,7 @@ Use one integration per action, not both. Annotated links record genuine user ac
 
 The SDK immediately sends a `language_selection` event and includes the chosen language (`cl`) on subsequent events. The choice is stored in `sessionStorage` for the current tab and origin until another choice replaces it. If storage is unavailable, it lasts only until the page unloads. No choice is inferred from redirects, URLs, or changes to `<html lang>`.
 
-The selection records intent, not successful navigation. Browser preference, actual page language, and explicit choice remain separate. The collector stores the choice; the dashboard's current browser-based gap calculation is unchanged.
+The selection records intent, not successful navigation. Browser preference, actual page language, and explicit choice remain separate. The collector checks a valid choice instead of browser preferences when computing the localization gap. A choice clears the gap only if it matches a project target, an advertised translation, or the actual page language; an unavailable chosen language still has a gap. Missing or invalid choices use browser preferences as before. Dashboard totals and badges use each event's stored decision; historical flags are unchanged.
 
 ## Verify your domain
 
