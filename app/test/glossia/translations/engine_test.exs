@@ -8,6 +8,7 @@ defmodule Glossia.Translations.EngineTest do
   alias Glossia.Translations
   alias Glossia.Translations.Context
   alias Glossia.Translations.Engine
+  alias Glossia.Translations.Validate
   alias Glossia.TranslationStubs
 
   defp work_item(overrides) do
@@ -646,6 +647,276 @@ defmodule Glossia.Translations.EngineTest do
 
       assert result.text ==
                "%{title: \"Hola\", summary: \"Un resumen\", date: ~D[2026-02-03], slug: \"guide\", author: \"pepicrft\"}\n---\n\nCuerpo"
+    end
+
+    @tag :tmp_dir
+    test "reconstructs Apple catalogs from translated values without changing keys or syntax", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "Localizable.strings")
+
+      content = ~S"""
+      /* Preserve "a" = "comment"; */
+      "%@ of %@ files" = "%1$@ of %2$@ files";
+      "Title" /* key */ = /* value */ "Choose Files" /* end */;
+      "Speech" = "Say \"hello\"\nC:\\drafts";
+      "Direction" = "\U2066path\U2069";
+      "One" = "One";
+      "Two" = "Two";
+      "Three" = "Three";
+      "Four" = "Four";
+      // A second batch, including non-ASCII before its value.
+      "日本語" = "Last value";
+      "Empty" = "";
+      """
+
+      File.write!(source, content)
+
+      translations = %{
+        "%1$@ of %2$@ files" => "%2$@ archivos de %1$@",
+        "Choose Files" => "Elegir \"archivos\"",
+        "Say \"hello\"\nC:\\drafts" => "Di \"hola\"\nC:\\borradores",
+        "\u2066path\u2069" => "\u2066ruta\u2069",
+        "Last value" => "Último valor"
+      }
+
+      stub_stream(fn _account, payload, _on_event ->
+        values = JSON.decode!(payload["source_content"])
+        translated(JSON.encode!(Enum.map(values, &Map.get(translations, &1, &1))))
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, format: "text"}),
+                 %Account{id: 1},
+                 fn _ -> :ok end
+               )
+
+      assert result.text == """
+             /* Preserve "a" = "comment"; */
+             "%@ of %@ files" = "%2$@ archivos de %1$@";
+             "Title" /* key */ = /* value */ "Elegir \\"archivos\\"" /* end */;
+             "Speech" = "Di \\"hola\\"\\nC:\\\\borradores";
+             "Direction" = "\u2066ruta\u2069";
+             "One" = "One";
+             "Two" = "Two";
+             "Three" = "Three";
+             "Four" = "Four";
+             // A second batch, including non-ASCII before its value.
+             "日本語" = "Último valor";
+             "Empty" = "";
+             """
+    end
+
+    @tag :tmp_dir
+    test "reconstructs Android XML with resource escaping and original attributes", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "strings.xml")
+
+      File.write!(source, ~S"""
+      <?xml version="1.0" encoding="utf-8"?>
+      <resources>
+        <!-- Keep <string name="example">comments</string> -->
+        <string name="title" formatted="false">"Choose &amp; open \&#x22;files\&#34;"</string>
+        <string translatable="false" name="brand">"Glossia"</string>
+        <string formatted="false" name="progress">"%1$s of %2$d \u2066files\u2069"</string>
+      </resources>
+      """)
+
+      stub_stream(fn _account, payload, _on_event ->
+        values = JSON.decode!(payload["source_content"])
+
+        translated(
+          JSON.encode!(
+            Enum.map(values, fn
+              "Choose & open \"files\"" -> "Elige & abre \"<archivos>\"\r\notra línea\\r"
+              "%1$s of %2$d \u2066files\u2069" -> "%2$d archivos de %1$s \u2066archivos\u2069"
+            end)
+          )
+        )
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, format: "text"}),
+                 %Account{id: 1},
+                 fn _ -> :ok end
+               )
+
+      assert result.text == """
+             <?xml version="1.0" encoding="utf-8"?>
+             <resources>
+               <!-- Keep <string name="example">comments</string> -->
+               <string name="title" formatted="false">"Elige &amp; abre \\"&lt;archivos&gt;\\"\\u000d\\notra línea\\\\r"</string>
+               <string translatable="false" name="brand">"Glossia"</string>
+               <string formatted="false" name="progress">"%2$d archivos de %1$s \u2066archivos\u2069"</string>
+             </resources>
+             """
+    end
+
+    @tag :tmp_dir
+    test "rejects invalid native value responses before reconstructing a catalog", %{tmp_dir: dir} do
+      source = Path.join(dir, "Localizable.strings")
+      File.write!(source, ~S("Stable key" = "%1$@ has %2$lld \U2066files\U2069";))
+
+      for response <- [
+            ~s(["%1$@ tiene %2$d \u2066archivos\u2069"]),
+            ~s(["%1$@ tiene %2$lld archivos"]),
+            JSON.encode!(["%1$@ tiene %2$lld \u2069archivos\u2066"]),
+            ~s(["%1$@ tiene %2$lld \u2066archivos\u2069", "extra"]),
+            ~s([""]),
+            ~s([null]),
+            "\"Clave traducida\" = \"contenido\";"
+          ] do
+        stub_stream(fn _account, _payload, _on_event -> translated(response) end)
+
+        assert {:error, {:validation_failed, message}} =
+                 Engine.apply_item(
+                   work_item(%{source_abs: source, format: "text", retries: 0}),
+                   %Account{id: 1},
+                   fn _ -> :ok end
+                 )
+
+        assert message =~ "native text-literal response"
+      end
+    end
+
+    @tag :tmp_dir
+    test "keeps protected variables and URLs in their own native resource value", %{tmp_dir: dir} do
+      source = Path.join(dir, "Localizable.strings")
+      File.write!(source, ~S("welcome" = "Welcome {name}"; "help" = "Open https://example.org";))
+
+      for response <- [
+            ["Bienvenido", "Abre {name} https://example.org"],
+            ["Bienvenido {name} https://example.org", "Abre"],
+            ["Bienvenido {name} {extra}", "Abre https://example.org"]
+          ] do
+        stub_stream(fn _account, _payload, _on_event -> translated(JSON.encode!(response)) end)
+
+        assert {:error, {:validation_failed, message}} =
+                 Engine.apply_item(
+                   work_item(%{source_abs: source, format: "text", retries: 0}),
+                   %Account{id: 1},
+                   fn _ -> :ok end
+                 )
+
+        assert message =~ "native text-literal response"
+      end
+
+      stub_stream(fn _account, _payload, _on_event ->
+        translated(JSON.encode!(["Bienvenido {name}", "Abre https://example.org\nNueva línea"]))
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, format: "text"}),
+                 %Account{id: 1},
+                 fn _ -> :ok end
+               )
+
+      assert result.text ==
+               ~S("welcome" = "Bienvenido {name}"; "help" = "Abre https://example.org\nNueva línea";)
+    end
+
+    @tag :tmp_dir
+    test "fails closed for unsupported native syntax rather than translating resource keys", %{
+      tmp_dir: dir
+    } do
+      stub_stream(fn _account, _payload, _on_event -> translated("unsafe text translation") end)
+
+      for {filename, content} <- [
+            {"Localizable.strings", ~S("key" = "\141";)},
+            {"Localizable.strings", ~S("key" = "\u2066value\u2069";)},
+            {"strings.xml",
+             ~S(<resources><string name="key">Unquoted value</string></resources>)},
+            {"strings.xml",
+             ~S(<resources><string name="key">"\U2066value\U2069"</string></resources>)},
+            {"strings.xml", ~S(<resources><string name="key">"line\rbreak"</string></resources>)}
+          ] do
+        source = Path.join(dir, filename)
+        File.write!(source, content)
+
+        assert {:error, {:validation_failed, message}} =
+                 Engine.apply_item(
+                   work_item(%{source_abs: source, format: "text"}),
+                   %Account{id: 1},
+                   fn _ -> :ok end
+                 )
+
+        assert message == "native catalog source uses unsupported syntax"
+      end
+    end
+
+    @tag :tmp_dir
+    test "preserves dynamic printf arguments and Android date conversions", %{tmp_dir: dir} do
+      for {filename, content, original, invalid} <- [
+            {"Localizable.strings", ~S("key" = "%*.*f %s";), "%*.*f %s",
+             ["%*.*d %s", "%*.*f %1$s", "%s %*.*f"]},
+            {"strings.xml", ~S(<resources><string name="key">"%1$tY"</string></resources>),
+             "%1$tY", ["%1$tB"]},
+            {"strings.xml",
+             ~S(<resources><string name="key">"Balance %,d / %(d"</string></resources>),
+             "Balance %,d / %(d", ["Saldo %,f / %(d", "Saldo %,d / %(f"]}
+          ] do
+        source = Path.join(dir, filename)
+        File.write!(source, content)
+
+        for value <- invalid do
+          stub_stream(fn _account, _payload, _on_event -> translated(JSON.encode!([value])) end)
+
+          assert {:error, {:validation_failed, _message}} =
+                   Engine.apply_item(
+                     work_item(%{source_abs: source, format: "text", retries: 0}),
+                     %Account{id: 1},
+                     fn _ -> :ok end
+                   )
+        end
+
+        stub_stream(fn _account, _payload, _on_event ->
+          translated(JSON.encode!(["Traducción " <> original]))
+        end)
+
+        assert {:ok, result} =
+                 Engine.apply_item(
+                   work_item(%{source_abs: source, format: "text"}),
+                   %Account{id: 1},
+                   fn _ -> :ok end
+                 )
+
+        assert result.text == String.replace(content, original, "Traducción " <> original)
+      end
+    end
+
+    @tag :tmp_dir
+    test "validates native escaped placeholders and URLs by their decoded values", %{tmp_dir: dir} do
+      stub_stream(fn _account, payload, _on_event -> translated(payload["source_content"]) end)
+
+      for {filename, content, expected} <- [
+            {"Localizable.strings",
+             ~S("key" = "Hello \U007Bname\U007D at https:\/\/example.org";),
+             ~S("key" = "Hello {name} at https://example.org";)},
+            {"strings.xml",
+             ~S(<resources><string name="key">"Hello \u007bname\u007d"</string></resources>),
+             ~S(<resources><string name="key">"Hello {name}"</string></resources>)}
+          ] do
+        source = Path.join(dir, filename)
+        File.write!(source, content)
+
+        validate = fn output, original ->
+          Validate.validate_output(dir, "text", output, original, %{source_abs: source})
+        end
+
+        assert {:ok, result} =
+                 Engine.apply_item(
+                   work_item(%{source_abs: source, format: "text", retries: 0}),
+                   %Account{id: 1},
+                   fn _ -> :ok end,
+                   validate
+                 )
+
+        assert result.text == expected
+      end
     end
 
     @tag :tmp_dir

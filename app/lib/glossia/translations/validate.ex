@@ -11,6 +11,7 @@ defmodule Glossia.Translations.Validate do
   """
 
   alias Glossia.Translations.Frontmatter
+  alias Glossia.Translations.NativeCatalog
   alias Glossia.Translations.PreservedTokens
   alias Glossia.Translations.Validate.Po
 
@@ -31,7 +32,8 @@ defmodule Glossia.Translations.Validate do
              format,
              output,
              source,
-             resolve_preserve(options[:preserve] || [])
+             resolve_preserve(options[:preserve] || []),
+             options
            ),
          :ok <- validate_external(root, format, output, options) do
       :ok
@@ -117,11 +119,36 @@ defmodule Glossia.Translations.Validate do
   @doc "Resolves the preserve kinds: default set, `\"none\"` to disable, or the given list."
   defdelegate resolve_preserve(kinds), to: PreservedTokens, as: :resolve
 
-  defp validate_preserve_step(_format, _output, _source, []), do: :ok
+  defp validate_preserve_step(_format, _output, _source, [], _options), do: :ok
 
-  defp validate_preserve_step("po", _output, _source, _kinds), do: :ok
+  defp validate_preserve_step("po", _output, _source, _kinds, _options), do: :ok
 
-  defp validate_preserve_step(_format, output, source, kinds),
+  defp validate_preserve_step("text", output, source, kinds, %{source_abs: path})
+       when is_binary(path) do
+    case NativeCatalog.plan(path, source) do
+      nil ->
+        validate_preserve(output, source, kinds)
+
+      %{values: source_values} ->
+        with %{values: output_values} <- NativeCatalog.plan(path, output),
+             true <- length(source_values) == length(output_values) do
+          Enum.zip(source_values, output_values)
+          |> Enum.reduce_while(:ok, fn {{_, _, original}, {_, _, translated}}, :ok ->
+            case validate_preserve(translated, original, kinds) do
+              :ok -> {:cont, :ok}
+              error -> {:halt, error}
+            end
+          end)
+        else
+          _ -> {:error, "native catalog source uses unsupported syntax"}
+        end
+
+      {:error, {:validation_failed, message}} ->
+        {:error, message}
+    end
+  end
+
+  defp validate_preserve_step(_format, output, source, kinds, _options),
     do: validate_preserve(output, source, kinds)
 
   @doc "Fails unless placeholders, links, and code occur equally in source and output."

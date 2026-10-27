@@ -69,6 +69,29 @@ defmodule Glossia.Translations.ValidateTest do
       assert msg =~ "{count}"
     end
 
+    test "compares decoded native tokens per resource, including unexpected tokens" do
+      source = ~S("first" = "Hello \U007Bname\U007D"; "second" = "Help";)
+      options = %{source_abs: "/repo/Localizable.strings"}
+
+      assert :ok =
+               Validate.validate_output(
+                 "/repo",
+                 "text",
+                 ~S("first" = "Hola {name}"; "second" = "Ayuda";),
+                 source,
+                 options
+               )
+
+      for output <- [
+            ~S("first" = "Hola"; "second" = "Ayuda";),
+            ~S("first" = "Hola {name} {extra}"; "second" = "Ayuda";),
+            ~S("first" = "Hola"; "second" = "Ayuda {name}";)
+          ] do
+        assert {:error, _} =
+                 Validate.validate_output("/repo", "text", output, source, options)
+      end
+    end
+
     test "preserves fenced code blocks as whole tokens" do
       source = "Intro\n```elixir\nIO.puts(1)\n```\nEnd {x}"
       assert :ok = Validate.validate_preserve(source, source, ["code_blocks", "placeholders"])
