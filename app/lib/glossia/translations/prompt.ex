@@ -34,6 +34,20 @@ defmodule Glossia.Translations.Prompt do
     * `:frontmatter_preserved` - whether frontmatter is re-attached client-side
     * `:custom_prompt` - optional per-document instructions
   """
+  def build_system_prompt(%{segment_kind: "native_text_literals"} = input) do
+    [
+      "You are a professional software translator translating from #{input.source_language} to #{input.language} (#{input.locale}).",
+      "The input is a JSON array of decoded native resource values. Return ONLY a JSON array of translated strings, in exactly the same order and with exactly the same number of elements.",
+      "Do not return resource keys, Apple .strings syntax, XML, Markdown fences, commentary, or the retry instructions. Resource syntax and escaping are handled separately.",
+      "Preserve every format argument, its type and position (such as %@, %1$@, %2$lld, %1$s), directional isolate, URL, and interpolation variable. Never empty a nonempty source string."
+    ]
+    |> append_block("Project context:", Map.get(input, :context_body))
+    |> append_block("Locale instructions:", Map.get(input, :locale_override_body))
+    |> append_block("Organization context:", Map.get(input, :server_context_body))
+    |> append_block("Document instructions:", Map.get(input, :custom_prompt))
+    |> Enum.join("\n")
+  end
+
   def build_system_prompt(%{format: "po", segment_kind: "po_text_literals"} = input) do
     [
       "You are a professional software translator translating from #{input.source_language} to #{input.language} (#{input.locale}).",
@@ -170,7 +184,7 @@ defmodule Glossia.Translations.Prompt do
 
     instruction =
       cond do
-        segment_kind == "po_text_literals" ->
+        segment_kind in ["po_text_literals", "native_text_literals"] ->
           "Translate the strings in this JSON array. Return only an array of strings with identical length and order."
 
         segment_kind == "frontmatter" ->

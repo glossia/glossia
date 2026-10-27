@@ -33,6 +33,7 @@ defmodule Glossia.Translations.Engine do
   alias Glossia.Translations.Frontmatter
   alias Glossia.Translations.JsonArray
   alias Glossia.Translations.MarkdownUnits
+  alias Glossia.Translations.NativeCatalog
   alias Glossia.Translations.Po
   alias Glossia.Translations.Quality
   alias Glossia.Translations.PreservedTokens
@@ -64,10 +65,11 @@ defmodule Glossia.Translations.Engine do
   defp apply_item_with_context(work_item, account, on_event, validate, opts, server_context) do
     case File.read(work_item.source_abs) do
       {:ok, source_text} ->
-        with :ok <- Quality.preflight(work_item, source_text) do
-          preserve_kinds = PreservedTokens.resolve(work_item.preserve || [])
-          translation = prepare_translation(work_item, source_text, preserve_kinds)
+        preserve_kinds = PreservedTokens.resolve(work_item.preserve || [])
 
+        with :ok <- Quality.preflight(work_item, source_text),
+             translation when is_map(translation) <-
+               prepare_translation(work_item, source_text, preserve_kinds) do
           {segments, context_budget} =
             attach_server_context(
               translation.segments,
@@ -87,6 +89,7 @@ defmodule Glossia.Translations.Engine do
             protections: translation.protections,
             preserved_frontmatter: translation.preserved_frontmatter,
             markdown_plan: Map.get(translation, :markdown_plan),
+            native_plan: Map.get(translation, :native_plan),
             source_text: source_text,
             on_event: on_event,
             validate: validate,
@@ -516,6 +519,10 @@ defmodule Glossia.Translations.Engine do
 
   defp segment_on_event(state, _segment), do: state.on_event
 
+  # Native values are checked individually before JSON encoding. Scanning the
+  # encoded array instead makes escapes such as \n appear to be part of a URL.
+  defp unpreserved(_state, %{kind: "native_text_literals"}, _text), do: []
+
   # Masked content is checked against the extraction plan's markers. Content
   # left visible to the model, such as a plain web address, is checked against
   # the segment source instead, so a model that localizes or drops an address is
@@ -593,6 +600,11 @@ defmodule Glossia.Translations.Engine do
   defp preservation_error_message(values) do
     "these protected token markers and web addresses must be copied byte-for-byte exactly once: " <>
       Enum.join(values, ", ")
+  end
+
+  defp assemble_segments(%{native_plan: plan}, translated_segments) when not is_nil(plan) do
+    values = Enum.flat_map(translated_segments, &JSON.decode!(&1.text))
+    NativeCatalog.splice(plan, values)
   end
 
   defp assemble_segments(state, translated_segments) do
@@ -734,10 +746,32 @@ defmodule Glossia.Translations.Engine do
   end
 
   defp prepare_translation(work_item, source_text, preserve_kinds) do
-    {segments, protections} =
-      planned_content_segments(source_text, work_item.format, preserve_kinds, "document")
+    case NativeCatalog.plan(work_item.source_abs, source_text) do
+      nil ->
+        {segments, protections} =
+          planned_content_segments(source_text, work_item.format, preserve_kinds, "document")
 
-    %{preserved_frontmatter: nil, segments: segments, protections: protections}
+        %{preserved_frontmatter: nil, segments: segments, protections: protections}
+
+      {:error, _reason} = error ->
+        error
+
+      plan ->
+        segments =
+          plan.values
+          |> Enum.map(&elem(&1, 2))
+          |> Enum.chunk_every(8)
+          |> Enum.map(fn values ->
+            %{
+              kind: "native_text_literals",
+              content: JSON.encode!(values),
+              native_values: values,
+              preserve_kinds: preserve_kinds
+            }
+          end)
+
+        %{preserved_frontmatter: nil, segments: segments, protections: [], native_plan: plan}
+    end
   end
 
   defp prepare_po_full_segment(source_text, units) do
@@ -1093,6 +1127,13 @@ defmodule Glossia.Translations.Engine do
          "markdown"
        ),
        do: Frontmatter.rebuild_nimble_publisher_text_literals(plan, text)
+
+  defp reconcile_segment(
+         text,
+         %{kind: "native_text_literals", native_values: values, preserve_kinds: kinds},
+         _format
+       ),
+       do: NativeCatalog.decode_values(text, values, kinds)
 
   # Model returns a JSON array of translated strings — one per source literal
   # in the shipped payload. In the full-file case the array covers every unit
