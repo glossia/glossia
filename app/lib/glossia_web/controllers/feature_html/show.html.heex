@@ -5,6 +5,14 @@
         {GlossiaWeb.FeatureHTML.feature_icon(@page.icon, 32)}
       </div>
       <h1>{@page.title}</h1>
+      <p>
+        <Noora.Badge.badge label={
+          if @page.edition == "enterprise",
+            do: gettext("Enterprise"),
+            else: gettext("Community and Enterprise")
+        } />
+        <a href={locale_path(~p"/docs/explanation/editions")}>{gettext("Compare editions")}</a>
+      </p>
       <p class="lead">{@page.summary}</p>
       <div class="cta-row">
         <a class="button primary" href={@page.hero_cta_url}>{@page.hero_cta_text}</a>

@@ -16,6 +16,15 @@
       <span>{@page.title}</span>
     </nav>
     <h1>{@page.title}</h1>
+    <p data-part="availability">
+      <strong>{gettext("Edition:")}</strong>
+      <Noora.Badge.badge label={
+        if @page.edition == "enterprise",
+          do: gettext("Enterprise"),
+          else: gettext("Community and Enterprise")
+      } />
+      <a href={locale_path(~p"/docs/explanation/editions")}>{gettext("Compare editions")}</a>
+    </p>
     <p>{@page.summary}</p>
   </header>
 

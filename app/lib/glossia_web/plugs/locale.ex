@@ -34,6 +34,7 @@ defmodule GlossiaWeb.Plugs.Locale do
   def call(conn, _opts) do
     locale = resolve(conn)
     Gettext.put_locale(GlossiaWeb.Gettext, locale)
+    Gettext.put_locale(locale)
 
     assign(conn, :locale, locale)
   end

@@ -154,8 +154,14 @@ defmodule GlossiaWeb.Router do
     delete "/logout", AuthController, :logout
     get "/logout", AuthController, :logout
     post "/gate/:provider", AuthController, :verify_signup_gate
-    post "/organization", OrganizationAuthController, :request
-    get "/organization/callback", OrganizationAuthController, :callback
+
+    if Application.compile_env(:glossia, :organization_authentication) do
+      scope alias: false do
+        post "/organization", GlossiaEnterpriseWeb.OrganizationAuthController, :request
+        get "/organization/callback", GlossiaEnterpriseWeb.OrganizationAuthController, :callback
+      end
+    end
+
     get "/:provider", AuthController, :request
     get "/:provider/callback", AuthController, :callback
   end
@@ -512,9 +518,19 @@ defmodule GlossiaWeb.Router do
         {GlossiaWeb.PlatformHooks, :load_account},
         {GlossiaWeb.PlatformHooks, :check_write}
       ] do
-      live "/:handle/-/settings/authentication",
-           AuthenticationSettingsLive,
-           :authentication_settings
+      if Application.compile_env(:glossia, :organization_authentication) do
+        scope alias: false do
+          live "/:handle/-/settings/authentication",
+               GlossiaEnterpriseWeb.AuthenticationSettingsLive,
+               :authentication_settings
+        end
+      end
+
+      if Application.compile_env(:glossia, :audit_extension) do
+        scope alias: false do
+          live "/:handle/-/audit-logs", GlossiaEnterpriseWeb.AuditLogsLive, :audit_logs
+        end
+      end
 
       live "/:handle/-/members/:user_id/permissions", MemberPermissionsLive, :member_permissions
       live "/:handle/-/members", DashboardLive, :members

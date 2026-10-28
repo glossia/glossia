@@ -11,32 +11,26 @@
 msgid ""
 msgstr "Language: zh-Hans\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=1; plural=0;\n"
 
-#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "At a glance"
 msgstr "概览"
 
-#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Browser languages"
 msgstr "浏览器语言"
 
-#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Top countries"
 msgstr "热门国家"
 
-#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Top pages"
 msgstr "热门页面"
 
-#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Traffic"
 msgstr "流量"
 
-#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
 msgstr "下一步翻译"

@@ -24,7 +24,8 @@ defmodule Glossia.Features.Page do
     :hero_cta_url,
     :highlights,
     :body,
-    :raw_markdown
+    :raw_markdown,
+    edition: "community"
   ]
 
   def build(filename, attrs, body) do
@@ -60,8 +61,12 @@ defmodule Glossia.Features do
 
   @pages Enum.sort_by(@pages, & &1.order)
 
+  @editions Map.new(@pages, &{&1.id, &1.edition})
   @pages_by_locale Map.new(@pages_by_locale, fn {locale, pages} ->
-                     {locale, Enum.sort_by(pages, & &1.order)}
+                     {locale,
+                      pages
+                      |> Enum.map(&%{&1 | edition: Map.fetch!(@editions, &1.id)})
+                      |> Enum.sort_by(& &1.order)}
                    end)
 
   def all_pages(locale \\ Glossia.I18n.default_locale()) do

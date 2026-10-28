@@ -13,7 +13,7 @@ defmodule Glossia.PublicContent.Builder do
           page.raw_markdown ||
             "See the [OpenAPI specification](#{path(%URI{}, ~p"/api/openapi.json")}) for endpoint schemas."
 
-        {Docs.path_for(page), render(page.title, page.summary, body)}
+        {Docs.path_for(page), render(page.title, page.summary, availability(page) <> body)}
       end)
 
     markdown_only =
@@ -24,7 +24,7 @@ defmodule Glossia.PublicContent.Builder do
     features =
       Enum.map(feature_pages, fn page ->
         {path(%URI{}, ~p"/features/#{page.slug}"),
-         render(page.title, page.summary, page.raw_markdown)}
+         render(page.title, page.summary, availability(page) <> page.raw_markdown)}
       end)
 
     blog =
@@ -102,6 +102,9 @@ defmodule Glossia.PublicContent.Builder do
   end
 
   defp render(title, summary, body), do: "# #{title}\n\n#{summary}\n\n#{body}\n"
+
+  def availability(%{edition: "enterprise"}), do: "**Edition: Enterprise.**\n\n"
+  def availability(_page), do: "**Editions: Community and Enterprise.**\n\n"
 
   defp index(title, pages, locale) do
     links =

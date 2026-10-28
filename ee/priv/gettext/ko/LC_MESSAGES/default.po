@@ -1,0 +1,224 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr "Language: ko\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=1; plural=0;\n"
+
+#, elixir-autogen, elixir-format
+msgid "Account changes and organization sign-ins. Dates are UTC."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Actor"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Add a DNS TXT record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
+msgstr "해당 이름과 값을 사용하여 도메인 제공업체에서 DNS TXT 레코드를 추가하세요. 소유권 확인될 때까지 조직 로그인은 사용할 수 없습니다. 이 레코드를 유지하세요. 소유권은 매일 확인되며 마지막 성공적 확인으로부터 30 일 후에 만료됩니다."
+
+#, elixir-autogen, elixir-format
+msgid "At your DNS provider, add the TXT record shown under Verify domain ownership, then select Verify domain."
+msgstr "도메인 제공업체에서 '도메인 소유권 확인'에 표시된 TXT 레코드를 추가한 다음 '도메인 확인'을 선택하세요."
+
+#, elixir-autogen, elixir-format
+msgid "Audit logs"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Authentication"
+msgstr "인증"
+
+#, elixir-autogen, elixir-format
+msgid "Authentication settings saved."
+msgstr "인증 설정이 저장되었습니다."
+
+#, elixir-autogen, elixir-format
+msgid "Awaiting verification"
+msgstr "검증 대기 중"
+
+#, elixir-autogen, elixir-format
+msgid "Change the search or filters to see more events."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Client identifier"
+msgstr "클라이언트 식별자"
+
+#, elixir-autogen, elixir-format
+msgid "Client secret"
+msgstr "클라이언트 시크릿"
+
+#, elixir-autogen, elixir-format
+msgid "Continue with your organization"
+msgstr "소속 조직으로 계속"
+
+#, elixir-autogen, elixir-format
+msgid "Could not save authentication settings."
+msgstr "인증 설정을 저장할 수 없습니다."
+
+#, elixir-autogen, elixir-format
+msgid "Disabled"
+msgstr "비활성화"
+
+#, elixir-autogen, elixir-format
+msgid "Domain ownership verified."
+msgstr "도메인 소유권 확인 완료."
+
+#, elixir-autogen, elixir-format
+msgid "Enter your client secret"
+msgstr "클라이언트 시크릿을 입력하세요"
+
+#, elixir-autogen, elixir-format
+msgid "Enter your work email domain and save the authentication settings."
+msgstr "회사 이메일 도메인을 입력하고 인증 설정을 저장하세요."
+
+#, elixir-autogen, elixir-format
+msgid "Enterprise"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Event"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Events"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Filter"
+msgstr "필터"
+
+#, elixir-autogen, elixir-format
+msgid "Glossia manages the Google connection. You do not need to create an application in Google Cloud or register a redirect address."
+msgstr "Glossia 가 Google 연결을 관리합니다. Google Cloud 에서 애플리케이션을 생성하거나 리디렉션 주소를 등록할 필요는 없습니다."
+
+#, elixir-autogen, elixir-format
+msgid "Identity provider"
+msgstr "인증 제공자"
+
+#, elixir-autogen, elixir-format
+msgid "If Google blocks sign-in because your organization restricts third-party apps, ask a Google Workspace administrator to open Google Admin console → Security → Access and data control → API controls → Manage third-party app access, find Glossia, and allow the requested sign-in permissions according to your organization's policy."
+msgstr "Google 이 타사 앱 제한으로 로그인을 차단한 경우, Google Workspace 관리자께 Google 관리 콘솔 → 보안 → 접근 및 데이터 제어 → API 제어 → 타사 앱 접근 관리로 이동하여 Glossia 를 찾아 요청된 로그인 권한을 조직 정책에 따라 허용하세요."
+
+#, elixir-autogen, elixir-format
+msgid "Leave blank to keep the saved secret"
+msgstr "저장된 시크릿을 유지하려면 비워 두세요"
+
+#, elixir-autogen, elixir-format
+msgid "Let your team sign in with Google Workspace or Okta."
+msgstr "팀 구성원이 Google Workspace 또는 Okta 로 로그인하세요."
+
+#, elixir-autogen, elixir-format
+msgid "New account changes and organization sign-ins will appear here. Earlier activity is not backfilled."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "New team members receive basic read access. Administrators can grant more permissions from Members."
+msgstr "새 팀 구성원은 기본 읽기 권한을 받습니다. 관리자는 구성원 에서 더 많은 권한을 부여할 수 있습니다."
+
+#, elixir-autogen, elixir-format
+msgid "No audit events yet"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "No matching events"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Okta issuer"
+msgstr "Okta 발급자"
+
+#, elixir-autogen, elixir-format
+msgid "Organization sign-in"
+msgstr "조직 로그인"
+
+#, elixir-autogen, elixir-format
+msgid "Organization sign-in is unavailable or could not be verified. Domain ownership may need to be verified again. Contact your organization administrator."
+msgstr "조직 로그인이 사용 불가하거나 확인되지 않았습니다. 도메인 소유권 재검증이 필요할 수도 있습니다. 조직 관리자에게 문의하세요."
+
+#, elixir-autogen, elixir-format
+msgid "Read the organization sign-in guide"
+msgstr "조직 로그인 가이드 읽기"
+
+#, elixir-autogen, elixir-format
+msgid "Record name"
+msgstr "레코드 이름"
+
+#, elixir-autogen, elixir-format
+msgid "Record value"
+msgstr "레코드 값"
+
+#, elixir-autogen, elixir-format
+msgid "Redirect address"
+msgstr "리다이렉트 주소"
+
+#, elixir-autogen, elixir-format
+msgid "Resource"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Save authentication settings"
+msgstr "인증 설정 저장"
+
+#, elixir-autogen, elixir-format
+msgid "Search events or actors"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Set up Google Workspace sign-in"
+msgstr "Google Workspace 로그인 설정"
+
+#, elixir-autogen, elixir-format
+msgid "Sign in with your existing method first, then return to this page to connect your work identity."
+msgstr "기존 방법으로 먼저 로그인한 후, 작업 신분을 연결하려면 이 페이지로 돌아오세요."
+
+#, elixir-autogen, elixir-format
+msgid "System"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Team members can then enter their work email on the login page and select Continue with your organization, or use Log in with Google."
+msgstr "팀원은 로그인 페이지에서 업무용 이메일을 입력하고 소속 조직으로 계속을 선택하거나 Google 로 로그인을 사용할 수 있습니다."
+
+#, elixir-autogen, elixir-format
+msgid "Team members must belong to this Google Workspace domain. Personal Google accounts do not qualify."
+msgstr "팀원은 이 Google Workspace 도메인에 속해야 합니다. 개인 Google 계정은 사용할 수 없습니다."
+
+#, elixir-autogen, elixir-format
+msgid "Time (UTC)"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Verification record was not found. Check the name and value, then try again after the record has propagated."
+msgstr "검증 기록을 찾을 수 없습니다. 이름과 값을 확인한 후 기록이 전파될 때까지 기다렸다가 다시 시도하세요."
+
+#, elixir-autogen, elixir-format
+msgid "Verified"
+msgstr "인증됨"
+
+#, elixir-autogen, elixir-format
+msgid "Verify domain"
+msgstr "도메인 검증"
+
+#, elixir-autogen, elixir-format
+msgid "Verify domain ownership"
+msgstr "도메인 소유권 검증"
+
+#, elixir-autogen, elixir-format
+msgid "Work email"
+msgstr "직장 이메일"
+
+#, elixir-autogen, elixir-format
+msgid "Work email domain"
+msgstr "직장 이메일 도메인"
+
+#, elixir-autogen, elixir-format
+msgid "Your organization access was removed. Contact your organization administrator."
+msgstr "조직 접근 권한이 제거되었습니다. 조직 관리자에게 문의하세요."

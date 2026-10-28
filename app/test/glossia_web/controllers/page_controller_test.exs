@@ -12,7 +12,30 @@ defmodule GlossiaWeb.PageControllerTest do
     assert response =~ "Language OS"
     assert response =~ "https://community.glossia.ai"
     assert response =~ "Visit the forum"
+    assert response =~ "Compare Community and Enterprise"
     refute response =~ "discord.gg"
+  end
+
+  test "feature discovery distinguishes enterprise features from community translation", %{
+    conn: conn
+  } do
+    html = conn |> get(~p"/features") |> html_response(200) |> LazyHTML.from_document()
+
+    for slug <- ~w(isolated-translation-runners single-sign-on audit-logs) do
+      assert html
+             |> LazyHTML.query("a[href='#{~p"/features/#{slug}"}'] .noora-badge")
+             |> LazyHTML.text()
+             |> String.trim() == "Enterprise"
+    end
+
+    assert html
+           |> LazyHTML.query("a[href='/features/localization'] .noora-badge")
+           |> LazyHTML.text()
+           |> String.trim() == "Community and Enterprise"
+
+    feature = conn |> get(~p"/features/isolated-translation-runners") |> html_response(200)
+    assert feature =~ "Enterprise does not enable microVM isolation"
+    assert feature =~ "written commercial agreement"
   end
 
   for {locale, path} <- [{"en", "/"}, {"es", "/es"}] do

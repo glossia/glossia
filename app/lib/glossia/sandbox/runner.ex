@@ -9,6 +9,13 @@ defmodule Glossia.Sandbox.Runner do
     GenServer.start_link(__MODULE__, opts)
   end
 
+  def remove_workspace(sandbox_id) do
+    case File.rm_rf(default_root_path(sandbox_id)) do
+      {:ok, _paths} -> :ok
+      {:error, reason, path} -> {:error, {:rm_rf_failed, path, reason}}
+    end
+  end
+
   @impl true
   def init(opts) do
     sandbox_id = Keyword.fetch!(opts, :sandbox_id)

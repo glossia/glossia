@@ -1,0 +1,224 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr "Language: pt-BR\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n>1);\n"
+
+#, elixir-autogen, elixir-format
+msgid "Account changes and organization sign-ins. Dates are UTC."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Actor"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Add a DNS TXT record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
+msgstr "Adicione um registro TXT DNS com seu provedor de domínio usando o nome e o valor abaixo. O login da organização permanece indisponível até que a propriedade seja verificada. Mantenha este registro ativo. A propriedade é verificada diariamente e expira 30 dias após a última verificação bem-sucedida."
+
+#, elixir-autogen, elixir-format
+msgid "At your DNS provider, add the TXT record shown under Verify domain ownership, then select Verify domain."
+msgstr "No provedor de DNS, adicione o registro TXT mostrado em Verificar propriedade do domínio e, em seguida, selecione Verificar domínio."
+
+#, elixir-autogen, elixir-format
+msgid "Audit logs"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Authentication"
+msgstr "Autenticação"
+
+#, elixir-autogen, elixir-format
+msgid "Authentication settings saved."
+msgstr "Configurações de autenticação salvas."
+
+#, elixir-autogen, elixir-format
+msgid "Awaiting verification"
+msgstr "Aguardando verificação"
+
+#, elixir-autogen, elixir-format
+msgid "Change the search or filters to see more events."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Client identifier"
+msgstr "Identificador do cliente"
+
+#, elixir-autogen, elixir-format
+msgid "Client secret"
+msgstr "Segredo do Cliente"
+
+#, elixir-autogen, elixir-format
+msgid "Continue with your organization"
+msgstr "Continuar com sua organização"
+
+#, elixir-autogen, elixir-format
+msgid "Could not save authentication settings."
+msgstr "Não foi possível salvar as configurações de autenticação."
+
+#, elixir-autogen, elixir-format
+msgid "Disabled"
+msgstr "Desativado"
+
+#, elixir-autogen, elixir-format
+msgid "Domain ownership verified."
+msgstr "Propriedade do domínio verificada."
+
+#, elixir-autogen, elixir-format
+msgid "Enter your client secret"
+msgstr "Digite seu segredo do cliente"
+
+#, elixir-autogen, elixir-format
+msgid "Enter your work email domain and save the authentication settings."
+msgstr "Digite o domínio do seu e-mail profissional e salve as configurações de autenticação."
+
+#, elixir-autogen, elixir-format
+msgid "Enterprise"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Event"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Events"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Filter"
+msgstr "Filtrar"
+
+#, elixir-autogen, elixir-format
+msgid "Glossia manages the Google connection. You do not need to create an application in Google Cloud or register a redirect address."
+msgstr "O Glossia gerencia a conexão com o Google. Você não precisa criar um aplicativo no Google Cloud ou registrar um endereço de redirecionamento."
+
+#, elixir-autogen, elixir-format
+msgid "Identity provider"
+msgstr "Provedor de identidade"
+
+#, elixir-autogen, elixir-format
+msgid "If Google blocks sign-in because your organization restricts third-party apps, ask a Google Workspace administrator to open Google Admin console → Security → Access and data control → API controls → Manage third-party app access, find Glossia, and allow the requested sign-in permissions according to your organization's policy."
+msgstr "Se o Google bloquear o login porque sua organização restringe aplicativos de terceiros, solicite a um administrador do Google Workspace para abrir Google Admin console → Segurança → Acesso e controle de dados → Controles de API → Gerenciar acesso a aplicativos de terceiros, encontre o Glossia e permita as permissões de login solicitadas de acordo com a política da sua organização."
+
+#, elixir-autogen, elixir-format
+msgid "Leave blank to keep the saved secret"
+msgstr "Deixe em branco para manter o segredo salvo"
+
+#, elixir-autogen, elixir-format
+msgid "Let your team sign in with Google Workspace or Okta."
+msgstr "Permita que sua equipe faça o login com Google Workspace ou Okta."
+
+#, elixir-autogen, elixir-format
+msgid "New account changes and organization sign-ins will appear here. Earlier activity is not backfilled."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "New team members receive basic read access. Administrators can grant more permissions from Members."
+msgstr "Novos membros da equipe recebem acesso básico de leitura. Administradores podem conceder mais permissões a partir de Membros."
+
+#, elixir-autogen, elixir-format
+msgid "No audit events yet"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "No matching events"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Okta issuer"
+msgstr "Emissor Okta"
+
+#, elixir-autogen, elixir-format
+msgid "Organization sign-in"
+msgstr "Login da organização"
+
+#, elixir-autogen, elixir-format
+msgid "Organization sign-in is unavailable or could not be verified. Domain ownership may need to be verified again. Contact your organization administrator."
+msgstr "O login da organização está indisponível ou não pôde ser verificado. A propriedade do domínio pode precisar ser verificada novamente. Entre em contato com o administrador da sua organização."
+
+#, elixir-autogen, elixir-format
+msgid "Read the organization sign-in guide"
+msgstr "Leia o guia de login da organização."
+
+#, elixir-autogen, elixir-format
+msgid "Record name"
+msgstr "Nome do registro"
+
+#, elixir-autogen, elixir-format
+msgid "Record value"
+msgstr "Valor do registro"
+
+#, elixir-autogen, elixir-format
+msgid "Redirect address"
+msgstr "Endereço de redirecionamento"
+
+#, elixir-autogen, elixir-format
+msgid "Resource"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Save authentication settings"
+msgstr "Salvar configurações de autenticação"
+
+#, elixir-autogen, elixir-format
+msgid "Search events or actors"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Set up Google Workspace sign-in"
+msgstr "Configurar o login do Google Workspace"
+
+#, elixir-autogen, elixir-format
+msgid "Sign in with your existing method first, then return to this page to connect your work identity."
+msgstr "Faça login com seu método existente primeiro, depois retorne a esta página para conectar sua identidade profissional."
+
+#, elixir-autogen, elixir-format
+msgid "System"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Team members can then enter their work email on the login page and select Continue with your organization, or use Log in with Google."
+msgstr "Membros da equipe podem então inserir seu e-mail de trabalho na página de login e selecionar Continuar com sua organização ou usar Entrar com o Google."
+
+#, elixir-autogen, elixir-format
+msgid "Team members must belong to this Google Workspace domain. Personal Google accounts do not qualify."
+msgstr "Membros da equipe devem pertencer a este domínio do Google Workspace. Contas pessoais do Google não são elegíveis."
+
+#, elixir-autogen, elixir-format
+msgid "Time (UTC)"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Verification record was not found. Check the name and value, then try again after the record has propagated."
+msgstr "O registro de verificação não foi encontrado. Verifique o nome e o valor, e tente novamente após o registro ter se propagado."
+
+#, elixir-autogen, elixir-format
+msgid "Verified"
+msgstr "Verificado"
+
+#, elixir-autogen, elixir-format
+msgid "Verify domain"
+msgstr "Verificar domínio"
+
+#, elixir-autogen, elixir-format
+msgid "Verify domain ownership"
+msgstr "Confirmar propriedade do domínio"
+
+#, elixir-autogen, elixir-format
+msgid "Work email"
+msgstr "E-mail profissional"
+
+#, elixir-autogen, elixir-format
+msgid "Work email domain"
+msgstr "Domínio de e-mail profissional"
+
+#, elixir-autogen, elixir-format
+msgid "Your organization access was removed. Contact your organization administrator."
+msgstr "O acesso à sua organização foi removido. Contate o administrador da sua organização."

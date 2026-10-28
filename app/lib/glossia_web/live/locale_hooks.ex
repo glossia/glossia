@@ -27,6 +27,7 @@ defmodule GlossiaWeb.LocaleHooks do
       user_locale(socket) || I18n.normalize(session["locale"]) || I18n.default_locale()
 
     Gettext.put_locale(GlossiaWeb.Gettext, locale)
+    Gettext.put_locale(locale)
 
     {:cont, assign(socket, :locale, locale)}
   end

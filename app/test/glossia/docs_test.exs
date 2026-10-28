@@ -35,7 +35,7 @@ defmodule Glossia.DocsTest do
 
       assert Enum.map(explanation.sections, & &1.key) == ["translation", "platform", "analytics"]
       assert "glossary" in section_pages(explanation, "translation")
-      assert section_pages(explanation, "platform") == ["account-models"]
+      assert section_pages(explanation, "platform") == ["account-models", "editions"]
       assert section_pages(explanation, "analytics") == ["localization-analytics"]
     end
 

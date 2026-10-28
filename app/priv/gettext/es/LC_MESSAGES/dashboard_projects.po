@@ -11,32 +11,26 @@
 msgid ""
 msgstr "Language: es\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "At a glance"
 msgstr "Vista rápida"
 
-#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Browser languages"
 msgstr "Idiomas del navegador"
 
-#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Top countries"
 msgstr "Países principales"
 
-#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Top pages"
 msgstr "Páginas principales"
 
-#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Traffic"
 msgstr "Tráfico"
 
-#: lib/glossia_web/live/dashboard_live.ex
 #, elixir-autogen, elixir-format
 msgid "Where to translate next"
 msgstr "Dónde traducir a continuación"

@@ -64,6 +64,27 @@
   </div>
 </section>
 
+<section id="editions" class="section">
+  <div class="container prose">
+    <h2>{gettext("Open source at the core. Enterprise where you need it.")}</h2>
+    <p>
+      <strong>{gettext("Community")}</strong>
+      — {gettext(
+        "Self-host Glossia under Apache-2.0, with repository translation, language memory, APIs, and localization analytics. Translation and validation run on your application host."
+      )}
+    </p>
+    <p>
+      <strong>{gettext("Enterprise")}</strong>
+      — {gettext(
+        "Everything in Community, plus organization single sign-on, administrator audit logs, and isolated translation runners with dedicated compute and optional Kata microVM isolation. Source-available under a commercial license."
+      )}
+    </p>
+    <a href={locale_path(~p"/docs/explanation/editions")}>
+      {gettext("Compare Community and Enterprise")}
+    </a>
+  </div>
+</section>
+
 <section class="section community-banner">
   <div class="container">
     <div class="community-banner-content reveal">

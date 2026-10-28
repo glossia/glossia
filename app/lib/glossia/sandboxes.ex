@@ -356,11 +356,15 @@ defmodule Glossia.Sandboxes do
     }
   end
 
-  defp put_backend(attrs, _adapter) do
+  defp put_backend(attrs, adapter) do
     if Map.has_key?(attrs, :backend) or Map.has_key?(attrs, "backend") do
       attrs
     else
-      Map.put(attrs, :backend, "kata")
+      Map.put(
+        attrs,
+        :backend,
+        if(adapter == Glossia.Sandbox.LocalAdapter, do: "local", else: "kata")
+      )
     end
   end
 

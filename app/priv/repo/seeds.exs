@@ -38,6 +38,8 @@ defmodule Glossia.Seeds do
   alias Glossia.TranslationSessions
   alias Glossia.TranslationSessions.TranslationSession
   alias Glossia.Translations.TokenUsage
+  alias Glossia.Translations.Context
+  alias Glossia.Translations.Locks
   alias Glossia.Voices
 
   import Ecto.Query
@@ -114,13 +116,16 @@ defmodule Glossia.Seeds do
           ~w(translation:write glossary:write discussion:write)
       )
 
-    # A pending Google Workspace domain, ready to exercise ownership verification.
-    if is_nil(acme.auth_provider) and is_nil(acme.auth_domain) do
-      {:ok, _} =
-        Glossia.OrganizationAuthentication.save(acme, dev, %{
-          "auth_provider" => "google",
-          "auth_domain" => "acme.test"
-        })
+    # Enterprise adds a pending Workspace domain. Normal seed mutations also
+    # populate its audit log without synthesizing historical account changes.
+    if authentication = Glossia.Extensions.organization_authentication() do
+      if is_nil(acme.auth_provider) and is_nil(acme.auth_domain) do
+        {:ok, _} =
+          authentication.save(acme, dev, %{
+            "auth_provider" => "google",
+            "auth_domain" => "acme.test"
+          })
+      end
     end
 
     # Pending invitations for testing the acceptance flow.
@@ -1486,6 +1491,7 @@ defmodule Glossia.Seeds do
     ensure_translation_dashboard_history!(project, user)
     ensure_translation_pagination_history!(project, user)
     ensure_linguistic_reviews!(project, user)
+    ensure_translation_reasons_demo!(project, user)
 
     # Demo execution provenance is separate from the content SHA. Keep existing
     # local seeds current without overwriting any real recorded engine version.
@@ -1495,6 +1501,254 @@ defmodule Glossia.Seeds do
       where: s.project_id == ^project.id and not is_nil(s.started_at) and is_nil(s.engine_image)
     )
     |> Repo.update_all(set: [engine_image: demo_image])
+  end
+
+  # A separate, explicitly seeded run keeps realistic assessment reasons easy
+  # to inspect without fabricating historical reasons for older demo sessions.
+  defp ensure_translation_reasons_demo!(project, user) do
+    commit_sha = "seed-translation-reasons-v2"
+    now = DateTime.utc_now()
+
+    session =
+      Repo.get_by(TranslationSession, project_id: project.id, commit_sha: commit_sha) ||
+        elem(
+          TranslationSessions.create_session(user.account, project, %{
+            commit_sha: commit_sha,
+            commit_message: "Update onboarding docs, terminology, and validation (demo)",
+            status: "completed",
+            outcome: "translated",
+            translated_content_count: 7,
+            content_hit_count: 291,
+            source_language: "en",
+            target_languages: ["es", "fr", "de", "ja"],
+            summary:
+              "Demo: translated 7 files after source, glossary, instructions, validation, and output changes. 291 translations were already up to date.",
+            started_at: DateTime.add(now, -2400),
+            completed_at: DateTime.add(now, -2100)
+          }),
+          1
+        )
+
+    if TranslationSessions.max_progress_seq(session.id) == 0 do
+      items = [
+        {"content/blog/getting-started.md", "es", :es_getting_started},
+        {"content/blog/getting-started.md", "fr", :fr_getting_started},
+        {"content/blog/advanced-localization.md", "ja", :ja_advanced},
+        {"content/blog/advanced-localization.md", "de", :de_advanced},
+        {"content/blog/getting-started-meta.json", "es", :es_meta},
+        {"content/blog/repository-setup.md", "es", :es_getting_started},
+        {"content/blog/repository-setup.md", "fr", :fr_getting_started}
+      ]
+
+      queued =
+        items
+        |> Enum.with_index()
+        |> Enum.map(fn {{source, locale, _preview}, index} ->
+          output = Path.join(["content", locale, "blog", Path.basename(source)])
+
+          {lock, current, output_hash} =
+            translation_demo_comparison(index, source, locale, output)
+
+          %{
+            index: index,
+            source_path: source,
+            output_path: output,
+            locale: locale,
+            translation_reasons: Locks.translation_reasons(lock, current, output, output_hash),
+            translation_diff: Locks.translation_diff(lock, current, output, output_hash)
+          }
+        end)
+
+      completed =
+        Enum.zip(queued, items)
+        |> Enum.flat_map(fn {item, {_, _, preview}} ->
+          [
+            Map.merge(item, %{type: "item_started", total: 298}),
+            %{
+              type: "item_completed",
+              index: item.index,
+              output_preview: seed_translation_preview(preview),
+              model_calls: 2
+            }
+          ]
+        end)
+
+      seed_progress_events!(
+        session,
+        [
+          %{type: "run_started"},
+          %{type: "plan", total: 298},
+          %{
+            type: "plan_assessed",
+            total: 298,
+            needs_translation: 7,
+            up_to_date: 291,
+            queued: queued
+          }
+        ] ++ completed
+      )
+    end
+  end
+
+  # Generate evidence through the real lock comparison, never by inventing a
+  # rendered diff. Row zero deliberately changes several independent branches.
+  defp translation_demo_comparison(index, source, locale, output) do
+    voice = %{
+      tone: "Calm",
+      formality: "Neutral",
+      target_audience: "Developers",
+      guidelines: "Use concrete examples.",
+      description: "Repository-native localization.",
+      cultural_notes: %{},
+      locale: locale
+    }
+
+    glossary = [
+      %{
+        namespaced_id: "repo:lockfile",
+        term: "lockfile",
+        translation: "lockfile",
+        definition: "Translation baseline",
+        case_sensitive: false
+      },
+      %{
+        namespaced_id: "repo:Glossia",
+        term: "Glossia",
+        translation: "Glossia",
+        definition: "Product name",
+        case_sensitive: true
+      }
+    ]
+
+    context = %{Context.empty_bundle(locale) | voice: voice, glossary: glossary}
+
+    documents = [
+      %{relative_path: "L10N.md", body: "# Product\nKeep Glossia untranslated.\n"},
+      %{
+        relative_path: "content/blog/L10N.md",
+        body: "# Tone\nUse a friendly tone.\n\n# Formatting\nPreserve code blocks.\n"
+      }
+    ]
+
+    body = Enum.map_join(documents, "\n\n", & &1.body)
+
+    before = %{
+      format: if(Path.extname(source) == ".json", do: "json", else: "markdown"),
+      source_path: source,
+      source_content:
+        "# Getting started\n\nSet up Glossia in five minutes.\n\n## Requirements\n\nA GitHub repository.\n",
+      provider: "openai",
+      model: "openai/gpt-5-mini",
+      source_language: "en",
+      language: locale,
+      locale: locale,
+      frontmatter_mode: :preserve,
+      preserve: ["Glossia"],
+      custom_prompt: nil,
+      context_body: body,
+      locale_override_body: "# Terminology\nKeep repository terms consistent.\n",
+      context_documents: documents,
+      locale_documents: [
+        %{
+          relative_path: "L10N/#{locale}.md",
+          body: "# Terminology\nKeep repository terms consistent.\n"
+        }
+      ],
+      retries: 2,
+      check_cmd: nil,
+      check_cmds: %{"json" => "jq empty"},
+      validation: nil,
+      validation_relative_path: "L10N.md",
+      server_context: context,
+      decision_model: %{
+        handle: "reviewer",
+        model: "typesafe/jev-latest",
+        base_url: nil,
+        decision_min_score: 7.0
+      }
+    }
+
+    current =
+      case index do
+        0 ->
+          %{
+            before
+            | model: "openai/gpt-5",
+              retries: 3,
+              source_content:
+                String.replace(before.source_content, "five minutes", "three minutes"),
+              server_context: %{
+                context
+                | voice: %{voice | tone: "Direct", target_audience: "Platform engineers"}
+              },
+              decision_model: %{before.decision_model | decision_min_score: 8.0}
+          }
+
+        1 ->
+          guidance = "# Terminology\nPrefer dépôt for repository.\n"
+
+          %{
+            before
+            | source_content:
+                before.source_content <>
+                  "\n## Next steps\n\nOpen your translation pull request.\n",
+              locale_override_body: guidance,
+              locale_documents: [%{relative_path: "L10N/#{locale}.md", body: guidance}]
+          }
+
+        2 ->
+          entries = [
+            %{
+              hd(glossary)
+              | translation: "ロックファイル",
+                definition: "Per-source, per-locale translation baseline"
+            },
+            List.last(glossary)
+          ]
+
+          %{before | server_context: %{context | glossary: entries}}
+
+        3 ->
+          [root, blog] = documents
+
+          updated = [
+            root,
+            %{blog | body: String.replace(blog.body, "friendly tone", "concise, direct tone")}
+          ]
+
+          %{
+            before
+            | context_documents: updated,
+              context_body: Enum.map_join(updated, "\n\n", & &1.body)
+          }
+
+        4 ->
+          %{before | check_cmds: %{"json" => "jq -e 'type == \"object\"'"}, retries: 3}
+
+        _ ->
+          before
+      end
+
+    previous = Locks.build_hash_state(before)
+
+    lock = %{
+      "hash" => previous.hash,
+      "hash_tree" => previous.tree,
+      "output_path" => output,
+      "output_hash" => Locks.output_hash("Accepted translated output."),
+      "source_commit_sha" => "57f484cf34215985850f4b24b427584a3c434b64"
+    }
+
+    lock = if index == 5, do: nil, else: lock
+
+    output_hash =
+      case index do
+        5 -> ""
+        6 -> Locks.output_hash("Externally edited translated output.")
+        _ -> Locks.output_hash("Accepted translated output.")
+      end
+
+    {lock, Locks.build_hash_state(current), output_hash}
   end
 
   defp ensure_linguistic_reviews!(project, user) do
@@ -1883,6 +2137,20 @@ defmodule Glossia.Seeds do
 
   defp seed_translation_preview(:es_meta) do
     ~s({\n  "title": "Primeros pasos con Glossia",\n  "description": "Configura Glossia en tu proyecto en cinco minutos.",\n  "tags": ["guía", "localización", "inicio rápido"]\n})
+  end
+
+  defp seed_translation_preview(:de_advanced) do
+    """
+    # Erweiterte Lokalisierung
+
+    Glossia übersetzt nur geänderte Inhalte und berücksichtigt dabei die
+    Terminologie und Anweisungen aus deinem Repository.
+
+    ## Änderungen prüfen
+
+    Prüfe die Übersetzungen gemeinsam mit ihren Lockfiles im Pull Request.
+    Unveränderte Übersetzungen bleiben erhalten.
+    """
   end
 
   defp seed_translation_preview(:ja_advanced) do

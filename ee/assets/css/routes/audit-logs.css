@@ -1,0 +1,76 @@
+#audit-logs-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--noora-spacing-6);
+  min-width: var(--noora-spacing-0);
+
+  & > .noora-badge {
+    align-self: flex-start;
+  }
+
+  & .noora-card__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-5);
+    min-width: var(--noora-spacing-0);
+  }
+
+  & [data-part="filters"], & [data-part="active-filters"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--noora-spacing-3);
+  }
+
+  & #audit-search {
+    flex: 1;
+    min-width: var(--noora-spacing-0);
+  }
+
+  & .noora-card__section[data-empty] .noora-table {
+    & table {
+      table-layout: fixed;
+      min-width: 100%;
+    }
+
+    & thead {
+      display: none;
+    }
+
+    & table:has(td)::after {
+      top: var(--noora-spacing-0);
+    }
+
+    & .noora-table-empty-state {
+      padding-inline: var(--noora-spacing-5);
+      text-align: center;
+    }
+  }
+
+  @media (min-width: 960px) {
+    & .noora-table table {
+      table-layout: fixed;
+      min-width: 100%;
+    }
+  }
+}
+
+#noora-shell:has(#audit-logs-page) {
+  @media (max-width: 768px) {
+    & .noora-shell__context .noora-breadcrumbs {
+      min-inline-size: var(--noora-spacing-0);
+      max-inline-size: 100%;
+    }
+    & .noora-shell__context .noora-breadcrumb:not(#organization-breadcrumb),
+    & .noora-shell__context [data-part="slash"],
+    & .noora-shell__context [data-part="arrow"],
+    & #organization-breadcrumb .noora-badge { display: none; }
+    & #organization-breadcrumb,
+    & #organization-breadcrumb > [data-part="link"] { min-inline-size: var(--noora-spacing-0); }
+    & #organization-breadcrumb > [data-part="link"] > [data-part="label"] {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}

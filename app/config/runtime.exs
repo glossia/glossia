@@ -2,11 +2,10 @@ import Config
 
 truthy? = fn value -> value in ["true", "1"] end
 
-# Runtime roles the enterprise build distinguishes (FLAME runner children,
-# detached translation Job pods) collapse to `false` in the local dev/test path:
-# there is only one role, the parent process.
-runner_child? = false
-translation_job? = false
+# The compiled edition selects the runtime, not a release-time edition env var.
+translation_runtime = Glossia.Extensions.translation_runtime()
+runner_child? = translation_runtime.runner_child?()
+translation_job? = translation_runtime.translation_job?()
 
 json_env = fn name, default ->
   case System.get_env(name) do
@@ -46,7 +45,7 @@ config :glossia,
   engine_deployment: System.get_env("GLOSSIA_ENGINE_DEPLOYMENT")
 
 # Detached translation Job settings. Each translation session runs in its
-# own Job pod scheduled by `Glossia.TranslationSessions.Launcher`.
+# own Job pod scheduled by the enterprise translation runtime.
 config :glossia, :translation_job,
   ttl_seconds_after_finished:
     integer_env.("GLOSSIA_TRANSLATION_JOB_TTL_SECONDS_AFTER_FINISHED", 3_600),

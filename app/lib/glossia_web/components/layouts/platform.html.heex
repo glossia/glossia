@@ -298,13 +298,6 @@
             }
           >
             <.sidebar_item
-              :if={assigns[:is_admin]}
-              label={gettext("Authentication")}
-              icon="lock_password"
-              navigate={~p"/#{@handle}/-/settings/authentication"}
-              selected={@live_action == :authentication_settings}
-            />
-            <.sidebar_item
               :if={assigns[:can_manage_credentials]}
               label={gettext("Tokens")}
               icon="lock_password"

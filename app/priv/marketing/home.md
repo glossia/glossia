@@ -19,6 +19,23 @@ An LLM can draft a translation, but a draft alone does not provide version histo
 
 Glossia does not replace editorial judgment. It supplies the context, automation, and review workflow that let teams apply that judgment repeatedly.
 
+## Community and Enterprise
+
+**Community** is open source under Apache-2.0. Self-host repository translation,
+language memory, APIs, and localization analytics. Translation and validation run
+locally on the application host, for repositories and commands you trust.
+
+**Enterprise** includes Community plus [organization single sign-on](/features/single-sign-on.md),
+[administrator audit logs](/features/audit-logs.md), and
+[isolated translation runners](/features/isolated-translation-runners.md): detached
+Kubernetes Jobs, dedicated compute placement, optional Kata microVM isolation,
+and release-aware engine recovery. Enterprise code is source-available, not open
+source, and production use requires a written commercial agreement. Organizations,
+invitations, member permissions, and ordinary login remain in Community.
+
+[Compare editions](/docs/explanation/editions.md) and read the
+[runner reference](/docs/reference/isolated-translation-runners.md).
+
 ## Explore
 
 - [Getting started](/docs/tutorials/getting-started.md): connect a repository and run your first localization workflow.

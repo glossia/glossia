@@ -1,13 +1,9 @@
 defmodule Glossia.ProjectSetup do
   @moduledoc """
-  Enterprise `Glossia.ProjectSetup` implementation.
+  Enqueues automated project setup using the configured workspace adapter.
 
-  Wires the automated project-onboarding flow that used to live in
-  `Glossia.Projects.Setup` into the seam glossia exposes. Everything the
-  flow needs — the harness orchestrator, the sandbox schemas, and the
-  Kata-scheduled `Glossia.Sandbox.KataAdapter` — is inside this
-  repository. `start/1` enqueues the same Oban worker the local dev/test path used
-  to enqueue; `retry/1` calls `retry_now/1` for a rescheduled run.
+  Community uses a local workspace for trusted repositories. Enterprise
+  supplies a Kubernetes-backed adapter without changing this queueing flow.
   """
 
   alias Glossia.Projects.SetupWorker

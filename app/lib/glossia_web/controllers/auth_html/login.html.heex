@@ -76,26 +76,9 @@
             label={gettext("Log in with Google")}
             id="google-login-btn"
           />
-          <.form
-            for={assigns[:organization_form] || to_form(%{}, as: :organization)}
-            action={~p"/auth/organization"}
-            method="post"
-            data-part="interest-form"
-          >
-            <Noora.TextInput.text_input
-              name="organization[email]"
-              aria-label={gettext("Work email")}
-              type="email"
-              input_type="email"
-              label={gettext("Work email")}
-              required
-            />
-            <Noora.Button.button
-              label={gettext("Continue with your organization")}
-              variant="secondary"
-              size="large"
-            />
-          </.form>
+          <%= if authentication = Glossia.Extensions.organization_authentication() do %>
+            {authentication.login_form(assigns)}
+          <% end %>
           <Noora.Button.button
             :if={:github in @providers}
             href={~p"/auth/github"}

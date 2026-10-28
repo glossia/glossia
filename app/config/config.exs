@@ -68,7 +68,13 @@ config :esbuild,
   ],
   noora: [
     args:
-      ~w(css/noora.css --bundle --target=es2022 --outfile=../priv/static/assets/noora.css --external:/fonts/* --external:/images/*) ++
+      [
+        if(System.get_env("GLOSSIA_EDITION", "core") == "enterprise",
+          do: "../../ee/assets/css/noora.css",
+          else: "css/noora.css"
+        )
+      ] ++
+        ~w(--bundle --target=es2022 --outfile=../priv/static/assets/noora.css --external:/fonts/* --external:/images/*) ++
         [
           "--alias:noora/noora.css=#{noora_static_path}/noora.css"
         ],
@@ -123,10 +129,31 @@ config :glossia, Glossia.Gitlab, webhook_secret: nil
 config :glossia, :event_handler, Glossia.Analytics.Smolanalytics
 
 config :glossia,
+       :organization_authentication,
+       if(System.get_env("GLOSSIA_EDITION", "core") == "enterprise",
+         do: GlossiaEnterprise.OrganizationAuthentication,
+         else: nil
+       )
+
+config :glossia,
+       :navigation_extension,
+       if(System.get_env("GLOSSIA_EDITION", "core") == "enterprise",
+         do: GlossiaEnterpriseWeb.Navigation,
+         else: nil
+       )
+
+config :glossia,
        :audit_extension,
        if(System.get_env("GLOSSIA_EDITION", "core") == "enterprise",
          do: GlossiaEnterprise.Audit,
          else: nil
+       )
+
+config :glossia,
+       :translation_runtime,
+       if(System.get_env("GLOSSIA_EDITION", "core") == "enterprise",
+         do: GlossiaEnterprise.TranslationSessions.Runtime,
+         else: Glossia.TranslationSessions.LocalRuntime
        )
 
 config :glossia, Glossia.Analytics.Smolanalytics,
@@ -179,21 +206,28 @@ config :glossia, Oban,
     # restart cannot block normal application writes on pg_proc.
     {Oban.Met, reporter: [auto_migrate: false]},
     {Oban.Plugins.Cron,
-     crontab: [
-       {"*/10 * * * *", Glossia.Projects.SetupPullRequestSyncWorker},
-       {"*/5 * * * *", Glossia.TranslationSessions.SessionRecoveryWorker},
-       {"*/5 * * * *", Glossia.TranslationSessions.EngineRecoveryWorker},
-       {"* * * * *", Glossia.Toki.RecoveryWorker},
-       {"0 * * * *", Glossia.Push.Prune},
-       {"0 3 * * *", Glossia.OrganizationDomainVerificationWorker}
-     ]}
+     crontab:
+       [
+         {"*/10 * * * *", Glossia.Projects.SetupPullRequestSyncWorker},
+         {"*/5 * * * *", Glossia.TranslationSessions.SessionRecoveryWorker},
+         {"*/5 * * * *", Glossia.TranslationSessions.EngineRecoveryWorker},
+         {"* * * * *", Glossia.Toki.RecoveryWorker},
+         {"0 * * * *", Glossia.Push.Prune}
+       ] ++
+         if(System.get_env("GLOSSIA_EDITION", "core") == "enterprise",
+           do: [{"0 3 * * *", GlossiaEnterprise.OrganizationDomainVerificationWorker}],
+           else: []
+         )}
   ]
 
-# Sandbox context: the Kubernetes pod adapter and its knobs. Placement and the
-# runtime class are not set here: sandbox pods follow the managed runner
-# settings (`GLOSSIA_MANAGED_*`), the same as runner pods and translation Jobs.
+# Community uses host-local workspaces for trusted repositories. Enterprise
+# schedules sandbox pods with the same placement settings as translation Jobs.
 config :glossia, Glossia.Sandbox,
-  adapter: Glossia.Sandbox.KataAdapter,
+  adapter:
+    if(System.get_env("GLOSSIA_EDITION", "core") == "enterprise",
+      do: GlossiaEnterprise.Sandbox.KataAdapter,
+      else: Glossia.Sandbox.LocalAdapter
+    ),
   enabled: true,
   max_active_per_account: 3,
   default_ttl_seconds: 3600,
@@ -202,7 +236,7 @@ config :glossia, Glossia.Sandbox,
   reaper_enabled: true,
   reaper_interval_ms: 60_000,
   delete_retry_after_ms: 60_000,
-  image: "ghcr.io/glossia/glossia:main",
+  image: "ghcr.io/glossia/glossia:main-enterprise",
   repo_path: "/tmp/glossia/repo"
 
 # Project setup harness configuration. `harness_timeout_ms` is the ceiling on

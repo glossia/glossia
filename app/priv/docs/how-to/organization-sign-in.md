@@ -3,13 +3,18 @@
   summary: "Connect Google Workspace or Okta, verify your domain, and manage member permissions.",
   category: "how-to",
   section: "platform",
+  edition: "enterprise",
   order: 8
 }
 ---
 
+Organization single sign-on (SSO) requires Enterprise. Ordinary Google, GitHub,
+and GitLab login, organizations, invitations, and member permissions remain
+available in Community. See [Compare editions](/docs/explanation/editions).
+
 ## Connect your identity provider
 
-Organization administrators can connect a work identity provider in **Settings → Authentication**.
+Organization administrators can connect a work identity provider in **Enterprise → Authentication**.
 
 1. Choose **Google Workspace** or **Okta** and enter the team's work email domain.
 2. For Okta, create a web application using [OpenID Connect](https://developer.okta.com/docs/guides/implement-grant-type/authcode/main/). Enter its issuer, client identifier, and client secret. Glossia supports standard Okta organization issuers and the `/oauth2/default` authorization server. Secrets are encrypted at rest. Leaving the secret blank when editing keeps the saved value.
@@ -21,7 +26,7 @@ Organization administrators can connect a work identity provider in **Settings �
 
 Glossia manages the Google application credentials. You do not need to create an OAuth application in Google Cloud, add a custom SAML application in Google Admin, or register a redirect address. For an existing Google Workspace domain, setup happens in Glossia and at your DNS provider:
 
-1. In **Settings → Authentication**, choose **Google Workspace**, enter your work email domain, and select **Save authentication settings**.
+1. In **Enterprise → Authentication**, choose **Google Workspace**, enter your work email domain, and select **Save authentication settings**.
 2. Open your domain's DNS settings at the provider that hosts your DNS, not necessarily Google Workspace. Add the record shown in **Verify domain ownership**:
 
    | Field | Value |
@@ -61,3 +66,8 @@ For existing accounts, sign in with the existing method first, then visit `/auth
 Removing a member blocks automatic re-enrollment. An administrator must explicitly add or invite them again to restore access, even if their work identity is still active.
 
 Member invitation management, access credentials, language model editing, and organization deletion remain administrator responsibilities. These permissions cannot be delegated through member scope checkboxes. Authentication configuration, domain verification, and scope changes emit audit events.
+
+Administrators can review configuration changes and successful organization
+sign-ins in **Enterprise → Audit logs**. See the [audit log reference](/docs/reference/audit-logs).
+Organization SSO currently uses OpenID Connect, not SAML. It does not include
+SCIM provisioning or enforce SSO as the only login method.

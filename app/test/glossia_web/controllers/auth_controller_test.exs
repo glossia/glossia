@@ -36,6 +36,13 @@ defmodule GlossiaWeb.AuthControllerTest do
       assert response =~ ~s(href="/signup")
       assert response =~ "Show interest"
       refute response =~ "Join the waitlist"
+
+      if System.get_env("GLOSSIA_EDITION", "core") == "core" do
+        refute response =~ "Continue with your organization"
+        refute response =~ "organization[email]"
+      else
+        assert response =~ "Continue with your organization"
+      end
     end
 
     test "redirects when a known provider is not configured", %{conn: conn} do

@@ -11,10 +11,25 @@ defmodule Glossia.Extensions do
     Application.get_env(:glossia, :event_handler, Glossia.Events.NoopHandler)
   end
 
+  def translation_runtime do
+    Application.get_env(:glossia, :translation_runtime, Glossia.TranslationSessions.LocalRuntime)
+  end
+
+  def organization_authentication, do: Application.get_env(:glossia, :organization_authentication)
+
+  def audit_extension, do: Application.get_env(:glossia, :audit_extension)
+
   def audit_children do
-    case Application.get_env(:glossia, :audit_extension) do
+    case audit_extension() do
       nil -> []
       extension -> extension.children()
+    end
+  end
+
+  def audit_migrations(repo) do
+    case audit_extension() do
+      nil -> []
+      extension -> extension.migrations(repo)
     end
   end
 

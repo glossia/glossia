@@ -24,6 +24,7 @@ defmodule Glossia.Events do
       resource_id: Keyword.get(opts, :resource_id)
     )
 
+    if audit = Glossia.Extensions.audit_extension(), do: audit.handle_event(event)
     handler().handle_event(event)
   end
 

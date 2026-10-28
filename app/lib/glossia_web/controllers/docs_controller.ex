@@ -153,7 +153,7 @@ defmodule GlossiaWeb.DocsController do
       docs_current_subcategory: subcategory,
       docs_current_slug: page.slug,
       docs_headings: page.toc,
-      docs_markdown: page.raw_markdown,
+      docs_markdown: Glossia.PublicContent.Builder.availability(page) <> page.raw_markdown,
       docs_markdown_path: locale_path(markdown_path(category, subcategory, page.slug)),
       page_title: page.title,
       page_description: page.summary
@@ -188,11 +188,11 @@ defmodule GlossiaWeb.DocsController do
   defp markdown_path(category, subcategory, slug),
     do: ~p"/docs/#{category}/#{subcategory}/#{slug <> ".md"}"
 
-  defp send_markdown(conn, %{markdown: true, raw_markdown: raw_markdown})
+  defp send_markdown(conn, %{markdown: true, raw_markdown: raw_markdown} = page)
        when is_binary(raw_markdown) do
     conn
     |> put_resp_content_type("text/markdown")
-    |> send_resp(200, raw_markdown <> "\n")
+    |> send_resp(200, Glossia.PublicContent.Builder.availability(page) <> raw_markdown <> "\n")
   end
 
   defp send_markdown(_conn, page) do

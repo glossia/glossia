@@ -1,28 +1,23 @@
 defmodule GlossiaEnterprise.Audit.Event do
   @moduledoc """
-  ClickHouse row schema for enterprise audit events.
+  Durable account-scoped audit records with actor snapshots.
 
-  This schema preserves the existing audit storage format. Domain-event
-  emission and product analytics remain part of the Apache-2.0 core.
+  No foreign keys remove records when an actor or resource is deleted.
+  Arbitrary domain-event metadata and authentication credentials are not stored.
   """
 
-  use Ecto.Schema
-  use Glossia.Ingestion.Bufferable
+  use Glossia.Schema
 
-  @primary_key false
-
-  schema "events" do
-    field :id, Ch, type: "UUID"
-    field :name, Ch, type: "String"
-    field :account_id, Ch, type: "String"
-    field :user_id, Ch, type: "String"
-    field :actor_handle, Ch, type: "String"
-    field :actor_email, Ch, type: "String"
-    field :resource_type, Ch, type: "LowCardinality(String)"
-    field :resource_id, Ch, type: "String"
-    field :resource_path, Ch, type: "String"
-    field :summary, Ch, type: "String"
-    field :duration_ms, Ch, type: "UInt64"
-    field :metadata, Ch, type: "String"
+  schema "audit_events" do
+    field :name, :string
+    field :account_id, Uniq.UUID
+    field :user_id, Uniq.UUID
+    field :actor_handle, :string
+    field :actor_email, :string
+    field :resource_type, :string
+    field :resource_id, :string
+    field :summary, :string
+    field :metadata, :map, default: %{}
+    field :occurred_at, :utc_datetime_usec
   end
 end

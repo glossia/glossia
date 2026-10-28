@@ -16,6 +16,7 @@ defmodule Glossia.Docs.Page do
     :raw_markdown,
     :markdown,
     :kind,
+    edition: "community",
     markdown_only: false
   ]
 
@@ -144,7 +145,10 @@ defmodule Glossia.Docs do
 
   # Translations inherit navigation and publication metadata from English so
   # missing or localized frontmatter cannot regroup or expose hidden pages.
-  @english_metadata Map.new(@content_pages, &{&1.id, Map.take(&1, [:section, :markdown_only])})
+  @english_metadata Map.new(
+                      @content_pages,
+                      &{&1.id, Map.take(&1, [:section, :markdown_only, :edition])}
+                    )
 
   @content_pages_by_locale Map.new(@content_pages_by_locale, fn {locale, pages} ->
                              {locale,

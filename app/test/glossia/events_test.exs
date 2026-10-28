@@ -8,6 +8,7 @@ defmodule Glossia.EventsTest do
     account = %{id: 123}
     user = %{id: 456}
 
+    Mimic.stub(Glossia.Extensions, :audit_extension, fn -> nil end)
     Mimic.stub(Glossia.Extensions, :event_handler, fn -> Glossia.TestEventHandler end)
 
     expect(Glossia.TestEventHandler, :handle_event, fn event ->

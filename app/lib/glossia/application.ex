@@ -25,29 +25,8 @@ defmodule Glossia.Application do
     Supervisor.start_link(children, opts)
   end
 
-  # The release image boots into one of three roles, decided at start-up:
-  #
-  # * a FLAME runner child pod - nothing to start locally, FLAME owns
-  #   the child's supervision.
-  # * a detached translation-job pod - everything a translation touches
-  #   (DB, PubSub, ingestion buffers, GitHub tokens) but no HTTP endpoint,
-  #   no Oban queues, no runner pool.
-  # * everything else - the parent process running the full web tree plus
-  #   the managed runner pool.
   defp children do
-    cond do
-      Glossia.Flame.child?() ->
-        Logger.info("Starting Glossia in the runner-child role")
-        []
-
-      Glossia.TranslationSessions.Job.current?() ->
-        Logger.info("Starting Glossia in the translation-job role")
-        translation_job_children()
-
-      true ->
-        Logger.info("Starting Glossia in the parent role")
-        parent_children()
-    end
+    Glossia.Extensions.translation_runtime().children() || parent_children()
   end
 
   defp http_pool_size, do: Application.get_env(:glossia, :http_pool_size, 50)
@@ -113,12 +92,13 @@ defmodule Glossia.Application do
         Glossia.Github.InstallationTokens,
         Glossia.Pomerium.JWKSCache,
         Glossia.Sandbox.ProcessRegistry,
+        {DynamicSupervisor, name: Glossia.Sandbox.Supervisor, strategy: :one_for_one},
         Glossia.Sandbox.Reaper,
         Glossia.Projects.SetupRecovery
       ] ++
         Glossia.Extensions.audit_children() ++
+        Glossia.Extensions.translation_runtime().parent_children() ++
         [
-          Glossia.Runners.pool_child_spec(),
           GlossiaWeb.Endpoint
         ] ++ internal_babel_endpoint_children()
 
@@ -134,45 +114,6 @@ defmodule Glossia.Application do
     else
       children
     end
-  end
-
-  # A detached translation Job pod runs the release image with
-  # `GLOSSIA_TRANSLATION_JOB=1`. It needs everything the translation itself
-  # touches - DB pools, PubSub, ingestion buffers, GitHub tokens - and nothing
-  # else. No HTTP endpoint, no Oban queues, and no runner pool: it is already
-  # the isolated compute.
-  defp translation_job_children do
-    oban_config =
-      :glossia
-      |> Application.fetch_env!(Oban)
-      |> Keyword.merge(queues: false, plugins: false)
-
-    [
-      Glossia.Vault,
-      {Finch, name: Glossia.Finch, pools: %{default: [size: http_pool_size()]}},
-      Glossia.Repo,
-      Glossia.ClickHouseRepo,
-      Glossia.IngestRepo,
-      {Oban, oban_config},
-      {DNSCluster, query: Application.get_env(:glossia, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: Glossia.PubSub},
-      FunWithFlags.Supervisor,
-      Glossia.RateLimiter,
-      Supervisor.child_spec(
-        {Ingestion.Buffer,
-         [name: Ingestion.TranslationSessionEventBuffer, flush_interval_ms: 1_000] ++
-           (Ingestion.TranslationSessionEvent.buffer_opts()
-            |> Map.take([:insert_sql, :insert_opts, :header])
-            |> Map.to_list())},
-        id: Ingestion.TranslationSessionEventBuffer
-      ),
-      Glossia.Github.InstallationTokens
-    ] ++
-      Glossia.Extensions.audit_children() ++
-      [
-        # Last, so the translation only starts once everything it depends on is up.
-        Glossia.TranslationSessions.Job
-      ]
   end
 
   defp internal_babel_endpoint_children do

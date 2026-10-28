@@ -15,8 +15,17 @@ self-hosting, and hosted services are permitted under that license.
 
 The [`ee/`](ee/) directory contains source-available enterprise code under
 its [own license](ee/LICENSE.md). Production use requires a separate written
-commercial agreement. Enterprise audit ingestion is the first code isolated
-there; this checkout does not yet implement audit persistence or an audit UI.
+commercial agreement. **Isolated translation runners** live there: detached
+Kubernetes Jobs, managed FLAME capacity, Kata-backed setup sandboxes, and
+release-aware rollout checks. Community runs translations locally in Oban and
+uses host-local setup workspaces for trusted repositories. Both editions retain
+the translation engine, validation, progress, and publication workflow. The
+Enterprise edition also includes **organization single sign-on** (Google
+Workspace and Okta through OpenID Connect) and **administrator audit logs** with
+PostgreSQL persistence and a searchable dashboard. Their implementation, UI,
+assets, translations, and audit migration live in `ee/`. Basic OAuth login,
+organizations, invitations, permissions, and ordinary revision history stay in
+Community. See the [edition comparison](https://glossia.ai/docs/explanation/editions).
 
 Core is the default build. See [ee/README.md](ee/README.md) for enterprise build
 instructions and [CONTRIBUTING.md](CONTRIBUTING.md) for contributions. A CLA is

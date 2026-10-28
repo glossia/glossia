@@ -1,0 +1,224 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr "Language: ja\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nPlural-Forms: nplurals=1; plural=0;\n"
+
+#, elixir-autogen, elixir-format
+msgid "Account changes and organization sign-ins. Dates are UTC."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Actor"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Add a DNS TXT record with your domain provider using the name and value below. Organization sign-in stays unavailable until ownership is verified. Keep this record in place. Ownership is checked daily and expires 30 days after the last successful check."
+msgstr "下のネームと値を使用して、ドメインプロバイダーへの DNS TXT レコードを追加してください。組織サインインは所有権が検証されるまで利用できません。このレコードは引き続き保持してください。所有権は毎日確認され、最終的な成功確認から 30 日後に切れます。"
+
+#, elixir-autogen, elixir-format
+msgid "At your DNS provider, add the TXT record shown under Verify domain ownership, then select Verify domain."
+msgstr "DNS プロバイダーで.Verify domain ownership.の下に示された TXT レコードを追加し、.Verify domain.を選択してください。"
+
+#, elixir-autogen, elixir-format
+msgid "Audit logs"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Authentication"
+msgstr "認証"
+
+#, elixir-autogen, elixir-format
+msgid "Authentication settings saved."
+msgstr "認証設定が保存されました。"
+
+#, elixir-autogen, elixir-format
+msgid "Awaiting verification"
+msgstr "確認待ち"
+
+#, elixir-autogen, elixir-format
+msgid "Change the search or filters to see more events."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Client identifier"
+msgstr "クライアント識別子"
+
+#, elixir-autogen, elixir-format
+msgid "Client secret"
+msgstr "クライアントシークレット"
+
+#, elixir-autogen, elixir-format
+msgid "Continue with your organization"
+msgstr "組織で続行"
+
+#, elixir-autogen, elixir-format
+msgid "Could not save authentication settings."
+msgstr "認証設定を保存できませんでした。"
+
+#, elixir-autogen, elixir-format
+msgid "Disabled"
+msgstr "無効"
+
+#, elixir-autogen, elixir-format
+msgid "Domain ownership verified."
+msgstr "ドメイン所有権が検証されました。"
+
+#, elixir-autogen, elixir-format
+msgid "Enter your client secret"
+msgstr "クライアントシークレットを入力してください"
+
+#, elixir-autogen, elixir-format
+msgid "Enter your work email domain and save the authentication settings."
+msgstr "会社のメールアドレスドメインを入力し、認証設定を保存してください。"
+
+#, elixir-autogen, elixir-format
+msgid "Enterprise"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Event"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Events"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Filter"
+msgstr "フィルター"
+
+#, elixir-autogen, elixir-format
+msgid "Glossia manages the Google connection. You do not need to create an application in Google Cloud or register a redirect address."
+msgstr "Glossia が Google の接続を管理します。Google Cloud にアプリケーションを作成したり、リダイレクトアドレスを登録したりする必要はありません。"
+
+#, elixir-autogen, elixir-format
+msgid "Identity provider"
+msgstr "アイデンティティプロバイダー"
+
+#, elixir-autogen, elixir-format
+msgid "If Google blocks sign-in because your organization restricts third-party apps, ask a Google Workspace administrator to open Google Admin console → Security → Access and data control → API controls → Manage third-party app access, find Glossia, and allow the requested sign-in permissions according to your organization's policy."
+msgstr "組織がサードパーティ製アプリを制限しているため、Google がサインインをブロックした場合、Google Workspace の管理者に Google Admin 管理コンソール → セキュリティ → アクセスとデータ制御 → API 制御 → サードパーティ製アプリへのアクセspath の管理を開いていただき、Glossia を見つけ、お客様の組織の方針に基づいて要求されたサインイン許可を許可してください。"
+
+#, elixir-autogen, elixir-format
+msgid "Leave blank to keep the saved secret"
+msgstr "保存されたシークレットを維持するには空白のままにしてください"
+
+#, elixir-autogen, elixir-format
+msgid "Let your team sign in with Google Workspace or Okta."
+msgstr "チームメンバーは Google Workspace または Okta でログインできます。"
+
+#, elixir-autogen, elixir-format
+msgid "New account changes and organization sign-ins will appear here. Earlier activity is not backfilled."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "New team members receive basic read access. Administrators can grant more permissions from Members."
+msgstr "新しいチームメンバーには基本的な読み取り権限のみが付与されます。管理者は「メンバー」から追加の権限を付与できます。"
+
+#, elixir-autogen, elixir-format
+msgid "No audit events yet"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "No matching events"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Okta issuer"
+msgstr "Okta 発行元"
+
+#, elixir-autogen, elixir-format
+msgid "Organization sign-in"
+msgstr "組織サインイン"
+
+#, elixir-autogen, elixir-format
+msgid "Organization sign-in is unavailable or could not be verified. Domain ownership may need to be verified again. Contact your organization administrator."
+msgstr "組織サインインは利用できないか、検証できませんでした。ドメイン所有権の再確認が必要な場合があります。組織管理者へご連絡ください。"
+
+#, elixir-autogen, elixir-format
+msgid "Read the organization sign-in guide"
+msgstr "組織サインインガイドを読む"
+
+#, elixir-autogen, elixir-format
+msgid "Record name"
+msgstr "項目名"
+
+#, elixir-autogen, elixir-format
+msgid "Record value"
+msgstr "項目値"
+
+#, elixir-autogen, elixir-format
+msgid "Redirect address"
+msgstr "リダイレクト先"
+
+#, elixir-autogen, elixir-format
+msgid "Resource"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Save authentication settings"
+msgstr "認証設定を保存"
+
+#, elixir-autogen, elixir-format
+msgid "Search events or actors"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Set up Google Workspace sign-in"
+msgstr "Google Workspace のサインインを設定"
+
+#, elixir-autogen, elixir-format
+msgid "Sign in with your existing method first, then return to this page to connect your work identity."
+msgstr "既存の認証方法でサインインしてから、このページに戻り、勤務先アイデンティティを接続してください。"
+
+#, elixir-autogen, elixir-format
+msgid "System"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Team members can then enter their work email on the login page and select Continue with your organization, or use Log in with Google."
+msgstr "チームメンバーはログインページで会社のメールアドレスを入力し、「組織から続ける」を選択するか、Google でログインすることもできます。"
+
+#, elixir-autogen, elixir-format
+msgid "Team members must belong to this Google Workspace domain. Personal Google accounts do not qualify."
+msgstr "チームメンバーはこの Google Workspace ドメインのメンバーである必要があります。個人 Google アカウントは対象外です。"
+
+#, elixir-autogen, elixir-format
+msgid "Time (UTC)"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Verification record was not found. Check the name and value, then try again after the record has propagated."
+msgstr "検証記録が見つかりませんでした。名称と値を確認し、記録が反映されるのを待ってから、もう一度お試しください。"
+
+#, elixir-autogen, elixir-format
+msgid "Verified"
+msgstr "検証済み"
+
+#, elixir-autogen, elixir-format
+msgid "Verify domain"
+msgstr "ドメインを検証"
+
+#, elixir-autogen, elixir-format
+msgid "Verify domain ownership"
+msgstr "ドメインの所有権を検証"
+
+#, elixir-autogen, elixir-format
+msgid "Work email"
+msgstr "勤務先メール"
+
+#, elixir-autogen, elixir-format
+msgid "Work email domain"
+msgstr "勤務先メールのドメイン"
+
+#, elixir-autogen, elixir-format
+msgid "Your organization access was removed. Contact your organization administrator."
+msgstr "組織へのアクセスが削除されました。組織管理者に連絡してください。"

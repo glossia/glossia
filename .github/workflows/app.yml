@@ -87,9 +87,9 @@ jobs:
       - name: Check gettext .pot / .po files are up to date
         run: |
           mix gettext.extract --merge --check-up-to-date
-          if [ -n "$(git status --porcelain priv/gettext)" ]; then
+          if [ -n "$(git status --porcelain priv/gettext ../ee/priv/gettext)" ]; then
             echo "::error::Gettext files are stale. Run 'mix gettext.extract --merge' in app/ and commit the result."
-            git status --porcelain priv/gettext
+            git status --porcelain priv/gettext ../ee/priv/gettext
             exit 1
           fi
 

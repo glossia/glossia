@@ -11,7 +11,12 @@ defmodule Glossia.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      gettext: [write_reference_line_numbers: false, sort_by_msgid: :case_sensitive],
+      # External Enterprise sources otherwise embed checkout-specific absolute paths.
+      gettext: [
+        write_reference_comments: false,
+        write_reference_line_numbers: false,
+        sort_by_msgid: :case_sensitive
+      ],
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       listeners: [Phoenix.CodeReloader]
     ]
@@ -130,16 +135,20 @@ defmodule Glossia.MixProject do
       {:fun_with_flags_ui, "~> 1.1", app: false},
       {:ua_inspector, "~> 3.0"},
       {:cachex, "~> 4.1"},
-      # FLAME-managed runner pool and k8s backend for `Glossia.Runners`
-      # and `Glossia.TranslationSessions.Launcher`.
-      {:flame, "~> 0.5.3"},
-      {:flame_k8s_backend, "~> 0.6.0"},
       # Rustler is required whenever `RUSTLER_PRECOMPILED_FORCE_BUILD_ALL=true`
       # is set — the precompiled artifacts for mdex_native / lumis do not
       # include the Lumis feature, so mix builds them from source and needs
       # rustler to run the build.
       {:rustler, ">= 0.0.0", optional: true}
-    ]
+    ] ++ enterprise_deps()
+  end
+
+  defp enterprise_deps do
+    if System.get_env("GLOSSIA_EDITION", "core") == "enterprise" do
+      [{:flame, "~> 0.5.3"}, {:flame_k8s_backend, "~> 0.6.0"}]
+    else
+      []
+    end
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
@@ -158,6 +167,14 @@ defmodule Glossia.MixProject do
         "assets.build"
       ],
       "ecto.create": ["db.create"],
+      "ecto.migrate": [
+        "app.config",
+        fn args -> Mix.Tasks.Ecto.Migrate.run(args, &Glossia.Release.run_migrations/4) end
+      ],
+      "ecto.rollback": [
+        "app.config",
+        fn args -> Mix.Tasks.Ecto.Rollback.run(args, &Glossia.Release.run_migrations/4) end
+      ],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       test: [
