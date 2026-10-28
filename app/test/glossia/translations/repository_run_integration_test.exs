@@ -114,7 +114,22 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     assert_receive {:translation_session_event, %{type: "plan", total: 1}}
 
     assert_receive {:translation_session_event,
-                    %{type: "plan_assessed", total: 1, needs_translation: 1, up_to_date: 0}}
+                    %{
+                      type: "plan_assessed",
+                      total: 1,
+                      needs_translation: 1,
+                      up_to_date: 0,
+                      queued: [
+                        %{
+                          source_path: "docs/guide.md",
+                          translation_reasons: ["lockfile_missing", "output_missing"],
+                          translation_diff: %{
+                            "baseline" => "missing_lockfile",
+                            "tree" => %{"kind" => "translation_input"}
+                          }
+                        }
+                      ]
+                    }}
 
     assert_receive {:translation_session_event,
                     %{

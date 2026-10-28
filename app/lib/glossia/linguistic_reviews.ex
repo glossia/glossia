@@ -329,7 +329,11 @@ defmodule Glossia.LinguisticReviews do
     end)
   end
 
-  def fingerprint(hash_state), do: Checkpoints.key({"linguistic-review-v1", hash_state.hash})
+  def fingerprint(hash_state),
+    do:
+      Checkpoints.key(
+        {"linguistic-review-v1", Map.get(hash_state, :review_hash, hash_state.hash)}
+      )
 
   def notify_reviewers(session_id) do
     session = TranslationSessions.get_session!(session_id)

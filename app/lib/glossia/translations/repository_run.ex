@@ -680,6 +680,8 @@ defmodule Glossia.Translations.RepositoryRun do
           custom_prompt: item.prompt,
           context_body: item.context_body,
           locale_override_body: item.locale_override_body,
+          context_documents: Map.get(item, :context_documents, []),
+          locale_documents: Map.get(item, :locale_documents, []),
           retries: item.retries,
           check_cmd: item.check_cmd,
           check_cmds: item.check_cmds,
@@ -734,6 +736,18 @@ defmodule Glossia.Translations.RepositoryRun do
           # is dropped here instead of being held for the whole run.
           %{index: index, status: :up_to_date}
       end
+      |> then(fn prepared ->
+        if prepared.status == :translation_needed do
+          Map.merge(prepared, %{
+            translation_reasons:
+              Locks.translation_reasons(lock, hash_state, item.output_path, current_output_hash),
+            translation_diff:
+              Locks.translation_diff(lock, hash_state, item.output_path, current_output_hash)
+          })
+        else
+          prepared
+        end
+      end)
       |> Map.put(
         :review_key,
         {item.output_path, item.locale, LinguisticReviews.fingerprint(hash_state)}
@@ -759,9 +773,16 @@ defmodule Glossia.Translations.RepositoryRun do
   # started yet. Listing them up front lets the panel show the whole plan
   # instead of only the files whose batch has begun.
   defp queued_items(prepared_items) do
-    for %{index: index, item: item, status: status} <- prepared_items,
+    for %{index: index, item: item, status: status} = prepared <- prepared_items,
         status != :up_to_date do
-      %{index: index, output_path: item.output_path, locale: item.locale}
+      %{
+        index: index,
+        source_path: item.source_path,
+        output_path: item.output_path,
+        locale: item.locale,
+        translation_reasons: Map.get(prepared, :translation_reasons, []),
+        translation_diff: Map.get(prepared, :translation_diff)
+      }
     end
   end
 

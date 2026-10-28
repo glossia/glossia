@@ -50,6 +50,9 @@ defmodule Glossia.TranslationSessions.Progress do
         needs_translation
         up_to_date
         queued
+        source_path
+        translation_reasons
+        translation_diff
         output_path
         locale
         file_ref
@@ -390,6 +393,11 @@ defmodule Glossia.TranslationSessions.Progress do
     item = %{
       index: index,
       output_path: event[:output_path],
+      source_path: event[:source_path] || get_in(state, [:items, index, :source_path]),
+      translation_reasons:
+        event[:translation_reasons] || get_in(state, [:items, index, :translation_reasons]) || [],
+      translation_diff:
+        event[:translation_diff] || get_in(state, [:items, index, :translation_diff]),
       locale: event[:locale],
       status: :running,
       turns: 0,
@@ -427,6 +435,9 @@ defmodule Glossia.TranslationSessions.Progress do
     if is_integer(index) and not Map.has_key?(state.items, index) do
       event = %{
         output_path: queued_field(entry, :output_path),
+        source_path: queued_field(entry, :source_path),
+        translation_reasons: queued_field(entry, :translation_reasons),
+        translation_diff: queued_field(entry, :translation_diff),
         locale: queued_field(entry, :locale)
       }
 

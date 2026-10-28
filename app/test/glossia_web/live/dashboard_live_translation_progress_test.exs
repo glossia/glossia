@@ -4,6 +4,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
   import Phoenix.LiveViewTest
 
   alias Glossia.Projects
+  alias Glossia.Repo
   alias Glossia.TestHelpers
   alias Glossia.TranslationSessions
 
@@ -47,6 +48,173 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
     assert has_element?(view, "#translation-progress-item-1", "Done")
     refute has_element?(view, "#translation-progress-summary-running")
     assert has_element?(view, "#cancel-translation-session")
+  end
+
+  test "shows persisted per-file translation reasons, including completed files", %{conn: conn} do
+    user = TestHelpers.create_user("translation-reasons@test.com", "translation-reasons")
+    {:ok, project} = Projects.create_project(user.account, %{handle: "reasons", name: "Reasons"})
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{status: "completed"})
+
+    Enum.each(
+      [
+        %{
+          type: "plan_assessed",
+          seq: 1,
+          total: 2,
+          needs_translation: 2,
+          up_to_date: 0,
+          queued: [
+            %{
+              index: 0,
+              output_path: "es/guide.md",
+              locale: "es",
+              translation_reasons: ["model_changed", "validation_changed"],
+              translation_diff: %{
+                "version" => 1,
+                "baseline" => "recorded",
+                "source_commit_sha" => "abc123",
+                "tree" => %{
+                  "kind" => "translation_config",
+                  "label" => "generation",
+                  "change" => "changed",
+                  "aggregate_only" => false,
+                  "fields" => [
+                    %{
+                      "field" => "model",
+                      "before" => "old-writer",
+                      "after" => "new-writer",
+                      "before_present" => true,
+                      "after_present" => true,
+                      "change" => "changed",
+                      "fingerprint" => false
+                    }
+                  ],
+                  "children" => []
+                }
+              }
+            }
+          ]
+        },
+        %{type: "item_started", seq: 2, index: 0, output_path: "es/guide.md", locale: "es"},
+        %{type: "item_completed", seq: 3, index: 0},
+        %{type: "item_started", seq: 4, index: 1, output_path: "es/legacy.md", locale: "es"}
+      ],
+      &TranslationSessions.broadcast_session_event(session, &1)
+    )
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, _html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    assert has_element?(view, "#translation-progress-items", "Why translating")
+    assert has_element?(view, "#translation-progress-item-0", "Model changed")
+    assert has_element?(view, "#translation-progress-item-0", "Validation fingerprint changed")
+    assert has_element?(view, "#translation-progress-item-1", "Not recorded")
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-expanded [data-part='input-diff']",
+             "Translation input changes"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-expanded [data-part='dependency-values']",
+             "old-writer"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-expanded [data-part='dependency-values']",
+             "new-writer"
+           )
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0-expanded [data-part='diff-baseline']",
+             "abc123"
+           )
+
+    refute has_element?(view, "#translation-progress-item-1-expanded [data-part='input-diff']")
+  end
+
+  test "public and restricted readers never see persisted private glossary identifiers", %{
+    conn: conn
+  } do
+    owner = TestHelpers.create_user("diff-owner@example.test", "diff-owner")
+    member = TestHelpers.create_user("diff-member@example.test", "diff-member")
+
+    {:ok, %{organization: organization, account: account}} =
+      Glossia.Organizations.create_organization(owner, %{handle: "private-diff"})
+
+    {:ok, membership} = Glossia.Organizations.add_member(organization, member)
+    membership |> Ecto.Changeset.change(scopes: ["project:read"]) |> Repo.update!()
+    account = account |> Ecto.Changeset.change(visibility: "public") |> Repo.update!()
+    {:ok, project} = Projects.create_project(account, %{handle: "docs", name: "Docs"})
+    {:ok, session} = TranslationSessions.create_session(account, project, %{status: "completed"})
+
+    entry = %{
+      "kind" => "detail",
+      "label" => "account:SECRET-ACQUISITION",
+      "change" => "changed",
+      "aggregate_only" => false,
+      "children" => [],
+      "fields" => [
+        %{
+          "field" => "translation_hash",
+          "before" => "old-hash",
+          "after" => "new-hash",
+          "change" => "changed",
+          "fingerprint" => true,
+          "before_present" => true,
+          "after_present" => true
+        }
+      ]
+    }
+
+    group = %{entry | "label" => "content_hash", "fields" => [], "children" => [entry]}
+
+    tree = %{
+      entry
+      | "kind" => "context",
+        "label" => "terminology",
+        "fields" => [],
+        "children" => [group]
+    }
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "plan_assessed",
+      seq: 1,
+      total: 1,
+      needs_translation: 1,
+      up_to_date: 0,
+      queued: [
+        %{
+          index: 0,
+          output_path: "es/guide.md",
+          locale: "es",
+          translation_diff: %{
+            "version" => 1,
+            "baseline" => "recorded",
+            "tree" => tree
+          }
+        }
+      ]
+    })
+
+    for viewer <- [nil, member, owner] do
+      viewer_conn = if viewer, do: init_test_session(conn, %{user_id: viewer.id}), else: conn
+
+      {:ok, view, html} =
+        live(viewer_conn, ~p"/#{account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+      refute html =~ "SECRET-ACQUISITION"
+      assert has_element?(view, "[data-part=dependency-label]", "entry:1")
+      assert has_element?(view, "[data-part=dependency-values]", "new-hash")
+    end
   end
 
   test "shows the executing engine digest separately from the repository commit", %{conn: conn} do

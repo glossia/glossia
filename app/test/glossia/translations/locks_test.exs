@@ -59,6 +59,449 @@ defmodule Glossia.Translations.LocksTest do
     assert Locks.context_stale?(%{"hash_tree" => configured.tree}, original)
   end
 
+  test "human-review identities retain the original JSON protocol without changing lock trees" do
+    context = Glossia.Translations.Context.empty_bundle("es")
+
+    glossary = [
+      %{term: "branch", translation: "rama", definition: "Git branch", case_sensitive: false}
+    ]
+
+    input = %{
+      format: "text",
+      source_path: "generation",
+      source_content: "Launch a branch",
+      provider: "openai",
+      model: "writer",
+      source_language: "en",
+      language: "Spanish",
+      locale: "es",
+      frontmatter_mode: :preserve,
+      custom_prompt: "Preserve placeholders",
+      context_body: "Project guidance",
+      locale_override_body: "Spanish guidance",
+      check_cmd: "validate",
+      validation: ["check", "--strict"],
+      validation_relative_path: "tools/check",
+      server_context: %{
+        context
+        | glossary: glossary,
+          voice: %{
+            tone: "Direct",
+            formality: nil,
+            target_audience: nil,
+            guidelines: nil,
+            description: nil,
+            cultural_notes: %{}
+          }
+      }
+    }
+
+    decision = %{handle: "judge", model: "quality", base_url: nil, decision_min_score: 7.0}
+
+    for configuration <- [nil, decision] do
+      input = Map.put(input, :decision_model, configuration)
+      state = Locks.build_hash_state(input)
+      legacy = old_review_hash(state.tree["root"], input)
+
+      assert state.review_hash == legacy
+
+      assert Glossia.LinguisticReviews.fingerprint(state) ==
+               Glossia.Translations.Checkpoints.key({"linguistic-review-v1", legacy})
+
+      refute JSON.encode!(state.tree) =~ "review_hash"
+
+      for edited <- [
+            %{input | source_content: "Different source"},
+            %{input | check_cmd: "other validator"},
+            %{input | decision_model: %{decision | decision_min_score: 8.0}},
+            %{input | server_context: %{input.server_context | glossary: []}}
+          ] do
+        refute Locks.build_hash_state(edited).review_hash == legacy
+      end
+    end
+  end
+
+  describe "translation_reasons/4" do
+    setup do
+      input = %{
+        format: "text",
+        source_path: "guide.txt",
+        source_content: "Hello",
+        provider: "openai",
+        model: "writer",
+        source_language: "en",
+        language: "Spanish",
+        locale: "es",
+        frontmatter_mode: :preserve,
+        custom_prompt: nil,
+        context_body: "Project guidance",
+        locale_override_body: "",
+        server_context: Glossia.Translations.Context.empty_bundle("es")
+      }
+
+      state = Locks.build_hash_state(input)
+
+      lock = %{
+        "hash" => state.hash,
+        "hash_tree" => state.tree,
+        "output_path" => "es/guide.txt",
+        "output_hash" => "output"
+      }
+
+      %{input: input, state: state, lock: lock}
+    end
+
+    test "explains missing and unreadable locks without assuming a source edit", %{state: state} do
+      assert Locks.translation_reasons(nil, state, "es/guide.txt", "output") == [
+               "lockfile_missing"
+             ]
+
+      assert Locks.translation_reasons(nil, state, "es/guide.txt", "") ==
+               ["lockfile_missing", "output_missing"]
+    end
+
+    test "unchanged inputs have no reasons", %{state: state, lock: lock} do
+      assert Locks.translation_reasons(lock, state, "es/guide.txt", "output") == []
+    end
+
+    test "reports source, model, context and validation differences together", %{
+      input: input,
+      lock: lock
+    } do
+      state =
+        Locks.build_hash_state(
+          %{
+            input
+            | source_content: "New source",
+              model: "other",
+              context_body: "New instructions"
+          }
+          |> Map.put(:check_cmd, "validate")
+        )
+
+      reasons = Locks.translation_reasons(lock, state, "es/guide.txt", "output")
+
+      assert Enum.sort(reasons) ==
+               Enum.sort([
+                 "source_changed",
+                 "model_changed",
+                 "project_context_changed",
+                 "validation_changed"
+               ])
+
+      refute Enum.any?(reasons, &String.contains?(&1, "New instructions"))
+    end
+
+    test "reports missing, edited and relocated output", %{state: state, lock: lock} do
+      assert Locks.translation_reasons(lock, state, "es/guide.txt", "") == ["output_missing"]
+
+      assert Locks.translation_reasons(lock, state, "es/guide.txt", "edited") == [
+               "output_changed"
+             ]
+
+      assert Locks.translation_reasons(lock, state, "new/guide.txt", "output") == [
+               "output_path_changed"
+             ]
+    end
+
+    test "legacy locks do not invent a specific cause", %{state: state, lock: lock} do
+      lock = lock |> Map.delete("hash_tree") |> Map.put("hash", "legacy")
+
+      assert Locks.translation_reasons(lock, state, "es/guide.txt", "output") == [
+               "translation_inputs_changed"
+             ]
+    end
+
+    test "uses the same preservation compatibility normalization as staleness", %{
+      state: state,
+      lock: lock
+    } do
+      lock =
+        update_in(lock, ["hash_tree", "root", "children"], fn children ->
+          Enum.map(children, fn node ->
+            if node["kind"] == "translation_config",
+              do: put_in(node, ["metadata", "preservation_version"], 5),
+              else: node
+          end)
+        end)
+        |> Map.put("hash", "legacy-preservation-hash")
+
+      refute Locks.stale?(lock, state, "es/guide.txt", "output")
+      assert Locks.translation_reasons(lock, state, "es/guide.txt", "output") == []
+    end
+
+    test "all historical validation key orders remain current", %{
+      input: input,
+      state: state,
+      lock: lock
+    } do
+      for hash <- state.legacy_hashes["validation_hash"].hashes do
+        legacy = legacy_fingerprints(lock, %{"validation_hash" => hash})
+        refute Locks.context_stale?(legacy, state)
+        refute Locks.stale?(legacy, state, "es/guide.txt", "output")
+        assert Locks.translation_reasons(legacy, state, "es/guide.txt", "output") == []
+        assert Locks.stale?(legacy, state, "es/guide.txt", "edited")
+        assert Locks.stale?(legacy, state, "moved/guide.txt", "output")
+
+        source_edit = Locks.build_hash_state(%{input | source_content: "Updated source"})
+        refute Locks.context_stale?(legacy, source_edit)
+        assert Locks.stale?(legacy, source_edit, "es/guide.txt", "output")
+
+        assert Locks.translation_reasons(legacy, source_edit, "es/guide.txt", "output") == [
+                 "source_changed"
+               ]
+
+        validation_edit = Locks.build_hash_state(Map.put(input, :check_cmd, "validate"))
+        assert Locks.context_stale?(legacy, validation_edit)
+
+        assert Locks.translation_reasons(legacy, validation_edit, "es/guide.txt", "output") == [
+                 "validation_changed"
+               ]
+      end
+    end
+
+    test "legacy decision and glossary orders preserve unchanged values but not edits", %{
+      input: input,
+      lock: lock
+    } do
+      glossary = [
+        %{
+          term: "lockfile",
+          translation: "archivo de bloqueo",
+          definition: nil,
+          case_sensitive: false
+        }
+      ]
+
+      context = %{input.server_context | glossary: glossary}
+
+      decision = %{
+        handle: "reviewer",
+        model: "typesafe/jev",
+        base_url: nil,
+        decision_min_score: 7.0
+      }
+
+      input = Map.merge(input, %{server_context: context, decision_model: decision})
+      state = Locks.build_hash_state(input)
+      lock = %{lock | "hash" => state.hash, "hash_tree" => state.tree}
+
+      for {quality_hash, glossary_hash} <-
+            Enum.zip(
+              state.legacy_hashes["configuration_hash"].hashes,
+              state.legacy_hashes["glossary_content_hash"].hashes
+            ) do
+        legacy =
+          legacy_fingerprints(lock, %{
+            "configuration_hash" => quality_hash,
+            "glossary_content_hash" => glossary_hash
+          })
+
+        refute Locks.context_stale?(legacy, state)
+        refute Locks.stale?(legacy, state, "es/guide.txt", "output")
+        assert Locks.translation_reasons(legacy, state, "es/guide.txt", "output") == []
+
+        changed =
+          Locks.build_hash_state(%{input | decision_model: %{decision | decision_min_score: 8.0}})
+
+        assert Locks.context_stale?(legacy, changed)
+
+        assert Locks.translation_reasons(legacy, changed, "es/guide.txt", "output") == [
+                 "quality_settings_changed"
+               ]
+
+        changed_context = %{
+          context
+          | glossary: [%{hd(glossary) | translation: "fichero de bloqueo"}]
+        }
+
+        changed = Locks.build_hash_state(%{input | server_context: changed_context})
+        assert Locks.context_stale?(legacy, changed)
+
+        assert Locks.translation_reasons(legacy, changed, "es/guide.txt", "output") == [
+                 "glossary_changed"
+               ]
+      end
+    end
+
+    test "records changed generation fields and exact validation sub-fields", %{
+      input: input,
+      state: state,
+      lock: lock
+    } do
+      changed =
+        Locks.build_hash_state(
+          %{input | model: "new-writer"}
+          |> Map.put(:check_cmds, %{"json" => "private validation command"})
+        )
+
+      diff = Locks.translation_diff(lock, changed, "es/guide.txt", "output")
+      fields = diff_fields(diff["tree"])
+
+      assert Enum.any?(
+               fields,
+               &(&1["field"] == "model" and &1["before"] == "writer" and
+                   &1["after"] == "new-writer")
+             )
+
+      assert Enum.any?(fields, &(&1["field"] == "command_hash" and &1["change"] == "added"))
+      refute JSON.encode!(diff) =~ "private validation command"
+      assert Locks.translation_diff(lock, state, "es/guide.txt", "output")["tree"] == nil
+    end
+
+    test "identifies the changed instruction file and section, not unaffected context", %{
+      input: input,
+      lock: lock
+    } do
+      docs = [
+        %{relative_path: "L10N.md", body: "# Tone\nFriendly.\n\n# Formatting\nKeep code.\n"}
+      ]
+
+      input = Map.merge(input, %{context_documents: docs, context_body: hd(docs).body})
+      before = Locks.build_hash_state(input)
+      lock = %{lock | "hash" => before.hash, "hash_tree" => before.tree}
+      updated = [%{hd(docs) | body: String.replace(hd(docs).body, "Friendly.", "Direct.")}]
+
+      current =
+        Locks.build_hash_state(%{
+          input
+          | context_documents: updated,
+            context_body: hd(updated).body
+        })
+
+      diff = Locks.translation_diff(lock, current, "es/guide.txt", "output")
+      encoded = JSON.encode!(diff)
+      assert encoded =~ "L10N.md"
+      assert encoded =~ "# Tone"
+      refute encoded =~ "# Formatting"
+      refute encoded =~ "Friendly."
+      refute encoded =~ "Direct."
+      assert diff["changed_fields"] == 1
+    end
+
+    test "extra diagnostic coverage is not a generation dependency", %{state: state, lock: lock} do
+      lock =
+        lock
+        |> Map.put("hash", "old-root")
+        |> update_in(["hash_tree", "root"], &without_details/1)
+
+      refute Locks.context_stale?(lock, state)
+      refute Locks.stale?(lock, state, "es/guide.txt", "output")
+      assert Locks.translation_diff(lock, state, "es/guide.txt", "output")["changed_fields"] == 0
+    end
+
+    test "private context values never enter lock diagnostics", %{input: input} do
+      voice = %{
+        tone: "SECRET-TONE",
+        formality: "SECRET-FORMALITY",
+        target_audience: "SECRET-AUDIENCE",
+        guidelines: "SECRET-GUIDELINES",
+        description: "SECRET-DESCRIPTION",
+        cultural_notes: %{}
+      }
+
+      glossary = [
+        %{
+          namespaced_id: "account:entry-1",
+          term: "SECRET-TERM",
+          translation: "SECRET-TRANSLATION",
+          definition: "SECRET-DEFINITION",
+          case_sensitive: false
+        }
+      ]
+
+      context = %{input.server_context | voice: voice, glossary: glossary}
+      state = Locks.build_hash_state(%{input | server_context: context})
+      encoded = JSON.encode!(state.tree)
+      refute encoded =~ "SECRET-"
+      assert encoded =~ "tone_hash"
+      assert encoded =~ "translation_hash"
+      refute encoded =~ "account:entry-1"
+      assert encoded =~ "entry:"
+    end
+
+    test "reports removed quality configuration", %{input: input, state: state, lock: lock} do
+      previous = Locks.build_hash_state(Map.put(input, :decision_model, %{model: "reviewer"}))
+      lock = %{lock | "hash" => previous.hash, "hash_tree" => previous.tree}
+
+      assert Locks.translation_reasons(lock, state, "es/guide.txt", "output") == [
+               "quality_settings_changed"
+             ]
+    end
+  end
+
+  defp diff_fields(node), do: node["fields"] ++ Enum.flat_map(node["children"], &diff_fields/1)
+
+  # The pre-canonicalization protocol, evaluated in this VM because v1's atom
+  # key ordering was VM-local. Diagnostic details never participated in it.
+  defp old_review_hash(node, input) do
+    metadata =
+      case {node["kind"], node["label"]} do
+        {"translation_config", "generation"} ->
+          settings =
+            Map.new(
+              [:check_cmd, :check_cmds, :validation, :validation_relative_path],
+              &{&1, Map.get(input, &1)}
+            )
+
+          Map.put(node["metadata"], "validation_hash", old_json_hash(settings))
+
+        {"decision_config", "quality"} ->
+          Map.put(node["metadata"], "configuration_hash", old_json_hash(input.decision_model))
+
+        {"context", "terminology"} ->
+          entries =
+            input.server_context.glossary
+            |> Enum.map(&Map.take(&1, [:term, :definition, :case_sensitive, :translation]))
+            |> Enum.sort_by(&{&1.term, &1.translation, &1.definition || "", &1.case_sensitive})
+
+          Map.put(node["metadata"], "content_hash", old_json_hash(entries))
+
+        _ ->
+          node["metadata"]
+      end
+
+    old_json_hash(%{
+      kind: node["kind"],
+      label: node["label"],
+      metadata: metadata,
+      child_hashes: Enum.map(node["children"], &old_review_hash(&1, input))
+    })
+  end
+
+  defp old_json_hash(value),
+    do: :crypto.hash(:sha256, JSON.encode!(value)) |> Base.encode16(case: :lower)
+
+  defp without_details(node) do
+    node
+    |> Map.delete("details")
+    |> update_in(["children"], &Enum.map(&1, fn child -> without_details(child) end))
+  end
+
+  defp legacy_fingerprints(lock, replacements) do
+    lock
+    |> Map.put("hash", "historical-root-hash")
+    |> update_in(["hash_tree", "root"], &replace_fingerprints(&1, replacements))
+  end
+
+  defp replace_fingerprints(node, replacements) do
+    node =
+      update_in(
+        node,
+        ["children"],
+        &Enum.map(&1, fn child -> replace_fingerprints(child, replacements) end)
+      )
+
+    Enum.reduce(replacements, node, fn {key, hash}, node ->
+      metadata_key = if key == "glossary_content_hash", do: "content_hash", else: key
+      glossary? = key != "glossary_content_hash" or node["label"] == "terminology"
+
+      if glossary? and Map.has_key?(node["metadata"], metadata_key),
+        do: put_in(node, ["metadata", metadata_key], hash),
+        else: node
+    end)
+  end
+
   describe "add_baseline/2" do
     test "attaches every baseline field on a freshly written lock" do
       lock =

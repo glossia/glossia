@@ -155,6 +155,8 @@ defmodule Glossia.Translations.Planner do
       model: override.model || ctx.resolved.merged_frontmatter.model,
       context_body: ctx.resolved.merged_body,
       locale_override_body: override.merged_body,
+      context_documents: Enum.map(ctx.resolved.files, &Map.take(&1, [:relative_path, :body])),
+      locale_documents: Enum.map(override.files, &Map.take(&1, [:relative_path, :body])),
       glossary: ctx.resolved.merged_frontmatter.glossary,
       glossary_translations: override.glossary,
       context_paths: context_paths(ctx.resolved.files, override.files, ctx.locale)

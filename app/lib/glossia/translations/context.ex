@@ -17,6 +17,7 @@ defmodule Glossia.Translations.Context do
 
   alias Glossia.Accounts.{Account, Voice}
   alias Glossia.Glossaries
+  alias Glossia.Translations.Fingerprint
   alias Glossia.Translations.PreservedTokens
   alias Glossia.Voices
 
@@ -357,6 +358,58 @@ defmodule Glossia.Translations.Context do
     }
   end
 
+  @doc "Field-level provenance without private voice or glossary text."
+  def input_details(bundle) do
+    voice = bundle.voice
+
+    voice_fields =
+      if voice do
+        fields =
+          Map.new([:tone, :formality, :target_audience, :guidelines, :description], fn key ->
+            {"#{key}_hash", Fingerprint.hash(Map.get(voice, key))}
+          end)
+
+        country = locale_country(Map.get(voice, :locale)) || sole_target_country(voice)
+        note = country && get_in(voice, [:cultural_notes, country])
+        Map.put(fields, "cultural_note_hash", Fingerprint.hash(note))
+      else
+        %{}
+      end
+
+    glossary =
+      Map.new(bundle.glossary || [], fn entry ->
+        id = namespaced_id_of(entry)
+        id = if id == "account:", do: entry.term, else: id
+        id = "entry:" <> Fingerprint.hash(id)
+
+        {id,
+         %{
+           "term_hash" => Fingerprint.hash(entry.term),
+           "translation_hash" => Fingerprint.hash(entry.translation),
+           "definition_hash" => Fingerprint.hash(Map.get(entry, :definition)),
+           "case_sensitive" => Map.get(entry, :case_sensitive, false)
+         }}
+      end)
+
+    %{voice: voice_fields, glossary: glossary}
+  end
+
+  @doc "Comparison-only fingerprints for glossary records serialized by older VMs."
+  def legacy_glossary_hashes(bundle) do
+    bundle
+    |> Map.get(:glossary, [])
+    |> normalized_glossary()
+    |> Fingerprint.legacy_hashes([:term, :definition, :case_sensitive, :translation])
+  end
+
+  @doc false
+  def review_glossary_hash(bundle) do
+    bundle
+    |> Map.get(:glossary, [])
+    |> normalized_glossary()
+    |> Fingerprint.legacy_hash()
+  end
+
   defp resolve_voice(_account, nil, _locale), do: nil
 
   defp resolve_voice(account, version, locale) do
@@ -670,10 +723,5 @@ defmodule Glossia.Translations.Context do
     end
   end
 
-  defp content_hash(value) do
-    value
-    |> JSON.encode!()
-    |> then(&:crypto.hash(:sha256, &1))
-    |> Base.encode16(case: :lower)
-  end
+  defp content_hash(value), do: Fingerprint.hash(value)
 end

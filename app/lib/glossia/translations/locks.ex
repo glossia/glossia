@@ -38,7 +38,10 @@ defmodule Glossia.Translations.Locks do
   """
 
   alias Glossia.Translations.Context
+  alias Glossia.Translations.DependencyDiff
+  alias Glossia.Translations.InputDetails
   alias Glossia.Translations.Format
+  alias Glossia.Translations.Fingerprint
   alias Glossia.Translations.Po
   alias Glossia.Translations.Prompt
 
@@ -85,15 +88,172 @@ defmodule Glossia.Translations.Locks do
   # hashes intentionally omit that implementation version. Existing locks are
   # compared by dependency tree with the former version field ignored, so the
   # version 5 to 6 change does not invalidate every locale at once.
-  def stale?(lock, %{hash: hash, tree: tree}, output_path, output_hash) do
+  def stale?(lock, %{hash: hash, tree: tree} = state, output_path, output_hash) do
     lock["output_path"] != output_path or lock["output_hash"] != output_hash or
-      not (lock["hash"] == hash or compatible_hash_tree?(lock["hash_tree"], tree))
+      not (lock["hash"] == hash or compatible_hash_tree?(lock["hash_tree"], tree, state))
   end
 
   def stale?(lock, hash, output_path, output_hash) do
     lock["hash"] != hash or lock["output_path"] != output_path or
       lock["output_hash"] != output_hash
   end
+
+  @doc """
+  Explains a stale lock comparison without exposing source text or context values.
+
+  Reasons describe fingerprint differences, not necessarily user edits: for example,
+  an engine change can alter a validation fingerprint without changing a command.
+  Call this only after assessment decides an item needs translation, since PO
+  per-message preservation can override a whole-file mismatch.
+  """
+  def translation_reasons(nil, _state, _output_path, output_hash) do
+    ["lockfile_missing"] ++ if(output_hash == "", do: ["output_missing"], else: [])
+  end
+
+  def translation_reasons(lock, %{tree: tree} = state, output_path, output_hash) do
+    output_reasons =
+      []
+      |> add_reason(lock["output_path"] != output_path, "output_path_changed")
+      |> add_reason(output_hash == "", "output_missing")
+      |> add_reason(
+        output_hash != "" and lock["output_hash"] != output_hash,
+        "output_changed"
+      )
+
+    input_reasons =
+      if lock["hash"] == state.hash or compatible_hash_tree?(lock["hash_tree"], tree, state) do
+        []
+      else
+        case {get_in(lock, ["hash_tree", "root"]), tree["root"]} do
+          {%{} = stored, %{} = current} ->
+            stored_metadata =
+              fingerprint_metadata(normalize_tree_for_compatibility(stored, state))
+
+            current_metadata =
+              fingerprint_metadata(normalize_tree_for_compatibility(current, state))
+
+            (Map.keys(stored_metadata) ++ Map.keys(current_metadata))
+            |> Enum.uniq()
+            |> Enum.sort()
+            |> Enum.flat_map(fn key ->
+              stored = Map.get(stored_metadata, key, %{})
+              current = Map.get(current_metadata, key, %{})
+
+              if stored == current, do: [], else: fingerprint_reasons(key, stored, current)
+            end)
+            |> case do
+              [] -> ["translation_inputs_changed"]
+              reasons -> reasons
+            end
+
+          _ ->
+            ["translation_inputs_changed"]
+        end
+      end
+
+    Enum.uniq(output_reasons ++ input_reasons)
+  end
+
+  @doc "A durable, field-level explanation of the accepted/current input comparison."
+  def translation_diff(lock, state, output_path, output_hash) do
+    previous = lock && get_in(lock, ["hash_tree", "root"])
+    current = state.tree["root"]
+
+    {before, after_value} =
+      if lock && is_nil(previous) do
+        base = %{"kind" => "translation_input", "label" => current["label"], "children" => []}
+
+        {Map.put(base, "metadata", %{"input_hash" => lock["hash"]}),
+         Map.put(base, "metadata", %{"input_hash" => state.hash})}
+      else
+        {comparison_details(previous, state), comparison_details(current, state)}
+      end
+
+    input_diff = DependencyDiff.diff(before, after_value)
+    output_before = if lock, do: output_node(lock["output_path"], lock["output_hash"])
+    output_diff = DependencyDiff.diff(output_before, output_node(output_path, output_hash))
+
+    tree =
+      input_diff ||
+        %{
+          "kind" => "translation_input",
+          "label" => current["label"],
+          "change" => "changed",
+          "fields" => [],
+          "children" => [],
+          "aggregate_only" => false
+        }
+
+    tree = update_in(tree, ["children"], &(&1 ++ List.wrap(output_diff)))
+    tree = if input_diff || output_diff, do: tree
+
+    %{
+      "version" => 1,
+      "baseline" =>
+        cond do
+          is_nil(lock) -> "missing_lockfile"
+          is_nil(previous) -> "legacy_lockfile"
+          true -> "recorded"
+        end,
+      "source_commit_sha" => lock && lock["source_commit_sha"],
+      "translation_session_id" => lock && lock["translation_session_id"],
+      "changed_fields" => DependencyDiff.field_count(tree),
+      "tree" => tree
+    }
+  end
+
+  defp output_node(path, hash),
+    do: %{
+      "kind" => "output",
+      "label" => "output",
+      "metadata" => %{"path" => path, "content_hash" => hash},
+      "children" => []
+    }
+
+  defp comparison_details(nil, _state), do: nil
+
+  defp comparison_details(node, state) do
+    node |> normalize_tree_for_compatibility(state) |> restore_details(node)
+  end
+
+  defp restore_details(normalized, original) do
+    normalized
+    |> Map.put("details", original["details"] || %{})
+    |> Map.put(
+      "children",
+      Enum.zip_with(normalized["children"], original["children"] || [], &restore_details/2)
+    )
+  end
+
+  defp add_reason(reasons, true, reason), do: reasons ++ [reason]
+  defp add_reason(reasons, false, _reason), do: reasons
+
+  defp fingerprint_metadata(node) do
+    children = Enum.reduce(node["children"] || [], %{}, &Map.merge(&2, fingerprint_metadata(&1)))
+    Map.put(children, {node["kind"], node["label"]}, node["metadata"] || %{})
+  end
+
+  defp fingerprint_reasons({"source", _}, _, _), do: ["source_changed"]
+
+  defp fingerprint_reasons({"translation_config", _}, stored, current) do
+    (Map.keys(stored) ++ Map.keys(current))
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> Enum.reject(&(Map.get(stored, &1) == Map.get(current, &1)))
+    |> Enum.map(fn
+      "validation_hash" -> "validation_changed"
+      key when key in ["provider", "model"] -> "model_changed"
+      key when key in ["prompt_version", "segmentation_version"] -> "translation_engine_changed"
+      _ -> "translation_settings_changed"
+    end)
+  end
+
+  defp fingerprint_reasons({"context", "project"}, _, _), do: ["project_context_changed"]
+  defp fingerprint_reasons({"context", "locale"}, _, _), do: ["locale_context_changed"]
+  defp fingerprint_reasons({"context", "voice"}, _, _), do: ["voice_changed"]
+  defp fingerprint_reasons({"context", "terminology"}, _, _), do: ["glossary_changed"]
+  defp fingerprint_reasons({"decision_config", _}, _, _), do: ["quality_settings_changed"]
+  defp fingerprint_reasons(_, _, _), do: ["translation_inputs_changed"]
 
   @doc """
   Whether anything OTHER than the source content or output file changed.
@@ -110,7 +270,7 @@ defmodule Glossia.Translations.Locks do
   """
   def context_stale?(nil, _hash_state), do: true
 
-  def context_stale?(lock, %{tree: %{"root" => current_root}}) do
+  def context_stale?(lock, %{tree: %{"root" => current_root}} = state) do
     stored_root = get_in(lock, ["hash_tree", "root"])
 
     if is_nil(stored_root) do
@@ -119,8 +279,8 @@ defmodule Glossia.Translations.Locks do
       # back to the whole-file `hash` compare there.
       false
     else
-      strip_source(normalize_tree_for_compatibility(stored_root)) !=
-        strip_source(normalize_tree_for_compatibility(current_root))
+      strip_source(normalize_tree_for_compatibility(stored_root, state)) !=
+        strip_source(normalize_tree_for_compatibility(current_root, state))
     end
   end
 
@@ -393,6 +553,13 @@ defmodule Glossia.Translations.Locks do
     source_node =
       hash_node("source", input.source_path, %{"content_hash" => source_hash}, [])
 
+    validation = %{
+      check_cmd: Map.get(input, :check_cmd),
+      check_cmds: Map.get(input, :check_cmds),
+      validation: Map.get(input, :validation),
+      validation_relative_path: Map.get(input, :validation_relative_path)
+    }
+
     config_node =
       hash_node(
         "translation_config",
@@ -410,13 +577,7 @@ defmodule Glossia.Translations.Locks do
           "prompt_version" => Prompt.version(),
           "segmentation_version" => Format.segmentation_version(),
           "retries" => Map.get(input, :retries, 0),
-          "validation_hash" =>
-            hash_json(%{
-              check_cmd: Map.get(input, :check_cmd),
-              check_cmds: Map.get(input, :check_cmds),
-              validation: Map.get(input, :validation),
-              validation_relative_path: Map.get(input, :validation_relative_path)
-            })
+          "validation_hash" => hash_json(validation)
         },
         []
       )
@@ -491,7 +652,45 @@ defmodule Glossia.Translations.Locks do
 
     root = hash_node("translation_input", input.source_path, %{}, children)
 
-    %{hash: root["hash"], tree: %{"root" => root}}
+    review_metadata = %{
+      {"translation_config", "generation"} => %{
+        "validation_hash" => Fingerprint.legacy_hash(validation)
+      },
+      {"context", "terminology"} => %{
+        "content_hash" => Context.review_glossary_hash(input.server_context)
+      },
+      {"decision_config", "quality"} => %{
+        "configuration_hash" => Fingerprint.legacy_hash(Map.get(input, :decision_model))
+      }
+    }
+
+    # These aliases are comparison-only, never written to a lockfile. The old
+    # encoder ordered the four atom keys by VM-local atom creation order. Match
+    # all 24 historical orders of the CURRENT settings, not arbitrary old hashes,
+    # so deployment does not invalidate translations and real edits still do.
+    legacy_hashes = %{
+      "validation_hash" => legacy_hashes(validation),
+      "glossary_content_hash" => %{
+        canonical: server_hash_input["glossary_content_hash"],
+        hashes: Context.legacy_glossary_hashes(input.server_context)
+      }
+    }
+
+    legacy_hashes =
+      case Map.get(input, :decision_model) do
+        nil ->
+          legacy_hashes
+
+        configuration ->
+          Map.put(legacy_hashes, "configuration_hash", legacy_hashes(configuration))
+      end
+
+    %{
+      hash: root["hash"],
+      review_hash: review_hash(root, review_metadata),
+      tree: %{"root" => InputDetails.attach(root, input)},
+      legacy_hashes: legacy_hashes
+    }
   end
 
   def build_hash_state(
@@ -524,7 +723,7 @@ defmodule Glossia.Translations.Locks do
   defp hash_node(kind, label, metadata, children) do
     child_hashes = Enum.map(children, & &1["hash"])
     descriptor = %{kind: kind, label: label, metadata: metadata, child_hashes: child_hashes}
-    hash = :crypto.hash(:sha256, JSON.encode!(descriptor)) |> Base.encode16(case: :lower)
+    hash = hash_json(descriptor)
 
     %{
       "kind" => kind,
@@ -533,6 +732,19 @@ defmodule Glossia.Translations.Locks do
       "metadata" => metadata,
       "children" => children
     }
+  end
+
+  # Preserve the original v1 review protocol, including nested metadata and
+  # child digests. This intentionally retains v1's VM-local JSON key ordering;
+  # canonicalizing it would invalidate answers already awaiting continuation.
+  defp review_hash(node, replacements) do
+    Fingerprint.legacy_hash(%{
+      kind: node["kind"],
+      label: node["label"],
+      metadata:
+        Map.merge(node["metadata"], Map.get(replacements, {node["kind"], node["label"]}, %{})),
+      child_hashes: Enum.map(node["children"], &review_hash(&1, replacements))
+    })
   end
 
   @doc "Hash of the translation input: source (format-normalized), provider, model, context."
@@ -550,7 +762,14 @@ defmodule Glossia.Translations.Locks do
   def source_hash(_format, content), do: hash_string(content)
 
   defp hash_string(value), do: :crypto.hash(:sha256, value) |> Base.encode16(case: :lower)
-  defp hash_json(value), do: value |> JSON.encode!() |> hash_string()
+  defp hash_json(value), do: Fingerprint.hash(value)
+
+  defp legacy_hashes(settings) do
+    %{
+      canonical: hash_json(settings),
+      hashes: Fingerprint.legacy_hashes(settings, Map.keys(settings))
+    }
+  end
 
   defp pretty_json(value), do: value |> pretty_encode(0) |> IO.iodata_to_binary()
 
@@ -662,26 +881,48 @@ defmodule Glossia.Translations.Locks do
 
   defp normalize_slashes(input), do: String.replace(input, "\\", "/")
 
-  defp compatible_hash_tree?(%{"root" => stored_root}, %{"root" => current_root}) do
-    normalize_tree_for_compatibility(stored_root) ==
-      normalize_tree_for_compatibility(current_root)
+  defp compatible_hash_tree?(%{"root" => stored_root}, %{"root" => current_root}, state) do
+    normalize_tree_for_compatibility(stored_root, state) ==
+      normalize_tree_for_compatibility(current_root, state)
   end
 
-  defp compatible_hash_tree?(_stored, _current), do: false
+  defp compatible_hash_tree?(_stored, _current, _state), do: false
 
-  defp normalize_tree_for_compatibility(node) do
+  defp normalize_tree_for_compatibility(node, state \\ %{}) do
     node
-    |> Map.drop(["hash"])
+    |> Map.drop(["hash", "details"])
     |> update_in(["metadata"], fn metadata ->
-      if Map.get(node, "kind") == "translation_config" do
-        Map.delete(metadata || %{}, "preservation_version")
-      else
-        metadata
+      case {node["kind"], node["label"]} do
+        {"translation_config", _} ->
+          (metadata || %{})
+          |> Map.delete("preservation_version")
+          |> normalize_legacy_hash("validation_hash", state)
+
+        {"decision_config", _} ->
+          normalize_legacy_hash(metadata || %{}, "configuration_hash", state)
+
+        {"context", "terminology"} ->
+          normalize_legacy_hash(metadata || %{}, "content_hash", state, "glossary_content_hash")
+
+        _ ->
+          metadata
       end
     end)
     |> update_in(["children"], fn children ->
-      Enum.map(children || [], &normalize_tree_for_compatibility/1)
+      Enum.map(children || [], &normalize_tree_for_compatibility(&1, state))
     end)
+  end
+
+  defp normalize_legacy_hash(metadata, key, state, alias_key \\ nil) do
+    case get_in(state, [:legacy_hashes, alias_key || key]) do
+      %{canonical: canonical, hashes: hashes} ->
+        if MapSet.member?(hashes, metadata[key]),
+          do: Map.put(metadata, key, canonical),
+          else: metadata
+
+      nil ->
+        metadata
+    end
   end
 
   # Drops the `source` child from a normalized tree, leaving config and

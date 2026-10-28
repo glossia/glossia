@@ -69,6 +69,11 @@ provider recovery.
 
 ## Recovery after an engine release
 
+**Edition: Enterprise.** [Isolated translation runners](/docs/reference/isolated-translation-runners)
+provide the Kubernetes rollout checks described in this section. Community
+retains the Markdown, catalog, provider recovery, and durable progress behavior
+described elsewhere on this page.
+
 A session has two independent versions: the repository commit being translated
 and the translation engine image executing it. In Kubernetes, each job pins the
 exact image digest of the web replica that scheduled it. Jobs survive web

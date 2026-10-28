@@ -63,6 +63,65 @@ defmodule Glossia.TranslationSessions.ProgressTest do
              Progress.items(state)
   end
 
+  test "keeps persisted assessment reasons through starting, completing and reconnecting" do
+    events = [
+      %{
+        type: "plan_assessed",
+        seq: 1,
+        total: 1,
+        needs_translation: 1,
+        up_to_date: 0,
+        queued: [
+          %{
+            index: 0,
+            source_path: "guide.md",
+            output_path: "es/guide.md",
+            locale: "es",
+            translation_reasons: ["source_changed", "validation_changed"],
+            translation_diff: %{
+              "version" => 1,
+              "baseline" => "recorded",
+              "tree" => %{
+                "kind" => "source",
+                "fields" => [%{"field" => "content_hash", "before" => "old", "after" => "new"}],
+                "children" => []
+              }
+            }
+          }
+        ]
+      },
+      %{type: "item_started", seq: 2, index: 0, output_path: "es/guide.md", locale: "es"},
+      %{type: "item_completed", seq: 3, index: 0}
+    ]
+
+    live = Progress.fold(events)
+
+    restored =
+      events
+      |> Enum.map(&(JSON.encode!(&1) |> JSON.decode!() |> Progress.decode()))
+      |> Progress.fold()
+
+    assert restored == live
+
+    assert hd(Progress.items(restored)).translation_diff["tree"]["fields"] ==
+             [%{"field" => "content_hash", "before" => "old", "after" => "new"}]
+
+    assert [
+             %{
+               status: :done,
+               source_path: "guide.md",
+               translation_reasons: ["source_changed", "validation_changed"]
+             }
+           ] = Progress.items(restored)
+  end
+
+  test "old events leave translation reasons unknown rather than guessing" do
+    state =
+      Progress.fold([%{type: "item_started", index: 0, locale: "es", output_path: "es/a.md"}])
+
+    assert [%{translation_reasons: [], source_path: nil}] = Progress.items(state)
+  end
+
   test "closes a queued file out when the session cancels it" do
     state =
       Progress.fold([
