@@ -109,4 +109,29 @@ For a core image, omit both `--build-arg GLOSSIA_EDITION=enterprise` and `--buil
 
 Only contributions to `ee/` require the [Enterprise CLA](../CLA.md). The privileged GitHub workflow checks enterprise paths using the API, including deleted files and both sides of renames. CLA Assistant collects signatures in `signatures/v2/cla.json` on the same repository's `cla-signatures` branch. See [CONTRIBUTING.md](../CONTRIBUTING.md) for signing and repository-rule setup.
 
-The enterprise license and CLA should receive legal review before a commercial rollout or acceptance of external enterprise contributions. Existing contribution rights must be checked separately; neither moving files nor collecting new signatures retroactively relicenses older work.
+## Legal review before commercial rollout
+
+The Enterprise License and CLA are custom terms, not a legal sign-off. The CLA
+remains a draft and its workflow blocks external Enterprise contributions until
+legal review is complete. Do not remove that safeguard just because tests pass.
+
+Before relying on the Enterprise License for a commercial rollout, have qualified
+software-licensing counsel review:
+
+- **Licensor and contributions.** Confirm the correct rights holder and the CLA's
+  copyright, patent, employer, and contractor permissions. Existing grants remain
+  intact; moving files or collecting new signatures does not revoke earlier
+  permissions or retroactively cover old contributions.
+- **Customer agreements.** Prepare the separate production agreement referenced
+  by the license, with the correct contracting entity, deployment and usage
+  rights, support terms, liability, termination, and governing law. Confirm the
+  public evaluation terms, including the 30-day breach-remedy provision, work
+  under the relevant jurisdictions. The public license is not a subscription
+  agreement or a data-processing agreement.
+- **Third-party distribution.** Inventory dependencies, bundled tools, fonts,
+  assets, and base-image packages. Preserve required notices and satisfy any
+  source or redistribution obligations in the actual OCI images. Including the
+  Glossia license files alone does not establish compliance for those components.
+
+The repository's license and CLA checks verify workflow and packaging rules,
+not ownership, third-party license compatibility, or legal enforceability.

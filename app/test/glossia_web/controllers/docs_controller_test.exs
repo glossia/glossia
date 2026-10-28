@@ -76,6 +76,20 @@ defmodule GlossiaWeb.DocsControllerTest do
              "Community and Enterprise"
   end
 
+  test "the edition comparison omits its own comparison link in every locale", %{conn: conn} do
+    for locale <- Glossia.I18n.locales() do
+      path = Glossia.I18n.localize_path(locale, ~p"/docs/explanation/editions")
+      html = conn |> get(path) |> html_response(200) |> LazyHTML.from_document()
+
+      assert html
+             |> LazyHTML.query("[data-part=availability] .noora-badge")
+             |> LazyHTML.text()
+             |> String.trim() == "Community and Enterprise"
+
+      assert html |> LazyHTML.query("[data-part=availability] a") |> Enum.empty?()
+    end
+  end
+
   test "every recovery translation identifies engine release recovery as Enterprise", %{
     conn: conn
   } do

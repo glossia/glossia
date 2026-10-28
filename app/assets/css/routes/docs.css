@@ -492,6 +492,26 @@ body:has(#docs-page-layout) {
       color: var(--noora-surface-label-secondary);
       font: var(--noora-font-body-large);
     }
+
+    & [data-part="availability"] {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--noora-spacing-3) var(--noora-spacing-6);
+      font: var(--noora-font-body-small);
+
+      & [data-part="edition"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--noora-spacing-3);
+        max-width: 100%;
+      }
+
+      & > a {
+        color: inherit;
+        text-underline-offset: var(--space-1);
+      }
+    }
   }
 }
 

@@ -17,13 +17,24 @@
     </nav>
     <h1>{@page.title}</h1>
     <p data-part="availability">
-      <strong>{gettext("Edition:")}</strong>
-      <Noora.Badge.badge label={
-        if @page.edition == "enterprise",
-          do: gettext("Enterprise"),
-          else: gettext("Community and Enterprise")
-      } />
-      <a href={locale_path(~p"/docs/explanation/editions")}>{gettext("Compare editions")}</a>
+      <span data-part="edition">
+        <span>{gettext("Edition:")}</span>
+        <Noora.Badge.badge
+          style="light-fill"
+          size="large"
+          label={
+            if @page.edition == "enterprise",
+              do: gettext("Enterprise"),
+              else: gettext("Community and Enterprise")
+          }
+        />
+      </span>
+      <a
+        :if={@page.id != "explanation/editions"}
+        href={locale_path(~p"/docs/explanation/editions")}
+      >
+        {gettext("Compare editions")}
+      </a>
     </p>
     <p>{@page.summary}</p>
   </header>
