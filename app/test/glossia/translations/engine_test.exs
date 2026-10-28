@@ -709,6 +709,38 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "changes only translated Apple values, preserving original escapes and file bytes", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "Localizable.strings")
+
+      content =
+        "\uFEFF/* Keep layout */\r\n" <>
+          ~S("Été" /* key */ = "Summer"; // trailing comment) <>
+          "\r\n\r\n\t" <> ~S("Brand" = "\U0047lossia \U2066path\U2069";)
+
+      File.write!(source, content)
+
+      stub_stream(fn _account, payload, _on_event ->
+        assert payload["segment_kind"] == "native_text_literals"
+        assert JSON.decode!(payload["source_content"]) == ["Summer", "Glossia \u2066path\u2069"]
+        translated(JSON.encode!(["Été", "Glossia \u2066path\u2069"]))
+      end)
+
+      assert {:ok, result} =
+               Engine.apply_item(
+                 work_item(%{source_abs: source, format: "text"}),
+                 %Account{id: 1},
+                 fn _ -> :ok end
+               )
+
+      assert result.text ==
+               "\uFEFF/* Keep layout */\r\n" <>
+                 ~S("Été" /* key */ = "Été"; // trailing comment) <>
+                 "\r\n\r\n\t" <> ~S("Brand" = "\U0047lossia \U2066path\U2069";)
+    end
+
+    @tag :tmp_dir
     test "reconstructs Android XML with resource escaping and original attributes", %{
       tmp_dir: dir
     } do
@@ -857,7 +889,9 @@ defmodule Glossia.Translations.EngineTest do
              "%1$tY", ["%1$tB"]},
             {"strings.xml",
              ~S(<resources><string name="key">"Balance %,d / %(d"</string></resources>),
-             "Balance %,d / %(d", ["Saldo %,f / %(d", "Saldo %,d / %(f"]}
+             "Balance %,d / %(d", ["Saldo %,f / %(d", "Saldo %,d / %(f", "Saldo %d / %(d"]},
+            {"Localizable.strings", ~S("key" = "Value %.2f / %04d";), "Value %.2f / %04d",
+             ["Valor %f / %04d", "Valor %.3f / %04d", "Valor %.2f / %d", "Valor %.2f / %999999d"]}
           ] do
         source = Path.join(dir, filename)
         File.write!(source, content)
@@ -892,13 +926,11 @@ defmodule Glossia.Translations.EngineTest do
     test "validates native escaped placeholders and URLs by their decoded values", %{tmp_dir: dir} do
       stub_stream(fn _account, payload, _on_event -> translated(payload["source_content"]) end)
 
-      for {filename, content, expected} <- [
+      for {filename, content} <- [
             {"Localizable.strings",
-             ~S("key" = "Hello \U007Bname\U007D at https:\/\/example.org";),
-             ~S("key" = "Hello {name} at https://example.org";)},
+             ~S("key" = "Hello \U007Bname\U007D at https:\/\/example.org";)},
             {"strings.xml",
-             ~S(<resources><string name="key">"Hello \u007bname\u007d"</string></resources>),
-             ~S(<resources><string name="key">"Hello {name}"</string></resources>)}
+             ~S(<resources><string name="key">"Hello \u007bname\u007d"</string></resources>)}
           ] do
         source = Path.join(dir, filename)
         File.write!(source, content)
@@ -915,7 +947,7 @@ defmodule Glossia.Translations.EngineTest do
                    validate
                  )
 
-        assert result.text == expected
+        assert result.text == content
       end
     end
 

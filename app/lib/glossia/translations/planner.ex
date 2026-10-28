@@ -133,7 +133,7 @@ defmodule Glossia.Translations.Planner do
 
     output_abs = Path.join(ctx.translation_root, output_rel)
     format = Format.detect(output_rel)
-    ensure_safe_format(output_rel, declared_validation)
+    ensure_safe_format(ctx.source_path, output_rel, declared_validation)
 
     %{
       source_abs: ctx.source_abs,
@@ -183,8 +183,12 @@ defmodule Glossia.Translations.Planner do
     %{"project" => project, "locale" => localized}
   end
 
-  defp ensure_safe_format(path, nil) do
-    unless Format.supported_path?(path) do
+  defp ensure_safe_format(source, output, nil) do
+    native_source? = String.downcase(Path.extname(source)) == ".strings"
+    native_output? = String.downcase(Path.extname(output)) == ".strings"
+
+    unless Format.supported_path?(output) and (not native_output? or native_source?) do
+      path = if native_output? and not native_source?, do: source, else: output
       extension = Path.extname(path)
 
       throw(
@@ -194,7 +198,7 @@ defmodule Glossia.Translations.Planner do
     end
   end
 
-  defp ensure_safe_format(_path, _declared_validation), do: :ok
+  defp ensure_safe_format(_source, _output, _declared_validation), do: :ok
 
   defp effective_targets(merged_frontmatter, rule_targets) do
     case Frontmatter.targets(merged_frontmatter) do

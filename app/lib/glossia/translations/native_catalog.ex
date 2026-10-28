@@ -14,7 +14,7 @@ defmodule Glossia.Translations.NativeCatalog do
   @quoted ~S/"(?:[^"\\\r\n]|\\.)*"/
   @apple ~r/#{@trivia}+|#{@quoted}#{@trivia}*=#{@trivia}*(#{@quoted})#{@trivia}*;/u
   @android ~r/[\s\x{FEFF}]+|<\?xml[^?]*\?>|<!--[\s\S]*?-->|<resources\s*>|<\/resources>|<string\s+[^<>]*\btranslatable\s*=\s*["']false["'][^<>]*>[^<]*<\/string>|<string\s+[^<>]*>([^<]*)<\/string>/u
-  @arguments ~r/%%|%(?:(\d+)\$)?[-+0 #,(]*(?:\d+)?(?:\.\d+)?(hh|ll|[hljztLq])?([@diuoxXfFeEgGaAcCsSp])|%(?:\d+\$)?[-+0 #<,(]*(?:\d+|\*(?:\d+\$)?)?(?:\.(?:\d+|\*(?:\d+\$)?))?(?:hh|ll|[hljztLq])?(?:[tT][a-zA-Z]|[a-zA-Z@%])|%/u
+  @arguments ~r/%%|%(?:(\d+)\$)?([-+0 #,(]*(?:\d+)?(?:\.\d+)?)(hh|ll|[hljztLq])?([@diuoxXfFeEgGaAcCsSp])|%(?:\d+\$)?[-+0 #<,(]*(?:\d+|\*(?:\d+\$)?)?(?:\.(?:\d+|\*(?:\d+\$)?))?(?:hh|ll|[hljztLq])?(?:[tT][a-zA-Z]|[a-zA-Z@%])|%/u
   @escape ~r/\\(?:[uU][\da-fA-F]{4}|.)/u
 
   def plan(path, source) do
@@ -81,22 +81,27 @@ defmodule Glossia.Translations.NativeCatalog do
   def splice(plan, translations) do
     {parts, cursor} =
       Enum.zip(plan.values, translations)
-      |> Enum.map_reduce(0, fn {{start, length, _}, value}, cursor ->
-        encoded = JSON.encode!(value)
+      |> Enum.map_reduce(0, fn
+        {{start, length, value}, value}, cursor ->
+          # Equivalent decoded values keep their original escape spelling.
+          {binary_part(plan.source, cursor, start + length - cursor), start + length}
 
-        encoded =
-          if plan.extension == ".xml" do
-            @escape
-            |> Regex.replace(encoded, fn
-              "\\r" -> "\\u000d"
-              escape -> escape
-            end)
-            |> encode_xml()
-          else
-            encoded
-          end
+        {{start, length, _}, value}, cursor ->
+          encoded = JSON.encode!(value)
 
-        {[binary_part(plan.source, cursor, start - cursor), encoded], start + length}
+          encoded =
+            if plan.extension == ".xml" do
+              @escape
+              |> Regex.replace(encoded, fn
+                "\\r" -> "\\u000d"
+                escape -> escape
+              end)
+              |> encode_xml()
+            else
+              encoded
+            end
+
+          {[binary_part(plan.source, cursor, start - cursor), encoded], start + length}
       end)
 
     IO.iodata_to_binary([
@@ -167,8 +172,8 @@ defmodule Glossia.Translations.NativeCatalog do
           [literal], index ->
             {literal, index}
 
-          [_, position, modifier, type], index ->
-            {"#{if position == "", do: index + 1, else: position}:#{modifier}#{type}",
+          [_, position, options, modifier, type], index ->
+            {"#{if position == "", do: index + 1, else: position}:#{options}#{modifier}#{type}",
              if(position == "", do: index + 1, else: index)}
         end)
 

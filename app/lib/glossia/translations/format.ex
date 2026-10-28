@@ -10,7 +10,7 @@ defmodule Glossia.Translations.Format do
 
   @formats ~w(markdown json yaml po text)
   @structured ~w(json yaml po)
-  @supported_extensions ~w(md markdown json yaml yml po pot txt text)
+  @supported_extensions ~w(md markdown json yaml yml po pot txt text strings)
   @segmentation_version 1
 
   @doc "All supported format strings."

@@ -163,6 +163,49 @@ defmodule Glossia.Translations.PlannerTest do
   end
 
   @tag :tmp_dir
+  test "plans Apple catalogs without a custom validation command", %{tmp_dir: root} do
+    File.write!(Path.join(root, "L10N.md"), """
+    ---
+    source_language: en
+    sources:
+      "en.lproj/*.strings": "{locale}.lproj/{relpath}"
+    targets:
+      - es
+    ---
+    """)
+
+    File.mkdir_p!(Path.join(root, "en.lproj"))
+    File.write!(Path.join([root, "en.lproj", "Localizable.strings"]), ~S("title" = "Hello";))
+
+    assert {:ok, [item]} = Planner.build_plan(root, "es")
+    assert item.source_path == "en.lproj/Localizable.strings"
+    assert item.output_path == "es.lproj/Localizable.strings"
+    assert item.format == "text"
+    assert item.validation == nil
+  end
+
+  @tag :tmp_dir
+  test "Apple output paths do not waive validation for non-Apple sources", %{tmp_dir: root} do
+    for extension <- ["txt", "strings.in"] do
+      File.write!(Path.join(root, "L10N.md"), """
+      ---
+      source_language: en
+      sources:
+        "catalog.#{extension}": "{locale}.lproj/Localizable.strings"
+      targets:
+        - es
+      ---
+      """)
+
+      File.write!(Path.join(root, "catalog.#{extension}"), ~S("title" = "Hello";))
+
+      assert {:error, message} = Planner.build_plan(root, "es")
+      assert message =~ "declare a validation command"
+      assert message =~ "catalog.#{extension}"
+    end
+  end
+
+  @tag :tmp_dir
   test "requires deterministic validation for a custom file extension", %{tmp_dir: root} do
     File.write!(Path.join(root, "L10N.md"), """
     ---
