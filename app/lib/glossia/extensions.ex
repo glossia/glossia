@@ -33,6 +33,13 @@ defmodule Glossia.Extensions do
     end
   end
 
+  def organization_authentication_migrations(repo) do
+    case organization_authentication() do
+      nil -> []
+      extension -> extension.migrations(repo)
+    end
+  end
+
   def policy_extension do
     Application.get_env(:glossia, :policy_extension)
   end

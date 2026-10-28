@@ -10,14 +10,21 @@ defmodule GlossiaWeb.UploadController do
          {:ok, discussion_id} <- cast_uuid(discussion_id),
          {:ok, content_type} <- content_type(filename),
          {:ok, discussion} <- fetch_discussion(account_id, discussion_id),
-         :ok <- authorize_discussion(conn, discussion),
+         {:ok, conn} <- authorize_discussion(conn, discussion),
          s3_path = "uploads/#{account_id}/discussions/#{discussion_id}/#{filename}",
          {:ok, %{body: body}} <- Glossia.Storage.download(s3_path) do
       conn
       |> put_resp_content_type(content_type)
-      |> put_resp_header("cache-control", "public, max-age=3600, must-revalidate")
+      |> put_resp_header(
+        "cache-control",
+        if(discussion.account.visibility == "public",
+          do: "public, max-age=3600, must-revalidate",
+          else: "private, no-store"
+        )
+      )
       |> send_resp(200, body)
     else
+      {:halt, conn} -> conn
       _ -> send_resp(conn, 404, "")
     end
   end
@@ -40,7 +47,8 @@ defmodule GlossiaWeb.UploadController do
 
   defp authorize_discussion(conn, discussion) do
     if Glossia.Authz.authorize?(:discussion_read, conn.assigns[:current_user], discussion.account) do
-      :ok
+      conn = Glossia.OrganizationAuthentication.check_session(conn, discussion.account)
+      if conn.halted, do: {:halt, conn}, else: {:ok, conn}
     else
       :error
     end

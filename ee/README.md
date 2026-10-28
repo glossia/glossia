@@ -1,6 +1,6 @@
 # Glossia Enterprise
 
-All material in this directory is governed by the [Glossia Enterprise License](LICENSE.md), not the Apache-2.0 core license. Production use requires a separate written commercial agreement. Development, testing, and evaluation are permitted as described in the license.
+Except for identified third-party adaptations, material in this directory is governed by the [Glossia Enterprise License](LICENSE.md), not the Apache-2.0 core license. Production use requires a separate written commercial agreement. Development, testing, and evaluation are permitted as described in the license. Third-party adaptations retain their original terms as described below.
 
 ## Boundary
 
@@ -25,11 +25,49 @@ The public [edition comparison](https://glossia.ai/docs/explanation/editions)
 and [runner reference](https://glossia.ai/docs/reference/isolated-translation-runners)
 describe availability, requirements, and configuration.
 
-**Organization single sign-on** includes Google Workspace and Okta OpenID Connect,
+**Organization single sign-on** includes Google Workspace, Okta OpenID Connect, and
+custom OAuth2 providers (authorization code with PKCE, explicit authorization,
+token, and user-information endpoints),
 DNS verification and its renewal worker, provider callbacks, work-email login,
 and authentication settings. Core's optional sign-in facade returns no
 organization provider in Community, leaving ordinary OAuth login unchanged.
-SSO does not currently include SAML, SCIM provisioning, or SSO-only enforcement.
+Administrators can require a tested organization SSO session for browser access,
+including existing sessions and subsequent LiveView events. Enforcement is
+account-scoped, bound to the user and provider configuration, and excludes
+anonymous public browsing and API/CLI/MCP credentials. Disable it before changing
+providers. Custom endpoints require public HTTPS addresses; requests resolve and
+pin public IPs at connection time, validate TLS against the original hostname,
+and never follow redirects. User information must include a stable `sub`, a work
+`email`, and boolean `email_verified: true`. SAML is not implemented.
+
+Administrators can read, update, and verify SSO configuration through REST and
+MCP with `organization:admin`. Responses never include the client secret.
+These interfaces can disable enforcement for recovery, but enabling it requires
+the tested browser login above. No self-hosted license keys or entitlements are
+introduced.
+
+**SCIM provisioning** adds organization-owned, hash-only bearer tokens, SCIM 2.0
+Users and discovery endpoints, and synthetic Admins/Members/Linguists groups.
+Deactivation removes organization membership and roles without disabling the
+global user; inactive resources remain addressable for reactivation. Existing
+users must already be organization members, email is immutable through SCIM, and
+only newly provisioned accounts can link their first SSO identity without an
+existing authenticated session. Mutations are transactional and protect the last
+administrator. Seeds include active and inactive provisioned members.
+SCIM attachments enqueue transactional, retried notification emails. Repeated
+updates do not resend them; reactivation notifies again. Delivery skips members
+whose access was removed before the job runs.
+
+The protocol encoders and controllers are adapted from Tuist and retain
+Tuist GmbH's [FCL-1.0-MIT terms](licenses/TUIST-FCL-1.0-MIT.md). They are not
+relicensed by placement in `ee/`; the file headers identify those adaptations.
+The upstream source is `tuist/tuist`, revision
+`650d726f38`, with SCIM introduced in `3639a7749b` and concurrency fixes in
+`076d1c7424`. Glossia's adaptation uses UUIDs, scoped memberships, independent
+SCIM token storage, persistent inactive resources, and stricter identity linking.
+Review the FCL permitted-purpose restrictions and obtain any necessary separate
+rights before commercial distribution. The Enterprise image includes these
+third-party terms under `/app/licenses/enterprise/third-party/`.
 
 **Audit logs** persist account-scoped domain events synchronously in PostgreSQL.
 `Glossia.Events` calls the optional audit subscriber as well as the ordinary
@@ -40,6 +78,7 @@ stored. Only actual organization administrators can list records or filter
 options, including on public accounts. Actor snapshots survive profile changes.
 
 The audit schema and compiled migration live in `ee/lib/glossia_enterprise/audit/`.
+Identity and provisioning migrations live in `ee/lib/glossia_enterprise/identity/`.
 Both `mix ecto.migrate` and `Glossia.Release.migrate/0` include Enterprise migration
 modules only in Enterprise builds. Run migrations before starting a new release.
 Existing activity and legacy ClickHouse rows are not backfilled. Audit exports,

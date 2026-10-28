@@ -16,7 +16,10 @@ defmodule GlossiaWeb.OpenApiSpec do
         "version" => "1.0.0"
       },
       "servers" => [%{"url" => issuer, "description" => "Glossia server"}],
-      "paths" => Map.merge(paths(issuer), GlossiaWeb.MobileOpenApiSpec.paths()),
+      "paths" =>
+        paths(issuer)
+        |> Map.merge(GlossiaWeb.MobileOpenApiSpec.paths())
+        |> Map.merge(identity_paths()),
       "components" => %{
         "securitySchemes" => %{
           "oauth2" => %{
@@ -43,6 +46,12 @@ defmodule GlossiaWeb.OpenApiSpec do
     Glossia.Authz.available_scopes()
     |> Enum.map(&{&1, ""})
     |> Map.new()
+  end
+
+  defp identity_paths do
+    if authentication = Glossia.Extensions.organization_authentication(),
+      do: authentication.api_paths(),
+      else: %{}
   end
 
   defp oauth_security(required_scopes) when is_list(required_scopes) do

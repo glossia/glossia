@@ -23,7 +23,7 @@ defmodule GlossiaEnterpriseWeb.OrganizationAuthController do
       |> delete_session(:oauth_session_params)
       |> put_session(:organization_auth, %{
         organization_id: organization.id,
-        fingerprint: fingerprint(organization),
+        fingerprint: Authentication.provider_fingerprint(organization),
         session_params: session_params,
         link_user_id: conn.assigns[:current_user] && conn.assigns.current_user.id,
         started_at: System.system_time(:second)
@@ -47,7 +47,8 @@ defmodule GlossiaEnterpriseWeb.OrganizationAuthController do
          true <- (System.system_time(:second) - started_at) in 0..600,
          organization when not is_nil(organization) <- Organizations.get_organization(id),
          true <-
-           fingerprint(organization) == saved and not is_nil(organization.auth_domain_verified_at),
+           Authentication.provider_fingerprint(organization) == saved and
+             not is_nil(organization.auth_domain_verified_at),
          {:ok, config} <- Authentication.config(organization),
          {:ok, response} <-
            config[:strategy].callback(
@@ -55,7 +56,10 @@ defmodule GlossiaEnterpriseWeb.OrganizationAuthController do
              params
            ),
          {:ok, user} <-
-           Authentication.sign_in(organization, response, link_user_id: state[:link_user_id]) do
+           Authentication.sign_in(organization, response,
+             link_user_id: state[:link_user_id],
+             fingerprint: saved
+           ) do
       Glossia.Events.emit("user.signed_in", user.account, user,
         resource_type: "user",
         resource_id: to_string(user.id),
@@ -64,6 +68,7 @@ defmodule GlossiaEnterpriseWeb.OrganizationAuthController do
 
       conn
       |> put_session(:user_id, user.id)
+      |> put_session(:organization_sso, Authentication.session_proof(organization, user))
       |> delete_session(:oauth_session_params)
       |> delete_session(:return_to)
       |> configure_session(renew: true)
@@ -92,14 +97,6 @@ defmodule GlossiaEnterpriseWeb.OrganizationAuthController do
       _ ->
         failed(conn)
     end
-  end
-
-  defp fingerprint(organization) do
-    {organization.auth_provider, organization.auth_domain, organization.auth_issuer,
-     organization.auth_client_id, organization.updated_at}
-    |> :erlang.term_to_binary()
-    |> then(&:crypto.hash(:sha256, &1))
-    |> Base.encode64()
   end
 
   defp failed(conn) do

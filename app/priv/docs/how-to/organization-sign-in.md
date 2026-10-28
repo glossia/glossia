@@ -1,6 +1,6 @@
 %{
   title: "Configure organization sign-in",
-  summary: "Connect Google Workspace or Okta, verify your domain, and manage member permissions.",
+  summary: "Connect Google Workspace, Okta, or custom OAuth2, verify your domain, and manage member permissions.",
   category: "how-to",
   section: "platform",
   edition: "enterprise",
@@ -8,7 +8,7 @@
 }
 ---
 
-Connect Google Workspace or Okta so verified work accounts can join your
+Connect Google Workspace, Okta, or a custom OAuth2 provider so verified work accounts can join your
 organization. You need organization administrator access and permission to add
 DNS records for your team's email domain.
 
@@ -25,6 +25,20 @@ Register the redirect address displayed in Glossia, then enter the application's
 client ID, client secret, and HTTPS issuer. Glossia supports standard Okta
 organization issuers and the `/oauth2/default` authorization server. Secrets are
 encrypted at rest; leaving the secret blank when editing preserves its saved value.
+
+**Custom OAuth2:** Register an authorization-code application at your provider
+with the redirect address displayed in Glossia. Choose **Custom OAuth2** and
+enter its base URL, authorization URL, token URL, user-information URL, client
+ID, and client secret. All endpoints must use HTTPS on port 443 without URL
+credentials, query strings, or fragments. Token and user-information endpoints
+must resolve only to public internet addresses. Private-network identity
+providers are not supported, and Glossia does not follow endpoint redirects.
+
+The provider must support PKCE (S256), HTTP Basic client authentication at the
+token endpoint, and the `openid email profile` scopes. Its user-information
+response must include a stable string `sub`, an `email` in the verified work
+domain, and boolean `email_verified: true`. Glossia does not infer verified
+ownership from an email string alone.
 
 Select **Save authentication settings**.
 
@@ -76,8 +90,35 @@ organization deletion remain administrator responsibilities. Administrators can
 review configuration changes, domain verification, permission changes, and
 successful sign-ins in **Organization → Audit logs**. See [Audit logs](/docs/reference/audit-logs).
 
-SSO uses OpenID Connect, not SAML. It does not provide SCIM provisioning or make
-SSO the only login method; existing login methods remain available.
+SSO uses OpenID Connect or custom OAuth2, not SAML. Use
+[SCIM provisioning](/docs/how-to/scim-provisioning) to manage membership from
+your identity provider. Users newly created by SCIM can link their first verified
+organization identity without a prior login; existing users still follow the
+account-linking process above.
+
+## Require organization sign-in
+
+After verifying your domain, sign in with your administrator account through the
+organization provider, then open **Authentication → Require single sign-on** and
+select **Enforce SSO**. Glossia requires this tested session to avoid locking you
+out with an untested provider.
+
+Enforcement applies to signed-in browser access to this organization, including
+existing sessions and subsequent LiveView interactions. A Google or Okta session
+for a different organization does not qualify. Personal accounts and other
+organizations remain accessible through their existing login methods.
+
+Enforcement does not change API, CLI, or MCP token authentication, and it does
+not hide anonymously accessible public content. Deprovisioning and credential
+revocation are separate controls.
+
+Disable enforcement before changing or removing provider settings. Keep domain
+verification current: expired ownership blocks enforced browser access until
+ownership is verified again. Self-hosted operators can renew verification using
+the domain verification worker or disable enforcement through the application
+console if no administrator can sign in. Administrators can also disable it
+using REST or MCP with an existing `organization:admin` credential. See the
+[organization authentication API reference](/docs/reference/organization-authentication).
 
 ## If Google blocks sign-in
 

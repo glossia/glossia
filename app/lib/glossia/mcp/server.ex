@@ -13,6 +13,21 @@ defmodule Glossia.MCP.Server do
   component(Glossia.MCP.ListOrganizationsTool, name: "list_organizations")
   component(Glossia.MCP.GetOrganizationTool, name: "get_organization")
   component(Glossia.MCP.UpdateOrganizationTool, name: "update_organization")
+
+  if Application.compile_env(:glossia, :organization_authentication) do
+    component(GlossiaEnterprise.MCP.GetOrganizationAuthenticationTool,
+      name: "get_organization_authentication"
+    )
+
+    component(GlossiaEnterprise.MCP.UpdateOrganizationAuthenticationTool,
+      name: "update_organization_authentication"
+    )
+
+    component(GlossiaEnterprise.MCP.VerifyOrganizationAuthenticationTool,
+      name: "verify_organization_authentication"
+    )
+  end
+
   component(Glossia.MCP.DeleteOrganizationTool, name: "delete_organization")
   component(Glossia.MCP.ListOrganizationMembersTool, name: "list_organization_members")
   component(Glossia.MCP.RemoveOrganizationMemberTool, name: "remove_organization_member")

@@ -6,8 +6,187 @@ defmodule GlossiaEnterprise.OrganizationAuthentication do
   alias Glossia.Accounts
   alias Glossia.Accounts.{Identity, Organization, User}
   alias Glossia.{Organizations, Repo}
+  alias GlossiaEnterprise.Identity.SecuritySettings
+  alias GlossiaEnterprise.SCIM
+  alias GlossiaEnterprise.SCIM.ProvisionedUser
 
   defdelegate login_form(assigns), to: GlossiaEnterpriseWeb.LoginComponents
+  defdelegate api_paths(), to: GlossiaEnterpriseWeb.IdentityOpenApiSpec, as: :paths
+
+  def migrations(Glossia.Repo),
+    do: [
+      {20_261_028_120_000, GlossiaEnterprise.Identity.Migration},
+      {20_261_028_130_000, GlossiaEnterprise.Identity.OAuth2Migration}
+    ]
+
+  def migrations(_), do: []
+
+  def settings(organization),
+    do:
+      Repo.get(SecuritySettings, organization.id) ||
+        %SecuritySettings{organization_id: organization.id}
+
+  def configuration(organization, actor) do
+    if Glossia.Roles.has_organization_role?(actor, organization, "admin") do
+      endpoints = Map.take(settings(organization), endpoint_fields())
+
+      {:ok,
+       Map.merge(endpoints, %{
+         auth_provider: organization.auth_provider,
+         auth_domain: organization.auth_domain,
+         auth_issuer: organization.auth_issuer,
+         auth_client_id: organization.auth_client_id,
+         auth_client_secret_configured: not is_nil(organization.auth_client_secret),
+         sso_enforced: enforced?(organization),
+         domain_verified: verified?(organization),
+         verification_record:
+           if(organization.auth_domain_token,
+             do: %{name: record_name(organization), value: record_value(organization)}
+           ),
+         callback_url: callback_url()
+       })}
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  def configure(organization, actor, attrs) do
+    Repo.transaction(fn ->
+      # Hold the same organization lock through disabling, changing the provider,
+      # and optional enforcement. A rejected enable must roll back all changes.
+      current =
+        Repo.one!(from o in Organization, where: o.id == ^organization.id, lock: "FOR UPDATE")
+
+      enabled = Map.get(attrs, "sso_enforced", enforced?(current))
+      unless is_boolean(enabled), do: Repo.rollback(:invalid_enforcement)
+
+      if not enabled and enforced?(current) do
+        case set_enforcement(current, actor, false, nil) do
+          {:ok, _} -> :ok
+          {:error, reason} -> Repo.rollback(reason)
+        end
+      end
+
+      updated =
+        case save(current, actor, attrs) do
+          {:ok, updated} -> updated
+          {:error, reason} -> Repo.rollback(reason)
+        end
+
+      if enabled and not enforced?(updated) do
+        # Bearer credentials are not proof of a successful browser SSO login.
+        Repo.rollback(:sso_required)
+      end
+
+      {:ok, configuration} = configuration(updated, actor)
+      configuration
+    end)
+  end
+
+  defp endpoint_fields, do: [:auth_authorize_url, :auth_token_url, :auth_userinfo_url]
+
+  def enforced?(organization) do
+    case Repo.get(SecuritySettings, organization.id) do
+      %{sso_enforced: true} -> true
+      _ -> false
+    end
+  end
+
+  def set_enforcement(organization, actor, enabled, proof) when is_boolean(enabled) do
+    if Glossia.Roles.has_organization_role?(actor, organization, "admin") do
+      Repo.transaction(fn ->
+        current =
+          Repo.one!(from o in Organization, where: o.id == ^organization.id, lock: "FOR UPDATE")
+
+        if enabled and
+             (is_nil(current.auth_provider) or not verified?(current) or
+                proof != session_proof(current, actor)),
+           do: Repo.rollback(:sso_required)
+
+        %SecuritySettings{organization_id: current.id, sso_enforced: enabled}
+        |> Repo.insert!(
+          on_conflict: [set: [sso_enforced: enabled]],
+          conflict_target: :organization_id
+        )
+
+        audit(
+          current,
+          actor,
+          "organization.sso_enforcement_updated",
+          "Updated organization SSO enforcement"
+        )
+
+        enabled
+      end)
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  def session_proof(organization, user) do
+    {user.id, provider_fingerprint(organization)}
+    |> :erlang.term_to_binary()
+    |> then(&:crypto.hash(:sha256, &1))
+    |> Base.url_encode64(padding: false)
+  end
+
+  def provider_fingerprint(organization) do
+    {organization.id, organization.auth_provider, organization.auth_domain,
+     organization.auth_domain_token, organization.auth_issuer, organization.auth_client_id,
+     organization.auth_client_secret, Map.take(settings(organization), endpoint_fields())}
+    |> :erlang.term_to_binary()
+    |> then(&:crypto.hash(:sha256, &1))
+    |> Base.url_encode64(padding: false)
+  end
+
+  def session_authorized?(account, user, proof) do
+    case Organizations.get_organization_for_account(account) do
+      nil ->
+        true
+
+      organization ->
+        is_nil(user) or not enforced?(organization) or
+          (not is_nil(organization.auth_provider) and verified?(organization) and
+             proof == session_proof(organization, user))
+    end
+  end
+
+  defdelegate check_session(conn), to: GlossiaEnterpriseWeb.OrganizationSession
+  defdelegate check_session(conn, account), to: GlossiaEnterpriseWeb.OrganizationSession
+
+  def seed_provisioning(organization, actor) do
+    if SCIM.list_tokens(organization, actor) == [],
+      do: SCIM.create_token(organization, actor, %{name: "Development identity provider"})
+
+    for {email, name, active} <- [
+          {"jamie@acme.test", "Jamie Smith", true},
+          {"former-teammate@acme.test", "Former teammate", false}
+        ],
+        is_nil(Accounts.get_user_by_email(email)) do
+      {:ok, _} =
+        SCIM.provision_user(organization, %{
+          user_name: email,
+          display_name: name,
+          external_id: email,
+          active: active
+        })
+    end
+  end
+
+  def seed_custom_provider(organization, actor) do
+    if is_nil(organization.auth_provider) and is_nil(organization.auth_domain) do
+      save(organization, actor, %{
+        "auth_provider" => "oauth2",
+        "auth_domain" => "northwind.test",
+        "auth_issuer" => "https://identity.example.com",
+        "auth_client_id" => "development-client",
+        "auth_client_secret" => "development-only-not-a-real-secret",
+        "auth_authorize_url" => "https://identity.example.com/authorize",
+        "auth_token_url" => "https://identity.example.com/token",
+        "auth_userinfo_url" => "https://identity.example.com/userinfo"
+      })
+    end
+  end
 
   def change(organization, attrs) do
     organization
@@ -22,7 +201,7 @@ defmodule GlossiaEnterprise.OrganizationAuthentication do
       nil -> nil
       domain -> String.downcase(String.trim(domain))
     end)
-    |> validate_inclusion(:auth_provider, ["google", "okta"])
+    |> validate_inclusion(:auth_provider, ["google", "okta", "oauth2"])
     |> validate_format(
       :auth_domain,
       ~r/\A(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}\z/
@@ -65,6 +244,17 @@ defmodule GlossiaEnterprise.OrganizationAuthentication do
           end
         end)
 
+      "oauth2" ->
+        changeset
+        |> validate_required([:auth_domain, :auth_issuer, :auth_client_id, :auth_client_secret])
+        |> validate_change(:auth_issuer, fn field, value ->
+          if GlossiaEnterprise.Identity.OAuth2HTTP.valid_url?(value),
+            do: [],
+            else: [
+              {field, "must be an HTTPS provider URL without credentials, query, or fragment"}
+            ]
+        end)
+
       _ ->
         changeset
     end
@@ -83,6 +273,29 @@ defmodule GlossiaEnterprise.OrganizationAuthentication do
 
         changeset = change(current, attrs)
 
+        endpoint_changeset =
+          SecuritySettings.changeset(
+            settings(current),
+            attrs,
+            get_field(changeset, :auth_provider)
+          )
+
+        if enforced?(current) and
+             (map_size(endpoint_changeset.changes) > 0 or
+                Enum.any?(
+                  [
+                    :auth_provider,
+                    :auth_domain,
+                    :auth_issuer,
+                    :auth_client_id,
+                    :auth_client_secret
+                  ],
+                  &changed?(changeset, &1)
+                )),
+           do: Repo.rollback(:enforcement_enabled)
+
+        unless endpoint_changeset.valid?, do: Repo.rollback(endpoint_changeset)
+
         changeset =
           if get_field(changeset, :auth_domain) != current.auth_domain or
                get_field(changeset, :auth_provider) != current.auth_provider do
@@ -94,7 +307,7 @@ defmodule GlossiaEnterprise.OrganizationAuthentication do
           end
 
         changeset =
-          if get_field(changeset, :auth_provider) != "okta" do
+          if get_field(changeset, :auth_provider) not in ["okta", "oauth2"] do
             changeset
             |> put_change(:auth_issuer, nil)
             |> put_change(:auth_client_id, nil)
@@ -105,6 +318,11 @@ defmodule GlossiaEnterprise.OrganizationAuthentication do
 
         case Repo.update(changeset) do
           {:ok, updated} ->
+            case Repo.insert_or_update(endpoint_changeset) do
+              {:ok, _} -> :ok
+              {:error, reason} -> Repo.rollback(reason)
+            end
+
             audit(
               updated,
               actor,
@@ -229,6 +447,25 @@ defmodule GlossiaEnterprise.OrganizationAuthentication do
            authorization_params: [scope: "openid email profile"]
          ]}
 
+      "oauth2" ->
+        endpoints = settings(organization)
+
+        {:ok,
+         [
+           strategy: Assent.Strategy.OAuth2,
+           base_url: organization.auth_issuer,
+           authorize_url: endpoints.auth_authorize_url,
+           token_url: endpoints.auth_token_url,
+           user_url: endpoints.auth_userinfo_url,
+           client_id: organization.auth_client_id,
+           client_secret: organization.auth_client_secret,
+           auth_method: :client_secret_basic,
+           redirect_uri: callback_url(),
+           code_verifier: true,
+           authorization_params: [scope: "openid email profile"],
+           http_adapter: GlossiaEnterprise.Identity.OAuth2HTTP
+         ]}
+
       _ ->
         {:error, :provider_unavailable}
     end
@@ -255,11 +492,26 @@ defmodule GlossiaEnterprise.OrganizationAuthentication do
                current.auth_domain == organization.auth_domain and
                current.auth_client_id == organization.auth_client_id and
                current.auth_client_secret == organization.auth_client_secret and
+               (is_nil(opts[:fingerprint]) or opts[:fingerprint] == provider_fingerprint(current)) and
                verified?(current) and
                valid_identity?(current, info),
              do: Repo.rollback(:invalid_identity)
 
-      provider = "organization:#{current.id}:#{current.auth_provider}:#{current.auth_issuer}"
+      provider =
+        if current.auth_provider == "oauth2" do
+          # A replacement endpoint must not inherit the old authority's linked
+          # identities. Secret rotation, unlike changing the client, is safe.
+          authority =
+            {current.auth_issuer, current.auth_client_id,
+             Map.take(settings(current), endpoint_fields())}
+            |> :erlang.term_to_binary()
+            |> then(&:crypto.hash(:sha256, &1))
+            |> Base.url_encode64(padding: false)
+
+          "organization:#{current.id}:oauth2:#{authority}"
+        else
+          "organization:#{current.id}:#{current.auth_provider}:#{current.auth_issuer}"
+        end
 
       user =
         case Accounts.get_identity(provider, info["sub"]) do
@@ -272,7 +524,8 @@ defmodule GlossiaEnterprise.OrganizationAuthentication do
                 # A tenant administrator can control Okta claims. Linking an existing
                 # Glossia identity therefore requires its authenticated session.
                 unless opts[:link_user_id] == user.id or
-                         linked_google_identity?(current, info, user),
+                         linked_google_identity?(current, info, user) or
+                         SCIM.claim_identity(current, user),
                        do: Repo.rollback(:identity_not_linked)
 
                 %Identity{user_id: user.id}
@@ -288,6 +541,12 @@ defmodule GlossiaEnterprise.OrganizationAuthentication do
                 end
             end
         end
+
+      if Repo.exists?(
+           from p in ProvisionedUser,
+             where: p.organization_id == ^current.id and p.user_id == ^user.id and not p.active
+         ),
+         do: Repo.rollback(:membership_revoked)
 
       unless Organizations.get_membership(current, user) do
         if Repo.exists?(

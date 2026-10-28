@@ -29,6 +29,7 @@ RUN mkdir -p /ee /enterprise-licenses
 FROM source-core AS source-enterprise
 COPY --from=ee . /ee
 COPY --from=ee LICENSE.md /enterprise-licenses/
+COPY --from=ee licenses /enterprise-licenses/third-party/
 
 FROM source-${GLOSSIA_EDITION} AS edition-source
 

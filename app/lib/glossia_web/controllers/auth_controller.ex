@@ -177,6 +177,14 @@ defmodule GlossiaWeb.AuthController do
     case Auth.callback(provider, params, session_params) do
       {:ok, oauth_response} ->
         case sign_in(provider, oauth_response, conn) do
+          {:ok, user, organization} ->
+            conn
+            |> put_session(
+              :organization_sso,
+              Glossia.OrganizationAuthentication.session_proof(organization, user)
+            )
+            |> finalize_session(user, "user.signed_in", "Signed in", true)
+
           {:ok, user} ->
             finalize_session(conn, user, "user.signed_in", "Signed in")
 
@@ -212,9 +220,12 @@ defmodule GlossiaWeb.AuthController do
   defp sign_in(:google, response, conn) do
     case Glossia.OrganizationAuthentication.for_email(response.user["email"]) do
       %{auth_provider: "google"} = organization ->
-        Glossia.OrganizationAuthentication.sign_in(organization, response,
-          link_user_id: conn.assigns[:current_user] && conn.assigns.current_user.id
-        )
+        with {:ok, user} <-
+               Glossia.OrganizationAuthentication.sign_in(organization, response,
+                 link_user_id: conn.assigns[:current_user] && conn.assigns.current_user.id
+               ) do
+          {:ok, user, organization}
+        end
 
       _ ->
         Accounts.sign_in_user_from_oauth(:google, response)
@@ -224,8 +235,9 @@ defmodule GlossiaWeb.AuthController do
   defp sign_in(provider, response, _conn),
     do: Accounts.sign_in_user_from_oauth(provider, response)
 
-  defp finalize_session(conn, user, event_type, summary) do
+  defp finalize_session(conn, user, event_type, summary, organization_sign_in? \\ false) do
     return_to = get_session(conn, :return_to)
+    conn = if organization_sign_in?, do: conn, else: delete_session(conn, :organization_sso)
 
     Events.emit(event_type, user.account, user,
       resource_type: "user",
@@ -269,6 +281,7 @@ defmodule GlossiaWeb.AuthController do
 
         conn
         |> delete_session(:return_to)
+        |> delete_session(:organization_sso)
         |> put_session(:user_id, user.id)
         |> configure_session(renew: true)
         |> redirect(to: return_to || ~p"/dashboard")

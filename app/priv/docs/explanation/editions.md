@@ -34,10 +34,15 @@ engine and support the same languages and file formats.
 
 ## Enterprise
 
-Enterprise adds three features:
+Enterprise adds access, audit, and execution controls:
 
-- [Single sign-on](/docs/how-to/organization-sign-in): connect Google Workspace or
-  Okta so verified work accounts can join your organization.
+- [Single sign-on](/docs/how-to/organization-sign-in): connect Google Workspace,
+  Okta, or a custom OAuth2 provider so verified work accounts can join your
+  organization, and optionally require organization sign-in for browser access.
+  Administrators can also [configure SSO through REST and MCP](/docs/reference/organization-authentication).
+- [SCIM provisioning](/docs/how-to/scim-provisioning): let your identity provider
+  provision, update, deactivate, and reactivate members and organization roles,
+  with notification emails when SCIM attaches a member.
 - [Audit logs](/docs/reference/audit-logs): let organization administrators search
   account changes and successful organization sign-ins.
 - [Isolated translation runners](/docs/reference/isolated-translation-runners): run

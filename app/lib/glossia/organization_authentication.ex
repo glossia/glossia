@@ -14,4 +14,32 @@ defmodule Glossia.OrganizationAuthentication do
       authentication -> authentication.sign_in(organization, response, opts)
     end
   end
+
+  def session_proof(organization, user) do
+    case Glossia.Extensions.organization_authentication() do
+      nil -> nil
+      authentication -> authentication.session_proof(organization, user)
+    end
+  end
+
+  def session_authorized?(account, user, proof) do
+    case Glossia.Extensions.organization_authentication() do
+      nil -> true
+      authentication -> authentication.session_authorized?(account, user, proof)
+    end
+  end
+
+  def check_session(conn) do
+    case Glossia.Extensions.organization_authentication() do
+      nil -> conn
+      authentication -> authentication.check_session(conn)
+    end
+  end
+
+  def check_session(conn, account) do
+    case Glossia.Extensions.organization_authentication() do
+      nil -> conn
+      authentication -> authentication.check_session(conn, account)
+    end
+  end
 end

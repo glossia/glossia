@@ -26,8 +26,9 @@ test('core Docker stages do not require or copy enterprise sources', () => {
   assert.match(dockerfile, /FROM source-\$\{GLOSSIA_EDITION\} AS edition-source/);
   const enterpriseStage = dockerfile.split('FROM source-core AS source-enterprise')[1].split('FROM source-${GLOSSIA_EDITION}')[0];
   const eeCopies = dockerfile.match(/^COPY --from=ee .*$/gm);
-  assert.equal(eeCopies.length, 2);
+  assert.ok(eeCopies.length > 0);
   for (const copy of eeCopies) assert.ok(enterpriseStage.includes(copy));
+  assert.match(enterpriseStage, /COPY --from=ee licenses \/enterprise-licenses\/third-party\//);
   assert.match(dockerfile, /COPY --from=edition-source \/ee \/ee/);
   assert.match(dockerfile, /COPY --from=edition-source \/enterprise-licenses/);
 });

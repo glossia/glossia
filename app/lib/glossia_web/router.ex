@@ -118,6 +118,27 @@ defmodule GlossiaWeb.Router do
 
   forward "/api/internal/babel", GlossiaWeb.Plugs.RejectInternalBabelPublicRoute
 
+  if Application.compile_env(:glossia, :organization_authentication) do
+    scope "/scim/v2", GlossiaEnterpriseWeb do
+      pipe_through [GlossiaWeb.Plugs.NoIndex, GlossiaEnterpriseWeb.Plugs.SCIMAuth]
+
+      get "/ServiceProviderConfig", SCIMDiscoveryController, :config
+      get "/ResourceTypes", SCIMDiscoveryController, :resource_types
+      get "/ResourceTypes/:id", SCIMDiscoveryController, :resource_types
+      get "/Schemas", SCIMDiscoveryController, :schemas
+      get "/Schemas/:id", SCIMDiscoveryController, :schemas
+      get "/Users", SCIMController, :users
+      get "/Users/:id", SCIMController, :user
+      post "/Users", SCIMController, :create_user
+      put "/Users/:id", SCIMController, :replace_user
+      patch "/Users/:id", SCIMController, :patch_user
+      delete "/Users/:id", SCIMController, :delete_user
+      get "/Groups", SCIMController, :groups
+      get "/Groups/:id", SCIMController, :group
+      patch "/Groups/:id", SCIMController, :patch_group
+    end
+  end
+
   scope "/v1", GlossiaWeb do
     pipe_through :analytics
 
@@ -333,6 +354,23 @@ defmodule GlossiaWeb.Router do
     get "/organizations/:handle", OrganizationApiController, :show
     patch "/organizations/:handle", OrganizationApiController, :update
     delete "/organizations/:handle", OrganizationApiController, :delete
+
+    if Application.compile_env(:glossia, :organization_authentication) do
+      scope alias: false do
+        get "/organizations/:handle/authentication",
+            GlossiaEnterpriseWeb.OrganizationAuthenticationApiController,
+            :show
+
+        patch "/organizations/:handle/authentication",
+              GlossiaEnterpriseWeb.OrganizationAuthenticationApiController,
+              :update
+
+        post "/organizations/:handle/authentication/verify",
+             GlossiaEnterpriseWeb.OrganizationAuthenticationApiController,
+             :verify
+      end
+    end
+
     get "/organizations/:handle/members", OrganizationApiController, :list_members
 
     delete "/organizations/:handle/members/:user_handle",

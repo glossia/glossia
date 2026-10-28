@@ -17,7 +17,7 @@ Glossia supports browser sessions and bearer tokens. Bearer tokens can be issued
 
 When you sign in through the web interface, Glossia uses session-based authentication. You authenticate via GitHub, GitLab, Google, or a configured organization identity provider using the [Assent](https://github.com/pow-auth/assent) library. After a successful sign-in, a session cookie is set and used for subsequent requests.
 
-Organizations can configure Google Workspace or Okta and verify their work email domain before allowing automatic enrollment. See [Configure organization sign-in](/docs/how-to/organization-sign-in) for setup and account-linking requirements.
+Enterprise organizations can configure Google Workspace, Okta, or a custom OAuth2 provider and verify their work email domain before allowing automatic enrollment. See [Configure organization sign-in](/docs/how-to/organization-sign-in) for setup and account-linking requirements, and the [organization authentication API](/docs/reference/organization-authentication) for REST and MCP configuration.
 
 ### Bearer tokens (OAuth 2.1)
 

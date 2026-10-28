@@ -27,6 +27,11 @@
   & .noora-button, & .noora-badge {
     align-self: flex-start;
   }
+  & [data-part="empty-tokens"] {
+    background: var(--noora-surface-background-primary);
+    padding-inline: var(--noora-spacing-6);
+    text-align: center;
+  }
   & p {
     color: var(--noora-surface-label-secondary);
     font: var(--noora-font-body-medium);

@@ -4,6 +4,7 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
   import GlossiaWeb.DashboardComponents, only: [page_header: 1]
   import Noora.Card
   alias GlossiaEnterprise.OrganizationAuthentication, as: Authentication
+  alias GlossiaEnterprise.SCIM
   alias Glossia.Organizations
 
   def mount(_params, _session, socket) do
@@ -19,6 +20,8 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
     {:ok,
      socket
      |> assign(:page_title, gettext("Authentication"))
+     |> assign(:scim_plaintext, nil)
+     |> assign(:scim_form, to_form(%{"name" => ""}, as: :scim))
      |> assign(:breadcrumb_items, [
        {gettext("Authentication"), ~p"/#{socket.assigns.handle}/-/settings/authentication"}
      ])
@@ -31,6 +34,13 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
         {field, Map.get(organization, String.to_existing_atom(field)) || ""}
       end)
       |> Map.put("auth_client_secret", "")
+      |> Map.merge(
+        Map.new(
+          Authentication.settings(organization)
+          |> Map.take([:auth_authorize_url, :auth_token_url, :auth_userinfo_url]),
+          fn {key, value} -> {Atom.to_string(key), value || ""} end
+        )
+      )
 
     params =
       Map.update!(params, "auth_provider", fn provider ->
@@ -39,6 +49,8 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
 
     socket
     |> assign(:organization, organization)
+    |> assign(:sso_enforced, Authentication.enforced?(organization))
+    |> assign(:scim_tokens, SCIM.list_tokens(organization, socket.assigns.current_user))
     |> assign(:provider, params["auth_provider"])
     |> assign(:form, to_form(params, as: :authentication))
   end
@@ -47,7 +59,7 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
     do: handle_event("provider", %{"value" => value}, socket)
 
   def handle_event("provider", %{"value" => value}, socket)
-      when value in ["disabled", "google", "okta"] do
+      when value in ["disabled", "google", "okta", "oauth2"] do
     params = Map.put(socket.assigns.form.params, "auth_provider", value)
 
     {:noreply,
@@ -75,15 +87,21 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
          |> put_flash(:info, gettext("Authentication settings saved."))}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        changeset = Ecto.Changeset.delete_change(changeset, :auth_client_secret)
+        # Both organization and endpoint validation share this form. Never render
+        # stored or submitted secrets back into a failed form.
+        params =
+          Map.merge(socket.assigns.form.params, params) |> Map.put("auth_client_secret", "")
 
-        changeset = %{
-          changeset
-          | action: :update,
-            data: %{changeset.data | auth_client_secret: nil}
-        }
+        {:noreply,
+         assign(socket, :form, to_form(params, as: :authentication, errors: changeset.errors))}
 
-        {:noreply, assign(socket, :form, to_form(changeset, as: :authentication))}
+      {:error, :enforcement_enabled} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("Disable SSO enforcement before changing the identity provider.")
+         )}
 
       {:error, _} ->
         {:noreply, put_flash(socket, :error, gettext("Could not save authentication settings."))}
@@ -108,6 +126,69 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
     end
   end
 
+  def handle_event("enforcement", _, socket) do
+    case Authentication.set_enforcement(
+           socket.assigns.organization,
+           socket.assigns.current_user,
+           not socket.assigns.sso_enforced,
+           socket.assigns.organization_sso
+         ) do
+      {:ok, enabled} ->
+        {:noreply,
+         socket
+         |> assign(:sso_enforced, enabled)
+         |> put_flash(:info, gettext("SSO enforcement updated."))}
+
+      {:error, _} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext(
+             "Verify the domain and sign in with this organization's provider before enforcing SSO."
+           )
+         )}
+    end
+  end
+
+  def handle_event("create-scim-token", %{"scim" => attrs}, socket) do
+    case SCIM.create_token(socket.assigns.organization, socket.assigns.current_user, attrs) do
+      {:ok, %{plaintext: plaintext}} ->
+        {:noreply,
+         socket
+         |> assign(
+           :scim_tokens,
+           SCIM.list_tokens(socket.assigns.organization, socket.assigns.current_user)
+         )
+         |> assign(:scim_plaintext, plaintext)
+         |> assign(:scim_form, to_form(%{"name" => ""}, as: :scim))}
+
+      {:error, _} ->
+        {:noreply,
+         put_flash(socket, :error, gettext("Enter a token name of at most 100 characters."))}
+    end
+  end
+
+  def handle_event("dismiss-scim-token", _, socket),
+    do: {:noreply, assign(socket, :scim_plaintext, nil)}
+
+  def handle_event("revoke-scim-token", %{"id" => id}, socket) do
+    case SCIM.revoke_token(socket.assigns.organization, socket.assigns.current_user, id) do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> assign(
+           :scim_tokens,
+           SCIM.list_tokens(socket.assigns.organization, socket.assigns.current_user)
+         )
+         |> assign(:scim_plaintext, nil)
+         |> put_flash(:info, gettext("SCIM token revoked."))}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Could not revoke the SCIM token."))}
+    end
+  end
+
   defp read_only_attributes, do: %{readonly: true}
 
   def render(assigns) do
@@ -115,7 +196,9 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
     <div id="authentication-settings">
       <.page_header
         title={gettext("Authentication")}
-        description={gettext("Let your team sign in with Google Workspace or Okta.")}
+        description={
+          gettext("Let your team sign in with Google Workspace, Okta, or a custom OAuth2 provider.")
+        }
       />
       <.card title={gettext("Organization sign-in")} icon="lock_password">
         <.card_section>
@@ -137,6 +220,7 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
               <:item value="disabled" label={gettext("Disabled")} />
               <:item value="google" label="Google Workspace" />
               <:item value="okta" label="Okta" />
+              <:item value="oauth2" label={gettext("Custom OAuth2")} />
             </Noora.Select.select>
             <Noora.TextInput.text_input
               :if={@provider != "disabled"}
@@ -160,14 +244,51 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
               required
             />
             <Noora.TextInput.text_input
-              :if={@provider == "okta"}
+              :if={@provider == "oauth2"}
+              field={@form[:auth_issuer]}
+              aria-label={gettext("Provider base URL")}
+              label={gettext("Provider base URL")}
+              placeholder="https://identity.example.com"
+              required
+            />
+            <Noora.TextInput.text_input
+              :if={@provider == "oauth2"}
+              field={@form[:auth_authorize_url]}
+              aria-label={gettext("Authorization URL")}
+              label={gettext("Authorization URL")}
+              placeholder="https://identity.example.com/authorize"
+              required
+            />
+            <Noora.TextInput.text_input
+              :if={@provider == "oauth2"}
+              field={@form[:auth_token_url]}
+              aria-label={gettext("Token URL")}
+              label={gettext("Token URL")}
+              placeholder="https://identity.example.com/token"
+              required
+            />
+            <Noora.TextInput.text_input
+              :if={@provider == "oauth2"}
+              field={@form[:auth_userinfo_url]}
+              aria-label={gettext("User information URL")}
+              label={gettext("User information URL")}
+              placeholder="https://identity.example.com/userinfo"
+              required
+            />
+            <p :if={@provider == "oauth2"}>
+              {gettext(
+                "Use HTTPS endpoints on the public internet. The provider must support authorization code with PKCE and return sub, email, and email_verified: true from user information."
+              )}
+            </p>
+            <Noora.TextInput.text_input
+              :if={@provider in ["okta", "oauth2"]}
               field={@form[:auth_client_id]}
               aria-label={gettext("Client identifier")}
               label={gettext("Client identifier")}
               required
             />
             <Noora.TextInput.text_input
-              :if={@provider == "okta"}
+              :if={@provider in ["okta", "oauth2"]}
               field={@form[:auth_client_secret]}
               input_type="password"
               aria-label={gettext("Client secret")}
@@ -179,7 +300,7 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
               }
             />
             <Noora.TextInput.text_input
-              :if={@provider == "okta"}
+              :if={@provider in ["okta", "oauth2"]}
               name="callback"
               value={Authentication.callback_url()}
               aria-label={gettext("Redirect address")}
@@ -236,6 +357,114 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
               />
             </:action>
           </Noora.Alert.alert>
+        </.card_section>
+      </.card>
+      <.card title={gettext("Require single sign-on")} icon="lock_password">
+        <.card_section data-part="form">
+          <p>
+            {gettext(
+              "Require organization sign-in for signed-in browser access to this account, including existing sessions. API tokens and anonymous public pages are unchanged."
+            )}
+          </p>
+          <Noora.Badge.badge
+            label={if @sso_enforced, do: gettext("Enforced"), else: gettext("Optional")}
+            color={if @sso_enforced, do: "success", else: "neutral"}
+          />
+          <p>
+            {gettext(
+              "Verify your domain and test organization sign-in with your administrator account before enabling enforcement. Disable enforcement before changing providers."
+            )}
+          </p>
+          <Noora.Button.button
+            id="sso-enforcement"
+            type="button"
+            phx-click="enforcement"
+            label={if @sso_enforced, do: gettext("Disable enforcement"), else: gettext("Enforce SSO")}
+            variant="secondary"
+          />
+        </.card_section>
+      </.card>
+      <.card title={gettext("SCIM provisioning")} icon="users">
+        <.card_section data-part="form">
+          <p>
+            {gettext(
+              "Let your identity provider create members, manage organization roles, and revoke access. SCIM does not replace single sign-on."
+            )}
+          </p>
+          <Noora.TextInput.text_input
+            name="scim_endpoint"
+            value={url(~p"/scim/v2")}
+            label={gettext("SCIM endpoint URL")}
+            {read_only_attributes()}
+          />
+          <.form for={@scim_form} id="scim-token-form" phx-submit="create-scim-token" data-part="form">
+            <Noora.TextInput.text_input
+              field={@scim_form[:name]}
+              label={gettext("Token name")}
+              placeholder="Okta"
+              required
+            />
+            <Noora.Button.button label={gettext("Generate SCIM token")} variant="secondary" />
+          </.form>
+          <Noora.Button.button
+            href={locale_path(~p"/docs/how-to/scim-provisioning")}
+            label={gettext("Read the SCIM provisioning guide")}
+            variant="secondary"
+          />
+        </.card_section>
+        <.card_section :if={@scim_plaintext} data-part="form" id="scim-token-secret">
+          <Noora.Alert.alert
+            id="scim-token-warning"
+            type="secondary"
+            status="warning"
+            size="large"
+            title={gettext("Copy this token now")}
+          >
+            {gettext(
+              "This token is shown only once. Store it securely and enter it in your identity provider as a bearer token."
+            )}
+          </Noora.Alert.alert>
+          <Noora.TextInput.text_input
+            name="scim_token"
+            value={@scim_plaintext}
+            label={gettext("SCIM bearer token")}
+            {read_only_attributes()}
+          />
+          <Noora.Button.button
+            type="button"
+            phx-click="dismiss-scim-token"
+            label={gettext("I have copied the token")}
+            variant="secondary"
+          />
+        </.card_section>
+        <.card_section :for={token <- @scim_tokens} data-part="form" id={"scim-token-#{token.id}"}>
+          <Noora.TextInput.text_input
+            name={"scim_token_name_#{token.id}"}
+            value={token.name}
+            label={gettext("Provisioning token")}
+            {read_only_attributes()}
+          />
+          <Noora.Button.button
+            type="button"
+            phx-click="revoke-scim-token"
+            phx-value-id={token.id}
+            label={gettext("Revoke token")}
+            variant="destructive"
+            data-confirm={
+              gettext("Revoke this token? Provisioning with this token will stop immediately.")
+            }
+          />
+        </.card_section>
+        <.card_section :if={@scim_tokens == []} class="noora-table" data-part="empty-tokens">
+          <Noora.Table.table_empty_state
+            icon="lock_password"
+            title={gettext("No provisioning tokens")}
+            subtitle={
+              gettext(
+                "Generate a token to connect your identity provider. Existing members are unchanged."
+              )
+            }
+          />
         </.card_section>
       </.card>
       <.card

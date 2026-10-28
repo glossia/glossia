@@ -36,6 +36,7 @@ defmodule GlossiaWeb.PlatformHooks do
      socket
      |> assign(:current_scope, Scope.for_user(user))
      |> assign(:current_user, user)
+     |> assign(:organization_sso, session["organization_sso"])
      |> assign(:impersonating_from, session["impersonating_from"])}
   end
 
@@ -59,11 +60,32 @@ defmodule GlossiaWeb.PlatformHooks do
               []
             end
 
-          {:cont,
-           socket
-           |> assign(:account, account)
-           |> assign(:handle, handle)
-           |> assign(:accounts, accounts)}
+          socket =
+            socket
+            |> assign(:account, account)
+            |> assign(:handle, handle)
+            |> assign(:accounts, accounts)
+            |> Phoenix.LiveView.attach_hook(:organization_sso_events, :handle_event, fn _,
+                                                                                        _,
+                                                                                        socket ->
+              require_organization_session(socket)
+            end)
+            |> Phoenix.LiveView.attach_hook(:organization_sso_navigation, :handle_params, fn _,
+                                                                                             _,
+                                                                                             socket ->
+              require_organization_session(socket)
+            end)
+            |> Phoenix.LiveView.attach_hook(:organization_sso_messages, :handle_info, fn _,
+                                                                                         socket ->
+              require_organization_session(socket)
+            end)
+            |> Phoenix.LiveView.attach_hook(:organization_sso_async, :handle_async, fn _,
+                                                                                       _,
+                                                                                       socket ->
+              require_organization_session(socket)
+            end)
+
+          require_organization_session(socket)
         else
           # For anonymous users on private accounts, show 404 (not login redirect).
           # Authenticated users who lack access also get 404.
@@ -85,6 +107,18 @@ defmodule GlossiaWeb.PlatformHooks do
 
   def on_mount(:require_auth, _params, _session, socket) do
     if socket.assigns[:current_user] do
+      {:cont, socket}
+    else
+      {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/login")}
+    end
+  end
+
+  defp require_organization_session(socket) do
+    if Glossia.OrganizationAuthentication.session_authorized?(
+         socket.assigns.account,
+         socket.assigns.current_user,
+         socket.assigns.organization_sso
+       ) do
       {:cont, socket}
     else
       {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/login")}

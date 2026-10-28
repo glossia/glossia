@@ -40,6 +40,10 @@ msgid "Authentication settings saved."
 msgstr "认证设置已保存。"
 
 #, elixir-autogen, elixir-format
+msgid "Authorization URL"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Awaiting verification"
 msgstr "等待验证"
 
@@ -60,8 +64,28 @@ msgid "Continue with your organization"
 msgstr "继续使用您的组织"
 
 #, elixir-autogen, elixir-format
+msgid "Copy this token now"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Could not revoke the SCIM token."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Could not save authentication settings."
 msgstr "无法保存身份验证设置。"
+
+#, elixir-autogen, elixir-format
+msgid "Custom OAuth2"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Disable SSO enforcement before changing the identity provider."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Disable enforcement"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Disabled"
@@ -70,6 +94,18 @@ msgstr "已禁用"
 #, elixir-autogen, elixir-format
 msgid "Domain ownership verified."
 msgstr "域名所有权已验证。"
+
+#, elixir-autogen, elixir-format
+msgid "Enforce SSO"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Enforced"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Enter a token name of at most 100 characters."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Enter your client secret"
@@ -92,8 +128,20 @@ msgid "Filter"
 msgstr "筛选"
 
 #, elixir-autogen, elixir-format
+msgid "Generate SCIM token"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Generate a token to connect your identity provider. Existing members are unchanged."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Glossia manages the Google connection. You do not need to create an application in Google Cloud or register a redirect address."
 msgstr "Glossia 负责管理 Google 连接。您无需在 Google Cloud 创建应用程序或注册重定向地址。"
+
+#, elixir-autogen, elixir-format
+msgid "I have copied the token"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Identity provider"
@@ -104,11 +152,23 @@ msgid "If Google blocks sign-in because your organization restricts third-party 
 msgstr "如果 Google 因组织限制第三方应用而阻止登录，请要求 Google Workspace 管理员打开 Google 管理控制台 → 安全 → 访问和数据控制 → API 控制 → 管理第三方应用访问，找到 Glossia，并根据组织策略允许所需的登录权限。"
 
 #, elixir-autogen, elixir-format
+msgid "If this is unexpected, contact your identity provider administrator or an organization administrator to remove this access."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "If you expected this, no action is needed. Open the organization and sign in with your work identity."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Leave blank to keep the saved secret"
 msgstr "留空以保留已保存的密钥"
 
 #, elixir-autogen, elixir-format
-msgid "Let your team sign in with Google Workspace or Okta."
+msgid "Let your identity provider create members, manage organization roles, and revoke access. SCIM does not replace single sign-on."
+msgstr ""
+
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Let your team sign in with Google Workspace, Okta, or a custom OAuth2 provider."
 msgstr "让您的团队使用 Google Workspace 或 Okta 登录。"
 
 #, elixir-autogen, elixir-format
@@ -128,8 +188,20 @@ msgid "No matching events"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "No provisioning tokens"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Okta issuer"
 msgstr "Okta 发行方"
+
+#, elixir-autogen, elixir-format
+msgid "Open organization"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Optional"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Organization sign-in"
@@ -138,6 +210,18 @@ msgstr "组织登录"
 #, elixir-autogen, elixir-format
 msgid "Organization sign-in is unavailable or could not be verified. Domain ownership may need to be verified again. Contact your organization administrator."
 msgstr "组织登录不可用或无法验证。域名所有权可能需要重新验证。请联系您的组织管理员。"
+
+#, elixir-autogen, elixir-format
+msgid "Provider base URL"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Provisioning token"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Read the SCIM provisioning guide"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Read the organization sign-in guide"
@@ -156,7 +240,43 @@ msgid "Redirect address"
 msgstr "重定向地址"
 
 #, elixir-autogen, elixir-format
+msgid "Require organization sign-in for signed-in browser access to this account, including existing sessions. API tokens and anonymous public pages are unchanged."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Require single sign-on"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Resource"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Revoke this token? Provisioning with this token will stop immediately."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Revoke token"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "SCIM bearer token"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "SCIM endpoint URL"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "SCIM provisioning"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "SCIM token revoked."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "SSO enforcement updated."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -176,6 +296,10 @@ msgid "Sign in with your existing method first, then return to this page to conn
 msgstr "请先使用现有方式登录，然后返回此页面连接您的工作身份。"
 
 #, elixir-autogen, elixir-format
+msgid "Sign in with your organization to access this account."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "System"
 msgstr ""
 
@@ -188,7 +312,27 @@ msgid "Team members must belong to this Google Workspace domain. Personal Google
 msgstr "团队成员必须属于此 Google Workspace 域。个人 Google 账号不符合条件。"
 
 #, elixir-autogen, elixir-format
+msgid "This token is shown only once. Store it securely and enter it in your identity provider as a bearer token."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Time (UTC)"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Token URL"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Token name"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Use HTTPS endpoints on the public internet. The provider must support authorization code with PKCE and return sub, email, and email_verified: true from user information."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "User information URL"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -208,12 +352,28 @@ msgid "Verify domain ownership"
 msgstr "验证域名所有权"
 
 #, elixir-autogen, elixir-format
+msgid "Verify the domain and sign in with this organization's provider before enforcing SSO."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Verify your domain and test organization sign-in with your administrator account before enabling enforcement. Disable enforcement before changing providers."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Work email"
 msgstr "工作邮箱"
 
 #, elixir-autogen, elixir-format
 msgid "Work email domain"
 msgstr "工作邮箱域名"
+
+#, elixir-autogen, elixir-format
+msgid "You were added to %{organization} on Glossia"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Your identity provider added your account to %{organization} through automated user provisioning (SCIM)."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Your organization access was removed. Contact your organization administrator."

@@ -36,5 +36,6 @@ defmodule GlossiaWeb.Plugs.Auth do
     conn
     |> assign(:impersonating_from, get_session(conn, :impersonating_from))
     |> assign(:impersonation_reason, get_session(conn, :impersonation_reason))
+    |> Glossia.OrganizationAuthentication.check_session()
   end
 end

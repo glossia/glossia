@@ -28,7 +28,12 @@ defmodule Glossia.Release do
   end
 
   def run_migrations(repo, sources, direction, opts) do
-    Ecto.Migrator.run(repo, sources ++ Glossia.Extensions.audit_migrations(repo), direction, opts)
+    sources =
+      sources ++
+        Glossia.Extensions.audit_migrations(repo) ++
+        Glossia.Extensions.organization_authentication_migrations(repo)
+
+    Ecto.Migrator.run(repo, sources, direction, opts)
   end
 
   @doc """

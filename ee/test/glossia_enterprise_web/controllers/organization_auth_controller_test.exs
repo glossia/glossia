@@ -121,6 +121,89 @@ defmodule GlossiaEnterpriseWeb.OrganizationAuthControllerTest do
     refute get_session(conn, :user_id)
   end
 
+  test "custom OAuth2 exchanges authorization codes with PKCE and accepts only verified work identities",
+       %{conn: conn, organization: organization, admin: admin} do
+    {:ok, organization} =
+      OrganizationAuthentication.save(organization, admin, %{
+        "auth_provider" => "oauth2",
+        "auth_issuer" => "https://8.8.8.8",
+        "auth_client_id" => "custom-client",
+        "auth_client_secret" => "custom-secret",
+        "auth_authorize_url" => "https://8.8.8.8/authorize",
+        "auth_token_url" => "https://8.8.8.8/token",
+        "auth_userinfo_url" => "https://8.8.8.8/userinfo"
+      })
+
+    {:ok, organization} =
+      OrganizationAuthentication.verify(organization, admin, fn _ ->
+        {:ok, [OrganizationAuthentication.record_value(organization)]}
+      end)
+
+    conn =
+      post(conn, ~p"/auth/organization",
+        organization: %{email: "custom@#{organization.auth_domain}"}
+      )
+
+    uri = conn |> redirected_to() |> URI.parse()
+    query = URI.decode_query(uri.query)
+    assert uri.path == "/authorize"
+    assert query["code_challenge_method"] == "S256"
+    assert query["scope"] == "openid email profile"
+
+    Mimic.expect(Req, :request, fn opts ->
+      assert opts[:method] == :post
+      body = URI.decode_query(opts[:body])
+      assert body["code"] == "custom-code"
+
+      assert Base.url_encode64(:crypto.hash(:sha256, body["code_verifier"]), padding: false) ==
+               query["code_challenge"]
+
+      {:ok,
+       %Req.Response{
+         status: 200,
+         headers: %{"content-type" => ["application/json"]},
+         body: Jason.encode!(%{access_token: "custom-access", token_type: "Bearer"})
+       }}
+    end)
+
+    Mimic.expect(Req, :request, fn opts ->
+      assert opts[:method] == :get
+      assert opts[:url] == "https://8.8.8.8/userinfo"
+
+      {:ok,
+       %Req.Response{
+         status: 200,
+         headers: %{"content-type" => ["application/json"]},
+         body:
+           Jason.encode!(%{
+             sub: "custom-sub",
+             email: "custom@#{organization.auth_domain}",
+             email_verified: true,
+             name: "Custom User"
+           })
+       }}
+    end)
+
+    conn =
+      conn
+      |> recycle()
+      |> get(~p"/auth/organization/callback", state: query["state"], code: "custom-code")
+
+    assert redirected_to(conn) == ~p"/#{organization.account.handle}"
+    user = Accounts.get_user(get_session(conn, :user_id))
+    assert user.email == "custom@#{organization.auth_domain}"
+
+    assert get_session(conn, :organization_sso) ==
+             OrganizationAuthentication.session_proof(organization, user)
+
+    for verified <- [false, "true", nil] do
+      assert {:error, :invalid_identity} =
+               OrganizationAuthentication.sign_in(organization, %{
+                 user: %{"sub" => "invalid", "email" => user.email, "email_verified" => verified}
+               })
+    end
+  end
+
   test "unknown domains cannot start organization sign-in", %{conn: conn} do
     conn = post(conn, ~p"/auth/organization", organization: %{email: "person@unknown.test"})
     assert redirected_to(conn) == ~p"/auth/login"

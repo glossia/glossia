@@ -126,6 +126,9 @@ defmodule Glossia.Seeds do
             "auth_domain" => "acme.test"
           })
       end
+
+      authentication.seed_provisioning(acme, dev)
+      authentication.seed_custom_provider(northwind, alex)
     end
 
     # Pending invitations for testing the acceptance flow.
