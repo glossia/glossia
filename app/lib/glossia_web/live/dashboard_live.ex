@@ -8781,11 +8781,17 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_progress_item_details(assigns) do
     ~H"""
     <div data-part="item-details">
-      <.translation_input_diff
-        :if={@item.translation_diff}
-        id={"translation-progress-item-#{@item.index}-input-diff"}
-        diff={@item.translation_diff}
-      />
+      <section
+        :if={@item.translation_diff || @item.translation_reasons != []}
+        id={"translation-progress-item-#{@item.index}-input-summary"}
+        data-part="input-summary"
+        aria-label={gettext("Why translation was needed")}
+      >
+        <p data-part="output-title">{gettext("Why translation was needed")}</p>
+        <p data-part="change-summary">
+          {translation_input_summary(@item.translation_reasons, @item.translation_diff)}
+        </p>
+      </section>
       <Noora.Alert.alert
         :if={@item.failure}
         data-part="item-failure"
@@ -8861,131 +8867,149 @@ defmodule GlossiaWeb.DashboardLive do
     """
   end
 
-  attr(:id, :string, required: true)
-  attr(:diff, :map, required: true)
-
-  defp translation_input_diff(assigns) do
-    ~H"""
-    <section id={@id} data-part="input-diff" aria-label={gettext("Translation input changes")}>
-      <p data-part="output-title">{gettext("Translation input changes")}</p>
-      <p data-part="diff-explanation">
-        {gettext(
-          "Only changed branches are shown, compared with the last accepted translation. Private content is represented by SHA-256 fingerprints, not a text diff."
-        )}
-      </p>
-      <p :if={@diff["source_commit_sha"]} data-part="diff-baseline">
-        {gettext("Baseline source commit:")} <code>{@diff["source_commit_sha"]}</code>
-      </p>
-      <p :if={@diff["baseline"] == "missing_lockfile"} data-part="diff-baseline-unavailable">
-        {gettext(
-          "No readable lockfile was available. These are newly recorded inputs, not proof that every value changed."
-        )}
-      </p>
-      <p :if={@diff["baseline"] == "legacy_lockfile"} data-part="diff-baseline-unavailable">
-        {gettext(
-          "The previous lockfile has no dependency tree. Only its combined input fingerprint can be compared."
-        )}
-      </p>
-      <.translation_dependency_node :if={@diff["tree"]} id={@id <> "-root"} node={@diff["tree"]} />
-    </section>
-    """
+  defp translation_input_summary([], %{"baseline" => "missing_lockfile"}) do
+    translation_input_summary(["lockfile_missing"], nil)
   end
 
-  attr(:id, :string, required: true)
-  attr(:node, :map, required: true)
+  defp translation_input_summary([], _diff) do
+    translation_input_summary(["translation_inputs_changed"], nil)
+  end
 
-  defp translation_dependency_node(assigns) do
-    # Older persisted diagnostics used readable glossary keys. Entry labels
-    # must stay anonymous even when rendering those historical events.
-    assigns =
-      if assigns.node["kind"] == "context" and assigns.node["label"] == "terminology" do
-        children =
-          Enum.map(assigns.node["children"], fn group ->
-            Map.update!(group, "children", fn entries ->
-              entries
-              |> Enum.with_index(1)
-              |> Enum.map(fn {entry, index} -> %{entry | "label" => "entry:#{index}"} end)
-            end)
-          end)
+  defp translation_input_summary(reasons, diff) do
+    reasons
+    |> Enum.map(fn
+      "lockfile_missing" ->
+        gettext("No usable previous translation record was found.")
 
-        assign(assigns, :node, %{assigns.node | "children" => children})
-      else
-        assigns
+      "output_missing" ->
+        gettext("The translated file is missing or empty.")
+
+      "output_changed" ->
+        gettext("The translated file's contents changed.")
+
+      "output_path_changed" ->
+        gettext("The translation's destination path changed.")
+
+      "source_changed" ->
+        gettext("The source text changed since the last accepted translation.")
+
+      "validation_changed" ->
+        gettext("The validation rules changed.")
+
+      "model_changed" ->
+        gettext("The translation model changed.")
+
+      "translation_engine_changed" ->
+        gettext("The translation engine was updated.")
+
+      "translation_settings_changed" ->
+        gettext("The translation settings changed.")
+
+      "project_context_changed" ->
+        gettext("The project instructions changed.")
+
+      "locale_context_changed" ->
+        gettext("The language-specific instructions changed.")
+
+      "voice_changed" ->
+        gettext("The writing style guidance changed.")
+
+      "glossary_changed" ->
+        translation_glossary_summary(diff)
+
+      "quality_settings_changed" ->
+        gettext("The quality evaluation settings changed.")
+
+      _ ->
+        gettext(
+          "Translation inputs changed, but the previous record does not identify which ones."
+        )
+    end)
+    |> Enum.uniq()
+    |> Enum.join(" ")
+  end
+
+  defp translation_glossary_summary(diff) do
+    entries =
+      case diff do
+        %{"baseline" => "recorded", "tree" => tree} -> translation_glossary_entries(tree)
+        _ -> []
       end
 
-    ~H"""
-    <details
-      id={@id}
-      data-part="dependency-node"
-      data-change={@node["change"]}
-      open
-      phx-mounted={Phoenix.LiveView.JS.ignore_attributes("open")}
-    >
-      <summary>
-        <span data-part="disclosure-icon" aria-hidden="true"><Icon.chevron_right /></span>
-        <span data-part="dependency-kind">{translation_dependency_kind(@node["kind"])}</span>
-        <code data-part="dependency-label">{@node["label"]}</code>
-        <Noora.Tag.tag label={translation_dependency_change(@node["change"])} />
-      </summary>
-      <div data-part="dependency-body">
-        <p :if={@node["aggregate_only"]} data-part="diff-baseline-unavailable">
-          {gettext(
-            "This older baseline recorded only a combined fingerprint for this branch. Field-level history is unavailable."
-          )}
-        </p>
-        <div
-          :for={field <- @node["fields"]}
-          data-part="dependency-field"
-          data-change={field["change"]}
-        >
-          <div data-part="dependency-field-heading">
-            <code>{field["field"]}</code>
-            <Noora.Tag.tag label={translation_dependency_change(field["change"])} />
-            <span :if={field["fingerprint"]} data-part="fingerprint-label">
-              {gettext("SHA-256 fingerprint")}
-            </span>
-          </div>
-          <dl data-part="dependency-values">
-            <div>
-              <dt>{gettext("Previous")}</dt>
-              <dd><code>{translation_dependency_value(field, "before")}</code></dd>
-            </div>
-            <div>
-              <dt>{gettext("Current")}</dt>
-              <dd><code>{translation_dependency_value(field, "after")}</code></dd>
-            </div>
-          </dl>
-        </div>
-        <.translation_dependency_node
-          :for={{child, index} <- Enum.with_index(@node["children"])}
-          id={"#{@id}-#{index}"}
-          node={child}
-        />
-      </div>
-    </details>
-    """
+    changes =
+      for kind <- [
+            "added",
+            "removed",
+            "term_hash",
+            "translation_hash",
+            "definition_hash",
+            "case_sensitive"
+          ],
+          count =
+            Enum.count(entries, fn entry ->
+              if kind in ["added", "removed"] do
+                entry["change"] == kind
+              else
+                entry["change"] == "changed" and
+                  Enum.any?(entry["fields"], &(&1["field"] == kind and &1["change"] == "changed"))
+              end
+            end),
+          count > 0 do
+        case kind do
+          "added" ->
+            ngettext("%{count} term added", "%{count} terms added", count, count: count)
+
+          "removed" ->
+            ngettext("%{count} term removed", "%{count} terms removed", count, count: count)
+
+          "term_hash" ->
+            ngettext("%{count} term renamed", "%{count} terms renamed", count, count: count)
+
+          "translation_hash" ->
+            ngettext(
+              "%{count} translation updated",
+              "%{count} translations updated",
+              count,
+              count: count
+            )
+
+          "definition_hash" ->
+            ngettext("%{count} definition updated", "%{count} definitions updated", count,
+              count: count
+            )
+
+          "case_sensitive" ->
+            ngettext(
+              "case sensitivity changed for %{count} term",
+              "case sensitivity changed for %{count} terms",
+              count,
+              count: count
+            )
+        end
+      end
+
+    if changes == [] do
+      gettext(
+        "The glossary used for this file changed; term-level details are unavailable for this comparison."
+      )
+    else
+      gettext("The glossary used for this file changed: %{changes}.",
+        changes: Enum.join(changes, ", ")
+      )
+    end
   end
 
-  defp translation_dependency_kind("translation_input"), do: gettext("Translation inputs")
-  defp translation_dependency_kind("source"), do: gettext("Source")
-  defp translation_dependency_kind("translation_config"), do: gettext("Generation settings")
-  defp translation_dependency_kind("context_bundle"), do: gettext("Context")
-  defp translation_dependency_kind("server_context"), do: gettext("Organization context")
-  defp translation_dependency_kind("context"), do: gettext("Guidance")
-  defp translation_dependency_kind("decision_config"), do: gettext("Quality evaluation")
-  defp translation_dependency_kind("output"), do: gettext("Translation output")
-  defp translation_dependency_kind(_), do: gettext("Details")
+  defp translation_glossary_entries(nil), do: []
 
-  defp translation_dependency_change("added"), do: gettext("Added")
-  defp translation_dependency_change("removed"), do: gettext("Removed")
-  defp translation_dependency_change(_), do: gettext("Changed")
+  defp translation_glossary_entries(%{"kind" => "context", "label" => "terminology"} = node) do
+    Enum.flat_map(node["children"], fn
+      %{"kind" => "detail", "label" => "content_hash", "children" => entries} -> entries
+      _ -> []
+    end)
+  end
 
-  defp translation_dependency_value(field, side) do
-    cond do
-      not field[side <> "_present"] -> gettext("Not present")
-      field["fingerprint"] and is_binary(field[side]) -> field[side]
-      true -> JSON.encode!(field[side])
-    end
+  defp translation_glossary_entries(node) do
+    Enum.flat_map(node["children"], &translation_glossary_entries/1)
   end
 
   defp translation_reason_label([]), do: gettext("Not recorded")
@@ -8993,12 +9017,12 @@ defmodule GlossiaWeb.DashboardLive do
   defp translation_reason_label(reasons) do
     reasons
     |> Enum.map(fn
-      "lockfile_missing" -> gettext("Lockfile missing or unreadable")
+      "lockfile_missing" -> gettext("No previous translation record")
       "output_missing" -> gettext("Translation missing or empty")
       "output_changed" -> gettext("Translation content changed")
       "output_path_changed" -> gettext("Translation path changed")
       "source_changed" -> gettext("Source content changed")
-      "validation_changed" -> gettext("Validation fingerprint changed")
+      "validation_changed" -> gettext("Validation rules changed")
       "model_changed" -> gettext("Model changed")
       "translation_engine_changed" -> gettext("Translation engine changed")
       "translation_settings_changed" -> gettext("Translation settings changed")
@@ -9007,14 +9031,16 @@ defmodule GlossiaWeb.DashboardLive do
       "voice_changed" -> gettext("Voice changed")
       "glossary_changed" -> gettext("Glossary changed")
       "quality_settings_changed" -> gettext("Quality settings changed")
-      _ -> gettext("Translation input fingerprint changed")
+      _ -> gettext("Translation inputs changed")
     end)
     |> Enum.uniq()
     |> Enum.join(" · ")
   end
 
   defp translation_item_expandable?(item) do
-    not is_nil(item.translation_diff) || not is_nil(item.failure) || item.completed_segments != [] ||
+    not is_nil(item.translation_diff) || item.translation_reasons != [] ||
+      not is_nil(item.failure) ||
+      item.completed_segments != [] ||
       (item.status == :running && live_translation_text(item) != "") ||
       (item.status in [:failed, :done] && item.text != "")
   end

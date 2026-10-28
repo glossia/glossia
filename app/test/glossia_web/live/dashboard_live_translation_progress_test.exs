@@ -7,6 +7,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
   alias Glossia.Repo
   alias Glossia.TestHelpers
   alias Glossia.TranslationSessions
+  alias Glossia.Translations.DependencyDiff
 
   test "waiting files show linguistic input rather than an active translation", %{conn: conn} do
     user = TestHelpers.create_user("waiting-linguist@test.com", "waiting-linguist")
@@ -106,39 +107,198 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
 
     conn = init_test_session(conn, %{user_id: user.id})
 
-    {:ok, view, _html} =
+    {:ok, view, html} =
       live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
 
     assert has_element?(view, "#translation-progress-items", "Why translating")
     assert has_element?(view, "#translation-progress-item-0", "Model changed")
-    assert has_element?(view, "#translation-progress-item-0", "Validation fingerprint changed")
+    assert has_element?(view, "#translation-progress-item-0", "Validation rules changed")
     assert has_element?(view, "#translation-progress-item-1", "Not recorded")
 
     assert has_element?(
              view,
-             "#translation-progress-item-0-expanded [data-part='input-diff']",
-             "Translation input changes"
+             "#translation-progress-item-0-expanded [data-part='input-summary']",
+             "Why translation was needed"
            )
 
     assert has_element?(
              view,
-             "#translation-progress-item-0-expanded [data-part='dependency-values']",
-             "old-writer"
+             "#translation-progress-item-0-expanded [data-part='change-summary']",
+             "The translation model changed. The validation rules changed."
            )
 
-    assert has_element?(
-             view,
-             "#translation-progress-item-0-expanded [data-part='dependency-values']",
-             "new-writer"
-           )
+    refute html =~ "old-writer"
+    refute html =~ "new-writer"
+    refute html =~ "abc123"
+    refute has_element?(view, "#translation-progress-item-1-expanded [data-part='input-summary']")
+  end
 
-    assert has_element?(
-             view,
-             "#translation-progress-item-0-expanded [data-part='diff-baseline']",
-             "abc123"
-           )
+  test "summaries distinguish known changes from missing or incomplete history", %{conn: conn} do
+    user = TestHelpers.create_user("change-summary@test.com", "change-summary")
+    {:ok, project} = Projects.create_project(user.account, %{handle: "summary", name: "Summary"})
 
-    refute has_element?(view, "#translation-progress-item-1-expanded [data-part='input-diff']")
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{status: "running"})
+
+    entry = %{
+      "term_hash" => "term",
+      "translation_hash" => "translation",
+      "definition_hash" => "definition",
+      "case_sensitive" => false
+    }
+
+    previous =
+      Map.new(~w(removed renamed translation definition case unchanged), &{"entry:#{&1}", entry})
+
+    current =
+      previous
+      |> Map.delete("entry:removed")
+      |> Map.put("entry:added-1", entry)
+      |> Map.put("entry:added-2", entry)
+      |> put_in(["entry:renamed", "term_hash"], "new-term")
+      |> put_in(["entry:translation", "translation_hash"], "new-translation")
+      |> put_in(["entry:definition", "translation_hash"], "another-translation")
+      |> put_in(["entry:definition", "definition_hash"], "new-definition")
+      |> put_in(["entry:case", "case_sensitive"], true)
+
+    glossary = %{
+      "kind" => "context",
+      "label" => "terminology",
+      "metadata" => %{"content_hash" => "previous"},
+      "details" => %{"content_hash" => previous},
+      "children" => []
+    }
+
+    changed_glossary =
+      glossary
+      |> put_in(["metadata", "content_hash"], "current")
+      |> put_in(["details", "content_hash"], current)
+
+    # The same field names elsewhere must not count as glossary edits.
+    unrelated = %{glossary | "label" => "project"}
+    changed_unrelated = %{changed_glossary | "label" => "project"}
+
+    before = %{
+      "kind" => "translation_input",
+      "label" => "en/guide.md",
+      "metadata" => %{},
+      "children" => [glossary, unrelated]
+    }
+
+    after_value = %{before | "children" => [changed_glossary, changed_unrelated]}
+    tree = DependencyDiff.diff(before, after_value)
+
+    partial_history =
+      update_in(glossary, ["details", "content_hash"], fn entries ->
+        Map.new(entries, fn {id, fields} -> {id, Map.delete(fields, "translation_hash")} end)
+      end)
+
+    cases = [
+      {
+        ["source_changed"],
+        nil,
+        "The source text changed since the last accepted translation."
+      },
+      {
+        ["glossary_changed", "voice_changed", "glossary_changed"],
+        %{"baseline" => "recorded"},
+        "The glossary used for this file changed; term-level details are unavailable for this comparison. The writing style guidance changed."
+      },
+      {
+        ["glossary_changed"],
+        %{"baseline" => "recorded", "tree" => tree},
+        "The glossary used for this file changed: 2 terms added, 1 term removed, 1 term renamed, 2 translations updated, 1 definition updated, case sensitivity changed for 1 term."
+      },
+      {
+        ["glossary_changed"],
+        %{"baseline" => "missing_lockfile", "tree" => tree},
+        "The glossary used for this file changed; term-level details are unavailable for this comparison."
+      },
+      {
+        ["glossary_changed"],
+        %{
+          "baseline" => "recorded",
+          "tree" => DependencyDiff.diff(Map.delete(glossary, "details"), changed_glossary)
+        },
+        "The glossary used for this file changed; term-level details are unavailable for this comparison."
+      },
+      {
+        ["glossary_changed"],
+        %{
+          "baseline" => "recorded",
+          "tree" =>
+            DependencyDiff.diff(
+              partial_history,
+              put_in(glossary, ["metadata", "content_hash"], "current")
+            )
+        },
+        "The glossary used for this file changed; term-level details are unavailable for this comparison."
+      },
+      {
+        ["lockfile_missing", "output_missing"],
+        %{"baseline" => "missing_lockfile"},
+        "No usable previous translation record was found. The translated file is missing or empty."
+      },
+      {
+        [],
+        %{"baseline" => "missing_lockfile"},
+        "No usable previous translation record was found."
+      },
+      {
+        ["translation_inputs_changed"],
+        %{"baseline" => "legacy_lockfile"},
+        "Translation inputs changed, but the previous record does not identify which ones."
+      },
+      {
+        [],
+        %{"baseline" => "legacy_lockfile"},
+        "Translation inputs changed, but the previous record does not identify which ones."
+      }
+    ]
+
+    queued =
+      cases
+      |> Enum.with_index()
+      |> Enum.map(fn {{reasons, diff, _summary}, index} ->
+        %{
+          index: index,
+          output_path: "es/guide-#{index}.md",
+          locale: "es",
+          translation_reasons: reasons,
+          translation_diff: diff
+        }
+      end)
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "plan_assessed",
+      seq: 1,
+      total: length(cases),
+      needs_translation: length(cases),
+      up_to_date: 0,
+      queued: queued
+    })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+
+    {:ok, view, html} =
+      live(conn, ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}")
+
+    for {{_reasons, _diff, summary}, index} <- Enum.with_index(cases) do
+      text =
+        view
+        |> element(
+          "#translation-progress-item-#{index}-input-summary [data-part='change-summary']"
+        )
+        |> render()
+        |> LazyHTML.from_fragment()
+        |> LazyHTML.text()
+        |> String.trim()
+
+      assert text == summary
+    end
+
+    refute html =~ "fingerprint"
+    refute has_element?(view, "[data-part='dependency-node']")
   end
 
   test "public and restricted readers never see persisted private glossary identifiers", %{
@@ -196,6 +356,7 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
           index: 0,
           output_path: "es/guide.md",
           locale: "es",
+          translation_reasons: ["glossary_changed"],
           translation_diff: %{
             "version" => 1,
             "baseline" => "recorded",
@@ -212,8 +373,14 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
         live(viewer_conn, ~p"/#{account.handle}/#{project.handle}/-/sessions/#{session.id}")
 
       refute html =~ "SECRET-ACQUISITION"
-      assert has_element?(view, "[data-part=dependency-label]", "entry:1")
-      assert has_element?(view, "[data-part=dependency-values]", "new-hash")
+      refute html =~ "old-hash"
+      refute html =~ "new-hash"
+
+      assert has_element?(
+               view,
+               "[data-part=change-summary]",
+               "The glossary used for this file changed: 1 translation updated."
+             )
     end
   end
 

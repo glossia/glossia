@@ -25,6 +25,11 @@ msgid_plural "%{count} content hits"
 msgstr[0] "%{count} 条内容"
 
 #, elixir-autogen, elixir-format
+msgid "%{count} definition updated"
+msgid_plural "%{count} definitions updated"
+msgstr[0] ""
+
+#, elixir-autogen, elixir-format
 msgid "%{count} discussions total"
 msgstr "总计 %{count} 个讨论"
 
@@ -44,9 +49,29 @@ msgid_plural "%{count} repositories"
 msgstr[0] "%{count} 个仓库"
 
 #, elixir-autogen, elixir-format
+msgid "%{count} term added"
+msgid_plural "%{count} terms added"
+msgstr[0] ""
+
+#, elixir-autogen, elixir-format
+msgid "%{count} term removed"
+msgid_plural "%{count} terms removed"
+msgstr[0] ""
+
+#, elixir-autogen, elixir-format
+msgid "%{count} term renamed"
+msgid_plural "%{count} terms renamed"
+msgstr[0] ""
+
+#, elixir-autogen, elixir-format
 msgid "%{count} translated"
 msgid_plural "%{count} translated"
 msgstr[0] "%{count} 个已翻译"
+
+#, elixir-autogen, elixir-format
+msgid "%{count} translation updated"
+msgid_plural "%{count} translations updated"
+msgstr[0] ""
 
 #, elixir-autogen, elixir-format
 msgid "%{count} users total"
@@ -512,10 +537,6 @@ msgstr "背景、设计决策与概念"
 #, elixir-autogen, elixir-format
 msgid "Base URL"
 msgstr "基础 URL"
-
-#, elixir-autogen, elixir-format
-msgid "Baseline source commit:"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Bio"
@@ -1555,10 +1576,6 @@ msgid "Generating cultural notes..."
 msgstr "正在生成文化笔记..."
 
 #, elixir-autogen, elixir-format
-msgid "Generation settings"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Generative"
 msgstr "生成式"
 
@@ -1701,10 +1718,6 @@ msgstr "在创建建议之前返回编辑草稿。"
 #, elixir-autogen, elixir-format
 msgid "Go to project"
 msgstr "前往项目"
-
-#, elixir-autogen, elixir-format
-msgid "Guidance"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Guidelines"
@@ -2025,10 +2038,6 @@ msgstr "语言区域缺口访问"
 #, elixir-autogen, elixir-format
 msgid "Localization setup"
 msgstr "本地化设置"
-
-#, elixir-autogen, elixir-format
-msgid "Lockfile missing or unreadable"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Log in"
@@ -2391,6 +2400,10 @@ msgid "No pending invitations"
 msgstr "无待处理邀请"
 
 #, elixir-autogen, elixir-format
+msgid "No previous translation record"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "No projects yet"
 msgstr "暂无项目"
 
@@ -2401,10 +2414,6 @@ msgstr "未检测到提议的更改。"
 #, elixir-autogen, elixir-format
 msgid "No proposed glossary changes"
 msgstr "无提议的术语表更改"
-
-#, elixir-autogen, elixir-format
-msgid "No readable lockfile was available. These are newly recorded inputs, not proof that every value changed."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "No reported usage"
@@ -2463,6 +2472,10 @@ msgid "No translations yet"
 msgstr "暂无翻译"
 
 #, elixir-autogen, elixir-format
+msgid "No usable previous translation record was found."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "No users found."
 msgstr "未找到用户。"
 
@@ -2485,10 +2498,6 @@ msgstr "未连接"
 #, elixir-autogen, elixir-format
 msgid "Not detected"
 msgstr "未检测到"
-
-#, elixir-autogen, elixir-format
-msgid "Not present"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Not recorded"
@@ -2549,10 +2558,6 @@ msgstr "这是一站式语言学家和语言管理员定义组织如何表达、
 #, elixir-autogen, elixir-format
 msgid "One source of truth for how you speak"
 msgstr "关于您如何表达的唯一单一事实来源"
-
-#, elixir-autogen, elixir-format
-msgid "Only changed branches are shown, compared with the last accepted translation. Private content is represented by SHA-256 fingerprints, not a text diff."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Only provider-reported counts are shown. Historical translations, local Pi sessions, and decision evaluations are not included."
@@ -2625,10 +2630,6 @@ msgstr "顺序"
 #, elixir-autogen, elixir-format
 msgid "Organization"
 msgstr "组织"
-
-#, elixir-autogen, elixir-format
-msgid "Organization context"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Organizations"
@@ -2899,10 +2900,6 @@ msgid "Pull request created"
 msgstr "已创建拉取请求"
 
 #, elixir-autogen, elixir-format
-msgid "Quality evaluation"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Quality settings changed"
 msgstr ""
 
@@ -3165,10 +3162,6 @@ msgstr "运行中"
 #, elixir-autogen, elixir-format
 msgid "Runs started during the last 14 days."
 msgstr "最近 14 天内启动的运行。"
-
-#, elixir-autogen, elixir-format
-msgid "SHA-256 fingerprint"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Save"
@@ -3679,8 +3672,20 @@ msgid "The general character of your writing."
 msgstr "您写作内容的一般特征。"
 
 #, elixir-autogen, elixir-format
+msgid "The glossary used for this file changed: %{changes}."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The glossary used for this file changed; term-level details are unavailable for this comparison."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The interest form is temporarily unavailable while we fix a configuration issue. Please try again shortly."
 msgstr "我们正在修复配置问题，兴趣表单暂时不可用。请稍后再试。"
+
+#, elixir-autogen, elixir-format
+msgid "The language-specific instructions changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The localization baseline is ready for review and merge."
@@ -3715,12 +3720,16 @@ msgid "The percentage of checked content reused without another translation."
 msgstr "无需另译即可重用的已核查内容百分比。"
 
 #, elixir-autogen, elixir-format
-msgid "The previous lockfile has no dependency tree. Only its combined input fingerprint can be compared."
+msgid "The project instructions changed."
 msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The public home page for the application, if it has one."
 msgstr "应用的公开主页（如有）。"
+
+#, elixir-autogen, elixir-format
+msgid "The quality evaluation settings changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The repository already has an L10N.md, or you will write it. Glossia creates the project now and translates on the next push."
@@ -3751,24 +3760,60 @@ msgid "The setup assistant is continuing with the repository setup."
 msgstr "设置助手继续仓库设置。"
 
 #, elixir-autogen, elixir-format
+msgid "The source text changed since the last accepted translation."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The stable identifier integrations use to start authorization."
 msgstr "集成启动授权时使用的稳定标识。"
+
+#, elixir-autogen, elixir-format
+msgid "The translated file is missing or empty."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The translated file's contents changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The translation did not meet the decision model's quality requirements."
 msgstr "该译文未达到决策模型的质量要求。"
 
 #, elixir-autogen, elixir-format
+msgid "The translation engine was updated."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The translation model changed."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The translation settings changed."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The translation still failed quality checks after the configured revisions. Adjust the translation context or minimum score before retrying."
 msgstr "翻译在配置的修订后仍未能通过质量检查。重试前请调整翻译上下文或最低分数。"
+
+#, elixir-autogen, elixir-format
+msgid "The translation's destination path changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The validation command rejected the translated output for this file."
 msgstr "验证命令拒绝此文件的翻译输出。"
 
 #, elixir-autogen, elixir-format
+msgid "The validation rules changed."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The verification challenge did not pass. Please try again."
 msgstr "验证挑战未通过。请重试。"
+
+#, elixir-autogen, elixir-format
+msgid "The writing style guidance changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "There was a problem signing you in. Please try again."
@@ -3869,10 +3914,6 @@ msgstr "此邀请无效。"
 #, elixir-autogen, elixir-format
 msgid "This item is not a suggestion."
 msgstr "该项并非建议。"
-
-#, elixir-autogen, elixir-format
-msgid "This older baseline recorded only a combined fingerprint for this branch. Field-level history is unavailable."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "This organization could not be claimed."
@@ -4131,15 +4172,11 @@ msgid "Translation goals"
 msgstr "翻译目标"
 
 #, elixir-autogen, elixir-format
-msgid "Translation input changes"
+msgid "Translation inputs changed"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Translation input fingerprint changed"
-msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "Translation inputs"
+msgid "Translation inputs changed, but the previous record does not identify which ones."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -4149,10 +4186,6 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Translation opportunities appear once visits include country and language data for an unsupported language."
 msgstr "一旦访问数据包含不支持语言的国家和语言信息，翻译机会将显示。"
-
-#, elixir-autogen, elixir-format
-msgid "Translation output"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Translation path changed"
@@ -4327,12 +4360,12 @@ msgid "Validation code"
 msgstr "验证代码"
 
 #, elixir-autogen, elixir-format
-msgid "Validation fingerprint changed"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Validation message"
 msgstr "验证消息"
+
+#, elixir-autogen, elixir-format
+msgid "Validation rules changed"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Verification failed. Please try again."
@@ -4555,6 +4588,10 @@ msgid "Why translating"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Why translation was needed"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Work through a decision with Toki…"
 msgstr "与 Toki 共同处理一项决策…"
 
@@ -4709,6 +4746,11 @@ msgstr "和"
 #, elixir-autogen, elixir-format
 msgid "and open standards like"
 msgstr "以及开放标准，如"
+
+#, elixir-autogen, elixir-format
+msgid "case sensitivity changed for %{count} term"
+msgid_plural "case sensitivity changed for %{count} terms"
+msgstr[0] ""
 
 #, elixir-autogen, elixir-format
 msgid "colleague@example.com"

@@ -25,6 +25,11 @@ msgid_plural "%{count} content hits"
 msgstr[0] "%{count} 건의 콘텐츠 수"
 
 #, elixir-autogen, elixir-format
+msgid "%{count} definition updated"
+msgid_plural "%{count} definitions updated"
+msgstr[0] ""
+
+#, elixir-autogen, elixir-format
 msgid "%{count} discussions total"
 msgstr "총 %{count} 건의 토론"
 
@@ -44,9 +49,29 @@ msgid_plural "%{count} repositories"
 msgstr[0] "%{count} 리포지토리"
 
 #, elixir-autogen, elixir-format
+msgid "%{count} term added"
+msgid_plural "%{count} terms added"
+msgstr[0] ""
+
+#, elixir-autogen, elixir-format
+msgid "%{count} term removed"
+msgid_plural "%{count} terms removed"
+msgstr[0] ""
+
+#, elixir-autogen, elixir-format
+msgid "%{count} term renamed"
+msgid_plural "%{count} terms renamed"
+msgstr[0] ""
+
+#, elixir-autogen, elixir-format
 msgid "%{count} translated"
 msgid_plural "%{count} translated"
 msgstr[0] "%{count} 건 번역 완료"
+
+#, elixir-autogen, elixir-format
+msgid "%{count} translation updated"
+msgid_plural "%{count} translations updated"
+msgstr[0] ""
 
 #, elixir-autogen, elixir-format
 msgid "%{count} users total"
@@ -512,10 +537,6 @@ msgstr "배경, 디자인 결정, 그리고 개념"
 #, elixir-autogen, elixir-format
 msgid "Base URL"
 msgstr "기본 URL"
-
-#, elixir-autogen, elixir-format
-msgid "Baseline source commit:"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Bio"
@@ -1555,10 +1576,6 @@ msgid "Generating cultural notes..."
 msgstr "문화적 참고 사항 생성 중..."
 
 #, elixir-autogen, elixir-format
-msgid "Generation settings"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Generative"
 msgstr "생성형"
 
@@ -1701,10 +1718,6 @@ msgstr "제안하기 전에 대사를 수정하려면 뒤로 voltar.ID."
 #, elixir-autogen, elixir-format
 msgid "Go to project"
 msgstr "프로젝트로 이동"
-
-#, elixir-autogen, elixir-format
-msgid "Guidance"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Guidelines"
@@ -2025,10 +2038,6 @@ msgstr "로케일 격차 방문"
 #, elixir-autogen, elixir-format
 msgid "Localization setup"
 msgstr "로컬라이제이션 설정"
-
-#, elixir-autogen, elixir-format
-msgid "Lockfile missing or unreadable"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Log in"
@@ -2391,6 +2400,10 @@ msgid "No pending invitations"
 msgstr "대기 중인 초대장이 없습니다."
 
 #, elixir-autogen, elixir-format
+msgid "No previous translation record"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "No projects yet"
 msgstr "아직 프로젝트가 없습니다"
 
@@ -2401,10 +2414,6 @@ msgstr "제안된 변경 사항이 감지되지 않았습니다."
 #, elixir-autogen, elixir-format
 msgid "No proposed glossary changes"
 msgstr "제안된 용어집 변경 없음"
-
-#, elixir-autogen, elixir-format
-msgid "No readable lockfile was available. These are newly recorded inputs, not proof that every value changed."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "No reported usage"
@@ -2463,6 +2472,10 @@ msgid "No translations yet"
 msgstr "아직 번역 없음"
 
 #, elixir-autogen, elixir-format
+msgid "No usable previous translation record was found."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "No users found."
 msgstr "사용자를 찾을 수 없습니다."
 
@@ -2485,10 +2498,6 @@ msgstr "연결되지 않았습니다"
 #, elixir-autogen, elixir-format
 msgid "Not detected"
 msgstr "식별되지 않음"
-
-#, elixir-autogen, elixir-format
-msgid "Not present"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Not recorded"
@@ -2549,10 +2558,6 @@ msgstr "언어학자와 언어 관리자가 조직의 소통 방식을 정의하
 #, elixir-autogen, elixir-format
 msgid "One source of truth for how you speak"
 msgstr "소통 방식에 대한 단일 진실 소스"
-
-#, elixir-autogen, elixir-format
-msgid "Only changed branches are shown, compared with the last accepted translation. Private content is represented by SHA-256 fingerprints, not a text diff."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Only provider-reported counts are shown. Historical translations, local Pi sessions, and decision evaluations are not included."
@@ -2625,10 +2630,6 @@ msgstr "순서"
 #, elixir-autogen, elixir-format
 msgid "Organization"
 msgstr "조직"
-
-#, elixir-autogen, elixir-format
-msgid "Organization context"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Organizations"
@@ -2899,10 +2900,6 @@ msgid "Pull request created"
 msgstr "풀 리퀘스트가 생성되었습니다."
 
 #, elixir-autogen, elixir-format
-msgid "Quality evaluation"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Quality settings changed"
 msgstr ""
 
@@ -3165,10 +3162,6 @@ msgstr "진행 중"
 #, elixir-autogen, elixir-format
 msgid "Runs started during the last 14 days."
 msgstr "지난 14 일 동안 시작된 실행."
-
-#, elixir-autogen, elixir-format
-msgid "SHA-256 fingerprint"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Save"
@@ -3679,8 +3672,20 @@ msgid "The general character of your writing."
 msgstr "글체의 일반적인 성격."
 
 #, elixir-autogen, elixir-format
+msgid "The glossary used for this file changed: %{changes}."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The glossary used for this file changed; term-level details are unavailable for this comparison."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The interest form is temporarily unavailable while we fix a configuration issue. Please try again shortly."
 msgstr "설정 문제를 수정하는 동안 관심 표현 양식은 일시적으로 사용할 수 없습니다. 조금 후 다시 시도해 주세요."
+
+#, elixir-autogen, elixir-format
+msgid "The language-specific instructions changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The localization baseline is ready for review and merge."
@@ -3715,12 +3720,16 @@ msgid "The percentage of checked content reused without another translation."
 msgstr "다른 번역 없이 재사용된 검사된 콘텐츠 비율"
 
 #, elixir-autogen, elixir-format
-msgid "The previous lockfile has no dependency tree. Only its combined input fingerprint can be compared."
+msgid "The project instructions changed."
 msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The public home page for the application, if it has one."
 msgstr "애플리케이션의 공개 홈페이지입니다 (있는 경우)."
+
+#, elixir-autogen, elixir-format
+msgid "The quality evaluation settings changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The repository already has an L10N.md, or you will write it. Glossia creates the project now and translates on the next push."
@@ -3751,24 +3760,60 @@ msgid "The setup assistant is continuing with the repository setup."
 msgstr "설정 비서가 저장소 설정을 계속하고 있습니다."
 
 #, elixir-autogen, elixir-format
+msgid "The source text changed since the last accepted translation."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The stable identifier integrations use to start authorization."
 msgstr "인증 시작에 통합이 사용하는 안정적인 식별자입니다."
+
+#, elixir-autogen, elixir-format
+msgid "The translated file is missing or empty."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The translated file's contents changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The translation did not meet the decision model's quality requirements."
 msgstr "번역이 판단 모델의 품질 요구사항을 충족하지 못했습니다."
 
 #, elixir-autogen, elixir-format
+msgid "The translation engine was updated."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The translation model changed."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The translation settings changed."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The translation still failed quality checks after the configured revisions. Adjust the translation context or minimum score before retrying."
 msgstr "설정된 수정 횟수 이후에도 번역이 여전히 품질 검사를 통과하지 못했습니다. 재시도하기 전에 번역 컨텍스트 또는 최소 점수를 조정하세요."
+
+#, elixir-autogen, elixir-format
+msgid "The translation's destination path changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The validation command rejected the translated output for this file."
 msgstr "해당 파일의 번역 결과에 대한 유효성 검사 명령선이 실패했습니다."
 
 #, elixir-autogen, elixir-format
+msgid "The validation rules changed."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The verification challenge did not pass. Please try again."
 msgstr "인증 도전을 통과하지 못했습니다. 다시 시도해주세요."
+
+#, elixir-autogen, elixir-format
+msgid "The writing style guidance changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "There was a problem signing you in. Please try again."
@@ -3869,10 +3914,6 @@ msgstr "이 초대는 유효하지 않습니다."
 #, elixir-autogen, elixir-format
 msgid "This item is not a suggestion."
 msgstr "이 항목은 추천 사항이 아닙니다."
-
-#, elixir-autogen, elixir-format
-msgid "This older baseline recorded only a combined fingerprint for this branch. Field-level history is unavailable."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "This organization could not be claimed."
@@ -4131,15 +4172,11 @@ msgid "Translation goals"
 msgstr "번역 목표들"
 
 #, elixir-autogen, elixir-format
-msgid "Translation input changes"
+msgid "Translation inputs changed"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Translation input fingerprint changed"
-msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "Translation inputs"
+msgid "Translation inputs changed, but the previous record does not identify which ones."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -4149,10 +4186,6 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Translation opportunities appear once visits include country and language data for an unsupported language."
 msgstr "방문 기록이 지원되지 않는 언어의 국가 및 언어 데이터를 포함할 때 번역 기회가 표시됩니다."
-
-#, elixir-autogen, elixir-format
-msgid "Translation output"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Translation path changed"
@@ -4327,12 +4360,12 @@ msgid "Validation code"
 msgstr "검증 코드"
 
 #, elixir-autogen, elixir-format
-msgid "Validation fingerprint changed"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Validation message"
 msgstr "검증 메시지"
+
+#, elixir-autogen, elixir-format
+msgid "Validation rules changed"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Verification failed. Please try again."
@@ -4555,6 +4588,10 @@ msgid "Why translating"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Why translation was needed"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Work through a decision with Toki…"
 msgstr "Toki와 함께 판단 협의하기…"
 
@@ -4709,6 +4746,11 @@ msgstr "및"
 #, elixir-autogen, elixir-format
 msgid "and open standards like"
 msgstr "그리고 같은 개방형 표준, 예를 들어"
+
+#, elixir-autogen, elixir-format
+msgid "case sensitivity changed for %{count} term"
+msgid_plural "case sensitivity changed for %{count} terms"
+msgstr[0] ""
 
 #, elixir-autogen, elixir-format
 msgid "colleague@example.com"

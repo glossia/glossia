@@ -26,6 +26,12 @@ msgstr[0] "%{count} résultats de contenu"
 msgstr[1] "%{count} correspondances de contenu"
 
 #, elixir-autogen, elixir-format
+msgid "%{count} definition updated"
+msgid_plural "%{count} definitions updated"
+msgstr[0] ""
+msgstr[1] ""
+
+#, elixir-autogen, elixir-format
 msgid "%{count} discussions total"
 msgstr "%{count} discussions au total"
 
@@ -48,10 +54,34 @@ msgstr[0] "%{count} dépôt"
 msgstr[1] "%{count} dépôts"
 
 #, elixir-autogen, elixir-format
+msgid "%{count} term added"
+msgid_plural "%{count} terms added"
+msgstr[0] ""
+msgstr[1] ""
+
+#, elixir-autogen, elixir-format
+msgid "%{count} term removed"
+msgid_plural "%{count} terms removed"
+msgstr[0] ""
+msgstr[1] ""
+
+#, elixir-autogen, elixir-format
+msgid "%{count} term renamed"
+msgid_plural "%{count} terms renamed"
+msgstr[0] ""
+msgstr[1] ""
+
+#, elixir-autogen, elixir-format
 msgid "%{count} translated"
 msgid_plural "%{count} translated"
 msgstr[0] "%{count} traduits"
 msgstr[1] "%{count} traduits"
+
+#, elixir-autogen, elixir-format
+msgid "%{count} translation updated"
+msgid_plural "%{count} translations updated"
+msgstr[0] ""
+msgstr[1] ""
 
 #, elixir-autogen, elixir-format
 msgid "%{count} users total"
@@ -518,10 +548,6 @@ msgstr "Contexte, décisions de conception et concepts."
 #, elixir-autogen, elixir-format
 msgid "Base URL"
 msgstr "URL de base"
-
-#, elixir-autogen, elixir-format
-msgid "Baseline source commit:"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Bio"
@@ -1562,10 +1588,6 @@ msgid "Generating cultural notes..."
 msgstr "Génération des notes culturelles..."
 
 #, elixir-autogen, elixir-format
-msgid "Generation settings"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Generative"
 msgstr "Génératif"
 
@@ -1708,10 +1730,6 @@ msgstr "Revenez modifier votre brouillon avant de créer une suggestion."
 #, elixir-autogen, elixir-format
 msgid "Go to project"
 msgstr "Aller au projet"
-
-#, elixir-autogen, elixir-format
-msgid "Guidance"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Guidelines"
@@ -2032,10 +2050,6 @@ msgstr "Visites avec écart de localisation"
 #, elixir-autogen, elixir-format
 msgid "Localization setup"
 msgstr "Initialisation de la localisation"
-
-#, elixir-autogen, elixir-format
-msgid "Lockfile missing or unreadable"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Log in"
@@ -2398,6 +2412,10 @@ msgid "No pending invitations"
 msgstr "Aucune invitation en attente"
 
 #, elixir-autogen, elixir-format
+msgid "No previous translation record"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "No projects yet"
 msgstr "Aucun projet pour le moment"
 
@@ -2408,10 +2426,6 @@ msgstr "Aucun changement proposé détecté."
 #, elixir-autogen, elixir-format
 msgid "No proposed glossary changes"
 msgstr "Aucune modification de glossaire proposée"
-
-#, elixir-autogen, elixir-format
-msgid "No readable lockfile was available. These are newly recorded inputs, not proof that every value changed."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "No reported usage"
@@ -2470,6 +2484,10 @@ msgid "No translations yet"
 msgstr "Aucune traduction encore"
 
 #, elixir-autogen, elixir-format
+msgid "No usable previous translation record was found."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "No users found."
 msgstr "Aucun utilisateur trouvé."
 
@@ -2492,10 +2510,6 @@ msgstr "Non connecté"
 #, elixir-autogen, elixir-format
 msgid "Not detected"
 msgstr "Non détecté."
-
-#, elixir-autogen, elixir-format
-msgid "Not present"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Not recorded"
@@ -2556,10 +2570,6 @@ msgstr "Un seul endroit où les linguistes et gestionnaires de la langue défini
 #, elixir-autogen, elixir-format
 msgid "One source of truth for how you speak"
 msgstr "Une seule source de vérité pour la manière dont vous communiquez."
-
-#, elixir-autogen, elixir-format
-msgid "Only changed branches are shown, compared with the last accepted translation. Private content is represented by SHA-256 fingerprints, not a text diff."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Only provider-reported counts are shown. Historical translations, local Pi sessions, and decision evaluations are not included."
@@ -2632,10 +2642,6 @@ msgstr "Ordre"
 #, elixir-autogen, elixir-format
 msgid "Organization"
 msgstr "Organisation"
-
-#, elixir-autogen, elixir-format
-msgid "Organization context"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Organizations"
@@ -2906,10 +2912,6 @@ msgid "Pull request created"
 msgstr "Demande de fusion créée."
 
 #, elixir-autogen, elixir-format
-msgid "Quality evaluation"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Quality settings changed"
 msgstr ""
 
@@ -3172,10 +3174,6 @@ msgstr "En cours"
 #, elixir-autogen, elixir-format
 msgid "Runs started during the last 14 days."
 msgstr "Exécutions démarrées au cours des 14 derniers jours."
-
-#, elixir-autogen, elixir-format
-msgid "SHA-256 fingerprint"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Save"
@@ -3686,8 +3684,20 @@ msgid "The general character of your writing."
 msgstr "Le caractère général de votre écrit."
 
 #, elixir-autogen, elixir-format
+msgid "The glossary used for this file changed: %{changes}."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The glossary used for this file changed; term-level details are unavailable for this comparison."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The interest form is temporarily unavailable while we fix a configuration issue. Please try again shortly."
 msgstr "Le formulaire d'intérêt est temporairement indisponible tandis que nous corrigeons un problème de configuration. Veuillez réessayer bientôt."
+
+#, elixir-autogen, elixir-format
+msgid "The language-specific instructions changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The localization baseline is ready for review and merge."
@@ -3722,12 +3732,16 @@ msgid "The percentage of checked content reused without another translation."
 msgstr "Le pourcentage de contenu vérifié réutilisé sans autre traduction."
 
 #, elixir-autogen, elixir-format
-msgid "The previous lockfile has no dependency tree. Only its combined input fingerprint can be compared."
+msgid "The project instructions changed."
 msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The public home page for the application, if it has one."
 msgstr "La page d'accueil publique de l'application, si elle en a une."
+
+#, elixir-autogen, elixir-format
+msgid "The quality evaluation settings changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The repository already has an L10N.md, or you will write it. Glossia creates the project now and translates on the next push."
@@ -3758,24 +3772,60 @@ msgid "The setup assistant is continuing with the repository setup."
 msgstr "L'assistant de configuration continue la configuration du référentriel."
 
 #, elixir-autogen, elixir-format
+msgid "The source text changed since the last accepted translation."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The stable identifier integrations use to start authorization."
 msgstr "L'identifiant stable utilisé par les intégrations pour démarrer l'autorisation."
+
+#, elixir-autogen, elixir-format
+msgid "The translated file is missing or empty."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The translated file's contents changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The translation did not meet the decision model's quality requirements."
 msgstr "La traduction ne répond pas aux exigences de qualité du modèle de décision."
 
 #, elixir-autogen, elixir-format
+msgid "The translation engine was updated."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The translation model changed."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The translation settings changed."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The translation still failed quality checks after the configured revisions. Adjust the translation context or minimum score before retrying."
 msgstr "Les vérifications de qualité de la traduction ont échoué après les révisions configurées. Ajustez le contexte de traduction ou le score minimum avant de réessayer."
+
+#, elixir-autogen, elixir-format
+msgid "The translation's destination path changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The validation command rejected the translated output for this file."
 msgstr "La commande de validation a rejeté la traduction pour ce fichier."
 
 #, elixir-autogen, elixir-format
+msgid "The validation rules changed."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The verification challenge did not pass. Please try again."
 msgstr "Le défi de vérification a échoué. Veuillez réessayer."
+
+#, elixir-autogen, elixir-format
+msgid "The writing style guidance changed."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "There was a problem signing you in. Please try again."
@@ -3876,10 +3926,6 @@ msgstr "Cette invitation n'est pas valide."
 #, elixir-autogen, elixir-format
 msgid "This item is not a suggestion."
 msgstr "Cet élément n'est pas une suggestion."
-
-#, elixir-autogen, elixir-format
-msgid "This older baseline recorded only a combined fingerprint for this branch. Field-level history is unavailable."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "This organization could not be claimed."
@@ -4138,15 +4184,11 @@ msgid "Translation goals"
 msgstr "Objectifs de traduction"
 
 #, elixir-autogen, elixir-format
-msgid "Translation input changes"
+msgid "Translation inputs changed"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Translation input fingerprint changed"
-msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "Translation inputs"
+msgid "Translation inputs changed, but the previous record does not identify which ones."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -4156,10 +4198,6 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Translation opportunities appear once visits include country and language data for an unsupported language."
 msgstr "Les opportunités de traduction apparaissent une fois que les visites incluent des données de pays et de langue pour une langue non prise en charge."
-
-#, elixir-autogen, elixir-format
-msgid "Translation output"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Translation path changed"
@@ -4334,12 +4372,12 @@ msgid "Validation code"
 msgstr "Code de validation"
 
 #, elixir-autogen, elixir-format
-msgid "Validation fingerprint changed"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Validation message"
 msgstr "Message de validation"
+
+#, elixir-autogen, elixir-format
+msgid "Validation rules changed"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Verification failed. Please try again."
@@ -4562,6 +4600,10 @@ msgid "Why translating"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Why translation was needed"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Work through a decision with Toki…"
 msgstr "Passer en revue une décision avec Toki…"
 
@@ -4716,6 +4758,12 @@ msgstr "et"
 #, elixir-autogen, elixir-format
 msgid "and open standards like"
 msgstr "et les normes ouvertes comme"
+
+#, elixir-autogen, elixir-format
+msgid "case sensitivity changed for %{count} term"
+msgid_plural "case sensitivity changed for %{count} terms"
+msgstr[0] ""
+msgstr[1] ""
 
 #, elixir-autogen, elixir-format
 msgid "colleague@example.com"
