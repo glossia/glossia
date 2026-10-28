@@ -289,7 +289,7 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
-    test "recovers unescaped JSON quotes without dropping quoted prose or inline code",
+    test "recovers malformed or missing single-unit responses without dropping prose or inline code",
          %{
            tmp_dir: dir
          } do
@@ -306,16 +306,19 @@ defmodule Glossia.Translations.EngineTest do
           server_context: Context.empty_bundle("zh_Hans")
         })
 
-      for recovery <- [:json, :plain] do
+      for recovery <- [:json, :plain, :missing] do
         stub_stream(fn _account, payload, _on_event ->
           cond do
-            payload["segment_kind"] == "markdown_unit" and recovery == :plain ->
+            payload["segment_kind"] == "markdown_unit" and recovery in [:plain, :missing] ->
               if payload["last_error"],
                 do: translated(translation),
                 else: translated(String.replace(translation, "<g1/>", ""))
 
             payload["segment_kind"] == "markdown_unit" ->
               translated("Invalid response")
+
+            recovery == :missing ->
+              translated(JSON.encode!(%{"wrong-id" => translation}))
 
             recovery == :json and
                 String.contains?(payload["last_error"] || "", "valid JSON object") ->
@@ -374,7 +377,8 @@ defmodule Glossia.Translations.EngineTest do
         source,
         "This operation, known as *\"warming,\"* produces binaries.\n\n" <>
           "1. **Request access.** Runners are invite-only.\n\n" <>
-          "Previews are _private_ by default.\n"
+          "Previews are _private_ by default.\n\n" <>
+          "**Connect once in Tuist.** In **Settings**, choose **Connect**.\n"
       )
 
       parent = self()
@@ -392,6 +396,9 @@ defmodule Glossia.Translations.EngineTest do
 
             "Previews are <g1>private</g1> by default." ->
               "プレビューはデフォルトで<g1>非公開</g1>です。"
+
+            "<g1>Connect once in Tuist.</g1> In <g2>Settings</g2>, choose <g3>Connect</g3>." ->
+              "<g1>Tuist で接続します。</g1><g2>Settings</g2>で<g3>Connect</g3>を選択します。"
           end)
         )
       end)
@@ -410,7 +417,8 @@ defmodule Glossia.Translations.EngineTest do
       assert result.text ==
                "この操作は *「ウォーミング」* と呼ばれ、バイナリを生成します。\n\n" <>
                  "1. **アクセスを申請。** ランナーは招待制です。\n\n" <>
-                 "プレビューはデフォルトで _非公開_ です。\n"
+                 "プレビューはデフォルトで _非公開_ です。\n\n" <>
+                 "**Tuist で接続します。** **Settings**で**Connect**を選択します。\n"
 
       assert_received :request
       refute_received :request

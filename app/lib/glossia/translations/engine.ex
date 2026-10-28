@@ -1086,9 +1086,10 @@ defmodule Glossia.Translations.Engine do
                 error -> error
               end
             else
-              if decoded == :invalid_json do
-                # One unit needs no JSON envelope. Keep its literal quotes and
-                # validate its text and tags exactly as in the batched path.
+              if decoded == :invalid_json or match?([{_, "missing from the response"}], failures) do
+                # One unit needs neither a JSON envelope nor an id. Recover
+                # malformed JSON and omitted ids while still validating the
+                # complete text and tags exactly as in the batched path.
                 translate_markdown_unit_rounds(
                   state,
                   %{segment | kind: "markdown_unit"},

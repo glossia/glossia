@@ -572,8 +572,9 @@ defmodule Glossia.Translations.MarkdownUnits do
 
   # CommonMark emphasis is punctuation-sensitive: **申請。**続く is literal
   # text, not strong emphasis. Underscores also cannot form intraword emphasis,
-  # as in は_非公開_です. Keep the source delimiters and separate only those
-  # boundaries. The engine re-parses and checks the repair before accepting it.
+  # as in は_非公開_です. Adjacent closing/opening tags need separation too,
+  # otherwise their delimiters merge. Keep the source delimiters and re-parse
+  # the repair before accepting it.
   defp separate_emphasis(tokens, parts) do
     Enum.zip([tokens, parts, ["" | parts], Enum.drop(parts, 1) ++ [""]])
     |> Enum.map(fn
@@ -585,8 +586,9 @@ defmodule Glossia.Translations.MarkdownUnits do
 
       {{:close, _}, delimiter, before, following}
       when delimiter in ["*", "**", "_", "__", "~~"] ->
-        if (delimiter in ["_", "__"] or String.match?(before, ~r/[\p{P}\p{S}]\z/u)) and
-             String.match?(following, ~r/\A[^\s\p{Z}\p{P}\p{S}]/u),
+        if following in ["*", "**", "_", "__", "~~"] or
+             ((delimiter in ["_", "__"] or String.match?(before, ~r/[\p{P}\p{S}]\z/u)) and
+                String.match?(following, ~r/\A[^\s\p{Z}\p{P}\p{S}]/u)),
            do: delimiter <> " ",
            else: delimiter
 
