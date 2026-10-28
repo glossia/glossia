@@ -8,43 +8,47 @@
 }
 ---
 
-Isolated translation runners execute each translation session as a detached
-Kubernetes Job. They also provide a managed FLAME runner pool and a
-Kubernetes-backed adapter for project-setup sandboxes. The implementations and
-their tests live under `ee/` and are absent from Community builds.
+Each translation session runs in a separate Kubernetes Job that survives web
+deployments. Project setup uses sandbox Pods. A managed FLAME pool provides
+additional runner capacity, separate from translation Jobs.
 
 ## Requirements
 
-- An Enterprise build and permission for production use under the Enterprise License.
-- A Kubernetes cluster. Outside a cluster, the Enterprise translation launcher
-  falls back to local execution; it does not provide isolation there.
+- The Enterprise image and permission for production use under the Enterprise License.
+- A Kubernetes cluster. Outside Kubernetes, translations fall back to local
+  execution **without isolation**.
 - A scheduling service account allowed to read its Pod and Deployment, create
   and delete Jobs, and manage setup sandbox Pods in its namespace.
 - Network access from translation Jobs to PostgreSQL, ClickHouse, GitHub, and
-  the configured model provider. Progress delivery across replicas also needs
-  the existing BEAM clustering configuration and a shared release cookie.
-- For setup sandbox command execution and file transfer, `kubectl` in the
-  application release image with access to the in-cluster API.
+  the configured model provider. Cross-replica progress also requires BEAM
+  clustering and a shared release cookie.
+- `kubectl` in the application image, with in-cluster API access, for setup
+  commands and file transfer.
 - For microVM isolation, nodes with Kata installed and a matching RuntimeClass.
 
-## Translation Job lifecycle
+## Execution and isolation
 
-The Job inherits the scheduling web Pod's application image, environment,
-environment sources, and image-pull secrets. It has no owner reference to the
-web Pod, so a web rollout does not garbage-collect the Job. It runs the image
-selected at launch rather than switching engine versions mid-session.
+Jobs inherit the scheduling web Pod's image, environment, environment sources,
+and image-pull secrets. They keep that image for the session and are not owned
+by the web Pod, so a web rollout does not delete them.
 
-The Job starts database connections, PubSub, progress ingestion, and the
-translation task. It does not serve HTTP, consume Oban queues, or start another
-runner pool. Its container has no mounted Kubernetes service-account token.
-Cancelling a session deletes its detached Job as well as marking the session
-cancelled.
+A Job starts database connections, PubSub, progress ingestion, and translation,
+but no HTTP server, Oban queues, or runner pool. Its container has no mounted
+Kubernetes service-account token. Cancelling a session also deletes its Job.
 
-Failed Pods have a Job backoff limit of two retries. The application can resume
-from published files and durable checkpoints. This is bounded recovery, not a
-guarantee of uninterrupted execution or exactly-once external commands.
+Failed Pods have at most two Job retries. Work can resume from published files
+and durable checkpoints, but uninterrupted execution and exactly-once external
+commands are not guaranteed.
 
-## Job settings
+**A separate Pod is not a microVM.** Without a configured Kata RuntimeClass,
+workloads use ordinary containers and share the node's kernel. Jobs also inherit
+application credentials: isolation does not make repository commands
+credential-free. A missing RuntimeClass or unmatched node placement prevents
+work from starting.
+
+## Configuration
+
+### Translation Jobs
 
 | Environment variable | Default | Purpose |
 |---|---|---|
@@ -52,10 +56,11 @@ guarantee of uninterrupted execution or exactly-once external commands.
 | `GLOSSIA_TRANSLATION_JOB_ACTIVE_DEADLINE_SECONDS` | `86400` | Maximum Job lifetime, including scheduling and retries, in seconds. |
 | `GLOSSIA_TRANSLATION_JOB_RESOURCES_JSON` | `{}` | Kubernetes resource requests and limits for the translation container. |
 
-## Placement and isolation
+### Placement
 
 Translation Jobs, managed runners, and setup sandbox Pods share placement
-settings. RuntimeClass and node placement must match the target cluster.
+settings. These must match the target cluster; the edition does not enable a
+RuntimeClass automatically.
 
 | Environment variable | Default | Purpose |
 |---|---|---|
@@ -66,15 +71,10 @@ settings. RuntimeClass and node placement must match the target cluster.
 | `GLOSSIA_MANAGED_AFFINITY_JSON` | `{}` | Kubernetes affinity rules. |
 | `GLOSSIA_MANAGED_RESOURCES_JSON` | `{}` | Resource requests and limits for the FLAME pool, separate from translation Job resources. |
 
-No RuntimeClass is enabled by the edition alone. Without Kata, the workloads
-use ordinary containers and share the node's kernel. A missing RuntimeClass
-or nodes that do not match placement settings prevent work from starting.
+### Managed pool
 
-The translation Job inherits application credentials needed to perform its
-work. Isolation does not remove those credentials or establish a credential-free
-execution boundary for arbitrary repository commands.
-
-## Managed pool
+Pool settings limit FLAME workers, **not translation Jobs**. Kubernetes quotas,
+resources, and placement govern translation Job capacity.
 
 | Environment variable | Default | Purpose |
 |---|---|---|
@@ -85,15 +85,11 @@ execution boundary for arbitrary repository commands.
 | `GLOSSIA_MANAGED_TIMEOUT_MS` | `3600000` | Pool call timeout. |
 | `GLOSSIA_MANAGED_BOOT_TIMEOUT_MS` | `180000` | Worker boot timeout. |
 
-The pool is separate from detached translation Jobs. Its capacity settings do
-not limit the number of translation Jobs; Kubernetes quotas, resources, and
-placement govern Job capacity.
-
 ## Engine-release recovery
 
-With an immutable `GLOSSIA_ENGINE_IMAGE` and a configured
-`GLOSSIA_ENGINE_DEPLOYMENT`, Enterprise verifies Deployment rollout status before
-continuing eligible engine-related failures on a newer release. See
+Set an immutable `GLOSSIA_ENGINE_IMAGE` and configure
+`GLOSSIA_ENGINE_DEPLOYMENT` to enable rollout checks before continuing eligible
+engine-related failures on a newer release. See
 [Translation recovery](/docs/explanation/translation-recovery#recovery-after-an-engine-release)
-for eligibility and retry bounds. Local Community execution retains provider
-recovery and durable progress but does not inspect Kubernetes rollouts.
+for eligibility and retry bounds. Community retains provider recovery and durable
+progress, but does not inspect Kubernetes rollouts.

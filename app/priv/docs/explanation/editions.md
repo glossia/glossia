@@ -7,96 +7,70 @@
 }
 ---
 
-Glossia has two editions. Community is the open-source foundation. Enterprise
-includes Community and adds organization single sign-on, administrator audit
-logs, and infrastructure features for running repository code outside the
-application host.
+Glossia has two editions: **Community**, the open-source version, and
+**Enterprise**, which includes Community plus additional access, audit, and
+execution controls.
 
-## Compare editions
+To self-host Glossia, choose your edition's OCI image from GitHub Container
+Registry (GHCR):
 
-| Capability | Community | Enterprise |
-|---|---|---|
-| Repository translation and pull request publication | Included | Included |
-| Voice, glossary, and language memory | Included | Included |
-| REST API, MCP server, CLI, and SDK | Included | Included |
-| Localization analytics | Included | Included |
-| Organizations, invitations, and member permissions | Included | Included |
-| Ordinary Google, GitHub, and GitLab login | Included | Included |
-| Organization single sign-on with Google Workspace or Okta | Not included | Included, OpenID Connect with verified domains |
-| Searchable administrator audit logs | Not included | Included, for new domain events after migration |
-| Translation execution | Local Oban worker on the application host | Detached Kubernetes Job when running in a cluster |
-| Jobs that outlive a web-pod rollout | Not included | Included |
-| Dedicated runner placement and managed capacity | Not included | Included |
-| Kata microVM isolation | Not included | Optional, requires a configured Kubernetes RuntimeClass |
-| Automatic recovery on a healthy engine release | Not included | Included, for eligible failures |
-| License | Apache-2.0 | Apache-2.0 core plus Enterprise License |
+- **Community:** `ghcr.io/glossia/glossia:latest-community`
+- **Enterprise:** `ghcr.io/glossia/glossia:latest-enterprise`
 
-The infrastructure capabilities above are called
-[Isolated translation runners](/features/isolated-translation-runners).
-Both editions use the same translation engine, validation, progress tracking,
-and publication workflow. Enterprise changes where work runs, not which languages
-or file formats Community can translate.
+Pin a versioned tag or image digest for production deployments.
 
-## Local execution and trust
+## Community
 
-Community executes translations and repository validation commands on the
-application host, as the application user. Automated project setup uses a local
-workspace. These workspaces are not security sandboxes: repository commands can
-access the host environment and its credentials. Use Community only with code
-and validation commands you trust. It does not start Kubernetes Jobs or a remote
-runner pool, even when the application itself runs in Kubernetes.
+Community includes the translation workflow and collaboration features:
 
-Enterprise moves translation work into detached Jobs and project setup into
-sandbox Pods. A separate Pod is not automatically a microVM: kernel isolation
-requires a supported runtime such as Kata and an explicitly configured
-RuntimeClass. Read the [runner reference](/docs/reference/isolated-translation-runners)
-for requirements and operational limits.
+- Repository translation, validation, progress tracking, and pull requests.
+- Voice, glossary, and language memory.
+- Organizations, invitations, and member permissions.
+- Google, GitHub, and GitLab login.
+- Localization analytics, REST API, MCP server, CLI, and SDK.
 
-## Organization access and audit history
+Organizations do not require Enterprise. Both editions use the same translation
+engine and support the same languages and file formats.
 
-[Single sign-on](/docs/how-to/organization-sign-in) connects Google Workspace or
-Okta to an organization after DNS domain verification. Verified identities join
-with basic permissions. It does not enforce SSO-only login, implement SAML, or
-provide SCIM provisioning. Existing login methods remain available.
+## Enterprise
 
-[Audit logs](/docs/reference/audit-logs) record account changes and successful
-organization sign-ins in PostgreSQL. Only the organization's administrators can
-read them, even when the account is public. The dashboard has a separate
-**Enterprise** navigation section for Authentication and Audit logs.
+Enterprise adds three features:
 
-Audit logs do not replace the Community edition's voice and glossary versions,
-translation-session history, product analytics, or operational logs. Earlier
-activity is not backfilled. This implementation does not provide audit exports,
-retention controls, or tamper-proof storage.
+- [Single sign-on](/docs/how-to/organization-sign-in): connect Google Workspace or
+  Okta so verified work accounts can join your organization.
+- [Audit logs](/docs/reference/audit-logs): let organization administrators search
+  account changes and successful organization sign-ins.
+- [Isolated translation runners](/docs/reference/isolated-translation-runners): run
+  repository work outside the application host, with configurable placement and
+  jobs that survive web deployments.
 
-## Edition is separate from hosting
+Documentation labels features **Community and Enterprise** or **Enterprise**
+below their headings. Each feature's guide describes its requirements and limits.
 
-Community can be self-hosted, modified, redistributed, and offered as a commercial
-hosted service under [Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE).
-Self-hosting is not an Enterprise-only feature.
+## Where repository work runs
 
-Enterprise code is public in the repository's `ee/` directory, but is
-**source-available, not open source**. Production use requires a separate written
-commercial agreement under the
-[Enterprise License](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md).
-Development, testing, and evaluation are permitted under that license. This
-checkout does not implement license-key activation; selecting an Enterprise
-build does not grant production-use rights.
+Community runs translations, validation commands, and project setup on the
+application host as the application user. These workspaces are **not security
+sandboxes**: repository commands can access the host environment and credentials.
+Use them only with code you trust, even when hosting Community on Kubernetes.
 
-## Selecting a build
+Enterprise uses separate Kubernetes Jobs for translations and Pods for project
+setup. MicroVM isolation additionally requires Kata and an explicitly configured
+RuntimeClass; a separate Pod alone does not provide it. Translation jobs still
+receive application credentials. Outside Kubernetes, Enterprise translations
+fall back to local execution without isolation.
 
-The default source build is Community (`GLOSSIA_EDITION=core`). Enterprise is
-selected at build time with `GLOSSIA_EDITION=enterprise`; changing that variable
-on an already compiled release does not change its edition. Community builds
-do not compile the `ee/` directory or include the FLAME runner dependencies.
+## Licensing and hosting
 
-Published images are `ghcr.io/glossia/glossia:X.Y.Z-community` and
-`ghcr.io/glossia/glossia:X.Y.Z-enterprise`. The `main-community` and
-`main-enterprise` tags follow checked main builds; `main` is a Community alias.
-Use a real release version in place of `X.Y.Z`, or pin an image digest.
+Both editions can be self-hosted. Community is licensed under
+[Apache-2.0](https://github.com/glossia/glossia/blob/main/LICENSE-APACHE), which
+permits modification, redistribution, and commercial hosting.
 
-Build and contribution instructions live in the repository's
-[Enterprise boundary guide](https://github.com/glossia/glossia/blob/main/ee/README.md).
-Documentation and feature pages label availability below their headings.
-“Community and Enterprise” means the feature is part of the open-source core;
-“Enterprise” means the Enterprise build is required.
+Enterprise is **source-available, not open source**. Its
+[Enterprise License](https://github.com/glossia/glossia/blob/main/ee/LICENSE.md)
+permits development, testing, and evaluation; production use requires a separate
+written commercial agreement. Downloading the Enterprise image does not grant
+production-use rights.
+
+For building from source and contributing, see the repository's
+[Enterprise guide](https://github.com/glossia/glossia/blob/main/ee/README.md).

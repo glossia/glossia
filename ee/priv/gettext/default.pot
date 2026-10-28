@@ -80,10 +80,6 @@ msgid "Enter your work email domain and save the authentication settings."
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Enterprise"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Event"
 msgstr ""
 

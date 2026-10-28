@@ -30,6 +30,17 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLiveTest do
     organization: organization
   } do
     {:ok, view, _} = live(conn, ~p"/#{account.handle}/-/settings/authentication")
+    assert has_element?(view, "#account-section-organization[data-open]")
+
+    assert has_element?(
+             view,
+             ~s(#account-section-organization a[href="#{~p"/#{account.handle}/-/settings/authentication"}"] [data-selected])
+           )
+
+    refute has_element?(view, "#account-section-enterprise")
+    refute has_element?(view, "#organization-settings-navigation[data-open]")
+    refute has_element?(view, "#organization-settings-navigation [data-selected]")
+    refute has_element?(view, "#authentication-settings > .noora-badge", "Enterprise")
     render_hook(view, "provider", %{"value" => "google"})
 
     view

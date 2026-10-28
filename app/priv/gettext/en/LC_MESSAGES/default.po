@@ -147,6 +147,10 @@ msgid "A recognizable name shown when users authorize this application."
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "A shared foundation for every team, with additional controls in Enterprise."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "A short description about yourself"
 msgstr ""
 
@@ -176,6 +180,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "APIs"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "APIs and analytics"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -440,6 +448,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Ask questions, share feedback, and connect with other builders using Glossia."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Audit logs"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -745,6 +757,10 @@ msgid "Comments (%{count})"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Commercial license"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Commit"
 msgstr ""
 
@@ -785,11 +801,19 @@ msgid "Configure web analytics for this project."
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Connect Google Workspace or Okta."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Connect a Git provider"
 msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Connect your coding agent to Glossia and set up localization in your local checkout. Review the changes before pushing them."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Connect your workflows and understand your audience."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -806,6 +830,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Connections will show up here after you sign in with a provider."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Contact us"
 msgstr ""
 
 #, elixir-autogen, elixir-format, fuzzy
@@ -1357,7 +1385,7 @@ msgid "Every change to a voice, glossary entry, or rule is versioned. See what c
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Everything in Community, plus organization single sign-on, administrator audit logs, and isolated translation runners with dedicated compute and optional Kata microVM isolation. Source-available under a commercial license."
+msgid "Everything in Community, plus access, audit, and execution controls."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1390,6 +1418,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Explore the capabilities that make Glossia the content agent for your codebase. Each feature is designed to fit into your existing workflow."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Explore the source"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1837,6 +1869,10 @@ msgid "Invited fluent teammates"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Isolated translation runners"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Join teams that ship content with the same confidence they ship code."
 msgstr ""
 
@@ -1850,6 +1886,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Just a quick check"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Keep content in Git and review translations through pull requests."
 msgstr ""
 
 #, elixir-autogen, elixir-format, fuzzy
@@ -1870,6 +1910,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Language managers"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Language memory"
 msgstr ""
 
 #, elixir-autogen, elixir-format, fuzzy
@@ -2553,7 +2597,7 @@ msgid "Open pull request"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Open source at the core. Enterprise where you need it."
+msgid "Open source. Enterprise when you need it."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3001,6 +3045,10 @@ msgid "Repository"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Repository translation"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Requested permissions:"
 msgstr ""
 
@@ -3050,6 +3098,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Review the local changes and push or merge them into the default branch when ready."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Review who changed what across your organization."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3106,6 +3158,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Rule not found."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Run translation jobs in dedicated environments."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3277,10 +3333,6 @@ msgid "Select the permissions this token should have. Only grant the minimum sco
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Self-host Glossia under Apache-2.0, with repository translation, language memory, APIs, and localization analytics. Translation and validation run on your application host."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Send invitation"
 msgstr ""
 
@@ -3381,6 +3433,10 @@ msgid "Setup update"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Share voice and terminology across projects."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Shared translation goals will appear here when help is needed. You can also start a private conversation with Toki."
 msgstr ""
 
@@ -3430,6 +3486,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Sign in with your existing method first, then return to this page to connect your work identity."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Single sign-on"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3650,6 +3710,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The more specific the context, the closer to the content"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The open-source platform for teams working across languages."
 msgstr ""
 
 #, elixir-autogen, elixir-format

@@ -82,7 +82,6 @@ defmodule GlossiaEnterpriseWeb.AuditLogsLive do
         title={gettext("Audit logs")}
         description={gettext("Account changes and organization sign-ins. Dates are UTC.")}
       />
-      <.badge label={gettext("Enterprise")} />
       <.card title={gettext("Events")} icon="file_text">
         <.card_section data-empty={@result.rows == []}>
           <div data-part="filters">

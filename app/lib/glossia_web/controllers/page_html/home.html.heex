@@ -64,23 +64,97 @@
   </div>
 </section>
 
-<section id="editions" class="section">
-  <div class="container prose">
-    <h2>{gettext("Open source at the core. Enterprise where you need it.")}</h2>
-    <p>
-      <strong>{gettext("Community")}</strong>
-      — {gettext(
-        "Self-host Glossia under Apache-2.0, with repository translation, language memory, APIs, and localization analytics. Translation and validation run on your application host."
-      )}
+<section id="editions" class="section" aria-labelledby="editions-title">
+  <div class="container">
+    <h2 id="editions-title">{gettext("Open source. Enterprise when you need it.")}</h2>
+    <p data-part="introduction">
+      {gettext("A shared foundation for every team, with additional controls in Enterprise.")}
     </p>
-    <p>
-      <strong>{gettext("Enterprise")}</strong>
-      — {gettext(
-        "Everything in Community, plus organization single sign-on, administrator audit logs, and isolated translation runners with dedicated compute and optional Kata microVM isolation. Source-available under a commercial license."
-      )}
-    </p>
-    <a href={locale_path(~p"/docs/explanation/editions")}>
+    <div data-part="edition-grid">
+      <Noora.Card.card_section data-edition="community" aria-labelledby="community-edition-title">
+        <div data-part="edition-header">
+          <h3 id="community-edition-title">{gettext("Community")}</h3>
+          <Noora.Badge.badge label="Apache-2.0" style="light-fill" size="large" />
+        </div>
+        <p data-part="description">
+          {gettext("The open-source platform for teams working across languages.")}
+        </p>
+        <ul data-part="features">
+          <li :for={
+            {icon, title, description} <- [
+              {"language", gettext("Repository translation"),
+               gettext("Keep content in Git and review translations through pull requests.")},
+              {"books", gettext("Language memory"),
+               gettext("Share voice and terminology across projects.")},
+              {"chart_column", gettext("APIs and analytics"),
+               gettext("Connect your workflows and understand your audience.")}
+            ]
+          }>
+            <span data-part="feature-icon" aria-hidden="true">
+              <Noora.Icon.icon name={icon} />
+            </span>
+            <div>
+              <strong>{title}</strong>
+              <p>{description}</p>
+            </div>
+          </li>
+        </ul>
+        <Noora.Button.button
+          href="https://github.com/glossia/glossia"
+          label={gettext("Explore the source")}
+          variant="secondary"
+        >
+          <:icon_left><Noora.Icon.icon name="brand_github" /></:icon_left>
+        </Noora.Button.button>
+      </Noora.Card.card_section>
+      <Noora.Card.card_section
+        data-edition="enterprise"
+        aria-labelledby="enterprise-edition-title"
+      >
+        <div data-part="edition-header">
+          <h3 id="enterprise-edition-title">{gettext("Enterprise")}</h3>
+          <Noora.Badge.badge
+            label={gettext("Commercial license")}
+            color="primary"
+            style="light-fill"
+            size="large"
+          />
+        </div>
+        <p data-part="description">
+          {gettext("Everything in Community, plus access, audit, and execution controls.")}
+        </p>
+        <ul data-part="features">
+          <li :for={
+            {icon, title, description} <- [
+              {"lock_password", gettext("Single sign-on"),
+               gettext("Connect Google Workspace or Okta.")},
+              {"checkup_list", gettext("Audit logs"),
+               gettext("Review who changed what across your organization.")},
+              {"cube_send", gettext("Isolated translation runners"),
+               gettext("Run translation jobs in dedicated environments.")}
+            ]
+          }>
+            <span data-part="feature-icon" aria-hidden="true">
+              <Noora.Icon.icon name={icon} />
+            </span>
+            <div>
+              <strong>{title}</strong>
+              <p>{description}</p>
+            </div>
+          </li>
+        </ul>
+        <Noora.Button.button
+          href="mailto:contact@glossia.ai"
+          label={gettext("Contact us")}
+          variant="primary"
+        >
+          <:icon_left><Noora.Icon.icon name="mail" /></:icon_left>
+        </Noora.Button.button>
+      </Noora.Card.card_section>
+    </div>
+    <a data-part="comparison" href={locale_path(~p"/docs/explanation/editions")}>
       {gettext("Compare Community and Enterprise")}
+      <span aria-hidden="true"><Noora.Icon.icon name="arrow_right" /></span>
     </a>
   </div>
 </section>

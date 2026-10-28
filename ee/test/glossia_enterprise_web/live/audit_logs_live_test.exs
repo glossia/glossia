@@ -28,7 +28,23 @@ defmodule GlossiaEnterpriseWeb.AuditLogsLiveTest do
   } do
     Events.emit("project.created", account, admin, summary: "Created Apollo project")
     {:ok, view, _} = live(conn, ~p"/#{account.handle}/-/audit-logs")
-    assert has_element?(view, ~s(a[href="#{~p"/#{account.handle}/-/settings/authentication"}"]))
+    assert has_element?(view, "#account-section-organization[data-open]")
+
+    for path <- [
+          ~p"/#{account.handle}/-/members",
+          ~p"/#{account.handle}/-/settings/authentication",
+          ~p"/#{account.handle}/-/audit-logs"
+        ] do
+      assert has_element?(view, ~s(#account-section-organization a[href="#{path}"]))
+    end
+
+    assert has_element?(
+             view,
+             ~s(#account-section-organization a[href="#{~p"/#{account.handle}/-/audit-logs"}"] [data-selected])
+           )
+
+    refute has_element?(view, "#account-section-enterprise")
+    refute has_element?(view, "#audit-logs-page > .noora-badge", "Enterprise")
     assert has_element?(view, "#audit-events", "Created Apollo project")
 
     view |> form("#audit-search", q: "Apollo") |> render_change()

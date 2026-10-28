@@ -117,7 +117,6 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
         title={gettext("Authentication")}
         description={gettext("Let your team sign in with Google Workspace or Okta.")}
       />
-      <Noora.Badge.badge label={gettext("Enterprise")} />
       <.card title={gettext("Organization sign-in")} icon="lock_password">
         <.card_section>
           <.form

@@ -142,6 +142,10 @@ msgid "A recognizable name shown when users authorize this application."
 msgstr "사용자가 이 애플리케이션을 승인할 때 표시되는 식별 가능한 이름."
 
 #, elixir-autogen, elixir-format
+msgid "A shared foundation for every team, with additional controls in Enterprise."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "A short description about yourself"
 msgstr "자신에 대한 간략한 설명"
 
@@ -172,6 +176,10 @@ msgstr "API 키"
 #, elixir-autogen, elixir-format
 msgid "APIs"
 msgstr "API"
+
+#, elixir-autogen, elixir-format
+msgid "APIs and analytics"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "About"
@@ -436,6 +444,10 @@ msgstr "프로젝트의 번역, 용어 또는 문화적 컨텍스트에 대해 �
 #, elixir-autogen, elixir-format
 msgid "Ask questions, share feedback, and connect with other builders using Glossia."
 msgstr "질문과 피드백을 공유하고, Glossia 를 통해 다른 개발자들과 소통하세요."
+
+#, elixir-autogen, elixir-format
+msgid "Audit logs"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Authentication and REST interfaces."
@@ -739,6 +751,10 @@ msgid "Comments (%{count})"
 msgstr "댓글 (%{count})개"
 
 #, elixir-autogen, elixir-format
+msgid "Commercial license"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Commit"
 msgstr "커밋"
 
@@ -779,12 +795,20 @@ msgid "Configure web analytics for this project."
 msgstr "이 프로젝트에 대한 웹 분석을 구성하세요."
 
 #, elixir-autogen, elixir-format
+msgid "Connect Google Workspace or Okta."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Connect a Git provider"
 msgstr "Git 제공자 연결"
 
 #, elixir-autogen, elixir-format
 msgid "Connect your coding agent to Glossia and set up localization in your local checkout. Review the changes before pushing them."
 msgstr "코딩 에이전트를 Glossia 에 연결하고 로컬 체크아웃에서 로컬라이제이션 환경을 설정합니다. 푸시하기 전에 변경 사항을 검토하세요."
+
+#, elixir-autogen, elixir-format
+msgid "Connect your workflows and understand your audience."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Connect your writing platforms, content systems, and AI assistants to your organization's linguistic knowledge."
@@ -801,6 +825,10 @@ msgstr "연결"
 #, elixir-autogen, elixir-format
 msgid "Connections will show up here after you sign in with a provider."
 msgstr "서비스 제공자 로그인 후 연결이 표시됩니다."
+
+#, elixir-autogen, elixir-format
+msgid "Contact us"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Content"
@@ -1351,7 +1379,7 @@ msgid "Every change to a voice, glossary entry, or rule is versioned. See what c
 msgstr "목소리, 용어집 항목 또는 규칙의 모든 변경사항은 버전화됩니다. 변경 내용, 변경자 및 사유를 확인하고 필요 시 되돌리세요."
 
 #, elixir-autogen, elixir-format
-msgid "Everything in Community, plus organization single sign-on, administrator audit logs, and isolated translation runners with dedicated compute and optional Kata microVM isolation. Source-available under a commercial license."
+msgid "Everything in Community, plus access, audit, and execution controls."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1385,6 +1413,10 @@ msgstr "다양한 언어로 콘텐츠를 발행하는 팀을 위한 Glossia 의 
 #, elixir-autogen, elixir-format
 msgid "Explore the capabilities that make Glossia the content agent for your codebase. Each feature is designed to fit into your existing workflow."
 msgstr "Glossia 가 코드베이스의 콘텐츠 에이전트가 될 수 있게 하는 기능을 확인해보세요. 각 기능은 기존 워크플로우에 통합되도록 설계되었습니다."
+
+#, elixir-autogen, elixir-format
+msgid "Explore the source"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "FAQ"
@@ -1831,6 +1863,10 @@ msgid "Invited fluent teammates"
 msgstr "유창한 팀원 초대됨"
 
 #, elixir-autogen, elixir-format
+msgid "Isolated translation runners"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Join teams that ship content with the same confidence they ship code."
 msgstr "코드를 배포하는 것과 같은 자신감으로 콘텐츠를 배포하는 팀에 합류하세요."
 
@@ -1845,6 +1881,10 @@ msgstr "가입됨"
 #, elixir-autogen, elixir-format
 msgid "Just a quick check"
 msgstr "잠시만 확인 중입니다"
+
+#, elixir-autogen, elixir-format
+msgid "Keep content in Git and review translations through pull requests."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "L10N.md files sit alongside your content. They carry instructions, tone guidance, and per-language overrides that scope context to exactly where it is needed."
@@ -1865,6 +1905,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Language managers"
 msgstr "언어 관리자"
+
+#, elixir-autogen, elixir-format
+msgid "Language memory"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Language models"
@@ -2547,7 +2591,7 @@ msgid "Open pull request"
 msgstr "풀 리퀘스트 제출하기"
 
 #, elixir-autogen, elixir-format
-msgid "Open source at the core. Enterprise where you need it."
+msgid "Open source. Enterprise when you need it."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -2995,6 +3039,10 @@ msgid "Repository"
 msgstr "저장소"
 
 #, elixir-autogen, elixir-format
+msgid "Repository translation"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Requested permissions:"
 msgstr "요청된 권한:"
 
@@ -3045,6 +3093,10 @@ msgstr "모델 제공자 청구 확인"
 #, elixir-autogen, elixir-format
 msgid "Review the local changes and push or merge them into the default branch when ready."
 msgstr "준비되면 로컬 변경 사항을 검토하고 기본 분기에 푸시하거나 병합하세요."
+
+#, elixir-autogen, elixir-format
+msgid "Review who changed what across your organization."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Revision"
@@ -3101,6 +3153,10 @@ msgstr "라우팅 규칙은 구성된 모델을 가리킵니다. 시작하려면
 #, elixir-autogen, elixir-format
 msgid "Rule not found."
 msgstr "규칙을 찾을 수 없습니다."
+
+#, elixir-autogen, elixir-format
+msgid "Run translation jobs in dedicated environments."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Running"
@@ -3271,10 +3327,6 @@ msgid "Select the permissions this token should have. Only grant the minimum sco
 msgstr "이 토큰에 부여할 권한을 선택하세요. 필요한 최소한의 스코프만 부여하세요."
 
 #, elixir-autogen, elixir-format
-msgid "Self-host Glossia under Apache-2.0, with repository translation, language memory, APIs, and localization analytics. Translation and validation run on your application host."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Send invitation"
 msgstr "초대하기"
 
@@ -3375,6 +3427,10 @@ msgid "Setup update"
 msgstr "설정 업데이트"
 
 #, elixir-autogen, elixir-format
+msgid "Share voice and terminology across projects."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Shared translation goals will appear here when help is needed. You can also start a private conversation with Toki."
 msgstr "도움이 필요한 경우 여기에 공유 번역 목표가 표시됩니다. 또한 Toki 와 사적인 대화를 시작할 수도 있습니다."
 
@@ -3425,6 +3481,10 @@ msgstr "로그인하여 계속."
 #, elixir-autogen, elixir-format
 msgid "Sign in with your existing method first, then return to this page to connect your work identity."
 msgstr "기존 방법으로 먼저 로그인한 후, 작업 신분을 연결하려면 이 페이지로 돌아오세요."
+
+#, elixir-autogen, elixir-format
+msgid "Single sign-on"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Skip to content"
@@ -3645,6 +3705,10 @@ msgstr "모델은 models.dev 에서 제공합니다. 모델을 고정하는 게�
 #, elixir-autogen, elixir-format
 msgid "The more specific the context, the closer to the content"
 msgstr "컨텍스트가 구체적일수록 콘텐츠에 더 가깝습니다"
+
+#, elixir-autogen, elixir-format
+msgid "The open-source platform for teams working across languages."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The percentage of checked content reused without another translation."

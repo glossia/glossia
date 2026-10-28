@@ -48,7 +48,7 @@ implemented. Product analytics remains separate from audit storage.
 
 Enterprise dashboard LiveViews, login components, and navigation live under
 `ee/lib/glossia_enterprise_web/`; the main dashboard invokes its optional navigation
-extension. Administrators see **Enterprise → Authentication / Audit logs**.
+extension. Administrators see **Organization → Authentication / Audit logs**.
 Enterprise CSS and Gettext catalogs live in `ee/assets/` and `ee/priv/gettext/`;
 Community does not compile or bundle those surfaces. The shared locale hooks
 set the process-wide locale so optional translation backends follow the user.

@@ -8,28 +8,25 @@ defmodule GlossiaEnterpriseWeb.Navigation do
     if GlossiaEnterprise.Audit.authorized?(assigns[:current_user], assigns[:account]) do
       handle = assigns.handle
 
-      sections ++
-        [
-          %{
-            id: :enterprise,
-            label: gettext("Enterprise"),
-            icon: "lock",
-            items: [
-              %{
-                label: gettext("Authentication"),
-                navigate: ~p"/#{handle}/-/settings/authentication",
-                active: assigns[:live_action] == :authentication_settings,
-                icon: "lock_password"
-              },
-              %{
-                label: gettext("Audit logs"),
-                navigate: ~p"/#{handle}/-/audit-logs",
-                active: assigns[:live_action] == :audit_logs,
-                icon: "checkup_list"
-              }
-            ]
-          }
-        ]
+      items = [
+        %{
+          label: gettext("Authentication"),
+          navigate: ~p"/#{handle}/-/settings/authentication",
+          active: assigns[:live_action] == :authentication_settings,
+          icon: "lock_password"
+        },
+        %{
+          label: gettext("Audit logs"),
+          navigate: ~p"/#{handle}/-/audit-logs",
+          active: assigns[:live_action] == :audit_logs,
+          icon: "checkup_list"
+        }
+      ]
+
+      Enum.map(sections, fn
+        %{id: :organization} = section -> Map.update!(section, :items, &(&1 ++ items))
+        section -> section
+      end)
     else
       sections
     end

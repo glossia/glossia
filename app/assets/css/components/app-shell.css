@@ -1,4 +1,8 @@
 #noora-shell {
+  & .noora-shell__sidebar > .noora-sidebar {
+    display: block;
+  }
+
   & .noora-shell__page-content {
     box-sizing: border-box;
     display: flex;

@@ -8,21 +8,32 @@
 }
 ---
 
-Organization administrators can open **Enterprise → Audit logs** in the account
-sidebar. Community retains ordinary revision history, translation progress,
-analytics, and operational logs; the administrator audit log requires Enterprise.
+Open **Organization → Audit logs** in the account sidebar to review account
+changes and successful organization sign-ins. Only organization administrators
+can read these events, including on public accounts.
 
-## Access and table controls
+## Read the log
 
-Only an administrator of the selected organization can read its audit events or
-event-filter options. Public account visibility and basic membership do not grant
-audit access. Queries are always scoped to the selected account.
+Events and filter options belong to the selected account. The table shows up to
+50 events per page, newest first, with timestamps in UTC.
 
-The table supports case-insensitive search over event names, summaries, actor
-handles, and actor email addresses. The Event filter supports **is** and **is
-not**. Time, event name, and actor handle are sortable; the initial order is
-newest first. Search, filters, sorting, and page number remain in the URL. Pages
-contain up to 50 events. Displayed timestamps are UTC.
+- **Search** event names, summaries, actor handles, and actor email addresses
+  without case sensitivity.
+- **Filter** events by name with **is** or **is not**.
+- **Sort** by time, event name, or actor handle.
+
+Search, filters, sorting, and page number remain in the URL so you can share a view
+with another administrator.
+
+## What is recorded
+
+The log records account-scoped domain events: organization settings, invitations,
+member removals, permissions, projects, language memory, authentication settings,
+domain verification, and successful organization sign-ins. System events may
+have no actor.
+
+It does not record every page view, failed login, or database write, and does not
+replace revision history, translation progress, analytics, or operational logs.
 
 ## Recorded fields
 
@@ -38,34 +49,22 @@ contain up to 50 events. Displayed timestamps are UTC.
 | `summary` | Human-readable description, when provided |
 | `metadata` | Allowlisted `via` context, such as scheduled verification |
 
-Arbitrary event metadata, provider tokens, and client secrets are not copied into
-the audit record. Actor snapshots remain unchanged when a user later changes
-their profile. No cascading actor or resource foreign keys delete audit history.
-
-## Event coverage
-
-The log subscribes to Glossia's existing account-scoped domain events. These
-include organization settings, member invitations and removals, permission
-changes, project and language-memory changes, authentication configuration,
-domain verification, and successful organization sign-ins. System events may
-have no actor. This is not an HTTP access log or a record of every page view,
-failed login attempt, or database write.
+Actor snapshots survive profile changes. Deleting an actor or resource does not
+cascade to audit history. Arbitrary metadata, provider tokens, and client secrets
+are not stored.
 
 ## Storage and deployment
 
-The Enterprise migration creates `audit_events` in PostgreSQL, separate from
-ClickHouse product analytics. `mix ecto.migrate` and the release migration task
-include Enterprise migrations only when built with `GLOSSIA_EDITION=enterprise`.
-Apply migrations before starting the new Enterprise release. Community builds
-do not compile the audit schema, migration, persistence, or UI.
+Run the Enterprise image's release migration task before starting a new release.
+It creates `audit_events` in PostgreSQL, separate from ClickHouse product
+analytics. The Community image does not include these migrations.
 
-Events are inserted synchronously, not through a lossy ingestion buffer. An event
-emitted inside a database transaction rolls back with that transaction. An audit
-insert failure fails the caller; mutations without an enclosing transaction may
-already have completed before emitting their event.
+Events are written synchronously. Inside a database transaction, an audit event
+rolls back with that transaction. A failed audit insert fails the caller, but
+changes made without an enclosing transaction may already have completed.
 
-Recording starts after the Enterprise migration and release are active. Earlier
-activity and legacy ClickHouse events are not backfilled. The implementation has
-no automatic expiry, configurable retention, export API, or external immutable
-archive. Database administrators retain ordinary database access; this is not a
-tamper-proof compliance archive.
+Recording starts when the migration and release are active; earlier activity and
+legacy ClickHouse events are not backfilled. There is no automatic expiry,
+configurable retention, export API, or external immutable archive. Database
+administrators retain database access: this is not a tamper-proof compliance
+archive.
