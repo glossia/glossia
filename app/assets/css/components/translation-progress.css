@@ -30,7 +30,7 @@
   min-width: var(--noora-spacing-0);
 
   /* Noora's max-content minimum also measures collapsed expanded rows.
-   * Let paths and translated output wrap within the card instead of making
+   * Let paths truncate and translated output wrap instead of making
    * every column as wide as the longest line in the session. */
   & table {
     min-width: var(--noora-spacing-0);
@@ -44,17 +44,33 @@
 
   & [data-part="translation-reasons"] {
     min-inline-size: calc(var(--noora-spacing-13) * 3);
+    max-inline-size: calc(var(--noora-spacing-13) * 5);
   }
 
   & [data-part="path"] [data-part="label"],
-  & [data-part="translation-reasons"] [data-part="label"],
   & [data-part="progress-meta"] [data-part="label"] {
     min-width: var(--noora-spacing-0);
-    white-space: normal;
-    overflow-wrap: anywhere;
+    white-space: nowrap;
   }
 
-  & [data-part="file-cell"],
+  /* Full reasons remain in the expandable input summary. Keep the collapsed
+   * scan line compact instead of making every row as tall as its reason list. */
+  & [data-part="translation-reasons"] [data-part="label"] {
+    min-width: var(--noora-spacing-0);
+    white-space: nowrap;
+  }
+
+  & [data-part="file-cell"] {
+    min-inline-size: calc(var(--noora-spacing-13) * 4);
+  }
+
+  /* Reserve a readable path even on tablets. The table scrolls rather than
+   * squeezing paths into one-character lines beside the metadata columns. */
+  & [data-part="expand-cell"] > [data-part="file-cell"] {
+    flex: 1;
+    inline-size: var(--noora-spacing-0);
+  }
+
   & [data-part="path"] {
     min-width: var(--noora-spacing-0);
   }
@@ -226,7 +242,6 @@
   #translation-progress {
     /* Keep the file and reason readable; Noora's scroll container handles
      * narrow screens instead of compressing paths into one-character lines. */
-    & [data-part="file-cell"],
     & [data-part="translation-reasons"] {
       min-inline-size: calc(var(--noora-spacing-13) * 4);
     }
