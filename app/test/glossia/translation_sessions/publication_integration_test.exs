@@ -102,6 +102,80 @@ defmodule Glossia.TranslationSessions.PublicationIntegrationTest do
     assert TranslationSessions.get_session!(session.id).outcome == "content_hit"
   end
 
+  test "supersession recovers completed files that have not reached a publication batch", ctx do
+    {:ok, _model} =
+      Glossia.LLMModels.create_model(ctx.user.account, ctx.user, %{
+        "handle" => "translator",
+        "model" => "openai/gpt-5",
+        "api_key" => "test-checkpoint-key"
+      })
+
+    config_path = Path.join(ctx.remote, "L10N.md")
+
+    File.write!(
+      config_path,
+      String.replace(File.read!(config_path), "model: openai/gpt-5", "model: translator")
+    )
+
+    File.write!(Path.join(ctx.remote, "guide.md"), "# Hello again\n")
+    source = commit_source(ctx.remote)
+    session = continuation(ctx, source)
+    {:ok, session} = TranslationSessions.update_session_status(session, "running")
+    before = sha(ctx.remote, @branch)
+
+    batch =
+      start_supervised!(
+        {Glossia.TranslationSessions.PublicationBatch,
+         fn changes ->
+           Translate.publish_changes(%{session_id: session.id}, %{changes: changes})
+         end}
+      )
+
+    repository = %{
+      full_name: "glossia/demo",
+      default_branch: "main",
+      commit_sha: source,
+      publication_branch: @branch,
+      publication_commit_sha: before,
+      token: "test-token"
+    }
+
+    assert {:ok, changes} =
+             Glossia.Translations.RepositoryRun.run(
+               session,
+               ctx.user.account,
+               repository,
+               ["es"],
+               after_item_completed: &Glossia.TranslationSessions.PublicationBatch.add(batch, &1)
+             )
+
+    assert Enum.any?(changes, &(&1.path == "es/guide.md"))
+    assert count(ctx.writes) == 0
+    assert sha(ctx.remote, @branch) == before
+
+    File.write!(Path.join(ctx.remote, "README.md"), "Unrelated source change\n")
+    next_source = commit_source(ctx.remote)
+
+    assert {:ok, replacement} =
+             TranslationSessions.start_continuous_session(
+               ctx.project,
+               %{commit_sha: next_source, source_language: "en", target_languages: ["es"]},
+               enqueue: false
+             )
+
+    assert TranslationSessions.get_session!(session.id).outcome == "superseded"
+    assert {:error, _} = Glossia.TranslationSessions.PublicationBatch.flush(batch)
+    assert count(ctx.writes) == 0
+
+    reject(&Glossia.Translations.translate_stream/4)
+    assert :ok = Translate.run(replacement.id)
+    assert count(ctx.writes) == 1
+    head = sha(ctx.remote, @branch)
+    assert git(ctx.remote, ["show", "#{head}:es/guide.md"]) == "# Hola again"
+    lock = git(ctx.remote, ["show", "#{head}:.glossia/guide.md/es.lock"]) |> JSON.decode!()
+    assert lock["source_commit_sha"] == next_source
+  end
+
   test "a same-source continuation assesses and publishes on a manually repaired branch", ctx do
     git(ctx.remote, ["checkout", @branch])
     File.write!(Path.join(ctx.remote, "guide.md"), "# Hello repaired\n")

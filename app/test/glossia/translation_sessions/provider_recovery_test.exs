@@ -51,15 +51,21 @@ defmodule Glossia.TranslationSessions.ProviderRecoveryTest do
     end)
   end
 
-  test "a newer session prevents an old failure from creating another run", %{session: session} do
-    Repo.insert!(%TranslationSession{
-      account_id: session.account_id,
-      project_id: session.project_id,
-      status: "running",
-      commit_sha: "newer"
-    })
+  for status <- ["pending", "running", "awaiting_input", "completed"] do
+    @newer_status status
 
-    assert {:ok, nil} = ProviderRecovery.schedule(session)
+    test "a newer #{@newer_status} session prevents an old failure from creating another run", %{
+      session: session
+    } do
+      Repo.insert!(%TranslationSession{
+        account_id: session.account_id,
+        project_id: session.project_id,
+        status: @newer_status,
+        commit_sha: "newer"
+      })
+
+      assert {:ok, nil} = ProviderRecovery.schedule(session)
+    end
   end
 
   test "automatic recovery is bounded and cancelled sessions are never revived", %{
@@ -75,32 +81,54 @@ defmodule Glossia.TranslationSessions.ProviderRecoveryTest do
     assert {:ok, nil} = ProviderRecovery.schedule(session)
   end
 
-  test "retains provider throttling recovery when final publication also fails" do
-    translation =
-      {:translation_items_failed, [%{reason: %{kind: "provider-rate-limit", status: 429}}]}
+  test "retains retryable provider recovery when final publication also fails" do
+    for reason <- [
+          %{kind: "provider-rate-limit", status: 429},
+          %{kind: "provider-timeout"},
+          %{kind: "provider-error", status: 504}
+        ] do
+      translation = {:translation_items_failed, [%{reason: reason}]}
 
-    assert ProviderRecovery.rate_limited?(
-             {:translation_and_publication_failed, translation, :github_down}
+      assert ProviderRecovery.retryable_provider_failure?(
+               {:translation_and_publication_failed, translation, :github_down}
+             )
+    end
+
+    refute ProviderRecovery.retryable_provider_failure?(
+             {:translation_publication_failed, :github_down}
            )
 
-    refute ProviderRecovery.rate_limited?({:translation_publication_failed, :github_down})
-
-    refute ProviderRecovery.rate_limited?(
+    refute ProviderRecovery.retryable_provider_failure?(
              {:translation_and_publication_failed,
               {:translation_items_failed, [%{reason: %{kind: "validation"}}]}, :github_down}
            )
   end
 
-  test "validation failures alone do not trigger provider recovery" do
-    refute ProviderRecovery.rate_limited?(
-             {:translation_items_failed, [%{reason: %{kind: "validation", scope: "item"}}]}
-           )
+  test "only normalized retryable provider failures trigger recovery" do
+    for reason <- [
+          %{kind: "validation", scope: "item"},
+          %{kind: "provider-credentials", status: 401},
+          %{kind: "provider-credit", status: 402},
+          %{kind: "provider-error", status: 400},
+          %{kind: "provider-timeout", status: 404},
+          nil
+        ] do
+      refute ProviderRecovery.retryable_provider_failure?(
+               {:translation_items_failed, [%{reason: reason}]}
+             )
+    end
 
-    refute ProviderRecovery.rate_limited?({:translation_items_failed, [%{}]})
+    refute ProviderRecovery.retryable_provider_failure?({:translation_items_failed, [%{}]})
 
-    assert ProviderRecovery.rate_limited?(
-             {:translation_items_failed,
-              [%{reason: %{kind: "provider-rate-limit", scope: "session"}}]}
-           )
+    for reason <- [
+          %{kind: "provider-rate-limit", scope: "session"},
+          %{"kind" => "provider-error", "status" => "504"},
+          {:llm_failed, :timeout},
+          {:llm_failed, %Req.TransportError{reason: :closed}}
+        ] do
+      assert ProviderRecovery.retryable_provider_failure?(
+               {:translation_items_failed, [%{reason: reason}]}
+             )
+    end
   end
 end

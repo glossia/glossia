@@ -1,6 +1,6 @@
 %{
   title: "Translation recovery",
-  summary: "How Glossia keeps Markdown intact and recovers from provider throttling and interrupted translations.",
+  summary: "How Glossia keeps Markdown intact and recovers from provider outages and interrupted translations.",
   category: "explanation",
   section: "translation",
   order: 8
@@ -29,11 +29,25 @@ The model may move tags to follow the target language's word order, but must
 keep every tag exactly once. Every request also carries the surrounding source
 document, and the most recent translations from the same file, for reference.
 
-A unit that drops or invents a tag is sent again on its own, with the reason,
-up to three times. Units that came back valid are kept. After splicing, Glossia
-parses the result and compares its structure to the source. A translation that
-would turn into a heading, list, or emphasis by itself has its prose escaped,
-which needs no further model call.
+A unit that drops or invents a tag is sent again with the reason, up to three
+times. Units that came back valid are kept. If a group still fails, Glossia
+splits only the rejected units into smaller requests, down to individual units,
+with the same bounded retry budget at each size. A single unit that remains
+invalid still fails the file; recovery never accepts missing content or tags.
+Malformed JSON receives syntax-specific feedback, including how to escape quotes
+inside strings, rather than being reported as missing translations. Smaller
+requests start without the previous batch's feedback so they do not ask for ids
+that are no longer in that request. If one unit still cannot return valid JSON,
+Glossia requests its translated text without a JSON envelope. This last bounded
+recovery avoids JSON escaping entirely; the same tag, protected-content, and
+Markdown structure checks still apply before accepting or checkpointing it.
+
+After splicing, Glossia parses the result and compares its structure to the
+source. A translation that would turn into a heading, list, or emphasis by itself
+has its prose escaped, which needs no further model call. When translated prose
+or punctuation touches emphasis delimiters without the spacing Markdown requires,
+as can happen in Japanese or Chinese, recovery adds that separation. The repaired
+unit must still pass the same structural comparison.
 
 ## Catalog translation
 
@@ -47,7 +61,7 @@ identifiers, comments, and catalog structure come from the parsed source. If a
 batch returns malformed content, Glossia retries it once, then splits it into
 smaller batches. Successful neighboring batches do not need to be translated again.
 
-## Provider throttling
+## Provider outages and throttling
 
 Glossia coordinates translation requests that use the same credential and model. A rate-limit
 response extends their shared cooldown and increases spacing between new requests.
@@ -59,13 +73,16 @@ backoff, up to a 30-second base delay plus jitter; a longer provider hint takes
 precedence, capped at five minutes. Together's `x-ratelimit-reset` header is
 recognized alongside `retry-after`.
 
-After eight unsuccessful request attempts, the repository run stops starting new
-files. A delayed continuation inherits the translation branch and resumes its
-unfinished work. The previous attempt remains visible in session history, linked
-through the continuation. Delays increase from one minute to five minutes, with
-at most six automatic continuations. Newer active sessions take precedence, and
-cancelled sessions are never revived. Validation failures alone do not schedule
-provider recovery.
+After eight unsuccessful request attempts, a rate-limited repository run stops
+starting new files. Other transient failures, such as HTTP 504 responses and
+timeouts, let neighboring files finish and receive a second pass. If retryable
+provider failures remain when the run ends, a delayed continuation inherits the
+translation branch and resumes its unfinished work. The previous attempt remains
+visible in session history, linked through the continuation. Delays increase from
+one minute to five minutes, with at most six automatic continuations. Newer active
+sessions take precedence, and cancelled sessions are never revived. Rejected
+credentials, exhausted credit, permanent client errors, and validation failures
+alone do not schedule provider recovery.
 
 ## Recovery after an engine release
 
@@ -121,7 +138,10 @@ a single translation pull request: a new commit on the default branch continues
 the open one, and only translates what changed since. Once that pull request is
 merged or closed, the next run starts a new one. Within unfinished files, locally validated segments and recovery batches
 are also saved in the database for seven days. These checkpoints survive a worker
-process stopping. They are scoped to the account, project, document input,
+process stopping, including when a newer source commit supersedes the run.
+Markdown paragraphs accepted within a partially failed batch are saved individually,
+so a replacement run requests only the units that still need translation.
+They are scoped to the account, project, document input,
 effective credential and model, context, and segment or repair attempt.
 
 A resumed run can reuse a segment only when its inputs still match. It always

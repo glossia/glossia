@@ -112,13 +112,23 @@ defmodule Glossia.Translations.Prompt do
       end
 
     lines =
-      if Map.get(input, :segment_kind) == "markdown_units" do
+      if Map.get(input, :segment_kind) in ["markdown_units", "markdown_unit"] do
         lines ++
           [
-            "The supplied content is a JSON array of objects with an \"id\" and a \"text\". Each text is one block of a Markdown document: a paragraph, heading, list item, table cell, or a reader-facing attribute of a component.",
+            if(Map.get(input, :segment_kind) == "markdown_unit",
+              do:
+                "The supplied content is the text of one block of a Markdown document. Translate only that block.",
+              else:
+                "The supplied content is a JSON array of objects with an \"id\" and a \"text\". Each text is one block of a Markdown document: a paragraph, heading, list item, table cell, or a reader-facing attribute of a component."
+            ),
             "Inline formatting is replaced by numbered tags. <gN>...</gN> wraps formatted or linked words: translate the words inside and keep the tags around their translation. <gN/> stands for content that must not change, such as inline code, a component, or a heading anchor.",
             "Translate each text as a whole sentence and move tags wherever natural word order in the target language puts them, but keep every tag exactly once, keep paired tags properly nested, and never add, rename, or drop a tag.",
-            "Return only a JSON object that maps every id to its translated text. Do not add Markdown syntax, fences, or commentary.",
+            if(Map.get(input, :segment_kind) == "markdown_unit",
+              do:
+                "Return only the translated text, not JSON. Keep quotation marks as literal text, without JSON escaping. Do not add Markdown syntax, fences, or commentary.",
+              else:
+                "Return only a JSON object that maps every id to its translated text. Do not add Markdown syntax, fences, or commentary."
+            ),
             "The source document, and any passages already translated from it, are provided for reference only. Use them to understand meaning, terminology, and tone, and to stay consistent with earlier translations. Do not translate or return them."
           ]
       else
@@ -192,6 +202,9 @@ defmodule Glossia.Translations.Prompt do
 
         segment_kind == "markdown_units" ->
           "Translate the text of every object in this JSON array from #{source_language} to #{language} (#{locale}). Return only a JSON object mapping each id to its translated text, keeping every <gN>, </gN>, and <gN/> tag exactly once."
+
+        segment_kind == "markdown_unit" ->
+          "Translate this block from #{source_language} to #{language} (#{locale}). Return only its translated text, not JSON, keeping every <gN>, </gN>, and <gN/> tag exactly once."
 
         segment_kind == "frontmatter_text_literals" ->
           "Translate every reader-facing string in this JSON array from #{source_language} to #{language} (#{locale}). Return only a valid JSON array of translated strings, with the same number of elements and the same order. Do not add frontmatter syntax, keys, identifiers, dates, Markdown, or commentary."

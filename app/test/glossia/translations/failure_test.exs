@@ -279,6 +279,7 @@ defmodule Glossia.Translations.FailureTest do
 
   test "retains distinct safe Markdown recovery reasons through serialization" do
     for {message, code} <- [
+          {"Markdown unit response must be a valid JSON object", "markdown-unit-json"},
           {"Markdown text-literal recovery must return a JSON string array of matching length",
            "markdown-literal-array-shape"},
           {"Markdown text-literal recovery returned invalid JSON",

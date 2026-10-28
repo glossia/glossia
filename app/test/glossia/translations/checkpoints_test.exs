@@ -7,6 +7,160 @@ defmodule Glossia.Translations.CheckpointsTest do
   alias Glossia.TranslationStubs
 
   @tag :tmp_dir
+  test "an interrupted Markdown repair reuses accepted units but not rejected responses", %{
+    tmp_dir: dir
+  } do
+    source = Path.join(dir, "guide.md")
+    File.write!(source, "Read the [guide](https://example.com).\n\nRun `mix test` now.\n")
+
+    item = %{
+      source_abs: source,
+      output_abs: Path.join(dir, "es.md"),
+      output_path: "es.md",
+      locale: "es",
+      language: "Spanish",
+      source_language: "en",
+      format: "markdown",
+      frontmatter_mode: :preserve,
+      preserve: [],
+      prompt: nil,
+      check_cmd: nil,
+      check_cmds: %{},
+      validation: nil,
+      retries: 0,
+      model: "translator",
+      context_body: "",
+      locale_override_body: "",
+      server_context: Context.empty_bundle("es")
+    }
+
+    opts = [checkpoint_scope: Checkpoints.key({:markdown_resume, dir})]
+    parent = self()
+
+    stub(Translations, :translate_stream, fn _, payload, _, _ ->
+      if payload["last_error"] do
+        exit(:shutdown)
+      else
+        {:ok,
+         %{
+           text:
+             TranslationStubs.respond(payload, fn
+               "Read the <g1>guide</g1>." -> "Lee la <g1>guía</g1>."
+               "Run <g1/> now." -> "Ejecuta ahora."
+             end),
+           model: "test/model",
+           provider: "test"
+         }}
+      end
+    end)
+
+    validate = fn output, original ->
+      Glossia.Translations.Validate.validate_output(dir, "markdown", output, original)
+    end
+
+    supervisor = start_supervised!(Task.Supervisor)
+
+    interrupted =
+      Task.Supervisor.async_nolink(supervisor, fn ->
+        Engine.apply_item(item, %Account{id: "account"}, fn _ -> :ok end, validate, opts)
+      end)
+
+    assert {:exit, :shutdown} = Task.yield(interrupted, 5_000)
+
+    stub(Translations, :translate_stream, fn _, payload, _, _ ->
+      text =
+        if payload["segment_kind"] == "markdown_unit" do
+          send(parent, {:resumed_units, [payload["source_content"]]})
+          "Ejecuta <g1/> ahora."
+        else
+          ~s({"u2":"Ejecuta "ahora"."})
+        end
+
+      {:ok,
+       %{
+         text: text,
+         model: "test/model",
+         provider: "test"
+       }}
+    end)
+
+    resumed =
+      Task.Supervisor.async_nolink(supervisor, fn ->
+        # Stop after every unit is accepted but before the whole-segment
+        # checkpoint is written, as supersession can do at any point.
+        Engine.apply_item(
+          item,
+          %Account{id: "account"},
+          fn
+            {:segment_output, _} -> exit(:shutdown)
+            _ -> :ok
+          end,
+          validate,
+          opts
+        )
+      end)
+
+    assert {:exit, :shutdown} = Task.yield(resumed, 5_000)
+    assert_received {:resumed_units, ["Run <g1/> now."]}
+    refute_received {:resumed_units, _}
+
+    assert {:ok, result} =
+             Engine.apply_item(item, %Account{id: "account"}, fn _ -> :ok end, validate, opts)
+
+    assert result.text == "Lee la [guía](https://example.com).\n\nEjecuta `mix test` ahora.\n"
+    refute_received {:resumed_units, _}
+
+    # A fully checkpointed document still runs final validation on every resume.
+    assert {:error, {:validation_failed, "external validation rejected output"}} =
+             Engine.apply_item(
+               item,
+               %Account{id: "account"},
+               fn _ -> :ok end,
+               fn _, _ -> {:error, "external validation rejected output"} end,
+               opts
+             )
+
+    refute_received {:resumed_units, _}
+
+    stub(Translations, :translate_stream, fn _, payload, _, _ ->
+      send(parent, {:repair_units, TranslationStubs.unit_texts(payload)})
+
+      {:ok,
+       %{
+         text:
+           TranslationStubs.respond(payload, fn
+             "Read the <g1>guide</g1>." -> "Consulta la <g1>guía</g1>."
+             "Run <g1/> now." -> "Ejecuta <g1/> ahora."
+           end),
+         model: "test/model",
+         provider: "test"
+       }}
+    end)
+
+    # A document-level repair must not silently replay the rejected attempt.
+    validate_repair = fn output, original ->
+      if String.starts_with?(output, "Lee"),
+        do: {:error, "use Consulta instead"},
+        else: validate.(output, original)
+    end
+
+    assert {:ok, repaired} =
+             Engine.apply_item(
+               %{item | retries: 1},
+               %Account{id: "account"},
+               fn _ -> :ok end,
+               validate_repair,
+               opts
+             )
+
+    assert repaired.text ==
+             "Consulta la [guía](https://example.com).\n\nEjecuta `mix test` ahora.\n"
+
+    assert_received {:repair_units, ["Read the <g1>guide</g1>.", "Run <g1/> now."]}
+    refute_received {:repair_units, _}
+  end
+
+  @tag :tmp_dir
   test "corrected Markdown templates miss old checkpoints without purging unrelated documents", %{
     tmp_dir: dir
   } do

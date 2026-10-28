@@ -885,7 +885,7 @@ defmodule Glossia.TranslationSessions.Translate do
       {:ok, finished_session} ->
         refresh_pull_request_description(finished_session)
 
-        if Glossia.TranslationSessions.ProviderRecovery.rate_limited?(reason) do
+        if Glossia.TranslationSessions.ProviderRecovery.retryable_provider_failure?(reason) do
           Glossia.TranslationSessions.ProviderRecovery.schedule(finished_session)
         end
 

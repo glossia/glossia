@@ -41,6 +41,7 @@ defmodule Glossia.Translations.Failure do
     {"markdown-recovery-markers",
      "Markdown recovery markers were missing, duplicated, or reordered"},
     {"markdown-structure", "translated Markdown changed the document structure"},
+    {"markdown-unit-json", "Markdown unit response must be a valid JSON object"},
     {"markdown-unit-tags", "every tag must appear exactly once"},
     {"markdown-unit-tags", "unknown tag; use only the tags present in the source text"},
     {"markdown-unit-tags", "paired tags must open before they close"},

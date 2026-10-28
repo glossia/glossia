@@ -1041,11 +1041,73 @@ defmodule Glossia.TranslationSessions.TranslateTest do
                  %{path: "docs/i18n/es/guide.md", status: "added", content: "# Hola\n"}
                ])
 
-      {:error, {:translation_items_failed, [%{output_path: "docs/i18n/es/guide.md"}]}}
+      {:error,
+       {:translation_items_failed,
+        [%{output_path: "docs/i18n/es/guide.md", reason: %{kind: "provider-timeout"}}]}}
     end)
 
     assert :ok = Translate.run(session.id)
     assert Repo.get!(TranslationSession, session.id).status == "cancelled"
+
+    refute Repo.exists?(
+             from s in TranslationSession, where: s.continued_from_session_id == ^session.id
+           )
+  end
+
+  for {name, reason, retryable} <- [
+        {"rate limit", %{kind: "provider-rate-limit", status: 429}, true},
+        {"504", %{kind: "provider-error", status: 504}, true},
+        {"timeout", {:llm_failed, :timeout}, true},
+        {"transport failure", {:llm_failed, %Req.TransportError{reason: :closed}}, true},
+        {"credentials", %{kind: "provider-credentials", status: 401}, false},
+        {"credit", %{kind: "provider-credit", status: 402}, false},
+        {"client error", %{kind: "provider-error", status: 400}, false},
+        {"validation", %{kind: "validation-structure"}, false}
+      ] do
+    @provider_reason reason
+    @provider_retryable retryable
+
+    test "provider recovery after #{name} schedules continuation: #{retryable}" do
+      {user, project} =
+        project_with_installation("translate-provider@test.com", "translate-provider")
+
+      session = session_for(user, project)
+      reason = @provider_reason
+      failure = {:translation_items_failed, [%{output_path: "docs/es/guide.md", reason: reason}]}
+
+      stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+      stub(Glossia.Translations.RepositoryRun, :run, fn _, _, _, _, _ -> {:error, failure} end)
+
+      Oban.Testing.with_testing_mode(:manual, fn ->
+        capture_log(fn -> assert {:error, ^failure} = Translate.run(session.id) end)
+
+        assert Repo.get!(TranslationSession, session.id).status == "failed"
+
+        continuation =
+          Repo.one(
+            from s in TranslationSession, where: s.continued_from_session_id == ^session.id
+          )
+
+        if @provider_retryable do
+          assert continuation.status == "pending"
+          assert continuation.provider_retry_count == 1
+
+          assert continuation.publication_branch ==
+                   Repo.get!(TranslationSession, session.id).publication_branch
+
+          job =
+            Repo.one!(
+              from j in Oban.Job,
+                where: j.args["session_id"] == ^continuation.id,
+                where: j.worker == "Glossia.TranslationSessions.TranslateWorker"
+            )
+
+          assert DateTime.diff(job.scheduled_at, DateTime.utc_now()) >= 55
+        else
+          assert is_nil(continuation)
+        end
+      end)
+    end
   end
 
   test "fails the session when a translation item fails" do

@@ -1,6 +1,6 @@
 defmodule Glossia.TranslationSessions.ProviderRecovery do
   @moduledoc """
-  Schedules bounded continuations after provider throttling exhausts local retries.
+  Schedules bounded continuations after retryable provider failures exhaust local retries.
 
   Each continuation has its own session and launcher identity, inherits the
   publication branch, and reuses durable segment checkpoints. A newer active
@@ -13,16 +13,18 @@ defmodule Glossia.TranslationSessions.ProviderRecovery do
   alias Glossia.TranslationSessions.{TranslationSession, TranslateWorker}
   alias Glossia.Translations.Failure
 
-  def rate_limited?({:translation_items_failed, failures}) do
+  def retryable_provider_failure?({:translation_items_failed, failures}) do
     Enum.any?(failures, fn failure ->
-      Failure.normalize(Map.get(failure, :reason)).kind == "provider-rate-limit"
+      failure |> Map.get(:reason) |> Failure.normalize() |> Failure.retryable?()
     end)
   end
 
-  def rate_limited?({:translation_and_publication_failed, reason, _publication_reason}),
-    do: rate_limited?(reason)
+  def retryable_provider_failure?(
+        {:translation_and_publication_failed, reason, _publication_reason}
+      ),
+      do: retryable_provider_failure?(reason)
 
-  def rate_limited?(_), do: false
+  def retryable_provider_failure?(_), do: false
 
   def schedule(%TranslationSession{} = session) do
     Repo.transaction(fn ->
@@ -35,7 +37,7 @@ defmodule Glossia.TranslationSessions.ProviderRecovery do
             where: s.project_id == ^current.project_id and s.id != ^current.id,
             where:
               s.inserted_at >= ^current.inserted_at and
-                s.status in ["pending", "running", "completed"]
+                s.status in ["pending", "running", "awaiting_input", "completed"]
         )
 
       existing =

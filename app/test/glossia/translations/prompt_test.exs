@@ -72,14 +72,22 @@ defmodule Glossia.Translations.PromptTest do
       assert prompt =~ "Never return an empty response for a non-empty metadata block."
     end
 
-    test "explains the Markdown unit tags and the JSON object contract" do
-      prompt = Prompt.build_system_prompt(base(%{segment_kind: "markdown_units"}))
+    test "explains the Markdown unit tags and the batch or single-text response contract" do
+      for kind <- ["markdown_units", "markdown_unit"] do
+        prompt = Prompt.build_system_prompt(base(%{segment_kind: kind}))
 
-      assert prompt =~ "<gN>...</gN> wraps formatted or linked words"
-      assert prompt =~ "<gN/> stands for content that must not change"
-      assert prompt =~ "keep every tag exactly once"
-      assert prompt =~ "Return only a JSON object that maps every id to its translated text"
-      assert prompt =~ "provided for reference only"
+        assert prompt =~ "<gN>...</gN> wraps formatted or linked words"
+        assert prompt =~ "<gN/> stands for content that must not change"
+        assert prompt =~ "keep every tag exactly once"
+        assert prompt =~ "provided for reference only"
+
+        if kind == "markdown_unit" do
+          assert prompt =~ "Return only the translated text, not JSON"
+          refute prompt =~ "Return only a JSON object"
+        else
+          assert prompt =~ "Return only a JSON object that maps every id to its translated text"
+        end
+      end
     end
 
     test "appends a non-blank custom prompt, trimmed" do

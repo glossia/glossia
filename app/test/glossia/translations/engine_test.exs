@@ -255,6 +255,89 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "recovers persistently incomplete Markdown batches using smaller requests", %{
+      tmp_dir: dir
+    } do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "Intro.\n\nRead `one`.\n\nRun `two`.\n\nCheck `three`.\n")
+
+      stub_stream(fn _account, payload, _on_event ->
+        texts = TranslationStubs.unit_texts(payload)
+
+        translated(
+          TranslationStubs.respond(payload, fn
+            "Intro." -> "Introducción."
+            text when length(texts) > 1 -> String.replace(text, "<g1/>", "")
+            "Read <g1/>." -> "Lee <g1/>."
+            "Run <g1/>." -> "Ejecuta <g1/>."
+            "Check <g1/>." -> "Comprueba <g1/>."
+          end)
+        )
+      end)
+
+      item = work_item(%{source_abs: source, retries: 0})
+
+      validate = fn output, original ->
+        Validate.validate_output(dir, "markdown", output, original)
+      end
+
+      assert {:ok, result} =
+               Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end, validate)
+
+      assert result.text ==
+               "Introducción.\n\nLee `one`.\n\nEjecuta `two`.\n\nComprueba `three`.\n"
+    end
+
+    @tag :tmp_dir
+    test "recovers unescaped JSON quotes without dropping quoted prose or inline code",
+         %{
+           tmp_dir: dir
+         } do
+      source = Path.join(dir, "guide.md")
+      File.write!(source, "`bazel test` retains its normal \"no tests found\" exit status.\n")
+      translation = ~s(<g1/> 保持其正常的"未找到测试"退出状态。)
+
+      item =
+        work_item(%{
+          source_abs: source,
+          retries: 0,
+          locale: "zh_Hans",
+          language: "Chinese (Simplified)",
+          server_context: Context.empty_bundle("zh_Hans")
+        })
+
+      for recovery <- [:json, :plain] do
+        stub_stream(fn _account, payload, _on_event ->
+          cond do
+            payload["segment_kind"] == "markdown_unit" and recovery == :plain ->
+              if payload["last_error"],
+                do: translated(translation),
+                else: translated(String.replace(translation, "<g1/>", ""))
+
+            payload["segment_kind"] == "markdown_unit" ->
+              translated("Invalid response")
+
+            recovery == :json and
+                String.contains?(payload["last_error"] || "", "valid JSON object") ->
+              translated(TranslationStubs.respond(payload, fn _ -> translation end))
+
+            true ->
+              translated("```json\n" <> ~s({"u1":"#{translation}"}) <> "\n```")
+          end
+        end)
+
+        validate = fn output, original ->
+          Validate.validate_output(dir, "markdown", output, original)
+        end
+
+        assert {:ok, result} =
+                 Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end, validate)
+
+        assert result.text == ~s(`bazel test` 保持其正常的"未找到测试"退出状态。\n)
+      end
+    end
+
+    @tag :tmp_dir
     test "escapes a translation that would add Markdown structure without asking again", %{
       tmp_dir: dir
     } do
@@ -279,6 +362,56 @@ defmodule Glossia.Translations.EngineTest do
                end)
 
       assert result.text == "\\# Introducción\n\n1\\. Los números importan.\n"
+      assert_received :request
+      refute_received :request
+    end
+
+    @tag :tmp_dir
+    test "repairs emphasis boundaries in unspaced translations", %{tmp_dir: dir} do
+      source = Path.join(dir, "guide.md")
+
+      File.write!(
+        source,
+        "This operation, known as *\"warming,\"* produces binaries.\n\n" <>
+          "1. **Request access.** Runners are invite-only.\n\n" <>
+          "Previews are _private_ by default.\n"
+      )
+
+      parent = self()
+
+      stub_stream(fn _account, payload, _on_event ->
+        send(parent, :request)
+
+        translated(
+          TranslationStubs.respond(payload, fn
+            "This operation, known as <g1>\"warming,\"</g1> produces binaries." ->
+              "この操作は<g1>「ウォーミング」</g1>と呼ばれ、バイナリを生成します。"
+
+            "<g1>Request access.</g1> Runners are invite-only." ->
+              "<g1>アクセスを申請。</g1>ランナーは招待制です。"
+
+            "Previews are <g1>private</g1> by default." ->
+              "プレビューはデフォルトで<g1>非公開</g1>です。"
+          end)
+        )
+      end)
+
+      item =
+        work_item(%{
+          source_abs: source,
+          locale: "ja",
+          language: "Japanese",
+          server_context: Context.empty_bundle("ja")
+        })
+
+      assert {:ok, result} =
+               Engine.apply_item(item, %Account{id: 1}, fn _ -> :ok end)
+
+      assert result.text ==
+               "この操作は *「ウォーミング」* と呼ばれ、バイナリを生成します。\n\n" <>
+                 "1. **アクセスを申請。** ランナーは招待制です。\n\n" <>
+                 "プレビューはデフォルトで _非公開_ です。\n"
+
       assert_received :request
       refute_received :request
     end

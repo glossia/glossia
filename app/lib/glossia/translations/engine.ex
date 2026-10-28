@@ -925,7 +925,38 @@ defmodule Glossia.Translations.Engine do
   defp translate_markdown_units(state, segment, index, count) do
     emit_segment_event(state, segment, {:segment_start, index, count, segment.kind})
 
-    case translate_markdown_unit_rounds(state, segment, index, count, segment.units, %{}, nil, 1) do
+    # A batch can accept most units before a retry or supersession stops it.
+    # Recover those units independently of the pending subset and retry feedback.
+    {pending, accepted, result} =
+      Enum.reduce(segment.units, {[], %{}, nil}, fn unit, {pending, accepted, result} ->
+        {storage, key} = markdown_unit_checkpoint(state, segment, unit)
+
+        with %{text: text} = cached <- Checkpoints.fetch(storage, key),
+             {:ok, rendered, translated} <- accept_markdown_unit(state.markdown_plan, unit, text) do
+          {pending, Map.put(accepted, unit.id, %{rendered: rendered, translated: translated}),
+           cached}
+        else
+          _ -> {[unit | pending], accepted, result}
+        end
+      end)
+
+    outcome =
+      if pending == [] do
+        {:ok, accepted, result}
+      else
+        translate_markdown_unit_rounds(
+          state,
+          segment,
+          index,
+          count,
+          Enum.reverse(pending),
+          accepted,
+          nil,
+          1
+        )
+      end
+
+    case outcome do
       {:ok, accepted, result} ->
         rendered = Map.new(accepted, fn {id, %{rendered: bytes}} -> {id, bytes} end)
 
@@ -959,7 +990,12 @@ defmodule Glossia.Translations.Engine do
          last_error,
          round
        ) do
-    request = %{segment | content: markdown_units_content(pending)}
+    content =
+      if segment.kind == "markdown_unit",
+        do: hd(pending).text,
+        else: markdown_units_content(pending)
+
+    request = %{segment | content: content}
 
     payload =
       state.work_item
@@ -981,10 +1017,13 @@ defmodule Glossia.Translations.Engine do
            state.translation_opts
          ) do
       {:ok, result} ->
+        decoded =
+          if segment.kind == "markdown_unit",
+            do: %{hd(pending).id => result.text},
+            else: decode_markdown_units(result.text)
+
         {accepted, failures} =
-          result.text
-          |> decode_markdown_units()
-          |> accept_markdown_units(state.markdown_plan, pending, accepted)
+          accept_markdown_units(decoded, state, segment, pending, accepted, result)
 
         cond do
           failures == [] ->
@@ -1008,7 +1047,62 @@ defmodule Glossia.Translations.Engine do
             )
 
           true ->
-            {:preservation_error, markdown_unit_failure_message(failures)}
+            failed = MapSet.new(failures, &elem(&1, 0))
+            pending = Enum.filter(pending, &MapSet.member?(failed, &1.id))
+            message = markdown_unit_failure_message(failures)
+
+            if length(pending) > 1 do
+              # A model can repeatedly omit units in a large response. As with
+              # catalogs, shrink only the rejected group, down to single units.
+              # Reset feedback so it cannot request ids outside the new group.
+              {left, right} = Enum.split(pending, div(length(pending), 2))
+              emit_segment_event(state, segment, {:segment_retry, index, message})
+
+              with {:ok, accepted, _result} <-
+                     translate_markdown_unit_rounds(
+                       state,
+                       segment,
+                       index,
+                       count,
+                       left,
+                       accepted,
+                       nil,
+                       1
+                     ),
+                   {:ok, accepted, result} <-
+                     translate_markdown_unit_rounds(
+                       state,
+                       segment,
+                       index,
+                       count,
+                       right,
+                       accepted,
+                       nil,
+                       1
+                     ) do
+                {:ok, accepted, result}
+              else
+                {:preservation_error, _} -> {:preservation_error, message}
+                error -> error
+              end
+            else
+              if decoded == :invalid_json do
+                # One unit needs no JSON envelope. Keep its literal quotes and
+                # validate its text and tags exactly as in the batched path.
+                translate_markdown_unit_rounds(
+                  state,
+                  %{segment | kind: "markdown_unit"},
+                  index,
+                  count,
+                  pending,
+                  accepted,
+                  nil,
+                  1
+                )
+              else
+                {:preservation_error, message}
+              end
+            end
         end
 
       {:error, reason} ->
@@ -1050,19 +1144,41 @@ defmodule Glossia.Translations.Engine do
     |> JSON.decode()
     |> case do
       {:ok, %{} = map} -> map
-      _ -> %{}
+      _ -> :invalid_json
     end
   end
 
-  defp accept_markdown_units(:empty, _plan, pending, accepted) do
+  defp markdown_unit_checkpoint(state, segment, unit) do
+    scope = Keyword.get(state.translation_opts, :checkpoint_scope)
+    storage = if scope, do: state.translation_opts
+    segment = %{segment | kind: "markdown_units"}
+
+    key =
+      Checkpoints.key({:markdown_unit, 1, scope, segment, unit, state.attempt, state.last_error})
+
+    {storage, key}
+  end
+
+  defp accept_markdown_units(:empty, _state, _segment, pending, accepted, _result) do
     message = empty_output_message("markdown_units")
     {accepted, Enum.map(pending, &{&1.id, message})}
   end
 
-  defp accept_markdown_units(translations, plan, pending, accepted) do
+  defp accept_markdown_units(:invalid_json, _state, _segment, pending, accepted, _result) do
+    message =
+      "Markdown unit response must be a valid JSON object mapping the requested ids to translated strings; escape double quotes and backslashes inside strings"
+
+    {accepted, Enum.map(pending, &{&1.id, message})}
+  end
+
+  defp accept_markdown_units(translations, state, segment, pending, accepted, result) do
     Enum.reduce(pending, {accepted, []}, fn unit, {accepted, failures} ->
-      case accept_markdown_unit(plan, unit, Map.get(translations, unit.id)) do
+      text = Map.get(translations, unit.id)
+
+      case accept_markdown_unit(state.markdown_plan, unit, text) do
         {:ok, rendered, translated} ->
+          {storage, key} = markdown_unit_checkpoint(state, segment, unit)
+          Checkpoints.put(storage, key, Map.put(result, :text, text))
           {Map.put(accepted, unit.id, %{rendered: rendered, translated: translated}), failures}
 
         {:error, message} ->

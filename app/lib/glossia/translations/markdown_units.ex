@@ -96,7 +96,8 @@ defmodule Glossia.Translations.MarkdownUnits do
   Turns a translated template for `unit` into the bytes to splice in.
 
   Options: `escape: true` escapes Markdown punctuation in the translated prose,
-  leaving the restored source syntax untouched.
+  and separates emphasis delimiters when translated punctuation would stop them
+  parsing as emphasis. Restored source syntax stays untouched.
   """
   def render(unit, translated, opts \\ [])
 
@@ -109,7 +110,7 @@ defmodule Glossia.Translations.MarkdownUnits do
          :ok <- validate_tags(unit, tokens) do
       escape? = Keyword.get(opts, :escape, false)
 
-      rendered =
+      parts =
         tokens
         |> Enum.map(fn
           {:text, text} -> encode_text(unit.kind, normalize_text(text), escape?)
@@ -117,7 +118,9 @@ defmodule Glossia.Translations.MarkdownUnits do
           {:close, n} -> unit.tags[n].close
           {:atomic, n} -> unit.tags[n].bytes
         end)
-        |> IO.iodata_to_binary()
+
+      parts = if escape?, do: separate_emphasis(tokens, parts), else: parts
+      rendered = IO.iodata_to_binary(parts)
 
       {:ok, trim_like(rendered, unit.template)}
     end
@@ -565,6 +568,31 @@ defmodule Glossia.Translations.MarkdownUnits do
     escaped
     |> then(&Regex.replace(~r/\A(\s*)([-+])(?=\s)/, &1, "\\1\\\\\\2"))
     |> then(&Regex.replace(~r/\A(\s*\d+)([.)])(?=\s)/, &1, "\\1\\\\\\2"))
+  end
+
+  # CommonMark emphasis is punctuation-sensitive: **申請。**続く is literal
+  # text, not strong emphasis. Underscores also cannot form intraword emphasis,
+  # as in は_非公開_です. Keep the source delimiters and separate only those
+  # boundaries. The engine re-parses and checks the repair before accepting it.
+  defp separate_emphasis(tokens, parts) do
+    Enum.zip([tokens, parts, ["" | parts], Enum.drop(parts, 1) ++ [""]])
+    |> Enum.map(fn
+      {{:open, _}, delimiter, before, following} when delimiter in ["*", "**", "_", "__", "~~"] ->
+        if String.match?(before, ~r/[^\s\p{Z}\p{P}\p{S}]\z/u) and
+             (delimiter in ["_", "__"] or String.match?(following, ~r/\A[\p{P}\p{S}]/u)),
+           do: " " <> delimiter,
+           else: delimiter
+
+      {{:close, _}, delimiter, before, following}
+      when delimiter in ["*", "**", "_", "__", "~~"] ->
+        if (delimiter in ["_", "__"] or String.match?(before, ~r/[\p{P}\p{S}]\z/u)) and
+             String.match?(following, ~r/\A[^\s\p{Z}\p{P}\p{S}]/u),
+           do: delimiter <> " ",
+           else: delimiter
+
+      {_token, bytes, _before, _following} ->
+        bytes
+    end)
   end
 
   defp trim_like(rendered, template) do
