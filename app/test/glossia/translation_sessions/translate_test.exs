@@ -256,7 +256,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
            ]
 
     assert_received {:pull_request_params, params}
-    assert params.title == "feat(i18n): translate content for abc1234"
+    assert params.title == "feat(i18n): translate content"
 
     updated = Repo.get!(TranslationSession, session.id)
     assert updated.status == "completed"
@@ -775,13 +775,15 @@ defmodule Glossia.TranslationSessions.TranslateTest do
   end
 
   for {title, expected_title} <- [
-        {"feat: translate content for abc1234", "feat(i18n): translate content for abc1234"},
+        {"feat: translate content for abc1234", "feat(i18n): translate content"},
         {"feat: translate content", "feat(i18n): translate content"},
-        {"feat(i18n): translate content for abc1234",
-         "feat(i18n): translate content for abc1234"},
+        {"feat(i18n): translate content for abc1234", "feat(i18n): translate content"},
+        {"feat(i18n): translate content", "feat(i18n): translate content"},
         {"docs(server): update Georgian guides", "docs(server): update Georgian guides"},
         {"feat: translate content for abc1234 (reviewed)",
-         "feat: translate content for abc1234 (reviewed)"}
+         "feat: translate content for abc1234 (reviewed)"},
+        {"feat(i18n): translate content for abc1234 (reviewed)",
+         "feat(i18n): translate content for abc1234 (reviewed)"}
       ] do
     @existing_title title
     @expected_title expected_title

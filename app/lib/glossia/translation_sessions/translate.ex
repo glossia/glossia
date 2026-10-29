@@ -22,6 +22,7 @@ defmodule Glossia.TranslationSessions.Translate do
   alias Glossia.TranslationSessions.TranslationSession
 
   @translation_branch_prefix "glossia/translate"
+  @translation_pull_request_title "feat(i18n): translate content"
 
   @doc """
   Fails a session that never got as far as running.
@@ -222,14 +223,18 @@ defmodule Glossia.TranslationSessions.Translate do
       {:ok, %{"state" => "open"} = pull_request} ->
         title = pull_request["title"]
 
-        # Repair only our exact legacy titles, retaining the original source
-        # commit and leaving any reviewer-customized title alone.
+        # Repair only our exact generated titles, leaving any reviewer-customized
+        # title alone. Source commits belong in the pull request description.
         if is_binary(title) and
-             Regex.match?(~r/\Afeat: translate content(?: for [0-9a-f]{7})?\z/, title) do
+             title != @translation_pull_request_title and
+             Regex.match?(
+               ~r/\Afeat(?:\(i18n\))?: translate content(?: for [0-9a-f]{7})?\z/,
+               title
+             ) do
           case Glossia.Github.Client.update_pull_request(
                  project.github_repo_full_name,
                  pull_request_number,
-                 %{title: String.replace_prefix(title, "feat:", "feat(i18n):")},
+                 %{title: @translation_pull_request_title},
                  token
                ) do
             {:ok, _pull_request} ->
@@ -807,7 +812,7 @@ defmodule Glossia.TranslationSessions.Translate do
     case Glossia.Github.Client.create_pull_request(
            full_name,
            %{
-             title: translation_commit_message(session),
+             title: @translation_pull_request_title,
              body: pull_request_description(%{session | publication_branch: branch_name}),
              head: branch_name,
              base: default_branch
