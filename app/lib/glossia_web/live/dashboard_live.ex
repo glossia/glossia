@@ -27,6 +27,7 @@ defmodule GlossiaWeb.DashboardLive do
   @tone_options ~w(casual formal playful authoritative neutral)
   @formality_options ~w(informal neutral formal very_formal)
   @translation_refresh_interval_ms :timer.seconds(3)
+  @translation_progress_page_size 50
   @analytics_refresh_interval_ms :timer.seconds(10)
 
   # ---------------------------------------------------------------------------
@@ -1195,10 +1196,14 @@ defmodule GlossiaWeb.DashboardLive do
     )
   end
 
-  defp apply_action(socket, :project_session, %{
-         "project" => project_handle,
-         "session_id" => session_id
-       }) do
+  defp apply_action(
+         socket,
+         :project_session,
+         %{
+           "project" => project_handle,
+           "session_id" => session_id
+         } = params
+       ) do
     account = socket.assigns.account
     handle = socket.assigns.handle
     project = Glossia.Projects.get_project(account, project_handle)
@@ -1209,13 +1214,26 @@ defmodule GlossiaWeb.DashboardLive do
 
     session = Glossia.TranslationSessions.get_session!(account, project, session_id)
 
+    same_session? =
+      not is_nil(socket.assigns[:session]) and socket.assigns.session.id == session.id
+
+    reuse_progress? = same_session? and session.status in ["pending", "running", "awaiting_input"]
+
+    progress =
+      if reuse_progress? do
+        socket.assigns.translation_progress
+      else
+        translation_session_progress(session)
+      end
+
     events =
       session.id
       |> Glossia.Ingestion.list_translation_session_events()
       |> Enum.filter(&visible_translation_session_event?/1)
 
     socket =
-      if connected?(socket) and session.status in ["pending", "running", "awaiting_input"] do
+      if connected?(socket) and not same_session? and
+           session.status in ["pending", "running", "awaiting_input"] do
         Glossia.TranslationSessions.subscribe_session_events(session)
         socket
       else
@@ -1228,6 +1246,9 @@ defmodule GlossiaWeb.DashboardLive do
       project: project,
       session: session,
       session_events: events,
+      translation_progress_snapshot:
+        if(reuse_progress?, do: socket.assigns.translation_progress_snapshot, else: progress),
+      translation_progress_page: max(parse_int(params["files_page"], 1), 1),
       breadcrumb_items: [
         {project.handle, ~p"/#{handle}/#{project.handle}"},
         {gettext("Translations"), ~p"/#{handle}/#{project.handle}/-/translations"},
@@ -1236,7 +1257,7 @@ defmodule GlossiaWeb.DashboardLive do
       sidebar_context: :project,
       sidebar_project: project
     )
-    |> assign_translation_progress(translation_session_progress(session))
+    |> assign_translation_progress(progress)
     |> assign_linguistic_reviews()
   end
 
@@ -3677,7 +3698,34 @@ defmodule GlossiaWeb.DashboardLive do
       progress =
         Progress.apply_event(socket.assigns[:translation_progress] || Progress.new(), event)
 
-      {:noreply, assign_translation_progress(socket, progress)}
+      socket =
+        cond do
+          progress == socket.assigns[:translation_progress] ->
+            socket
+
+          event.type == "item_event" ->
+            # Token and segment updates cannot change totals or row order. Only
+            # decorate the affected visible row, not the entire repository plan.
+            items =
+              Enum.map(socket.assigns.translation_progress_items, fn item ->
+                if item.index == event.index do
+                  translation_progress_item(
+                    progress.items[event.index],
+                    socket.assigns.project,
+                    socket.assigns.session
+                  )
+                else
+                  item
+                end
+              end)
+
+            assign(socket, translation_progress: progress, translation_progress_items: items)
+
+          true ->
+            assign_translation_progress(socket, progress)
+        end
+
+      {:noreply, socket}
     else
       if visible_translation_session_event?(event) do
         session_events = socket.assigns[:session_events] || []
@@ -3701,17 +3749,29 @@ defmodule GlossiaWeb.DashboardLive do
       end
 
     socket =
-      if status == "running" do
-        assign_translation_progress(socket, translation_session_progress(session))
-      else
-        socket
+      cond do
+        status == "running" ->
+          assign_translation_progress(socket, translation_session_progress(session))
+
+        session && socket.assigns.live_action == :project_session ->
+          refresh_visible_translation_items(socket)
+
+        true ->
+          socket
       end
 
     {:noreply, socket}
   end
 
   def handle_info({:translation_session_publication, session}, socket) do
-    {:noreply, assign(socket, session: session)}
+    socket = assign(socket, session: session)
+
+    socket =
+      if socket.assigns.live_action == :project_session,
+        do: refresh_visible_translation_items(socket),
+        else: socket
+
+    {:noreply, socket}
   end
 
   def handle_info({:project_translation_sessions_changed, _session_id}, socket) do
@@ -3743,18 +3803,35 @@ defmodule GlossiaWeb.DashboardLive do
       case socket.assigns.live_action do
         :project_session ->
           session = socket.assigns.session
+          progress = translation_session_progress(session)
 
-          socket
-          |> assign(
-            session:
-              Glossia.TranslationSessions.get_session!(
-                socket.assigns.account,
-                socket.assigns.project,
-                session.id
-              )
-          )
-          |> assign_translation_progress(translation_session_progress(session))
-          |> assign_linguistic_reviews()
+          socket =
+            socket
+            |> assign(
+              session:
+                Glossia.TranslationSessions.get_session!(
+                  socket.assigns.account,
+                  socket.assigns.project,
+                  session.id
+                )
+            )
+            |> assign_linguistic_reviews()
+
+          # Reconcile the full durable snapshot: concurrent producers can commit
+          # older sequences after a newer one was read. Unchanged polls leave
+          # live text and the bounded table alone.
+          cond do
+            progress != socket.assigns.translation_progress_snapshot ->
+              socket
+              |> assign(translation_progress_snapshot: progress)
+              |> assign_translation_progress(progress)
+
+            translation_session_ref(session) != translation_session_ref(socket.assigns.session) ->
+              refresh_visible_translation_items(socket)
+
+            true ->
+              socket
+          end
 
         :project_translations ->
           apply_url_params_translations(socket, socket.assigns[:settings_query_params] || %{})
@@ -3876,41 +3953,59 @@ defmodule GlossiaWeb.DashboardLive do
     project = socket.assigns[:project]
     session = socket.assigns[:session]
 
-    items =
-      progress
-      |> Progress.items()
-      |> Enum.map(fn item ->
-        failure =
-          if item.status == :failed,
-            do: translation_failure(item.reason, item.index),
-            else: nil
+    # Keep the DOM and expanded previews bounded even for repository-wide runs.
+    # Sort before slicing so outcome ordering remains consistent across pages.
+    items = progress.items |> Map.values() |> Enum.sort_by(&translation_item_sort_key/1)
+    total_pages = max(ceil(length(items) / @translation_progress_page_size), 1)
+    page = min(socket.assigns[:translation_progress_page] || 1, total_pages)
 
-        item
-        |> Map.put(:failure, failure)
-        |> Map.put(
-          :file_url,
-          translation_file_url(
-            project,
-            item.status,
-            item.file_ref || translation_session_ref(session),
-            item.output_path
-          )
-        )
-      end)
-      # Group by outcome so the panel resolves top-down as the run progresses:
-      # completed files stack up at the top (the person can scan what already
-      # landed), failures sit right after so they cannot be missed, and the
-      # rows still translating trail at the bottom. Each item promotes itself
-      # as it moves from :running to :done — the list re-orders on the next
-      # event, which is the "shuffle as translations complete" behavior.
-      |> Enum.sort_by(&translation_item_sort_key/1)
+    visible_items =
+      items
+      |> Enum.slice((page - 1) * @translation_progress_page_size, @translation_progress_page_size)
+      |> Enum.map(&translation_progress_item(&1, project, session))
+
+    failures =
+      items
+      |> Enum.filter(&(&1.status == :failed))
+      |> Enum.map(&translation_progress_item(&1, project, session))
+      |> translation_failure_groups()
 
     assign(socket,
       translation_progress: progress,
-      translation_progress_items: items,
+      translation_progress_items: visible_items,
+      translation_progress_page: page,
+      translation_progress_total_pages: total_pages,
       translation_progress_summary: Progress.summary(progress),
-      translation_progress_failures: translation_failure_groups(items)
+      translation_progress_failures: failures
     )
+  end
+
+  defp translation_progress_item(item, project, session) do
+    failure =
+      if item.status == :failed,
+        do: translation_failure(item.reason, item.index),
+        else: nil
+
+    item
+    |> Map.put(:failure, failure)
+    |> Map.put(
+      :file_url,
+      translation_file_url(
+        project,
+        item.status,
+        item.file_ref || translation_session_ref(session),
+        item.output_path
+      )
+    )
+  end
+
+  defp refresh_visible_translation_items(socket) do
+    items =
+      Enum.map(socket.assigns.translation_progress_items, fn item ->
+        translation_progress_item(item, socket.assigns.project, socket.assigns.session)
+      end)
+
+    assign(socket, translation_progress_items: items)
   end
 
   defp refetch_project(project, status) do
@@ -4224,14 +4319,13 @@ defmodule GlossiaWeb.DashboardLive do
           project={@project}
           session={@session}
           can_write={@can_write}
-          session_events={assigns[:session_events] || []}
-          linguistic_reviews={assigns[:linguistic_reviews] || []}
-          translation_progress_items={assigns[:translation_progress_items] || []}
-          translation_progress_summary={
-            assigns[:translation_progress_summary] ||
-              Glossia.TranslationSessions.Progress.summary(Glossia.TranslationSessions.Progress.new())
-          }
-          translation_progress_failures={assigns[:translation_progress_failures] || []}
+          session_events={@session_events}
+          linguistic_reviews={@linguistic_reviews}
+          translation_progress_items={@translation_progress_items}
+          translation_progress_page={@translation_progress_page}
+          translation_progress_total_pages={@translation_progress_total_pages}
+          translation_progress_summary={@translation_progress_summary}
+          translation_progress_failures={@translation_progress_failures}
         />
       <% :project -> %>
         <.project_page
@@ -8517,6 +8611,17 @@ defmodule GlossiaWeb.DashboardLive do
             items={@translation_progress_items}
             failures={@translation_progress_failures}
             empty_subtitle={translation_files_empty_subtitle(@session, @translation_progress_summary)}
+          />
+          <Noora.PaginationGroup.pagination_group
+            :if={@translation_progress_total_pages > 1}
+            id="translation-progress-pagination"
+            current_page={@translation_progress_page}
+            number_of_pages={@translation_progress_total_pages}
+            page_patch={
+              fn page ->
+                ~p"/#{@handle}/#{@project.handle}/-/sessions/#{@session.id}?#{[files_page: page]}"
+              end
+            }
           />
         </Noora.Card.card_section>
       </Noora.Card.card>

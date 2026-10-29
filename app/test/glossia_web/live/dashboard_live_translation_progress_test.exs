@@ -9,6 +9,239 @@ defmodule GlossiaWeb.DashboardLiveTranslationProgressTest do
   alias Glossia.TranslationSessions
   alias Glossia.Translations.DependencyDiff
 
+  test "large plans paginate while preserving live progress and session-wide totals", %{
+    conn: conn
+  } do
+    user = TestHelpers.create_user("large-plan@test.com", "large-plan")
+    {:ok, project} = Projects.create_project(user.account, %{handle: "docs", name: "Docs"})
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{status: "running"})
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "plan_assessed",
+      total: 123,
+      needs_translation: 123,
+      up_to_date: 0,
+      queued:
+        for index <- 0..122 do
+          %{index: index, output_path: "es/guide-#{index}.md", locale: "es"}
+        end
+    })
+
+    conn = init_test_session(conn, %{user_id: user.id})
+    path = ~p"/#{user.account.handle}/#{project.handle}/-/sessions/#{session.id}"
+    {:ok, view, html} = live(conn, path)
+
+    assert Enum.count(
+             LazyHTML.query(LazyHTML.from_document(html), "#translation-progress-items-body > tr")
+           ) ==
+             50
+
+    assert has_element?(view, "#translation-progress-item-0", "Queued")
+    assert has_element?(view, "#translation-progress-item-49", "Queued")
+    refute has_element?(view, "#translation-progress-item-50")
+    assert has_element?(view, "#translation-progress-summary-translated", "0/123 translated")
+
+    view
+    |> element("#translation-progress-pagination [data-part='page-button']", "3")
+    |> render_click()
+
+    assert_patch(view, path <> "?files_page=3")
+    assert has_element?(view, "#translation-progress-item-100", "Queued")
+    assert has_element?(view, "#translation-progress-item-122", "Queued")
+    refute has_element?(view, "#translation-progress-item-99")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_started",
+      index: 122,
+      output_path: "es/guide-122.md",
+      locale: "es"
+    })
+
+    # A running file moves ahead of queued files, so it now belongs to page one.
+    refute has_element?(view, "#translation-progress-item-122")
+    assert has_element?(view, "#translation-progress-summary-running", "1 in progress")
+
+    send(view.pid, :refresh_translation_session)
+    render(view)
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 122,
+      event: %{type: "text", text: "Salida en curso"}
+    })
+
+    render_patch(view, path)
+    assert has_element?(view, "#translation-progress-item-122", "Translating")
+    assert has_element?(view, "#translation-progress-item-122-expanded", "Salida en curso")
+
+    send(view.pid, :refresh_translation_session)
+    assert has_element?(view, "#translation-progress-item-122-expanded", "Salida en curso")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_completed",
+      index: 122,
+      output_preview: "Salida terminada"
+    })
+
+    assert has_element?(view, "#translation-progress-item-122", "Done")
+    assert has_element?(view, "#translation-progress-summary-translated", "1/123 translated")
+
+    # Simulate a lost milestone broadcast followed by a newer live event.
+    missed_seq = TranslationSessions.max_progress_seq(session.id) + 1
+
+    %Glossia.TranslationSessions.ProgressEvent{}
+    |> Glossia.TranslationSessions.ProgressEvent.changeset(%{
+      session_id: session.id,
+      seq: missed_seq,
+      payload: %{type: "item_completed", seq: missed_seq, index: 0}
+    })
+    |> Repo.insert!()
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      seq: missed_seq + 1,
+      index: 122,
+      event: %{type: "turn_start"}
+    })
+
+    send(view.pid, :refresh_translation_session)
+    assert has_element?(view, "#translation-progress-item-0", "Done")
+    assert has_element?(view, "#translation-progress-summary-translated", "2/123 translated")
+
+    # Concurrent producers can commit an older sequence after the next poll.
+    late_seq = TranslationSessions.max_progress_seq(session.id) + 2
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_completed",
+      seq: late_seq + 1,
+      index: 2
+    })
+
+    send(view.pid, :refresh_translation_session)
+    assert has_element?(view, "#translation-progress-summary-translated", "3/123 translated")
+
+    %Glossia.TranslationSessions.ProgressEvent{}
+    |> Glossia.TranslationSessions.ProgressEvent.changeset(%{
+      session_id: session.id,
+      seq: late_seq,
+      payload: %{type: "item_completed", seq: late_seq, index: 1}
+    })
+    |> Repo.insert!()
+
+    send(view.pid, :refresh_translation_session)
+    assert has_element?(view, "#translation-progress-item-1", "Done")
+    assert has_element?(view, "#translation-progress-summary-translated", "4/123 translated")
+
+    # Paging a finished session must reconcile before cancelling its last poll.
+    %Glossia.TranslationSessions.ProgressEvent{}
+    |> Glossia.TranslationSessions.ProgressEvent.changeset(%{
+      session_id: session.id,
+      seq: late_seq + 2,
+      payload: %{type: "item_completed", seq: late_seq + 2, index: 3}
+    })
+    |> Repo.insert!()
+
+    session |> Ecto.Changeset.change(status: "completed") |> Repo.update!()
+    send(view.pid, {:translation_session_status, "completed"})
+    render_patch(view, path <> "?files_page=2")
+    assert has_element?(view, "#translation-progress-summary-translated", "5/123 translated")
+
+    render_patch(view, path <> "?files_page=999")
+    assert has_element?(view, "#translation-progress-pagination [data-selected]", "3")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "run_started",
+      seq: late_seq + 3
+    })
+
+    assert has_element?(view, "#translation-progress-items .noora-table-empty-state")
+    refute has_element?(view, "#translation-progress-pagination")
+    refute has_element?(view, "#translation-progress-item-122")
+  end
+
+  test "publication broadcasts and polling refresh file links without losing live output", %{
+    conn: conn
+  } do
+    user = TestHelpers.create_user("published-links@test.com", "published-links")
+
+    {:ok, project} =
+      Projects.create_project(user.account, %{
+        handle: "docs",
+        name: "Docs",
+        github_repo_full_name: "example/docs"
+      })
+
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{status: "running"})
+
+    for index <- 0..1 do
+      TranslationSessions.broadcast_session_event(session, %{
+        type: "item_started",
+        index: index,
+        output_path: "es/guide-#{index}.md",
+        locale: "es"
+      })
+    end
+
+    TranslationSessions.broadcast_session_event(session, %{type: "item_completed", index: 0})
+
+    conn = init_test_session(conn, %{user_id: user.id})
+    {:ok, view, _html} = live(conn, ~p"/#{user.account.handle}/docs/-/sessions/#{session.id}")
+    refute has_element?(view, "#translation-progress-item-0 a[data-part='path']")
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_event",
+      index: 1,
+      event: %{type: "text", text: "Salida en curso"}
+    })
+
+    {:ok, session} =
+      TranslationSessions.update_session_publication(session, %{
+        publication_commit_sha: "first-publication"
+      })
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 a[href='https://github.com/example/docs/blob/first-publication/es/guide-0.md']"
+           )
+
+    assert has_element?(view, "#translation-progress-item-1-expanded", "Salida en curso")
+
+    # Recover a publication whose broadcast was missed, with no new file events.
+    session
+    |> Ecto.Changeset.change(publication_commit_sha: "next-publication")
+    |> Repo.update!()
+
+    send(view.pid, :refresh_translation_session)
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 a[href='https://github.com/example/docs/blob/next-publication/es/guide-0.md']"
+           )
+
+    assert has_element?(view, "#translation-progress-item-1-expanded", "Salida en curso")
+
+    # A status refetch must not consume the changed SHA without refreshing links.
+    session
+    |> Ecto.Changeset.change(
+      status: "awaiting_input",
+      publication_commit_sha: "last-publication"
+    )
+    |> Repo.update!()
+
+    send(view.pid, {:translation_session_status, "awaiting_input"})
+    send(view.pid, :refresh_translation_session)
+
+    assert has_element?(
+             view,
+             "#translation-progress-item-0 a[href='https://github.com/example/docs/blob/last-publication/es/guide-0.md']"
+           )
+
+    assert has_element?(view, "#translation-progress-item-1-expanded", "Salida en curso")
+  end
+
   test "waiting files show linguistic input rather than an active translation", %{conn: conn} do
     user = TestHelpers.create_user("waiting-linguist@test.com", "waiting-linguist")
 
