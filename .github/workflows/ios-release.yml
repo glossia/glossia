@@ -59,7 +59,7 @@ jobs:
   upload:
     needs: version
     if: needs.version.outputs.release == 'true' && vars.IOS_INFISICAL_IDENTITY_ID != ''
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 60
     permissions:
       contents: write
