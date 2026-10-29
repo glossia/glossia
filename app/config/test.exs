@@ -97,5 +97,6 @@ config :glossia, Glossia.Vault,
 # Provider admission is tested with explicit database calls and a controlled clock.
 config :glossia, :provider_pacing, false
 
-# Periodic reaping has no sandbox owner once test startup switches to manual mode.
+# Background database work must be started explicitly under test-owned sandbox access.
+config :glossia, Glossia.Projects.SetupRecovery, enabled: false
 config :glossia, Glossia.Sandbox, reaper_enabled: false

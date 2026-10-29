@@ -8,8 +8,14 @@ defmodule Glossia.Projects.SetupRecovery do
   alias Glossia.Projects
   alias Glossia.Ingestion.Setup, as: Ingestion
 
-  def start_link(_opts) do
-    GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
+  def start_link(opts) do
+    opts = Keyword.merge(Application.get_env(:glossia, __MODULE__, []), opts)
+
+    if Keyword.get(opts, :enabled, true) do
+      GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
+    else
+      :ignore
+    end
   end
 
   @impl true

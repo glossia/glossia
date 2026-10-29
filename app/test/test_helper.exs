@@ -1,8 +1,4 @@
 ExUnit.start(exclude: [:live], capture_log: true)
-
-# GenServer startup returns before handle_continue/2 finishes. Wait for recovery
-# queries to finish before manual mode checks in all existing connections.
-:sys.get_state(Glossia.Projects.SetupRecovery, :infinity)
 Ecto.Adapters.SQL.Sandbox.mode(Glossia.Repo, :manual)
 
 Mimic.copy(ExAws)
