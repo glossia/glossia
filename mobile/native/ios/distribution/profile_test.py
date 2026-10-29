@@ -16,10 +16,10 @@ class AppStoreProfileTests(unittest.TestCase):
         self.app = self.root / "Glossia.app"
         self.extension = self.app / "PlugIns" / "GlossiaActivity.appex"
         self.extension.mkdir(parents=True)
-        for bundle, identifier in ((self.app, "ai.glossia.mobile"),
-                                   (self.extension, "ai.glossia.mobile.activity")):
+        for bundle, identifier in ((self.app, "ai.glossia.app"),
+                                   (self.extension, "ai.glossia.app.activity")):
             (bundle / "Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": identifier}))
-        self.profiles = [self.profile("ai.glossia.mobile"), self.profile("ai.glossia.mobile.activity")]
+        self.profiles = [self.profile("ai.glossia.app"), self.profile("ai.glossia.app.activity")]
         self.profiles[0]["Entitlements"]["aps-environment"] = "production"
 
     def profile(self, identifier, team="TEAM"):
@@ -42,10 +42,10 @@ class AppStoreProfileTests(unittest.TestCase):
         self.prepare()
         app = plistlib.loads((self.root / "app.entitlements").read_bytes())
         extension = plistlib.loads((self.root / "extension.entitlements").read_bytes())
-        self.assertEqual(app["application-identifier"], "TEAM.ai.glossia.mobile")
-        self.assertEqual(extension["application-identifier"], "TEAM.ai.glossia.mobile.activity")
-        self.assertEqual(app["keychain-access-groups"], ["TEAM.ai.glossia.mobile"])
-        self.assertEqual(extension["keychain-access-groups"], ["TEAM.ai.glossia.mobile.activity"])
+        self.assertEqual(app["application-identifier"], "TEAM.ai.glossia.app")
+        self.assertEqual(extension["application-identifier"], "TEAM.ai.glossia.app.activity")
+        self.assertEqual(app["keychain-access-groups"], ["TEAM.ai.glossia.app"])
+        self.assertEqual(extension["keychain-access-groups"], ["TEAM.ai.glossia.app.activity"])
         self.assertEqual(app["aps-environment"], "production")
         self.assertNotIn("aps-environment", extension)
         self.assertNotIn("unrelated-profile-permission", app)
@@ -77,7 +77,7 @@ class AppStoreProfileTests(unittest.TestCase):
     def test_rejects_swapped_profiles_other_teams_and_different_certificates(self):
         original = copy.deepcopy(self.profiles)
         cases = [list(reversed(original)),
-                 [original[0], self.profile("ai.glossia.mobile.activity", team="OTHER")],
+                 [original[0], self.profile("ai.glossia.app.activity", team="OTHER")],
                  [original[0], {**original[1], "DeveloperCertificates": [b"different-certificate"]}]]
         for profiles in cases:
             with self.subTest(profiles=profiles):

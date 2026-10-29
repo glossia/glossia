@@ -8,8 +8,8 @@ from pathlib import Path
 from push import configuration as push_configuration
 
 
-APP_ID = "ai.glossia.mobile"
-EXTENSION_ID = "ai.glossia.mobile.activity"
+APP_ID = "ai.glossia.app"
+EXTENSION_ID = "ai.glossia.app.activity"
 
 
 def configuration(profile, bundle_id):

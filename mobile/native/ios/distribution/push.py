@@ -16,7 +16,7 @@ def configuration(profile, bundle_id):
         raise ValueError("Enable Push Notifications and regenerate the app provisioning profile")
     if not team or entitlements.get("application-identifier") != f"{team}.{bundle_id}":
         raise ValueError("An explicit provisioning profile for this app is required")
-    if bundle_id != "ai.glossia.mobile":
+    if bundle_id != "ai.glossia.app":
         raise ValueError("Push provisioning is only supported for the production application identity")
     if not isinstance(expiry, datetime.datetime) or expiry <= datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None):
         raise ValueError("The provisioning profile has expired")

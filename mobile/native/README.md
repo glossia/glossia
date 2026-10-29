@@ -133,11 +133,12 @@ uploads should use `1.0.N`, below CI's first `1.1`.
 
 Use an active Apple Developer Program team with its agreements accepted:
 
-1. Register the explicit app ID **`ai.glossia.mobile`**, enabling **Push
-   Notifications**, and extension ID **`ai.glossia.mobile.activity`**.
+1. Register the explicit app ID **`ai.glossia.app`**, enabling **Push
+   Notifications**, and extension ID **`ai.glossia.app.activity`**.
    The current Live Activity uses no App Group or ActivityKit push entitlement.
 2. Create the **Glossia** iOS app record in App Store Connect using
-   `ai.glossia.mobile` (choose a unique SKU, for example `glossia-ios`). There is
+   `ai.glossia.app` (choose a unique SKU, for example `glossia`). The same app
+   record and bundle ID can include a future macOS version. There is
    no separate store record for the extension. Supply the team ID and numeric
    App Store Connect app ID when handing over the account setup.
 3. Supply an **Apple Distribution certificate and its matching private key** as
@@ -452,7 +453,7 @@ action does not publish mutable Gradle state to Once's shared cache.
 mise exec -- rustup target add aarch64-apple-ios-sim aarch64-apple-ios
 mise run build:ios
 xcrun simctl install booted .once/out/GlossiaIOS/Glossia.app
-xcrun simctl launch booted ai.glossia.mobile
+xcrun simctl launch booted ai.glossia.app
 
 # Compile the device bundle, without distribution credentials:
 mise run build:ios-device

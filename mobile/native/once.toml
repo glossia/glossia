@@ -136,7 +136,7 @@ deps = ["./GlossiaCoreIOS", "./GlossiaCoreFFI", "./GlossiaSimulatorSDK", "./Glos
 [target.attrs]
 platform = "ios"
 sdk_frameworks = ["AuthenticationServices", "Security", "ActivityKit", "Speech", "AVFoundation"]
-bundle_id = "ai.glossia.mobile"
+bundle_id = "ai.glossia.app"
 product_name = "Glossia"
 asset_catalogs = ["ios/Resources/Assets.xcassets"]
 app_icon = "AppIcon"
@@ -156,7 +156,7 @@ deps = ["./GlossiaCoreDevice", "./GlossiaCoreFFI", "./GlossiaDeviceSDK", "./Glos
 [target.attrs]
 platform = "ios"
 sdk_frameworks = ["AuthenticationServices", "Security", "ActivityKit", "Speech", "AVFoundation"]
-bundle_id = "ai.glossia.mobile"
+bundle_id = "ai.glossia.app"
 product_name = "Glossia"
 asset_catalogs = ["ios/Resources/Assets.xcassets"]
 app_icon = "AppIcon"
@@ -220,7 +220,7 @@ srcs = ["ios/LiveActivity/*.swift", "ios/Sources/TokiActivityAttributes.swift"]
 deps = ["./GlossiaSimulatorSDK"]
 [target.attrs]
 platform = "ios"
-bundle_id = "ai.glossia.mobile.activity"
+bundle_id = "ai.glossia.app.activity"
 product_name = "GlossiaActivity"
 application_extension = true
 minimum_os = "17.0"
@@ -229,7 +229,7 @@ families = ["iphone", "ipad"]
 sdk_frameworks = ["WidgetKit", "SwiftUI", "ActivityKit"]
 resources = ["ios/Resources/Assets.xcassets/TokiFocused.imageset/TokiFocused.png", "ios/Resources/*.lproj/*.strings"]
 info_plist = "ios/LiveActivity/Info.plist"
-info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.mobile.activity" }
+info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.app.activity" }
 
 [[target]]
 name = "GlossiaActivity"
@@ -243,7 +243,7 @@ srcs = ["ios/LiveActivity/*.swift", "ios/Sources/TokiActivityAttributes.swift"]
 deps = ["./GlossiaDeviceSDK"]
 [target.attrs]
 platform = "ios"
-bundle_id = "ai.glossia.mobile.activity"
+bundle_id = "ai.glossia.app.activity"
 product_name = "GlossiaActivity"
 application_extension = true
 minimum_os = "17.0"
@@ -252,7 +252,7 @@ families = ["iphone", "ipad"]
 sdk_frameworks = ["WidgetKit", "SwiftUI", "ActivityKit"]
 resources = ["ios/Resources/Assets.xcassets/TokiFocused.imageset/TokiFocused.png", "ios/Resources/*.lproj/*.strings"]
 info_plist = "ios/LiveActivity/Info.plist"
-info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.mobile.activity" }
+info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.app.activity" }
 
 [[target]]
 name = "GlossiaActivityDevice"
