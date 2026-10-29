@@ -26,6 +26,7 @@ defmodule Glossia.TranslationSessions do
   def list_project_sessions(%Project{} = project, params \\ %{}) do
     from(s in TranslationSession, where: s.project_id == ^project.id)
     |> Flop.validate_and_run(params, for: TranslationSession)
+    |> restore_session_languages()
   end
 
   def list_project_sessions(%Project{} = project, search, params) do
@@ -40,7 +41,45 @@ defmodule Glossia.TranslationSessions do
       )
 
     Flop.validate_and_run(query, params, for: TranslationSession)
+    |> restore_session_languages()
   end
+
+  # Older repository-driven sessions never copied their L10N.md destinations
+  # into the session. Read only locale values, not the full progress payloads.
+  defp restore_session_languages({:ok, {sessions, meta}}) do
+    ids = for session <- sessions, session.target_languages in [nil, []], do: session.id
+
+    languages =
+      if ids == [] do
+        %{}
+      else
+        from(e in ProgressEvent,
+          where: e.session_id in ^ids,
+          distinct: true,
+          select:
+            {e.session_id,
+             fragment(
+               "jsonb_path_query(jsonb_build_array(?) || COALESCE(?->'queued', '[]'::jsonb), '$[*].locale') #>> '{}'",
+               e.payload,
+               e.payload
+             )}
+        )
+        |> Repo.all()
+        |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+      end
+
+    sessions =
+      Enum.map(sessions, fn session ->
+        case Map.fetch(languages, session.id) do
+          {:ok, locales} -> %{session | target_languages: Enum.sort(locales)}
+          :error -> session
+        end
+      end)
+
+    {:ok, {sessions, meta}}
+  end
+
+  defp restore_session_languages(result), do: result
 
   def project_overview(%Project{} = project, days \\ 14) do
     today = Date.utc_today()
@@ -767,8 +806,8 @@ defmodule Glossia.TranslationSessions do
   viewers already watching, and carries the high-frequency text and reasoning
   chunks that are deliberately not written down.
   """
-  def broadcast_session_event(%TranslationSession{id: id}, event) do
-    if Progress.durable_event?(event), do: record_progress_event(id, event)
+  def broadcast_session_event(%TranslationSession{id: id} = session, event) do
+    if Progress.durable_event?(event), do: record_progress_event(session, event)
 
     Phoenix.PubSub.broadcast(
       Glossia.PubSub,
@@ -846,7 +885,7 @@ defmodule Glossia.TranslationSessions do
     end
   end
 
-  defp record_progress_event(session_id, event) do
+  defp record_progress_event(%TranslationSession{id: session_id} = session, event) do
     # A run stamps its own sequence, which is what keeps it monotonic across a
     # relay hop. An event arriving without one still needs a distinct sequence,
     # or every such event would collide on the same row and only the first
@@ -863,7 +902,7 @@ defmodule Glossia.TranslationSessions do
     # rather than a second row that would be folded twice.
     |> Repo.insert(on_conflict: :nothing, conflict_target: [:session_id, :seq])
     |> case do
-      {:ok, _event} -> :ok
+      {:ok, _event} -> record_session_languages(session, event)
       {:error, changeset} -> skip_progress_event(session_id, changeset.errors)
     end
   rescue
@@ -873,6 +912,20 @@ defmodule Glossia.TranslationSessions do
     # live viewers keep getting the broadcast below either way.
     error -> skip_progress_event(session_id, error)
   end
+
+  defp record_session_languages(session, %{type: "plan", target_languages: languages}) do
+    {updated, _} =
+      from(s in TranslationSession,
+        where: s.id == ^session.id and (is_nil(s.target_languages) or s.target_languages == []),
+        update: [set: [target_languages: ^languages]]
+      )
+      |> Repo.update_all([])
+
+    if updated > 0, do: notify_project_sessions_changed(session)
+    :ok
+  end
+
+  defp record_session_languages(_session, _event), do: :ok
 
   defp skip_progress_event(session_id, reason) do
     Logger.warning("Could not persist translation progress",

@@ -81,7 +81,7 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     end)
 
     assert {:ok, changes} =
-             RepositoryRun.translate_repository(session, %Account{id: 1}, root, ["es"],
+             RepositoryRun.translate_repository(session, %Account{id: 1}, root, [],
                progress_node: Node.self(),
                credential_node: parent_node,
                context_snapshot: Context.empty_snapshot()
@@ -111,7 +111,8 @@ defmodule Glossia.Translations.RepositoryRunIntegrationTest do
     assert Enum.all?(changes, &is_binary(&1.content))
 
     # Live progress was broadcast.
-    assert_receive {:translation_session_event, %{type: "plan", total: 1}}
+    assert_receive {:translation_session_event,
+                    %{type: "plan", total: 1, target_languages: ["es"]}}
 
     assert_receive {:translation_session_event,
                     %{

@@ -101,7 +101,16 @@ defmodule Glossia.Translations.RepositoryRun do
          {:ok, locale_contexts} <-
            resolve_locale_contexts(items, account, context_node, context_snapshot) do
       total = length(items)
-      broadcast(session, %{type: "plan", total: total}, progress_node)
+
+      broadcast(
+        session,
+        %{
+          type: "plan",
+          total: total,
+          target_languages: items |> Enum.map(& &1.locale) |> Enum.uniq() |> Enum.sort()
+        },
+        progress_node
+      )
 
       prepared_items =
         prepare_items(session, repo_path, items, context_snapshot, locale_contexts, progress_node)

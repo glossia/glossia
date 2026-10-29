@@ -177,4 +177,70 @@ defmodule GlossiaWeb.DashboardLiveProjectOverviewTest do
     assert has_element?(view, "#translation-runs-widget", "3")
     assert has_element?(view, "#content-hit-rate-widget", "69.2%")
   end
+
+  test "shows repository destinations for legacy sessions and updates when planning finishes", %{
+    conn: conn,
+    project: project,
+    user: user
+  } do
+    {:ok, session} =
+      TranslationSessions.create_session(user.account, project, %{
+        source_language: "en",
+        target_languages: nil,
+        commit_message: "Translate repository configuration",
+        status: "running"
+      })
+
+    # The setup wizard has es/fr, but the repository plan has de/ja/pt-BR.
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "plan_assessed",
+      total: 3,
+      needs_translation: 2,
+      up_to_date: 1,
+      queued: [
+        %{index: 0, output_path: "de/guide.md", locale: "de"},
+        %{index: 1, output_path: "ja/guide.md", locale: "ja"}
+      ]
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_skipped",
+      index: 2,
+      output_path: "pt-BR/guide.md",
+      locale: "pt-BR"
+    })
+
+    TranslationSessions.broadcast_session_event(session, %{
+      type: "item_started",
+      index: 0,
+      output_path: "de/guide.md",
+      locale: "de"
+    })
+
+    path = ~p"/#{user.account.handle}/#{project.handle}/-/translations"
+    {:ok, view, _html} = live(conn, path)
+    row = "#translation-session-#{session.id}"
+    assert has_element?(view, row, "en -> de, ja, pt-BR")
+
+    {:ok, searched, _html} = live(conn, path <> "?tsq=repository")
+    assert has_element?(searched, row, "en -> de, ja, pt-BR")
+
+    {:ok, planned} =
+      TranslationSessions.create_session(user.account, project, %{
+        source_language: "en",
+        status: "running"
+      })
+
+    TranslationSessions.broadcast_session_event(planned, %{
+      type: "plan",
+      total: 2,
+      target_languages: ["de", "ko"]
+    })
+
+    assert has_element?(view, "#translation-session-#{planned.id}", "en -> de, ko")
+    assert TranslationSessions.get_session!(planned.id).target_languages == ["de", "ko"]
+
+    {:ok, reloaded, _html} = live(conn, path)
+    assert has_element?(reloaded, "#translation-session-#{planned.id}", "en -> de, ko")
+  end
 end
