@@ -139,6 +139,15 @@ jobs:
       - run: mise exec -- rustup target add aarch64-apple-ios-sim aarch64-apple-ios
       - run: mise run prepare:rust
       - run: mise exec -- once build ${{ matrix.target }}
+      - name: Verify Apple builds use system TLS
+        run: |
+          symbols=$(xcrun nm .once/out/${{ matrix.target }}/Glossia.app/Glossia)
+          grep -q ' U _SSLHandshake$' <<< "$symbols"
+          # reqwest's rustls_pki_types certificate data is not a TLS implementation.
+          if grep -Eq 'rustls[^_]|ring_core|openssl' <<< "$symbols"; then
+            echo 'Apple builds must use system TLS, not a bundled TLS implementation.' >&2
+            exit 1
+          fi
       - name: Verify app icon and embedded Live Activity extension
         run: |
           app=.once/out/${{ matrix.target }}/Glossia.app

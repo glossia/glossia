@@ -18,6 +18,14 @@ Android. System components own navigation, typography, feedback, and safe areas.
 Glossia's warm surface and violet accent tokens adapt to light/dark appearances.
 Toki uses six transparent sprite poses; see `resources/README.md` for regeneration.
 
+Both iOS dependency targets select the Rust core's `system-tls` feature with
+default features disabled. HTTPS and secure WebSockets use Apple's Security
+framework through `native-tls`; Android and default core builds retain Rustls.
+Ad-hoc Cargo builds using Apple's TLS need `--no-default-features --features system-tls`.
+Select the backend explicitly: Once 0.68.2's Cargo metadata resolution combines
+features from target-conditional dependency declarations. CI checks the compiled
+iOS binaries for system TLS imports and rejects bundled Rustls or OpenSSL symbols.
+
 ## Server-owned appearance
 
 Like Atlas, both clients fetch the public `/api/native/themes` catalog at runtime

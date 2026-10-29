@@ -36,6 +36,8 @@ manifest = "Cargo.toml"
 lockfile = "Cargo.lock"
 vendor_dir = ".once/vendor"
 target = "aarch64-apple-ios-sim"
+no_default_features = true
+features = ["system-tls"]
 resolver_inputs = ["Cargo.toml", "Cargo.lock", "core/Cargo.toml"]
 
 [[target]]
@@ -46,6 +48,8 @@ manifest = "Cargo.toml"
 lockfile = "Cargo.lock"
 vendor_dir = ".once/vendor"
 target = "aarch64-apple-ios"
+no_default_features = true
+features = ["system-tls"]
 resolver_inputs = ["Cargo.toml", "Cargo.lock", "core/Cargo.toml"]
 
 [[target]]
