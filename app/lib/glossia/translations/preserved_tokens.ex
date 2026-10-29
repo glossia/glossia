@@ -18,8 +18,11 @@ defmodule Glossia.Translations.PreservedTokens do
   alias Glossia.Translations.ExtractionPlan
 
   @default_kinds ~w(code_blocks inline_code urls placeholders)
-  @version 6
-  @inline_code_regex ~r/`[^`\n]+`/
+  @version 7
+  # A code span closes with the same complete backtick run that opened it.
+  # Matching single backticks inside a longer delimiter captures prose between
+  # spans instead, incorrectly requiring that prose to remain untranslated.
+  @inline_code_regex ~r/(?<!`)(`+)(?!`)[^\n]*?(?<!`)\1(?!`)/
 
   # A bare address in prose has no closing delimiter, so the scan itself decides
   # where the address ends. Two rules keep that decision stable across locales.

@@ -69,6 +69,27 @@ defmodule Glossia.Translations.ValidateTest do
       assert msg =~ "{count}"
     end
 
+    test "allows prose around multi-backtick code spans to be translated" do
+      source =
+        "Use ``--replace-scm-with-registry`` to resolve packages. Add it to `installOptions` in `Tuist.swift`. Keep ```a `literal` value``` unchanged."
+
+      output =
+        "Usa ``--replace-scm-with-registry`` para resolver paquetes. Añádelo a `installOptions` en `Tuist.swift`. Mantén ```a `literal` value``` sin cambios."
+
+      assert :ok = Validate.validate_preserve(output, source, ["inline_code"])
+
+      for token <- ["--replace-scm-with-registry", "installOptions", "Tuist.swift", "literal"] do
+        assert {:error, message} =
+                 Validate.validate_preserve(
+                   String.replace(output, token, "changed"),
+                   source,
+                   ["inline_code"]
+                 )
+
+        assert message =~ "preserved tokens missing"
+      end
+    end
+
     test "compares decoded native tokens per resource, including unexpected tokens" do
       source = ~S("first" = "Hello \U007Bname\U007D"; "second" = "Help";)
       options = %{source_abs: "/repo/Localizable.strings"}
