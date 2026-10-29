@@ -256,7 +256,7 @@ defmodule Glossia.TranslationSessions.TranslateTest do
            ]
 
     assert_received {:pull_request_params, params}
-    assert params.title == "feat: translate content for abc1234"
+    assert params.title == "feat(i18n): translate content for abc1234"
 
     updated = Repo.get!(TranslationSession, session.id)
     assert updated.status == "completed"
@@ -774,61 +774,97 @@ defmodule Glossia.TranslationSessions.TranslateTest do
     assert_received {:repository, %{publication_branch: "glossia/translate-abc123456789"}}
   end
 
-  test "does not advance a continued translation branch when assessment finds no changes" do
-    {user, project} =
-      project_with_installation("translate-continuation@test.com", "translate-continuation")
+  for {title, expected_title} <- [
+        {"feat: translate content for abc1234", "feat(i18n): translate content for abc1234"},
+        {"feat: translate content", "feat(i18n): translate content"},
+        {"feat(i18n): translate content for abc1234",
+         "feat(i18n): translate content for abc1234"},
+        {"docs(server): update Georgian guides", "docs(server): update Georgian guides"},
+        {"feat: translate content for abc1234 (reviewed)",
+         "feat: translate content for abc1234 (reviewed)"}
+      ] do
+    @existing_title title
+    @expected_title expected_title
 
-    previous_session = session_for(user, project)
+    test "continues without advancing the branch and preserves or repairs the PR title: #{@existing_title}" do
+      {user, project} =
+        project_with_installation("translate-continuation@test.com", "translate-continuation")
 
-    {:ok, session} =
-      TranslationSessions.create_session(user.account, project, %{
-        commit_sha: "def9876543210",
-        commit_message: "Update guide",
-        source_language: "en",
-        target_languages: ["es"],
-        continued_from_session_id: previous_session.id,
-        publication_branch: "glossia/translate-abc123456789",
-        publication_commit_sha: "checkpoint-commit",
-        pull_request_url: "https://github.com/glossia/demo/pull/2",
-        pull_request_number: 2
-      })
+      previous_session = session_for(user, project)
 
-    Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
+      pull_request =
+        start_supervised!({Agent, fn -> %{"state" => "open", "title" => @existing_title} end})
 
-    Mimic.expect(Glossia.Github.Client, :get_pull_request, fn "glossia/demo", 2, "github-token" ->
-      {:ok, %{"state" => "open"}}
-    end)
+      {:ok, session} =
+        TranslationSessions.create_session(user.account, project, %{
+          commit_sha: "def9876543210",
+          commit_message: "Update guide",
+          source_language: "en",
+          target_languages: ["es"],
+          continued_from_session_id: previous_session.id,
+          publication_branch: "glossia/translate-abc123456789",
+          publication_commit_sha: "checkpoint-commit",
+          pull_request_url: "https://github.com/glossia/demo/pull/2",
+          pull_request_number: 2
+        })
 
-    Mimic.expect(Glossia.Github.Client, :compare_commits, fn "glossia/demo",
-                                                             "abc1234567890",
-                                                             "def9876543210",
-                                                             "github-token" ->
-      {:ok, %{"status" => "ahead"}}
-    end)
+      Mimic.stub(Glossia.Github.App, :installation_token, fn 42 -> {:ok, "github-token"} end)
 
-    Mimic.reject(&Glossia.Github.Client.merge_branch/3)
-    Mimic.reject(&Glossia.Github.Client.update_ref/4)
+      Mimic.expect(Glossia.Github.Client, :get_pull_request, fn "glossia/demo",
+                                                                2,
+                                                                "github-token" ->
+        {:ok, Agent.get(pull_request, & &1)}
+      end)
 
-    Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
-                                                            _account,
-                                                            repository,
-                                                            _locales,
-                                                            _opts ->
-      send(self(), {:continued_repository, repository})
-      {:ok, []}
-    end)
+      stub(Glossia.Github.Client, :update_pull_request, fn "glossia/demo",
+                                                           2,
+                                                           attrs,
+                                                           "github-token" ->
+        Agent.update(
+          pull_request,
+          &Map.merge(
+            &1,
+            Map.new(attrs, fn {key, value} ->
+              {Atom.to_string(key), value}
+            end)
+          )
+        )
 
-    assert :ok = Translate.run(session.id)
+        {:ok, Agent.get(pull_request, & &1)}
+      end)
 
-    assert_received {:continued_repository,
-                     %{
-                       commit_sha: "def9876543210",
-                       publication_branch: "glossia/translate-abc123456789"
-                     }}
+      Mimic.expect(Glossia.Github.Client, :compare_commits, fn "glossia/demo",
+                                                               "abc1234567890",
+                                                               "def9876543210",
+                                                               "github-token" ->
+        {:ok, %{"status" => "ahead"}}
+      end)
 
-    updated = Repo.get!(TranslationSession, session.id)
-    assert updated.publication_commit_sha == "checkpoint-commit"
-    assert updated.status == "completed"
+      Mimic.reject(&Glossia.Github.Client.merge_branch/3)
+      Mimic.reject(&Glossia.Github.Client.update_ref/4)
+
+      Mimic.stub(Glossia.Translations.RepositoryRun, :run, fn _session,
+                                                              _account,
+                                                              repository,
+                                                              _locales,
+                                                              _opts ->
+        send(self(), {:continued_repository, repository})
+        {:ok, []}
+      end)
+
+      assert :ok = Translate.run(session.id)
+
+      assert_received {:continued_repository,
+                       %{
+                         commit_sha: "def9876543210",
+                         publication_branch: "glossia/translate-abc123456789"
+                       }}
+
+      updated = Repo.get!(TranslationSession, session.id)
+      assert updated.publication_commit_sha == "checkpoint-commit"
+      assert updated.status == "completed"
+      assert Agent.get(pull_request, & &1["title"]) == @expected_title
+    end
   end
 
   test "preserves the publication and fails when the default branch history was rewritten" do

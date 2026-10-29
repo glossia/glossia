@@ -219,7 +219,30 @@ defmodule Glossia.TranslationSessions.Translate do
            pull_request_number,
            token
          ) do
-      {:ok, %{"state" => "open"}} ->
+      {:ok, %{"state" => "open"} = pull_request} ->
+        title = pull_request["title"]
+
+        # Repair only our exact legacy titles, retaining the original source
+        # commit and leaving any reviewer-customized title alone.
+        if is_binary(title) and
+             Regex.match?(~r/\Afeat: translate content(?: for [0-9a-f]{7})?\z/, title) do
+          case Glossia.Github.Client.update_pull_request(
+                 project.github_repo_full_name,
+                 pull_request_number,
+                 %{title: String.replace_prefix(title, "feat:", "feat(i18n):")},
+                 token
+               ) do
+            {:ok, _pull_request} ->
+              :ok
+
+            {:error, reason} ->
+              Logger.warning("Could not repair the translation pull request title",
+                translation_session_id: session.id,
+                reason: inspect(reason)
+              )
+          end
+        end
+
         {:ok, session}
 
       # A merged pull request landed its translations, and a closed one was
@@ -1043,10 +1066,10 @@ defmodule Glossia.TranslationSessions.Translate do
   defp translation_commit_message(%TranslationSession{} = session) do
     case session.commit_sha do
       sha when is_binary(sha) and byte_size(sha) >= 7 ->
-        "feat: translate content for #{String.slice(sha, 0, 7)}"
+        "feat(i18n): translate content for #{String.slice(sha, 0, 7)}"
 
       _ ->
-        "feat: translate content"
+        "feat(i18n): translate content"
     end
   end
 
