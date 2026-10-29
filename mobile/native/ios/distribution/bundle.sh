@@ -64,6 +64,7 @@ for bundle in "$app" "$extension"; do
   plutil -replace CFBundleShortVersionString -string "$VERSION" "$plist"
   plutil -replace CFBundleVersion -string "$BUILD" "$plist"
   plutil -replace CFBundleSupportedPlatforms -json '["iPhoneOS"]' "$plist"
+  plutil -replace UIRequiredDeviceCapabilities -json '["arm64"]' "$plist"
   plutil -replace DTPlatformName -string iphoneos "$plist"
   plutil -replace DTPlatformVersion -string "$sdk" "$plist"
   plutil -replace DTPlatformBuild -string "$sdk_build" "$plist"
@@ -74,8 +75,7 @@ for bundle in "$app" "$extension"; do
   plutil -replace DTCompiler -string com.apple.compilers.llvm.clang.1_0 "$plist"
   plutil -replace BuildMachineOSBuild -string "$(sw_vers -buildVersion)" "$plist"
 done
-# These are required by Apple's ARM64/iPad validation for direct Once bundles.
-plutil -replace UIRequiredDeviceCapabilities -json '["arm64"]' "$app/Info.plist"
+# Required by Apple's iPad multitasking validation for direct Once bundles.
 plutil -replace 'UISupportedInterfaceOrientations~ipad' -json \
   '["UIInterfaceOrientationPortrait","UIInterfaceOrientationPortraitUpsideDown","UIInterfaceOrientationLandscapeLeft","UIInterfaceOrientationLandscapeRight"]' "$app/Info.plist"
 cp "$temporary/profile.mobileprovision" "$app/embedded.mobileprovision"
