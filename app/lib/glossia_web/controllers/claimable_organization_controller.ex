@@ -32,6 +32,8 @@ defmodule GlossiaWeb.ClaimableOrganizationController do
         conn
         |> put_status(:not_found)
         |> put_view(GlossiaWeb.ErrorHTML)
+        |> put_root_layout(false)
+        |> put_layout(false)
         |> render(:"404")
     end
   end

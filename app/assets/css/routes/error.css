@@ -1,0 +1,162 @@
+#error-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-10);
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--color-bg);
+  padding: var(--space-12) var(--space-6);
+  color: var(--color-text);
+  font-family: var(--font-family-sans);
+  text-align: center;
+
+  & [data-part="brand"] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text);
+    font: var(--noora-font-weight-semibold) var(--noora-font-body-large);
+    text-decoration: none;
+
+    & img {
+      border-radius: var(--radius-sm);
+    }
+
+    &:focus-visible {
+      outline: var(--space-0-5) solid var(--color-primary);
+      outline-offset: var(--space-1);
+    }
+  }
+
+  & [data-part="content"] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    width: 100%;
+    max-width: var(--max-width-narrow);
+  }
+
+  & [data-part="status"] {
+    margin: var(--space-0);
+    font: var(--noora-font-weight-semibold) var(--noora-font-display-xlarge);
+  }
+
+  & [data-part="title"] {
+    margin: var(--space-0);
+    color: var(--color-text);
+    font: var(--noora-font-weight-medium) var(--noora-font-heading-xlarge);
+    text-wrap: balance;
+  }
+
+  & [data-part="illustration-button"] {
+    margin-block: var(--space-2);
+    border-radius: var(--radius-lg);
+    background: transparent;
+    padding: var(--space-0);
+    width: auto;
+    height: auto;
+
+    &:hover {
+      background: transparent;
+
+      & [data-part="source-card"] {
+        transform: rotate(-14deg);
+      }
+
+      & [data-part="target-card"] {
+        transform: rotate(17deg);
+      }
+    }
+
+    &[aria-pressed="true"] {
+      & [data-part="source-card"] {
+        transform: translateX(var(--space-16)) rotate(9deg);
+      }
+
+      & [data-part="target-card"] {
+        transform: translateX(calc(var(--space-16) * -1)) rotate(-12deg);
+      }
+    }
+  }
+
+  & [data-part="illustration"] {
+    flex-shrink: 0;
+    width: calc(var(--noora-spacing-16) * 2.5);
+    max-width: 100%;
+    height: auto;
+
+    & [data-part="source-card"],
+    & [data-part="target-card"] {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    & [data-part="source-card"] {
+      transform: rotate(-9deg);
+    }
+
+    & [data-part="target-card"] {
+      transform: rotate(12deg);
+    }
+
+    & [data-part="trail"] {
+      stroke: var(--color-border-strong);
+    }
+
+    & [data-part="paper"] {
+      fill: var(--color-surface);
+      stroke: var(--color-border-strong);
+      stroke-width: 1.5;
+    }
+
+    & [data-part="letter"] {
+      fill: var(--color-primary);
+      font: var(--noora-font-weight-regular) var(--noora-font-display-large);
+    }
+  }
+
+  & [data-part="message"] {
+    margin: var(--space-0) var(--space-0) var(--space-2);
+    max-width: var(--max-width-empty);
+    color: var(--color-text-muted);
+    font: var(--noora-font-body-large);
+    text-wrap: pretty;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    & [data-part="illustration"] {
+      animation: error-card-float calc(var(--duration-slow) * 20) ease-in-out infinite;
+    }
+
+    & [data-part="source-card"],
+    & [data-part="target-card"] {
+      transition: transform var(--duration-slow) var(--easing-default);
+    }
+
+    & [data-part="illustration-button"]:is(:hover, :focus-visible) [data-part="illustration"] {
+      animation-play-state: paused;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    --color-bg: var(--color-native-dark-bg);
+    --color-surface: var(--color-native-dark-surface);
+    --color-text: var(--color-native-dark-text);
+    --color-text-muted: var(--color-native-dark-text-secondary);
+    --color-border-strong: var(--color-native-dark-border);
+    --color-primary: var(--color-native-dark-accent);
+  }
+}
+
+@keyframes error-card-float {
+  0%, 100% {
+    transform: translateY(var(--space-0));
+  }
+
+  50% {
+    transform: translateY(calc(var(--space-2) * -1));
+  }
+}

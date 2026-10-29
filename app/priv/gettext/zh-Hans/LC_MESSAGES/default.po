@@ -1724,10 +1724,6 @@ msgid "Guidelines"
 msgstr "指南"
 
 #, elixir-autogen, elixir-format
-msgid "HTTP 429"
-msgstr "HTTP 429"
-
-#, elixir-autogen, elixir-format
 msgid "Handle"
 msgstr "处理"
 
@@ -2712,6 +2708,10 @@ msgid "Please sign in to complete your GitHub connection."
 msgstr "请登录以完成您的 GitHub 连接。"
 
 #, elixir-autogen, elixir-format
+msgid "Please try again in a moment. If the problem continues, contact us for help."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Practical directions for specific tasks."
 msgstr "针对具体任务的实用指引。"
 
@@ -3491,6 +3491,10 @@ msgstr "请稍作停顿"
 msgid "Social links"
 msgstr "社交链接"
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Something went wrong on our side"
+msgstr "出错了。"
+
 #, elixir-autogen, elixir-format
 msgid "Something went wrong."
 msgstr "出错了。"
@@ -3578,6 +3582,10 @@ msgstr "超级管理员"
 #, elixir-autogen, elixir-format
 msgid "Superseded"
 msgstr "已替代"
+
+#, elixir-autogen, elixir-format
+msgid "Swap the language cards"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "System-wide metrics at a glance."
@@ -3713,6 +3721,10 @@ msgstr "上下文越具体，越贴近内容"
 
 #, elixir-autogen, elixir-format
 msgid "The open-source platform for teams working across languages."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The page you're looking for doesn't exist or may have moved."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3924,6 +3936,10 @@ msgid "This organization is no longer available to claim."
 msgstr "该组织当前无法认领。"
 
 #, elixir-autogen, elixir-format
+msgid "This page got lost in translation"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "This page has received a lot of requests in a short time from your network. Try again in %{seconds} seconds."
 msgstr "您的网络在短时间内对该页面发出了大量请求。请在 %{seconds} 秒后重试。"
 
@@ -4066,10 +4082,6 @@ msgstr "待处理消息过多。请稍后重试。您的草稿已保存。"
 #, elixir-autogen, elixir-format
 msgid "Too many requests from this session. Please wait a few minutes and try again."
 msgstr "本会话请求过多。请等待几分钟后再试。"
-
-#, elixir-autogen, elixir-format
-msgid "Too many requests · Glossia"
-msgstr "请求过多 · Glossia"
 
 #, elixir-autogen, elixir-format
 msgid "Top country"
@@ -4526,6 +4538,10 @@ msgstr "我们正在构建让人类通过浏览器或移动端界面参与智能
 #, elixir-autogen, elixir-format
 msgid "We build solutions on top of the language OS, and you can build your own. The same foundation powers everything."
 msgstr "我们基于语言操作系统构建解决方案，您也能构建自己的。相同的基础驱动一切。"
+
+#, elixir-autogen, elixir-format
+msgid "We couldn't complete this request. Please check the address or try again later."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "We couldn’t send your request. Please try again in a moment."

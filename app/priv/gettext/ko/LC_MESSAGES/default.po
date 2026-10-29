@@ -1724,10 +1724,6 @@ msgid "Guidelines"
 msgstr "지침"
 
 #, elixir-autogen, elixir-format
-msgid "HTTP 429"
-msgstr "HTTP 429"
-
-#, elixir-autogen, elixir-format
 msgid "Handle"
 msgstr "처리"
 
@@ -2712,6 +2708,10 @@ msgid "Please sign in to complete your GitHub connection."
 msgstr "GitHub 연결을 완료하려면 로그인하세요."
 
 #, elixir-autogen, elixir-format
+msgid "Please try again in a moment. If the problem continues, contact us for help."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Practical directions for specific tasks."
 msgstr "특정 작업에 대한 실용적 지침."
 
@@ -3491,6 +3491,10 @@ msgstr "잠시만 천천히 진행해 주세요"
 msgid "Social links"
 msgstr "소셜 링크"
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Something went wrong on our side"
+msgstr "문제가 발생했습니다."
+
 #, elixir-autogen, elixir-format
 msgid "Something went wrong."
 msgstr "문제가 발생했습니다."
@@ -3578,6 +3582,10 @@ msgstr "최고 관리자"
 #, elixir-autogen, elixir-format
 msgid "Superseded"
 msgstr "대체됨"
+
+#, elixir-autogen, elixir-format
+msgid "Swap the language cards"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "System-wide metrics at a glance."
@@ -3713,6 +3721,10 @@ msgstr "컨텍스트가 구체적일수록 콘텐츠에 더 가깝습니다"
 
 #, elixir-autogen, elixir-format
 msgid "The open-source platform for teams working across languages."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The page you're looking for doesn't exist or may have moved."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3924,6 +3936,10 @@ msgid "This organization is no longer available to claim."
 msgstr "이 조직은 이제 더 이상 등록할 수 없습니다."
 
 #, elixir-autogen, elixir-format
+msgid "This page got lost in translation"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "This page has received a lot of requests in a short time from your network. Try again in %{seconds} seconds."
 msgstr "이 페이지는 짧은 시간 동안 네트워크에서 많은 요청을 받았습니다. %{seconds} 초 후에 다시 시도해 주세요."
 
@@ -4066,10 +4082,6 @@ msgstr "대기 중인 메시지가 너무 많습니다. 나중에 다시 시도�
 #, elixir-autogen, elixir-format
 msgid "Too many requests from this session. Please wait a few minutes and try again."
 msgstr "이 세션에서 요청이 너무 많습니다. 몇 분 정도 기다린 뒤 다시 시도해주세요."
-
-#, elixir-autogen, elixir-format
-msgid "Too many requests · Glossia"
-msgstr "요청이 너무 많습니다 · Glossia"
 
 #, elixir-autogen, elixir-format
 msgid "Top country"
@@ -4526,6 +4538,10 @@ msgstr "우리는 브라우저 또는 이동 환경에서 실행되는 인터페
 #, elixir-autogen, elixir-format
 msgid "We build solutions on top of the language OS, and you can build your own. The same foundation powers everything."
 msgstr "우리는 언어 OS 위에 솔루션을 구축하며, 여러분도 독자적으로 구축하실 수 있습니다. 같은 기반은 모든 것을 구동합니다."
+
+#, elixir-autogen, elixir-format
+msgid "We couldn't complete this request. Please check the address or try again later."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "We couldn’t send your request. Please try again in a moment."

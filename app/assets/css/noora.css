@@ -12,6 +12,7 @@
 @import "./components/project-analytics-page.css";
 @import "./components/pagination.css";
 @import "./routes/login.css";
+@import "./routes/error.css";
 @import "./routes/editions.css";
 @import "./routes/project-analytics-settings-page.css";
 @import "./routes/docs.css";

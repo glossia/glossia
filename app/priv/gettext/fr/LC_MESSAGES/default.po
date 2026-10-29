@@ -1736,10 +1736,6 @@ msgid "Guidelines"
 msgstr "Guides"
 
 #, elixir-autogen, elixir-format
-msgid "HTTP 429"
-msgstr "HTTP 429"
-
-#, elixir-autogen, elixir-format
 msgid "Handle"
 msgstr "Identifiant"
 
@@ -2724,6 +2720,10 @@ msgid "Please sign in to complete your GitHub connection."
 msgstr "Veuillez vous connecter pour finaliser votre connexion GitHub."
 
 #, elixir-autogen, elixir-format
+msgid "Please try again in a moment. If the problem continues, contact us for help."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Practical directions for specific tasks."
 msgstr "Instructions pratiques pour des tâches spécifiques."
 
@@ -3503,6 +3503,10 @@ msgstr "Ralentissez un instant"
 msgid "Social links"
 msgstr "Liens sociaux"
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Something went wrong on our side"
+msgstr "Une erreur s'est produite."
+
 #, elixir-autogen, elixir-format
 msgid "Something went wrong."
 msgstr "Une erreur s'est produite."
@@ -3590,6 +3594,10 @@ msgstr "Super Admin"
 #, elixir-autogen, elixir-format
 msgid "Superseded"
 msgstr "Obsolète"
+
+#, elixir-autogen, elixir-format
+msgid "Swap the language cards"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "System-wide metrics at a glance."
@@ -3725,6 +3733,10 @@ msgstr "Plus le contexte est précis, plus il est proche du contenu"
 
 #, elixir-autogen, elixir-format
 msgid "The open-source platform for teams working across languages."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The page you're looking for doesn't exist or may have moved."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3936,6 +3948,10 @@ msgid "This organization is no longer available to claim."
 msgstr "Cette organisation n'est plus disponible pour être revendiquée."
 
 #, elixir-autogen, elixir-format
+msgid "This page got lost in translation"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "This page has received a lot of requests in a short time from your network. Try again in %{seconds} seconds."
 msgstr "Cette page a reçu beaucoup de demandes en peu de temps depuis votre réseau. Réessayez dans %{seconds} secondes."
 
@@ -4078,10 +4094,6 @@ msgstr "Trop de messages en attente. Veuillez réessayer plus tard. Votre brouil
 #, elixir-autogen, elixir-format
 msgid "Too many requests from this session. Please wait a few minutes and try again."
 msgstr "Trop de requêtes depuis cette session. Veuillez attendre quelques minutes et réessayer."
-
-#, elixir-autogen, elixir-format
-msgid "Too many requests · Glossia"
-msgstr "Trop de requêtes · Glossia"
 
 #, elixir-autogen, elixir-format
 msgid "Top country"
@@ -4538,6 +4550,10 @@ msgstr "Nous construisons des expériences où les humains participent aux boucl
 #, elixir-autogen, elixir-format
 msgid "We build solutions on top of the language OS, and you can build your own. The same foundation powers everything."
 msgstr "Nous construisons des solutions sur l'OS de langage, et vous pouvez en construire le vôtre. La même fondation alimente tout."
+
+#, elixir-autogen, elixir-format
+msgid "We couldn't complete this request. Please check the address or try again later."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "We couldn’t send your request. Please try again in a moment."

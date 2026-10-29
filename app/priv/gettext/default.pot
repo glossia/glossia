@@ -1736,10 +1736,6 @@ msgid "Guidelines"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "HTTP 429"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Handle"
 msgstr ""
 
@@ -2724,6 +2720,10 @@ msgid "Please sign in to complete your GitHub connection."
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Please try again in a moment. If the problem continues, contact us for help."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Practical directions for specific tasks."
 msgstr ""
 
@@ -3504,6 +3504,10 @@ msgid "Social links"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Something went wrong on our side"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Something went wrong."
 msgstr ""
 
@@ -3589,6 +3593,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Superseded"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Swap the language cards"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3725,6 +3733,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The open-source platform for teams working across languages."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The page you're looking for doesn't exist or may have moved."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3936,6 +3948,10 @@ msgid "This organization is no longer available to claim."
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "This page got lost in translation"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "This page has received a lot of requests in a short time from your network. Try again in %{seconds} seconds."
 msgstr ""
 
@@ -4077,10 +4093,6 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Too many requests from this session. Please wait a few minutes and try again."
-msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "Too many requests · Glossia"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -4537,6 +4549,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "We build solutions on top of the language OS, and you can build your own. The same foundation powers everything."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "We couldn't complete this request. Please check the address or try again later."
 msgstr ""
 
 #, elixir-autogen, elixir-format

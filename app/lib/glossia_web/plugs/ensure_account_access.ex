@@ -24,6 +24,8 @@ defmodule GlossiaWeb.Plugs.EnsureAccountAccess do
         conn
         |> put_status(404)
         |> Phoenix.Controller.put_view(GlossiaWeb.ErrorHTML)
+        |> Phoenix.Controller.put_root_layout(false)
+        |> Phoenix.Controller.put_layout(false)
         |> Phoenix.Controller.render(:"404")
         |> halt()
 
@@ -48,6 +50,8 @@ defmodule GlossiaWeb.Plugs.EnsureAccountAccess do
           conn
           |> put_status(404)
           |> Phoenix.Controller.put_view(GlossiaWeb.ErrorHTML)
+          |> Phoenix.Controller.put_root_layout(false)
+          |> Phoenix.Controller.put_layout(false)
           |> Phoenix.Controller.render(:"404")
           |> halt()
         end
@@ -58,6 +62,8 @@ defmodule GlossiaWeb.Plugs.EnsureAccountAccess do
     conn
     |> put_status(404)
     |> Phoenix.Controller.put_view(GlossiaWeb.ErrorHTML)
+    |> Phoenix.Controller.put_root_layout(false)
+    |> Phoenix.Controller.put_layout(false)
     |> Phoenix.Controller.render(:"404")
     |> halt()
   end

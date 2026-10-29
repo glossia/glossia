@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang={Gettext.get_locale(GlossiaWeb.Gettext)}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{@status} · {@title} · Glossia</title>
+    <link rel="icon" href={~p"/favicon.ico"} sizes="any" />
+    <link
+      rel="stylesheet"
+      href={
+        Phoenix.VerifiedRoutes.static_path(
+          GlossiaWeb.Endpoint,
+          Application.get_env(:glossia, :asset_paths, %{})[:stylesheet] || "/assets/styles.css"
+        )
+      }
+    />
+    <link
+      rel="stylesheet"
+      href={
+        Phoenix.VerifiedRoutes.static_path(
+          GlossiaWeb.Endpoint,
+          Application.get_env(:glossia, :asset_paths, %{})[:noora_stylesheet] ||
+            "/assets/noora.css"
+        )
+      }
+    />
+    <script defer src={~p"/assets/js/error.js"}>
+    </script>
+  </head>
+  <body>
+    <main id="error-page" aria-labelledby="error-title">
+      <a href={locale_path(~p"/")} data-part="brand">
+        <img src={~p"/images/logo-rounded.png"} alt="" width="28" height="28" />
+        <span>Glossia</span>
+      </a>
+
+      <div data-part="content">
+        <p data-part="status">{@status}</p>
+        <h1 id="error-title" data-part="title">{@title}</h1>
+
+        <Noora.Button.neutral_button
+          id="error-illustration"
+          data-part="illustration-button"
+          aria-label={gettext("Swap the language cards")}
+          title={gettext("Swap the language cards")}
+          aria-pressed="false"
+        >
+          <svg data-part="illustration" viewBox="0 0 240 144" fill="none" aria-hidden="true">
+            <path
+              d="M24 88c-12-28 3-62 31-63m131 94c28-1 42-30 30-52"
+              data-part="trail"
+              stroke-width="1.5"
+              stroke-dasharray="3 6"
+              stroke-linecap="round"
+            />
+            <g data-part="source-card">
+              <rect x="53" y="20" width="76" height="96" rx="12" data-part="paper" />
+              <text x="91" y="83" text-anchor="middle" data-part="letter">A</text>
+            </g>
+            <g data-part="target-card">
+              <rect x="116" y="30" width="76" height="96" rx="12" data-part="paper" />
+              <text x="154" y="94" text-anchor="middle" data-part="letter" lang="zh">文</text>
+            </g>
+          </svg>
+        </Noora.Button.neutral_button>
+
+        <p data-part="message">{@message}</p>
+        <Noora.Button.button
+          href={locale_path(~p"/")}
+          variant="primary"
+          size="large"
+          label={gettext("Back to Glossia")}
+        >
+          <:icon_left><Noora.Icon.arrow_left /></:icon_left>
+        </Noora.Button.button>
+      </div>
+    </main>
+  </body>
+</html>
