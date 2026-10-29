@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+env:
+  MISE_GITHUB_TOKEN: ${{ github.token }}
+  MISE_AUTO_INSTALL: "0"
+
 # Keep version selection, Apple upload and tagging in one queue, as in Habibi.
 concurrency:
   group: glossia-ios-release
