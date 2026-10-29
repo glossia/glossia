@@ -132,7 +132,7 @@ sdk = "iphoneos"
 name = "GlossiaIOS"
 kind = "apple_application"
 srcs = ["ios/Sources/**/*.swift"]
-deps = ["./GlossiaCoreIOS", "./GlossiaCoreFFI", "./GlossiaSimulatorSDK", "./GlossiaTokiActivity"]
+deps = ["./GlossiaCoreIOS", "./GlossiaCoreFFI", "./GlossiaSimulatorSDK", "./GlossiaActivity"]
 [target.attrs]
 platform = "ios"
 sdk_frameworks = ["AuthenticationServices", "Security", "ActivityKit", "Speech", "AVFoundation"]
@@ -146,13 +146,13 @@ sdk_variant = "simulator"
 families = ["iphone", "ipad"]
 info_plist = "ios/Info.plist"
 entitlements = "ios/Simulator.entitlements"
-postbuild_actions = ['{"name":"Embed Toki Live Activity","cacheable":true,"inputs":[".once/out/GlossiaTokiActivity/TokiLiveActivity.appex"],"outputs":[".once/out/GlossiaIOS/Glossia.app/PlugIns/TokiLiveActivity.appex"],"argv":["/usr/bin/ditto",".once/out/GlossiaTokiActivity/TokiLiveActivity.appex",".once/out/GlossiaIOS/Glossia.app/PlugIns/TokiLiveActivity.appex"]}']
+postbuild_actions = ['{"name":"Embed Glossia Activity","cacheable":true,"inputs":[".once/out/GlossiaActivity/GlossiaActivity.appex"],"outputs":[".once/out/GlossiaIOS/Glossia.app/PlugIns/GlossiaActivity.appex"],"argv":["/usr/bin/ditto",".once/out/GlossiaActivity/GlossiaActivity.appex",".once/out/GlossiaIOS/Glossia.app/PlugIns/GlossiaActivity.appex"]}']
 
 [[target]]
 name = "GlossiaIOSDevice"
 kind = "apple_application"
 srcs = ["ios/Sources/**/*.swift"]
-deps = ["./GlossiaCoreDevice", "./GlossiaCoreFFI", "./GlossiaDeviceSDK", "./GlossiaTokiActivityDevice"]
+deps = ["./GlossiaCoreDevice", "./GlossiaCoreFFI", "./GlossiaDeviceSDK", "./GlossiaActivityDevice"]
 [target.attrs]
 platform = "ios"
 sdk_frameworks = ["AuthenticationServices", "Security", "ActivityKit", "Speech", "AVFoundation"]
@@ -165,13 +165,13 @@ minimum_os = "17.0"
 sdk_variant = "device"
 families = ["iphone", "ipad"]
 info_plist = "ios/Info.plist"
-postbuild_actions = ['{"name":"Embed Toki Live Activity","cacheable":true,"inputs":[".once/out/GlossiaTokiActivityDevice/TokiLiveActivity.appex"],"outputs":[".once/out/GlossiaIOSDevice/Glossia.app/PlugIns/TokiLiveActivity.appex"],"argv":["/usr/bin/ditto",".once/out/GlossiaTokiActivityDevice/TokiLiveActivity.appex",".once/out/GlossiaIOSDevice/Glossia.app/PlugIns/TokiLiveActivity.appex"]}']
+postbuild_actions = ['{"name":"Embed Glossia Activity","cacheable":true,"inputs":[".once/out/GlossiaActivityDevice/GlossiaActivity.appex"],"outputs":[".once/out/GlossiaIOSDevice/Glossia.app/PlugIns/GlossiaActivity.appex"],"argv":["/usr/bin/ditto",".once/out/GlossiaActivityDevice/GlossiaActivity.appex",".once/out/GlossiaIOSDevice/Glossia.app/PlugIns/GlossiaActivity.appex"]}']
 
 [[target]]
 name = "GlossiaIOSPreview"
 kind = "apple_application"
 srcs = ["ios/Previews/**/*.swift", "ios/Sources/GlossiaLoginView.swift", "ios/Sources/GlossiaSession.swift", "ios/Sources/GlossiaLanguage.swift", "ios/Sources/GlossiaPushNotifications.swift", "ios/Sources/GlossiaNavigation.swift", "ios/Sources/GlossiaBrand.swift", "ios/Sources/GlossiaAppearance.swift", "ios/Sources/GlossiaWorkspaceView.swift", "ios/Sources/WorkspacePicker.swift", "ios/Sources/TokiView.swift", "ios/Sources/TokiGoalView.swift", "ios/Sources/TokiComposer.swift", "ios/Sources/TokiVoiceInput.swift", "ios/Sources/FluentLanguages.swift", "ios/Sources/TokiSprite.swift", "ios/Sources/TokiActivityAttributes.swift", "ios/Sources/TokiLiveActivities.swift", "ios/Sources/TokiWorkController.swift", "ios/Sources/TokiWorkStatusView.swift", "ios/Sources/TranslationsView.swift", "ios/Sources/AnalyticsView.swift", "ios/Sources/ProfileView.swift"]
-deps = ["./GlossiaCoreIOS", "./GlossiaCoreFFI", "./GlossiaSimulatorSDK", "./GlossiaTokiActivityPreview"]
+deps = ["./GlossiaCoreIOS", "./GlossiaCoreFFI", "./GlossiaSimulatorSDK", "./GlossiaActivityPreview"]
 [target.attrs]
 platform = "ios"
 sdk_frameworks = ["AuthenticationServices", "Security", "ActivityKit", "Speech", "AVFoundation"]
@@ -183,7 +183,7 @@ minimum_os = "17.0"
 sdk_variant = "simulator"
 families = ["iphone", "ipad"]
 info_plist = "ios/Previews/Info.plist"
-postbuild_actions = ['{"name":"Embed Toki Live Activity","cacheable":true,"inputs":[".once/out/GlossiaTokiActivityPreview/TokiLiveActivity.appex"],"outputs":[".once/out/GlossiaIOSPreview/GlossiaPreview.app/PlugIns/TokiLiveActivity.appex"],"argv":["/usr/bin/ditto",".once/out/GlossiaTokiActivityPreview/TokiLiveActivity.appex",".once/out/GlossiaIOSPreview/GlossiaPreview.app/PlugIns/TokiLiveActivity.appex"]}']
+postbuild_actions = ['{"name":"Embed Glossia Activity","cacheable":true,"inputs":[".once/out/GlossiaActivityPreview/GlossiaActivity.appex"],"outputs":[".once/out/GlossiaIOSPreview/GlossiaPreview.app/PlugIns/GlossiaActivity.appex"],"argv":["/usr/bin/ditto",".once/out/GlossiaActivityPreview/GlossiaActivity.appex",".once/out/GlossiaIOSPreview/GlossiaPreview.app/PlugIns/GlossiaActivity.appex"]}']
 
 [[target]]
 name = "GlossiaIOSTests"
@@ -214,14 +214,14 @@ bundle_id = "ai.glossia.mobile.uitests"
 ui_testing = true
 
 [[target]]
-name = "GlossiaTokiActivityExecutable"
+name = "GlossiaActivityExecutable"
 kind = "apple_application"
 srcs = ["ios/LiveActivity/*.swift", "ios/Sources/TokiActivityAttributes.swift"]
 deps = ["./GlossiaSimulatorSDK"]
 [target.attrs]
 platform = "ios"
-bundle_id = "ai.glossia.mobile.toki-activity"
-product_name = "TokiLiveActivity"
+bundle_id = "ai.glossia.mobile.activity"
+product_name = "GlossiaActivity"
 application_extension = true
 minimum_os = "17.0"
 sdk_variant = "simulator"
@@ -229,22 +229,22 @@ families = ["iphone", "ipad"]
 sdk_frameworks = ["WidgetKit", "SwiftUI", "ActivityKit"]
 resources = ["ios/Resources/Assets.xcassets/TokiFocused.imageset/TokiFocused.png", "ios/Resources/*.lproj/*.strings"]
 info_plist = "ios/LiveActivity/Info.plist"
-info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.mobile.toki-activity" }
+info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.mobile.activity" }
 
 [[target]]
-name = "GlossiaTokiActivity"
+name = "GlossiaActivity"
 kind = "glossia_widget_extension"
-deps = ["./GlossiaTokiActivityExecutable"]
+deps = ["./GlossiaActivityExecutable"]
 
 [[target]]
-name = "GlossiaTokiActivityDeviceExecutable"
+name = "GlossiaActivityDeviceExecutable"
 kind = "apple_application"
 srcs = ["ios/LiveActivity/*.swift", "ios/Sources/TokiActivityAttributes.swift"]
 deps = ["./GlossiaDeviceSDK"]
 [target.attrs]
 platform = "ios"
-bundle_id = "ai.glossia.mobile.toki-activity"
-product_name = "TokiLiveActivity"
+bundle_id = "ai.glossia.mobile.activity"
+product_name = "GlossiaActivity"
 application_extension = true
 minimum_os = "17.0"
 sdk_variant = "device"
@@ -252,22 +252,22 @@ families = ["iphone", "ipad"]
 sdk_frameworks = ["WidgetKit", "SwiftUI", "ActivityKit"]
 resources = ["ios/Resources/Assets.xcassets/TokiFocused.imageset/TokiFocused.png", "ios/Resources/*.lproj/*.strings"]
 info_plist = "ios/LiveActivity/Info.plist"
-info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.mobile.toki-activity" }
+info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.mobile.activity" }
 
 [[target]]
-name = "GlossiaTokiActivityDevice"
+name = "GlossiaActivityDevice"
 kind = "glossia_widget_extension"
-deps = ["./GlossiaTokiActivityDeviceExecutable"]
+deps = ["./GlossiaActivityDeviceExecutable"]
 
 [[target]]
-name = "GlossiaTokiActivityPreviewExecutable"
+name = "GlossiaActivityPreviewExecutable"
 kind = "apple_application"
 srcs = ["ios/LiveActivity/*.swift", "ios/Sources/TokiActivityAttributes.swift"]
 deps = ["./GlossiaSimulatorSDK"]
 [target.attrs]
 platform = "ios"
-bundle_id = "ai.glossia.mobile.preview.toki-activity"
-product_name = "TokiLiveActivity"
+bundle_id = "ai.glossia.mobile.preview.activity"
+product_name = "GlossiaActivity"
 application_extension = true
 minimum_os = "17.0"
 sdk_variant = "simulator"
@@ -275,9 +275,9 @@ families = ["iphone", "ipad"]
 sdk_frameworks = ["WidgetKit", "SwiftUI", "ActivityKit"]
 resources = ["ios/Resources/Assets.xcassets/TokiFocused.imageset/TokiFocused.png", "ios/Resources/*.lproj/*.strings"]
 info_plist = "ios/LiveActivity/Info.plist"
-info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.mobile.preview.toki-activity" }
+info_plist_substitutions = { EXTENSION_BUNDLE_ID = "ai.glossia.mobile.preview.activity" }
 
 [[target]]
-name = "GlossiaTokiActivityPreview"
+name = "GlossiaActivityPreview"
 kind = "glossia_widget_extension"
-deps = ["./GlossiaTokiActivityPreviewExecutable"]
+deps = ["./GlossiaActivityPreviewExecutable"]

@@ -49,6 +49,12 @@ run = "once build GlossiaIOS"
 depends = ["prepare:rust"]
 run = "once build GlossiaIOSDevice"
 
+[tasks."release:ios-check"]
+run = "bash ios/distribution/check.sh"
+
+[tasks."test:ios-distribution"]
+run = ["python3 -B ios/distribution/push_test.py", "python3 -B ios/distribution/profile_test.py", "bash ios/distribution/release_test.sh"]
+
 [tasks."test:ios"]
 depends = ["prepare:rust"]
 run = "once test GlossiaIOSTests"

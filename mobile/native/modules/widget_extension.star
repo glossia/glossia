@@ -5,7 +5,7 @@ def _glossia_widget_extension_impl(ctx):
     source = ctx["deps"][0]
     if not source.get("application_extension"):
         fail("Widget source must set application_extension = true")
-    output = declare_output("TokiLiveActivity.appex")
+    output = declare_output("GlossiaActivity.appex")
     run_action(
         argv = [host_which("ditto"), execution_path(source["app_path"]), execution_path(output)],
         inputs = source["app_files"],
@@ -16,7 +16,7 @@ def _glossia_widget_extension_impl(ctx):
     result = dict(source)
     result["label_id"] = ctx["label"]["id"]
     result["app_path"] = output
-    result["app_executable"] = output + "/TokiLiveActivity"
+    result["app_executable"] = output + "/GlossiaActivity"
     result["app_files"] = [output]
     result["default_output"] = output
     return result

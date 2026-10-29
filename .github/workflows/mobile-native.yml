@@ -3,10 +3,10 @@ name: Mobile Native
 on:
   push:
     branches: [main]
-    paths: ["mobile/native/**", "L10N.md", ".github/workflows/mobile-native.yml"]
+    paths: ["mobile/native/**", "L10N.md", ".github/workflows/mobile-native.yml", ".github/workflows/ios-release.yml"]
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    paths: ["mobile/native/**", "L10N.md", ".github/workflows/mobile-native.yml"]
+    paths: ["mobile/native/**", "L10N.md", ".github/workflows/mobile-native.yml", ".github/workflows/ios-release.yml"]
   workflow_dispatch:
 
 permissions:
@@ -26,6 +26,18 @@ defaults:
     working-directory: mobile/native
 
 jobs:
+  distribution:
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: jdx/mise-action@v2
+        with:
+          version: 2026.9.2
+          install_args: git-cliff
+      - run: mise run test:ios-distribution
+
   localization:
     if: github.event.pull_request.draft != true
     runs-on: macos-15
@@ -130,9 +142,10 @@ jobs:
       - name: Verify embedded Live Activity extension
         run: |
           app=.once/out/${{ matrix.target }}/Glossia.app
-          extension="$app/PlugIns/TokiLiveActivity.appex"
-          test -x "$extension/TokiLiveActivity"
+          extension="$app/PlugIns/GlossiaActivity.appex"
+          test -x "$extension/GlossiaActivity"
           test -f "$extension/TokiFocused.png"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$extension/Info.plist")" = 'Glossia Activity'
           test "$(/usr/libexec/PlistBuddy -c 'Print :NSSupportsLiveActivities' "$app/Info.plist")" = true
           test "$(/usr/libexec/PlistBuddy -c 'Print :NSExtension:NSExtensionPointIdentifier' "$extension/Info.plist")" = com.apple.widgetkit-extension
           app_id=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist")

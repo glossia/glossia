@@ -416,7 +416,7 @@
 /* TokiView.swift: static UI/model copy */
 "Draft conversation" = "Draft conversation";
 
-/* TokiLiveActivity.swift: static UI/model copy */
+/* GlossiaActivity.swift: static UI/model copy */
 "Elapsed since observed" = "Elapsed since observed";
 
 /* ProfileView.swift: static UI/model copy */
@@ -608,10 +608,10 @@
 /* TokiActivityAttributes.swift: static UI/model copy */
 "Open Glossia to check Toki" = "Open Glossia to check Toki";
 
-/* TokiLiveActivity.swift: static UI/model copy */
+/* GlossiaActivity.swift: static UI/model copy */
 "Open Glossia to check the latest status" = "Open Glossia to check the latest status";
 
-/* TokiLiveActivity.swift: static UI/model copy */
+/* GlossiaActivity.swift: static UI/model copy */
 "Open conversation" = "Open conversation";
 
 /* TranslationsView.swift: static UI/model copy */
@@ -782,7 +782,7 @@
 /* TranslationsView.swift: static UI/model copy */
 "Status" = "Status";
 
-/* TokiLiveActivity.swift: static UI/model copy */
+/* GlossiaActivity.swift: static UI/model copy */
 "Status needs a fresh check" = "Status needs a fresh check";
 
 /* TokiComposer.swift: static UI/model copy */
@@ -845,7 +845,7 @@
 /* TokiView.swift: static UI/model copy */
 "Toki" = "Toki";
 
-/* TokiLiveActivity.swift: static UI/model copy */
+/* GlossiaActivity.swift: static UI/model copy */
 "Toki conversation" = "Toki conversation";
 
 /* TokiActivityAttributes.swift: static UI/model copy */
@@ -866,7 +866,7 @@
 /* TokiWorkStatusView.swift: static UI/model copy */
 "Toki is thinking…" = "Toki is thinking…";
 
-/* TokiLiveActivity.swift: static UI/model copy */
+/* GlossiaActivity.swift: static UI/model copy */
 "TokiFocused" = "TokiFocused";
 
 /* AnalyticsView.swift: static UI/model copy */

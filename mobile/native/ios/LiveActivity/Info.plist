@@ -2,9 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
     <key>CFBundleIdentifier</key><string>$(EXTENSION_BUNDLE_ID)</string>
-    <key>CFBundleExecutable</key><string>TokiLiveActivity</string>
-    <key>CFBundleName</key><string>TokiLiveActivity</string>
-    <key>CFBundleDisplayName</key><string>Toki</string>
+    <key>CFBundleExecutable</key><string>GlossiaActivity</string>
+    <key>CFBundleName</key><string>GlossiaActivity</string>
+    <key>CFBundleDisplayName</key><string>Glossia Activity</string>
     <key>CFBundlePackageType</key><string>XPC!</string>
     <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
     <key>CFBundleShortVersionString</key><string>0.1.0</string>

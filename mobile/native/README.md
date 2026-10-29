@@ -109,8 +109,105 @@ migration through your normal deployment procedure, configure an inference
 provider, and run the Toki Oban queue before expecting live replies. See the
 server's API reference and OpenAPI document for request and response schemas.
 
-Editing, offline sync, store publishing, and production
-signing are not included. Native UI currently uses English copy.
+Editing and offline sync are not included. App Store distribution automation is
+described below; Apple credentials and store approval are still required.
+
+## iOS App Store distribution
+
+The setup follows Habibi's Once → distribution signing → App Store Connect
+pipeline. `.github/workflows/ios-release.yml` uploads the exact commit after
+**Mobile Native** succeeds on a push to `main`. Fork/PR runs, failed checks and
+superseded commits cannot publish. Manual dispatch is restricted to current `main`.
+Uploads remain disabled until the repository variable `IOS_INFISICAL_IDENTITY_ID`
+is configured. No Apple or Infisical account changes are made by these scripts.
+
+`ios/distribution/check.sh` uses `mobile/native/cliff.toml` and independent,
+reachable stable `ios@x.y.z` tags, starting at `0.1.0`. Features bump minors,
+fixes bump patches, and breaking changes bump majors even during `0.x`.
+Maintenance and unrelated server/Expo changes do not release iOS. Both app and
+extension get the same version and `GITHUB_RUN_NUMBER.GITHUB_RUN_ATTEMPT` build
+number. Preserve the release workflow's run-counter history. Local bootstrap
+uploads should use `1.0.N`, below CI's first `1.1`.
+
+### Apple account requirements
+
+Use an active Apple Developer Program team with its agreements accepted:
+
+1. Register the explicit app ID **`ai.glossia.mobile`**, enabling **Push
+   Notifications**, and extension ID **`ai.glossia.mobile.activity`**.
+   The current Live Activity uses no App Group or ActivityKit push entitlement.
+2. Create the **Glossia** iOS app record in App Store Connect using
+   `ai.glossia.mobile` (choose a unique SKU, for example `glossia-ios`). There is
+   no separate store record for the extension. Supply the team ID and numeric
+   App Store Connect app ID when handing over the account setup.
+3. Supply an **Apple Distribution certificate and its matching private key** as
+   password-protected `.p12`. A `.cer` alone cannot sign. An existing certificate
+   can be reused only if it belongs to this same team and its private key is
+   available; Habibi's personal-team identity does not cover a different team.
+4. Generate **two App Store Connect provisioning profiles**, one per bundle ID,
+   permitting that distribution certificate. Do not use development or Ad Hoc
+   profiles. Regenerate the app profile after enabling Push Notifications.
+5. Create a **team App Store Connect API key** under Users and Access →
+   Integrations → App Store Connect API. **Developer** is sufficient for build
+   uploads; provide its key ID, issuer UUID and downloaded private `.p8`.
+   **App Manager** access is needed if we also manage store metadata/review.
+   This is not an APNs key. No Apple ID password or two-factor code is needed.
+
+Keep private keys and passwords out of Git and chat. Place them directly in
+Infisical or provide local file paths through an agreed secure handoff.
+
+### Infisical and GitHub activation
+
+In the existing Infisical EU `glossia` project, environment `prod`, create a
+dedicated `/glossia-ios-releases` folder with these seven secrets:
+
+| Secret | Value |
+| --- | --- |
+| `IOS_DISTRIBUTION_P12_BASE64` | Base64 password-protected certificate + private key export |
+| `IOS_DISTRIBUTION_P12_PASSWORD` | That export's password |
+| `IOS_APP_STORE_PROFILE_BASE64` | Base64 app App Store profile |
+| `IOS_EXTENSION_APP_STORE_PROFILE_BASE64` | Base64 Glossia Activity extension App Store profile |
+| `ASC_API_KEY_ID` | Team API key ID |
+| `ASC_API_ISSUER_ID` | Team issuer UUID |
+| `ASC_API_KEY_P8_BASE64` | Base64 API private key |
+
+Create a dedicated read-only machine identity restricted to that folder, with
+15-minute OIDC tokens. Bind GitHub's issuer/discovery URL
+`https://token.actions.githubusercontent.com`, audience `https://github.com/glossia`,
+the repository/owner immutable IDs, `refs/heads/main`, and exact workflow claim
+`glossia/glossia/.github/workflows/ios-release.yml@refs/heads/main`.
+Inspect `gh api repos/glossia/glossia/actions/oidc/customization/sub` before
+setting the bound subject; the inspected setup uses the default mutable subject
+`repo:glossia/glossia:ref:refs/heads/main`, unlike Habibi's immutable subject.
+Use the numeric IDs as additional bound claims. Set `IOS_INFISICAL_IDENTITY_ID`
+to the new identity UUID **only after** its policy and all secrets are ready.
+Do not broaden the existing infrastructure/release identity or put persistent
+Infisical tokens in GitHub. Account policy/secret changes require approval.
+
+The build runs before credentials are fetched. Packaging works on a copy of the
+device bundle, validates both profiles/team/certificate, scopes entitlements,
+embeds production APNs metadata, stamps Apple SDK/ARM64/iPad metadata, signs the
+extension before its containing app, verifies the signature, and deletes its
+temporary Keychain/private files. The source plist and Once cache are unchanged.
+Habibi's historical clean-runner signing failure means this setup still needs a
+real signed CI run with Glossia's credentials; local fixture checks cannot prove it.
+
+Apple validation precedes upload. A successful upload creates an exact-SHA
+GitHub release/tag, without a public IPA artifact. It does **not** submit for
+App Review, publish publicly, or invite TestFlight testers. Upload acceptance
+is not successful Apple processing. If upload outcome is uncertain, inspect
+App Store Connect before retrying. If only GitHub release creation fails, create
+the tag/release for that uploaded SHA rather than uploading another build.
+
+Before public release, complete the listing/screenshots, support/privacy URLs,
+age rating, App Privacy and encryption/export-compliance declarations (including
+Rust TLS), review contact and working reviewer sign-in. Then select the processed
+build and submit for App Review. APNs delivery separately requires server-side
+provider credentials; they never belong in the app or upload secrets.
+
+From `mobile/native/`, run `mise run test:ios-distribution` for disposable release
+histories and profile fixtures, or `mise run release:ios-check` on a clean,
+committed checkout to inspect the next version without publishing.
 
 ## Remote push opt-in
 

@@ -4,11 +4,11 @@ import UIKit
 import WidgetKit
 
 @main
-struct TokiWidgets: WidgetBundle {
-    var body: some Widget { TokiLiveActivity() }
+struct GlossiaWidgets: WidgetBundle {
+    var body: some Widget { GlossiaActivity() }
 }
 
-struct TokiLiveActivity: Widget {
+struct GlossiaActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: TokiActivityAttributes.self) { context in
             HStack(spacing: 12) {
