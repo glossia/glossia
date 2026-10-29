@@ -10,6 +10,19 @@
     <key>CFBundleDevelopmentRegion</key><string>en</string>
     <key>CFBundleShortVersionString</key><string>0.1.0</string>
     <key>CFBundleVersion</key><string>1</string>
+    <!-- Once compiles the catalog but does not merge actool's partial plist. -->
+    <key>CFBundleIcons</key><dict>
+        <key>CFBundlePrimaryIcon</key><dict>
+            <key>CFBundleIconName</key><string>AppIcon</string>
+            <key>CFBundleIconFiles</key><array><string>AppIcon60x60</string></array>
+        </dict>
+    </dict>
+    <key>CFBundleIcons~ipad</key><dict>
+        <key>CFBundlePrimaryIcon</key><dict>
+            <key>CFBundleIconName</key><string>AppIcon</string>
+            <key>CFBundleIconFiles</key><array><string>AppIcon60x60</string><string>AppIcon76x76</string></array>
+        </dict>
+    </dict>
     <key>MinimumOSVersion</key><string>17.0</string>
     <key>LSRequiresIPhoneOS</key><true/>
     <key>NSSupportsLiveActivities</key><true/>

@@ -139,9 +139,13 @@ jobs:
       - run: mise exec -- rustup target add aarch64-apple-ios-sim aarch64-apple-ios
       - run: mise run prepare:rust
       - run: mise exec -- once build ${{ matrix.target }}
-      - name: Verify embedded Live Activity extension
+      - name: Verify app icon and embedded Live Activity extension
         run: |
           app=.once/out/${{ matrix.target }}/Glossia.app
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName' "$app/Info.plist")" = AppIcon
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIcons~ipad:CFBundlePrimaryIcon:CFBundleIconName' "$app/Info.plist")" = AppIcon
+          test -f "$app/AppIcon60x60@2x.png"
+          test -f "$app/AppIcon76x76@2x~ipad.png"
           extension="$app/PlugIns/GlossiaActivity.appex"
           test -x "$extension/GlossiaActivity"
           test -f "$extension/TokiFocused.png"
