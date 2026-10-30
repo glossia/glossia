@@ -262,32 +262,36 @@ defmodule Glossia.Seeds do
     # A local git remote that stands in for the blog project's GitHub repo, so the
     # full clone → translate → PR flow can run end-to-end locally (dev only).
     seed_local_remote!("dev-user/blog",
-      files: [
-        {"L10N.md",
-         """
-         ---
-         source_language: en
-         model: local-codex
-         targets:
-           es: Spanish
-           fr: French
-         sources:
-           "docs/*.md": "docs/i18n/{locale}/*.md"
-         ---
-         Blog project context: keep a friendly, concise tone.
-         """},
-        {"L10N/fr.md",
-         """
-         ---
-         locale: fr
-         model: local-claude
-         ---
-         French translations should feel natural and editorial, rather than literal.
-         """},
-        {"docs/getting-started.md",
-         "# Getting started\n\nWelcome to the blog. This short guide helps you publish your first post.\n"}
-      ]
+      files:
+        [
+          {"L10N.md",
+           """
+           ---
+           source_language: en
+           model: local-codex
+           targets:
+             es: Spanish
+             fr: French
+           sources:
+             "docs/*.md": "docs/i18n/{locale}/*.md"
+             "content/en/*": "content/{locale}/*"
+           ---
+           Blog project context: keep a friendly, concise tone.
+           """},
+          {"L10N/fr.md",
+           """
+           ---
+           locale: fr
+           model: local-claude
+           ---
+           French translations should feel natural and editorial, rather than literal.
+           """},
+          {"docs/getting-started.md",
+           "# Getting started\n\nWelcome to the blog. This short guide helps you publish your first post.\n"}
+        ] ++ editor_sample_files()
     )
+
+    if blog_project, do: seed_editor!(blog_project)
 
     seed_local_remote!("dev-user/localization-demo",
       files: [
@@ -972,6 +976,68 @@ defmodule Glossia.Seeds do
   # ----------------------------------------------------------------------------
   # Projects
   # ----------------------------------------------------------------------------
+
+  def editor_sample_files do
+    [
+      {"content/en/home.json",
+       Jason.encode!(
+         %{
+           "hero" => %{
+             "title" => "A world of stories, in every language",
+             "description" =>
+               "Bring your ideas to new audiences without losing what makes them yours.",
+             "action" => "Explore the stories"
+           },
+           "featured_count" => 3,
+           "published" => true
+         },
+         pretty: true
+       ) <> "\n"},
+      {"content/es/home.json",
+       Jason.encode!(
+         %{
+           "hero" => %{
+             "title" => "Un mundo de historias, en cada idioma",
+             "description" =>
+               "Comparte tus ideas con nuevas audiencias sin perder lo que las hace tuyas.",
+             "action" => "Explora las historias"
+           },
+           "featured_count" => 3,
+           "published" => true
+         },
+         pretty: true
+       ) <> "\n"},
+      {"content/en/navigation.yaml",
+       "# Website navigation\nmenu:\n  stories: Stories\n  about: About us\n  newsletter: Join the newsletter\nshow_search: true\n"},
+      {"content/es/navigation.yaml",
+       "# Website navigation\nmenu:\n  stories: Historias\n  about: Sobre nosotros\n  newsletter: Suscríbete al boletín\nshow_search: true\n"},
+      {"content/en/welcome.md",
+       "---\ntitle: A place for good stories\npublished: true\n---\n# A place for good stories\n\nEvery story starts with an idea worth sharing. This is where we collect ours.\n\n## Find your next read\n\n- Discover stories from our community\n- Meet the people behind the words\n- Share something that inspires you\n\n**Make yourself at home.** There is always another story to discover.\n"},
+      {"content/es/welcome.md",
+       "---\ntitle: Un lugar para las buenas historias\npublished: true\n---\n# Un lugar para las buenas historias\n\nCada historia comienza con una idea que merece compartirse. Aquí reunimos las nuestras.\n\n## Encuentra tu próxima lectura\n\n- Descubre historias de nuestra comunidad\n- Conoce a las personas detrás de las palabras\n- Comparte algo que te inspire\n\n**Siéntete como en casa.** Siempre hay otra historia por descubrir.\n"}
+    ]
+  end
+
+  def seed_editor!(project) do
+    for {path, content} <- editor_sample_files() do
+      ["content", locale, name] = Path.split(path)
+      source_path = Path.join(["content", "en", name])
+
+      sha =
+        Base.encode16(:crypto.hash(:sha, "blob #{byte_size(content)}\0#{content}"), case: :lower)
+
+      %Glossia.Editor.File{
+        project_id: project.id,
+        path: path,
+        source_path: source_path,
+        locale: locale,
+        format: Glossia.Translations.Format.detect(path),
+        content: content,
+        blob_sha: sha
+      }
+      |> Repo.insert!(on_conflict: :nothing, conflict_target: [:project_id, :path])
+    end
+  end
 
   # Seeds a local git repository under the configured `local_remotes_dir` to stand
   # in for a GitHub remote, so `Glossia.Translations.RepositoryRun` clones it

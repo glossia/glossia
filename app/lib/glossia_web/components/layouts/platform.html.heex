@@ -119,6 +119,13 @@
             selected={@live_action in [:project_translations, :project_session]}
           />
           <.sidebar_item
+            :if={@can_write}
+            label={gettext("Editor")}
+            icon="pencil"
+            navigate={~p"/#{@handle}/#{@sidebar_project.handle}/-/editor"}
+            selected={@live_action in [:editor, :editor_file]}
+          />
+          <.sidebar_item
             :if={@current_user && Glossia.Authz.authorize?(:toki_read, @current_user, @account)}
             label={gettext("Toki")}
             icon="message_circle"

@@ -658,6 +658,8 @@ defmodule GlossiaWeb.Router do
       live "/:handle", DashboardLive, :account
       live "/:handle/:project/-/translations", DashboardLive, :project_translations
       live "/:handle/:project/-/sessions/:session_id", DashboardLive, :project_session
+      live "/:handle/:project/-/editor", EditorLive, :editor
+      live "/:handle/:project/-/editor/:id", EditorLive, :editor_file
       live "/:handle/:project/-/toki", TokiLive, :toki_index
       live "/:handle/:project/-/toki/:id", TokiLive, :toki_show
       live "/:handle/:project", DashboardLive, :project

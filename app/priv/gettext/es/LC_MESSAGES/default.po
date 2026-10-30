@@ -48,10 +48,18 @@ msgstr[0] "%{count} idioma seleccionado"
 msgstr[1] "%{count} idiomas seleccionados"
 
 #, elixir-autogen, elixir-format
+msgid "%{count} matching text fields. Search includes source text and saved drafts."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "%{count} repository"
 msgid_plural "%{count} repositories"
 msgstr[0] "%{count} repositorio"
 msgstr[1] "%{count} repositorios"
+
+#, elixir-autogen, elixir-format
+msgid "%{count} selected"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "%{count} term added"
@@ -160,6 +168,10 @@ msgstr "90 días"
 #, elixir-autogen, elixir-format
 msgid "A brief description of this project"
 msgstr "Una breve descripción de este proyecto"
+
+#, elixir-autogen, elixir-format
+msgid "A configured file is too large, binary, or not a regular file. The editor supports text files up to 1 MB."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "A little more context"
@@ -346,6 +358,10 @@ msgid "All conversations"
 msgstr "Todas las conversaciones"
 
 #, elixir-autogen, elixir-format
+msgid "All files"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "All files are up to date. No translations were needed."
 msgstr "Todos los archivos están actualizados. No se necesitaron traducciones."
 
@@ -436,6 +452,10 @@ msgstr "Aplica al dashboard. Todo lo no traducido aún recurre al inglés."
 #, elixir-autogen, elixir-format
 msgid "Apply"
 msgstr "Aplicar"
+
+#, elixir-autogen, elixir-format
+msgid "Apply link"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Apply suggestion"
@@ -582,6 +602,14 @@ msgid "Blog"
 msgstr "Blog"
 
 #, elixir-autogen, elixir-format
+msgid "Body"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Bold"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Brand voice"
 msgstr ""
 
@@ -702,6 +730,10 @@ msgid "Changelog"
 msgstr "Historial de cambios"
 
 #, elixir-autogen, elixir-format
+msgid "Check review status"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Check the decision model configuration and provider availability, then retry. Unchecked output was not accepted."
 msgstr "Verifique la configuración del modelo de decisión y la disponibilidad del proveedor, y luego vuelva a intentarlo. La salida no verificada no fue aceptada."
 
@@ -734,6 +766,10 @@ msgstr "Elige cómo se comporta Glossia para tu cuenta."
 #, elixir-autogen, elixir-format
 msgid "Choose markets and tune the cultural context Glossia should use."
 msgstr "Seleccione los mercados y ajuste el contexto cultural que Glossia debe usar."
+
+#, elixir-autogen, elixir-format
+msgid "Choose the saved drafts to include together in one pull request. Unselected files stay untouched."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Choose who writes the localization configuration."
@@ -854,6 +890,10 @@ msgstr "Configura la analítica web para este proyecto."
 #, elixir-autogen, elixir-format
 msgid "Connect a Git provider"
 msgstr "Conectar un proveedor de Git"
+
+#, elixir-autogen, elixir-format
+msgid "Connect this project to a GitHub repository first."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Connect your coding agent to Glossia and set up localization in your local checkout. Review the changes before pushing them."
@@ -1116,6 +1156,10 @@ msgid "Country"
 msgstr "País"
 
 #, elixir-autogen, elixir-format
+msgid "Create a GitHub pull request with the saved changes to this file?"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Create a suggestion with title, description, and proposed glossary updates."
 msgstr "Cree una sugerencia con título, descripción y actualizaciones de glosario propuestas."
 
@@ -1128,12 +1172,24 @@ msgid "Create an organization"
 msgstr "Crear una organización"
 
 #, elixir-autogen, elixir-format
+msgid "Create one GitHub pull request with these %{count} saved files?"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Create organization"
 msgstr "Crear organización"
 
 #, elixir-autogen, elixir-format
 msgid "Create project"
 msgstr "Crear proyecto"
+
+#, elixir-autogen, elixir-format
+msgid "Create pull request"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Create pull request (%{count} files)"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Create the project here so your agent can find it in Glossia. This does not start automated setup."
@@ -1288,6 +1344,14 @@ msgid "Discard"
 msgstr "Descartar"
 
 #, elixir-autogen, elixir-format
+msgid "Discard draft"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Discard the saved draft? This cannot be undone."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Discuss the ambiguity together. When the latest Toki reply captures the final decision, explicitly approve it below."
 msgstr "Discuta la ambigüedad. Cuando la respuesta más reciente de Toki refleje la decisión final, apruébela explícitamente a continuación."
 
@@ -1352,6 +1416,18 @@ msgid "Done"
 msgstr "Hecho"
 
 #, elixir-autogen, elixir-format
+msgid "Draft saved"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Draft saved. Nothing has been sent to GitHub."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Drafts are shared with your project team. Nothing reaches GitHub until you create a pull request."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Drop image to upload"
 msgstr "Suelte la imagen para subirla"
 
@@ -1384,6 +1460,10 @@ msgid "Edition:"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Editor"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Effective:"
 msgstr "Válido:"
 
@@ -1405,6 +1485,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Enabled"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Enter a valid https, http, or mailto link."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1596,6 +1680,10 @@ msgid "Formality"
 msgstr "Formalidad"
 
 #, elixir-autogen, elixir-format
+msgid "Format"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "From builders who worked at"
 msgstr "De constructores que trabajaron en"
 
@@ -1682,6 +1770,10 @@ msgstr "Falta el ID de instalación en la devolución de llamada de instalación
 #, elixir-autogen, elixir-format
 msgid "GitHub is already connected."
 msgstr "GitHub ya está conectado."
+
+#, elixir-autogen, elixir-format
+msgid "GitHub is not configured on this instance."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Give your token a descriptive name and select the scopes it needs."
@@ -1782,6 +1874,10 @@ msgstr "Directrices"
 #, elixir-autogen, elixir-format
 msgid "Handle"
 msgstr "Gestionar"
+
+#, elixir-autogen, elixir-format
+msgid "Heading"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Help requested"
@@ -1944,6 +2040,10 @@ msgid "Isolated translation runners"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Italic"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Join teams that ship content with the same confidence they ship code."
 msgstr "Únete a equipos que entregan contenido con la misma confianza con la que entregan código."
 
@@ -2040,6 +2140,10 @@ msgid "Leave unset to make this a catch-all rule."
 msgstr "Dejar sin establecer para hacer esta una regla de captura de todo."
 
 #, elixir-autogen, elixir-format
+msgid "Leave without saving these edits?"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Legal"
 msgstr "Legal"
 
@@ -2056,8 +2160,20 @@ msgid "Linguist"
 msgstr "Linguista"
 
 #, elixir-autogen, elixir-format
+msgid "Link"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Link URL"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "LinkedIn"
 msgstr "LinkedIn"
+
+#, elixir-autogen, elixir-format
+msgid "List"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Live"
@@ -2074,6 +2190,10 @@ msgstr "Visitas sin localización"
 #, elixir-autogen, elixir-format
 msgid "Localization setup"
 msgstr "Configuración de localización"
+
+#, elixir-autogen, elixir-format
+msgid "Location"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Log in"
@@ -2166,6 +2286,10 @@ msgstr "Mastodon"
 #, elixir-autogen, elixir-format
 msgid "Matching"
 msgstr "Coincidencia"
+
+#, elixir-autogen, elixir-format
+msgid "Matching text"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Member"
@@ -2396,6 +2520,10 @@ msgid "No documentation matched that search."
 msgstr "No hay documentación que coincida con esa búsqueda."
 
 #, elixir-autogen, elixir-format
+msgid "No editable text"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "No expiration"
 msgstr "Sin caducidad"
 
@@ -2416,12 +2544,20 @@ msgid "No locale-gap visits"
 msgstr "No hay visitas sin localización"
 
 #, elixir-autogen, elixir-format
+msgid "No matching files"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "No matching languages"
 msgstr "Sin idiomas coincidentes"
 
 #, elixir-autogen, elixir-format
 msgid "No matching repositories"
 msgstr "Sin repositorios coincidentes"
+
+#, elixir-autogen, elixir-format
+msgid "No matching text"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "No members found"
@@ -2548,6 +2684,10 @@ msgid "Not enabled"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Not in the repository yet. Start from the source content."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Not recorded"
 msgstr "No registrado."
 
@@ -2566,6 +2706,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Notes on localization, language systems, and agentic workflows."
 msgstr "Notas sobre localización, sistemas de idiomas y flujos de trabajo de agentes."
+
+#, elixir-autogen, elixir-format
+msgid "Numbered list"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "OAuth Apps"
@@ -2916,6 +3060,10 @@ msgid "Publication message"
 msgstr "Mensaje de publicación"
 
 #, elixir-autogen, elixir-format
+msgid "Publication started. The draft is frozen; retry to recover the same pull request, not create a duplicate."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Pull request"
 msgstr "Solicitud de extracción"
 
@@ -2938,6 +3086,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Queued"
 msgstr "En cola"
+
+#, elixir-autogen, elixir-format
+msgid "Quote"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Quote reply"
@@ -3004,6 +3156,10 @@ msgid "Recovery codes"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Redo"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Reference"
 msgstr "Referencia"
 
@@ -3028,6 +3184,14 @@ msgid "Register application"
 msgstr "Registrar aplicación"
 
 #, elixir-autogen, elixir-format
+msgid "Reload"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Reload and replace any unsaved edits?"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Remove"
 msgstr "Eliminar"
 
@@ -3038,6 +3202,10 @@ msgstr "Eliminar administrador"
 #, elixir-autogen, elixir-format
 msgid "Remove filter"
 msgstr "Eliminar filtro"
+
+#, elixir-autogen, elixir-format
+msgid "Remove link"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Remove this routing rule?"
@@ -3068,6 +3236,14 @@ msgid "Repository"
 msgstr "Repositorio"
 
 #, elixir-autogen, elixir-format
+msgid "Repository action completed."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Repository content"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Repository translation"
 msgstr ""
 
@@ -3082,6 +3258,10 @@ msgstr "Resuelto"
 #, elixir-autogen, elixir-format
 msgid "Responses"
 msgstr "Respuestas"
+
+#, elixir-autogen, elixir-format
+msgid "Retry pull request"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Retry setup"
@@ -3122,6 +3302,10 @@ msgstr "Revisar y push"
 #, elixir-autogen, elixir-format
 msgid "Review provider billing"
 msgstr "Revisar la facturación del proveedor"
+
+#, elixir-autogen, elixir-format
+msgid "Review saved changes"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Review the local changes and push or merge them into the default branch when ready."
@@ -3212,8 +3396,16 @@ msgid "Save changes"
 msgstr "Guardar cambios"
 
 #, elixir-autogen, elixir-format
+msgid "Save draft"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Save fluent languages"
 msgstr "Guardar idiomas nativos"
+
+#, elixir-autogen, elixir-format
+msgid "Save here first. Review this file or group saved changes from All files."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Save permissions"
@@ -3294,6 +3486,10 @@ msgstr "Buscar repositorios"
 #, elixir-autogen, elixir-format
 msgid "Search repositories..."
 msgstr "Buscar repositorios..."
+
+#, elixir-autogen, elixir-format
+msgid "Search the text in your content…"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Search translation sessions..."
@@ -3484,6 +3680,10 @@ msgid "Setup update"
 msgstr "Actualización de configuración"
 
 #, elixir-autogen, elixir-format
+msgid "Shape your content. Keep your repository as the source of truth."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Shared across your projects"
 msgstr ""
 
@@ -3522,6 +3722,10 @@ msgstr "Mostrando %{first}-%{last} de %{total}"
 #, elixir-autogen, elixir-format
 msgid "Showing the first %{limit} matches. Keep typing to narrow the results."
 msgstr "Se muestran los primeros %{limit} resultados. Sigue escribiendo para afinar los resultados."
+
+#, elixir-autogen, elixir-format
+msgid "Showing the first 200 matches. Refine your search to find a specific phrase."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Sign in"
@@ -3563,6 +3767,10 @@ msgstr "Reduce la velocidad un momento"
 msgid "Social links"
 msgstr "Enlaces sociales"
 
+#, elixir-autogen, elixir-format
+msgid "Someone changed this draft. Copy your edits, then reload before saving."
+msgstr ""
+
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Something went wrong on our side"
 msgstr "Algo salió mal."
@@ -3590,6 +3798,14 @@ msgstr "No se pudo leer el archivo de origen"
 #, elixir-autogen, elixir-format
 msgid "Source file is not valid text"
 msgstr "El archivo de origen no es texto válido"
+
+#, elixir-autogen, elixir-format
+msgid "Source · %{label}"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Source:"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Split the source into smaller documents or reduce the supplied context before retrying. Unchecked output was not accepted."
@@ -3649,6 +3865,14 @@ msgstr "Sustituido"
 
 #, elixir-autogen, elixir-format
 msgid "Swap the language cards"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Sync repository"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Sync your repository to discover the sources and translations configured in L10N.md. Markdown, JSON, YAML, and text are supported."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3714,6 +3938,10 @@ msgstr "Los términos aparecerán aquí una vez que añada uno."
 #, elixir-autogen, elixir-format
 msgid "Test user not found. Run: mix run priv/repo/seeds.exs"
 msgstr "Usuario de prueba no encontrado. Ejecute: mix run priv/repo/seeds.exs"
+
+#, elixir-autogen, elixir-format
+msgid "Text"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Thanks for your interest! We’ll get back to you by email to help you get started."
@@ -3812,6 +4040,10 @@ msgid "The public home page for the application, if it has one."
 msgstr "La página de inicio pública para la aplicación, si cuenta con ella."
 
 #, elixir-autogen, elixir-format
+msgid "The pull request is still open. Merge or close it in GitHub before editing again."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The quality evaluation settings changed."
 msgstr ""
 
@@ -3822,6 +4054,10 @@ msgstr "El repositorio ya tiene un L10N.md, o tú lo escribirás. Glossia crea e
 #, elixir-autogen, elixir-format
 msgid "The repository and language choices are ready for the setup assistant."
 msgstr "El repositorio y las elecciones de idioma están listos para el asistente de configuración."
+
+#, elixir-autogen, elixir-format
+msgid "The repository file changed. Your draft is safe. Discard it and sync to load the latest version."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The same words, in files your application can use."
@@ -3908,6 +4144,10 @@ msgid "There's a human behind every great translation. And behind Glossia, too."
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "This action could not be completed safely. Your draft has been kept. Check the repository connection and try again."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "This code has expired. Start again from the app."
 msgstr "Este código ha caducado. Reinicie desde la aplicación."
 
@@ -3934,6 +4174,18 @@ msgstr "Este dispositivo ya está autorizado."
 #, elixir-autogen, elixir-format
 msgid "This device is already authorized."
 msgstr "Este dispositivo ya está autorizado."
+
+#, elixir-autogen, elixir-format
+msgid "This document uses formatting the visual editor cannot safely preserve, such as embedded HTML, entities, or footnotes. Its body is read-only. You can still edit the text fields above."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "This draft is frozen for publication. Retry the pull request or check its review status."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "This file contains no text fields. Numbers, flags, and structure stay managed in the repository."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "This file could not be translated because the model provider account has no remaining credit."
@@ -4018,6 +4270,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "This page has received a lot of requests in a short time from your network. Try again in %{seconds} seconds."
 msgstr "Esta página ha recibido muchas solicitudes en poco tiempo desde tu red. Vuelve a intentarlo en %{seconds} segundos."
+
+#, elixir-autogen, elixir-format
+msgid "This repository exceeds the editor limit of 2,000 configured files."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "This request was denied."
@@ -4332,12 +4588,20 @@ msgid "Translations arrive as pull requests. You decide what ships."
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Try a different search or remove a filter."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Try a different voice"
 msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Try adjusting your search query."
 msgstr "Intenta ajustar tu consulta de búsqueda."
+
+#, elixir-autogen, elixir-format
+msgid "Try another word or phrase, or remove a language or status filter."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Try changing your search or role filter."
@@ -4376,6 +4640,10 @@ msgid "Unchanged"
 msgstr "Sin cambios"
 
 #, elixir-autogen, elixir-format
+msgid "Undo"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Unique visitors"
 msgstr "Visitantes únicos"
 
@@ -4386,6 +4654,10 @@ msgstr "Desconocido"
 #, elixir-autogen, elixir-format
 msgid "Unsaved changes"
 msgstr "Cambios no guardados"
+
+#, elixir-autogen, elixir-format
+msgid "Up to date"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Update"
@@ -4712,6 +4984,10 @@ msgid "Working on %{step}"
 msgstr "Trabajando en %{step}"
 
 #, elixir-autogen, elixir-format
+msgid "Working…"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Write"
 msgstr "Escribir"
 
@@ -4812,8 +5088,16 @@ msgid "Your GitHub App installation request has been sent to the organization ad
 msgstr "Tu solicitud de instalación de la aplicación de GitHub se ha enviado al administrador de la organización."
 
 #, elixir-autogen, elixir-format
+msgid "Your content starts here"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Your display name"
 msgstr "Su nombre de visualización"
+
+#, elixir-autogen, elixir-format
+msgid "Your edit is ready for review. Merge the pull request to update the repository."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Your guidance draft"
@@ -4888,6 +5172,10 @@ msgstr "Ej. https://api.together.ai/v1"
 #, elixir-autogen, elixir-format
 msgid "e.g. my-claude-model"
 msgstr "ej. my-claude-model"
+
+#, elixir-autogen, elixir-format
+msgid "files tracked"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "glossary"

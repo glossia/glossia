@@ -118,6 +118,9 @@ defmodule Glossia.Github.Client do
       |> then(fn query ->
         if base = Keyword.get(opts, :base), do: Map.put(query, :base, base), else: query
       end)
+      |> then(fn query ->
+        if head = Keyword.get(opts, :head), do: Map.put(query, :head, head), else: query
+      end)
       |> URI.encode_query()
 
     api_get("#{api_url}/repos/#{full_name}/pulls?#{query}", access_token)
@@ -173,6 +176,11 @@ defmodule Glossia.Github.Client do
     api_url = github_api_url(opts)
 
     api_get("#{api_url}/repos/#{full_name}/git/commits/#{sha}", access_token)
+  end
+
+  def get_tree(full_name, sha, access_token, opts \\ []) do
+    api_url = github_api_url(opts)
+    api_get("#{api_url}/repos/#{full_name}/git/trees/#{sha}?recursive=1", access_token)
   end
 
   def create_blob(full_name, params, access_token, opts \\ []) do

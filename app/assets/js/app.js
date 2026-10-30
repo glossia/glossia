@@ -30,6 +30,7 @@ import LocalizationPriorityMap from "./analytics_map"
 import AnalyticsTraffic from "./analytics_traffic"
 import initSignupTurnstile from "./signup_turnstile"
 import TokiDraft from "./toki_draft"
+import ContentEditor from "./content_editor"
 import "./mfa"
 
 function initSentry() {
@@ -50,7 +51,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, ...Noora.Hooks, ModelPicker, LocalizationPriorityMap, AnalyticsTraffic, TokiDraft},
+  hooks: {...colocatedHooks, ...Noora.Hooks, ModelPicker, LocalizationPriorityMap, AnalyticsTraffic, TokiDraft, ContentEditor},
 })
 
 // Show progress bar on live navigation and form submits
