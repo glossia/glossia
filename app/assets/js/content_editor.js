@@ -126,8 +126,7 @@ const ContentEditor = {
     this.el.querySelector("[data-part='visual-warning']").hidden = !unsupported
     this.el.querySelector("[data-part='visual-fallback']").hidden = !unsupported
     if (unsupported) {
-      this.el.querySelector("[data-part='visual-fallback']").innerHTML =
-        this.el.querySelector("[data-part='fallback-content']").innerHTML
+      this.el.querySelector("[data-part='visual-fallback']").innerHTML = this.el.dataset.preview
       this.rich.setEditable(false, false)
     } else {
       this.rich.commands.setContent(markdown, {contentType: "markdown", emitUpdate: false})

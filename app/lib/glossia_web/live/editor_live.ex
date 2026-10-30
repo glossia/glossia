@@ -497,6 +497,7 @@ defmodule GlossiaWeb.EditorLive do
             phx-submit="save"
             phx-hook="ContentEditor"
             data-dirty={to_string(@dirty)}
+            data-preview={@preview}
             data-leave-confirm={gettext("Leave without saving these edits?")}
           >
             <input type="hidden" name="file_id" value={@file.id} />
@@ -577,7 +578,6 @@ defmodule GlossiaWeb.EditorLive do
                     value={@values[field.id]}
                     disabled={!@editable || @busy}
                   />
-                  <template data-part="fallback-content">{raw(@preview)}</template>
                   <div id={field_dom_id(field.id)} data-part="visual-editor" phx-update="ignore">
                     <Noora.Label.label label={gettext("Body")} />
                     <div data-part="visual-warning" hidden>
