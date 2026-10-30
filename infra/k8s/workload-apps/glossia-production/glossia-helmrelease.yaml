@@ -47,4 +47,4 @@ spec:
     image:
       repository: ghcr.io/glossia/glossia # {"$imagepolicy": "flux-system:glossia:name"}
       tag: main-enterprise # {"$imagepolicy": "flux-system:glossia:tag"}
-      digest: sha256:c86480a5f27d8b226b4c859def695d63a73ba761ad824bbb7a8c32dba62d8c37 # {"$imagepolicy": "flux-system:glossia:digest"}
+      digest: sha256:c8c8c4d8bed94746dc7098abd2de3c5b7d8b3891008554f54454f19d73a7941a # {"$imagepolicy": "flux-system:glossia:digest"}
