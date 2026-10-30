@@ -1,6 +1,10 @@
 # Glossia: a language OS for teams
 
-Glossia brings voice, terminology, translation, revision history, and localization analytics into one system. It helps developers, linguists, and product teams communicate consistently across languages without moving their content out of Git.
+AI localization for your product and docs. Your voice in every language. Your translations, reviewed in Git.
+
+Define tone and terminology once, reuse them across projects and languages, and review translation pull requests with your team. Glossia brings voice, terminology, translation, revision history, and localization analytics into one system without moving your content out of Git.
+
+Glossia is onboarding teams gradually. [Get early access](/signup) or [explore the repository workflow](/docs/tutorials/getting-started.md).
 
 ## The problem
 

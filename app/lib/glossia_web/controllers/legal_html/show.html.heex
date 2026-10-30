@@ -1,45 +1,59 @@
-<section class="section">
+<section id="legal" class="section" aria-labelledby="legal-title">
   <div class="container">
-    <div class="prose">
-      <h1>{@version.title}</h1>
-      <p class="meta">
-        {gettext("Effective:")} {format_date(@version.date)}
-        <%= if @viewing_historical do %>
-          <br />
+    <header data-part="heading">
+      <p data-part="eyebrow">{gettext("Legal")}</p>
+      <h1 id="legal-title">{@version.title}</h1>
+      <p data-part="effective-date">
+        {gettext("Effective:")}
+        <time datetime={Date.to_iso8601(@version.date)}>{format_date(@version.date)}</time>
+      </p>
+    </header>
+
+    <div data-part="layout">
+      <aside data-part="sidebar">
+        <nav aria-label={gettext("Legal documents")}>
+          <a
+            :for={document <- Glossia.Legal.documents()}
+            href={document_path(document)}
+            aria-current={if document == @version.document, do: "page"}
+          >
+            {document_title(document)}
+          </a>
+        </nav>
+        <div data-part="contact">
+          <p>{gettext("Questions? A direct line.")}</p>
+          <a href="mailto:pedro@glossia.ai">pedro@glossia.ai</a>
+        </div>
+      </aside>
+
+      <Noora.Card.card_section data-part="document">
+        <p :if={@viewing_historical} data-part="historical-notice">
           <strong>{gettext("You are viewing a previous version.")}</strong>
           <a href={document_path(@version.document)}>{gettext("View current version")}</a>
-        <% end %>
-      </p>
+        </p>
+        <article class="prose" aria-labelledby="legal-title">
+          {raw(@version.body)}
+        </article>
 
-      {raw(@version.body)}
-
-      <%= if length(@all_versions) > 1 do %>
-        <h2>{gettext("Version History")}</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>{gettext("Date")}</th>
-              <th>{gettext("Changes")}</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <%= for v <- @all_versions do %>
-              <tr>
-                <td>{format_date(v.date)}</td>
-                <td>{v.changes}</td>
-                <td>
-                  <%= if v.date == @version.date do %>
-                    <strong>{gettext("Current")}</strong>
-                  <% else %>
-                    <a href={"#{document_path(v.document)}/#{v.date}"}>{gettext("View")}</a>
-                  <% end %>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      <% end %>
+        <section
+          :if={length(@all_versions) > 1}
+          data-part="history"
+          aria-labelledby="legal-history"
+        >
+          <h2 id="legal-history">{gettext("Version History")}</h2>
+          <ul>
+            <li :for={version <- @all_versions}>
+              <a
+                href={version_path(version.document, version.date)}
+                aria-current={if version.date == @version.date, do: "page"}
+              >
+                <time datetime={Date.to_iso8601(version.date)}>{format_date(version.date)}</time>
+              </a>
+              <span>{version.changes}</span>
+            </li>
+          </ul>
+        </section>
+      </Noora.Card.card_section>
     </div>
   </div>
 </section>

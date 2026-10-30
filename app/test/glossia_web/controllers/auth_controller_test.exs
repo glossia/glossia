@@ -219,6 +219,27 @@ defmodule GlossiaWeb.AuthControllerTest do
       conn = get(conn, ~p"/auth/github/callback", code: "test-code")
       assert redirected_to(conn) == ~p"/dashboard"
       assert get_session(conn, :user_id) == user.id
+
+      token = get_session(conn, :browser_token)
+      {:ok, factor} = Glossia.Accounts.MFA.begin_enrollment(user, token)
+
+      {:ok, [recovery | _], _} =
+        Glossia.Accounts.MFA.confirm(user, token, NimbleTOTP.verification_code(factor.secret))
+
+      expect(Glossia.Auth, :callback, fn :github, _params, _session ->
+        {:ok, %{user: %{"sub" => "existing-user"}, token: %{"access_token" => "test-token"}}}
+      end)
+
+      pending = conn |> recycle() |> get(~p"/auth/github/callback", code: "new-code")
+      assert redirected_to(pending) == ~p"/auth/mfa"
+      refute get_session(pending, :user_id)
+      refute get_session(pending, :browser_token)
+
+      verified =
+        pending |> recycle() |> post(~p"/auth/mfa", mfa_code: recovery, recovery: "true")
+
+      assert redirected_to(verified) == ~p"/dashboard"
+      assert get_session(verified, :user_id) == user.id
     end
   end
 

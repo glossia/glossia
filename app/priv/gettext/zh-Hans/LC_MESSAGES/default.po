@@ -155,10 +155,6 @@ msgid "A little more context"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "A little playful"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "A reason is required to impersonate a user."
 msgstr "冒充用户需要原因说明。"
 
@@ -183,6 +179,10 @@ msgid "A suggestion title is required."
 msgstr "建议标题是必填项。"
 
 #, elixir-autogen, elixir-format
+msgid "A thoughtful welcome. A little more formal."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "A warm welcome. Never a literal translation."
 msgstr ""
 
@@ -191,7 +191,7 @@ msgid "A world of possibility"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "AI drafts the translations. Your team decides what goes live."
+msgid "AI localization for your product and docs. Your voice in every language. Your translations, reviewed in Git."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -229,6 +229,10 @@ msgstr "接受或拒绝邀请"
 #, elixir-autogen, elixir-format
 msgid "Accept or decline the invitation:"
 msgstr "接受或拒绝邀请："
+
+#, elixir-autogen, elixir-format
+msgid "Acceptable Use"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Access credentials"
@@ -355,6 +359,10 @@ msgid "Alternative: verify with a homepage meta tag"
 msgstr "替代方案：通过主页 meta 标签进行验证"
 
 #, elixir-autogen, elixir-format
+msgid "Always you"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "An error occurred during setup."
 msgstr "设置过程中发生错误。"
 
@@ -479,8 +487,20 @@ msgid "Authentication and REST interfaces."
 msgstr "身份验证与 REST 接口"
 
 #, elixir-autogen, elixir-format
+msgid "Authentication code"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Authentication failed. Please try again."
 msgstr "认证失败。请重试。"
+
+#, elixir-autogen, elixir-format
+msgid "Authentication or recovery code"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Authenticator setup QR code"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Authorization callback URL"
@@ -525,6 +545,10 @@ msgstr "返回 Glossia"
 #, elixir-autogen, elixir-format
 msgid "Back to app"
 msgstr "返回应用"
+
+#, elixir-autogen, elixir-format
+msgid "Back to sign in"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Back to terms"
@@ -611,6 +635,10 @@ msgid "Cancel"
 msgstr "取消"
 
 #, elixir-autogen, elixir-format
+msgid "Cancel setup"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Cancel translation"
 msgstr "取消翻译"
 
@@ -651,16 +679,16 @@ msgid "Change"
 msgstr "更改"
 
 #, elixir-autogen, elixir-format
+msgid "Change the voice. Keep the meaning."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Changed"
 msgstr "已更改"
 
 #, elixir-autogen, elixir-format
 msgid "Changelog"
 msgstr "更新日志"
-
-#, elixir-autogen, elixir-format
-msgid "Changes"
-msgstr "变更"
 
 #, elixir-autogen, elixir-format
 msgid "Check the decision model configuration and provider availability, then retry. Unchecked output was not accepted."
@@ -932,6 +960,14 @@ msgid "Copy prompt"
 msgstr "复制提示词"
 
 #, elixir-autogen, elixir-format
+msgid "Copy recovery codes"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Copy setup key"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Copy your client secret now. You will not be able to see it again."
 msgstr "现在复制您的客户端密钥。您将无法再次看到它。"
 
@@ -1172,7 +1208,7 @@ msgid "Define the tone, formality, and style guidelines for your content."
 msgstr "定义内容的语气、正式程度和风格指南。"
 
 #, elixir-autogen, elixir-format
-msgid "Define your tone and glossary. Every translation starts here."
+msgid "Define tone and terminology once. Reuse them across projects and languages."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1232,7 +1268,7 @@ msgid "Diagnostic details"
 msgstr "诊断详情"
 
 #, elixir-autogen, elixir-format
-msgid "Different words. The same feeling."
+msgid "Disable two-factor authentication"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1352,6 +1388,18 @@ msgid "Email cannot be changed here."
 msgstr "无法在此处更改邮箱。"
 
 #, elixir-autogen, elixir-format
+msgid "Enable two-factor authentication"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Enabled"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Enter an authentication code or an unused recovery code to manage your factor. Changing it signs out your other browser sessions."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Enter the code shown in your mobile app to continue."
 msgstr "请输入移动应用中显示的代码以继续。"
 
@@ -1385,6 +1433,14 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Example language"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Example view"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Example voice"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1425,6 +1481,10 @@ msgstr "探索让 Glossia 成为您代码库内容代理的功能。每个功能
 
 #, elixir-autogen, elixir-format
 msgid "Explore the source"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Explore the workflow"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1516,12 +1576,20 @@ msgid "For example: en, es-MX, zh-Hant"
 msgstr "例如：en, es-MX, zh-Hant"
 
 #, elixir-autogen, elixir-format
+msgid "Formal"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Formality"
 msgstr "正式程度"
 
 #, elixir-autogen, elixir-format
 msgid "From builders who worked at"
 msgstr "来自曾在...工作的建设者"
+
+#, elixir-autogen, elixir-format
+msgid "From your voice to your repository"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "From your words to the world."
@@ -1546,6 +1614,10 @@ msgstr "差距？"
 #, elixir-autogen, elixir-format
 msgid "General"
 msgstr "常规"
+
+#, elixir-autogen, elixir-format
+msgid "Generate new recovery codes"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Generate new token"
@@ -1660,10 +1732,6 @@ msgid "Glossia inspects the repository and opens a pull request with a generated
 msgstr "Glossia 检查仓库并为您选择语言生成包含 L10N.md 的拉取请求。"
 
 #, elixir-autogen, elixir-format
-msgid "Glossia is a language OS where linguists and teams shape how your organization speaks across every language and surface."
-msgstr "Glossia 是一个语言操作系统，语言专家与团队可塑造您组织在所有语言和界面上的沟通方式。"
-
-#, elixir-autogen, elixir-format
 msgid "Glossia is inspecting the repository and preparing a pull request. This usually takes a few minutes, and you can leave this page and come back."
 msgstr "Glossia 正在检查仓库并准备拉取请求。这通常需要几分钟，您可以离开此页面后返回。"
 
@@ -1736,6 +1804,10 @@ msgid "How-to guides"
 msgstr "操作指南"
 
 #, elixir-autogen, elixir-format
+msgid "I saved my recovery codes"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "If you cannot edit your domain records, add this meta tag to the head of your homepage on %{domain} and publish it. Glossia checks this domain, so adding the tag to another site does not verify ownership."
 msgstr "如果您无法编辑域名记录，请将此 meta 标签添加到 %{domain} 主页的 head 部分并发布。Glossia 会检查此域名，因此将此标签添加到其他网站无法验证所有权。"
 
@@ -1770,6 +1842,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Incomplete output"
 msgstr "输出不完整"
+
+#, elixir-autogen, elixir-format
+msgid "Informal"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Input"
@@ -1868,7 +1944,11 @@ msgid "Just a quick check"
 msgstr "仅需快速检查"
 
 #, elixir-autogen, elixir-format
-msgid "Keep content in your repository. Glossia works alongside your code."
+msgid "Keep source and translated files in Git, alongside the code that uses them."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Keep these codes somewhere safe. Each code works once if you lose your authenticator. They will not be shown again."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1950,6 +2030,14 @@ msgstr "保持未设置以使其成为通配规则。"
 #, elixir-autogen, elixir-format
 msgid "Legal"
 msgstr "法律"
+
+#, elixir-autogen, elixir-format
+msgid "Legal Notice"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Legal documents"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Linguist"
@@ -2444,6 +2532,10 @@ msgid "Not detected"
 msgstr "未检测到"
 
 #, elixir-autogen, elixir-format
+msgid "Not enabled"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Not recorded"
 msgstr "未记录"
 
@@ -2756,6 +2848,10 @@ msgid "Proposed changes"
 msgstr "建议的变更"
 
 #, elixir-autogen, elixir-format
+msgid "Protect your account with an authenticator app, such as 1Password or Google Authenticator."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Provide a clear title, full context, and a concise summary of intent."
 msgstr "请提供清晰的标题、完整上下文以及意图的简明摘要。"
 
@@ -2824,6 +2920,10 @@ msgid "Quality settings changed"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Questions? A direct line."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Queued"
 msgstr "排队中"
 
@@ -2882,6 +2982,14 @@ msgstr "记录类型"
 #, elixir-autogen, elixir-format
 msgid "Record value"
 msgstr "记录值"
+
+#, elixir-autogen, elixir-format
+msgid "Recovery code"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Recovery codes"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Reference"
@@ -3008,6 +3116,10 @@ msgid "Review the local changes and push or merge them into the default branch w
 msgstr "审核本地更改，就绪后将其推送到或合并到默认分支。"
 
 #, elixir-autogen, elixir-format
+msgid "Review translation pull requests with your team. Merge when you're ready."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Revision"
 msgstr "修订版"
 
@@ -3096,6 +3208,14 @@ msgid "Save permissions"
 msgstr "保存权限"
 
 #, elixir-autogen, elixir-format
+msgid "Save your recovery codes"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Scan this QR code with your authenticator app, or enter the setup key manually. Then enter its six-digit code."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Scopes"
 msgstr "范围"
 
@@ -3176,6 +3296,10 @@ msgid "Search..."
 msgstr "搜索..."
 
 #, elixir-autogen, elixir-format
+msgid "Security"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "See how it works"
 msgstr ""
 
@@ -3214,6 +3338,10 @@ msgstr "全选"
 #, elixir-autogen, elixir-format
 msgid "Select and copy the prompt"
 msgstr "选择并复制提示词"
+
+#, elixir-autogen, elixir-format
+msgid "Select and copy the value manually."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Select at least one target language."
@@ -3284,6 +3412,10 @@ msgid "Set up project"
 msgstr "设置项目"
 
 #, elixir-autogen, elixir-format
+msgid "Set up two-factor authentication"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Set up web analytics"
 msgstr "设置网站分析"
 
@@ -3326,6 +3458,10 @@ msgstr "设置说明已准备就绪"
 #, elixir-autogen, elixir-format
 msgid "Setup is queued and starts shortly. You can leave this page and come back."
 msgstr "设置已加入队列，稍后将开始。您可以离开此页面，稍后返回。"
+
+#, elixir-autogen, elixir-format
+msgid "Setup key"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Setup pull request was closed"
@@ -3378,6 +3514,10 @@ msgstr "显示前 %{limit} 条匹配结果。继续输入以缩小结果范围�
 #, elixir-autogen, elixir-format
 msgid "Sign in"
 msgstr "登录"
+
+#, elixir-autogen, elixir-format
+msgid "Sign in again before changing two-factor authentication."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Sign in as test user"
@@ -3568,6 +3708,10 @@ msgid "Thanks for your interest! We’ll get back to you by email to help you ge
 msgstr "感谢您的关注！我们将通过电子邮件与您联系，协助您顺利开始。"
 
 #, elixir-autogen, elixir-format
+msgid "That code is invalid or has already been used. Try a new code."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "That guidance scope is not available for this goal. Your draft is saved."
 msgstr "该指南范围不适用于此目标。您的草稿已保存。"
 
@@ -3666,6 +3810,10 @@ msgstr "仓库中已有 L10N.md，否则将由您编写。Glossia 现在创建�
 #, elixir-autogen, elixir-format
 msgid "The repository and language choices are ready for the setup assistant."
 msgstr "仓库和语言选择已为设置助手准备就绪。"
+
+#, elixir-autogen, elixir-format
+msgid "The same words, in files your application can use."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The setup assistant completed this step."
@@ -3988,6 +4136,10 @@ msgid "Too many attempts. Please wait a moment and try again."
 msgstr "尝试次数过多。请稍后重试。"
 
 #, elixir-autogen, elixir-format
+msgid "Too many attempts. Wait five minutes and try again."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Too many files"
 msgstr "文件过多"
 
@@ -4010,10 +4162,6 @@ msgstr "总计"
 #, elixir-autogen, elixir-format
 msgid "Total tokens"
 msgstr "总令牌数"
-
-#, elixir-autogen, elixir-format
-msgid "Translate your product, docs, and content with AI that knows how you speak."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Translated"
@@ -4168,6 +4316,14 @@ msgid "Translations"
 msgstr "所有翻译"
 
 #, elixir-autogen, elixir-format
+msgid "Translations arrive as pull requests. You decide what ships."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Try a different voice"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Try adjusting your search query."
 msgstr "尝试调整您的搜索查询。"
 
@@ -4186,6 +4342,14 @@ msgstr "Turnstile 暂时不可用。请稍后重试。"
 #, elixir-autogen, elixir-format
 msgid "Tutorials"
 msgstr "教程"
+
+#, elixir-autogen, elixir-format
+msgid "Two-factor authentication"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Two-factor authentication disabled."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Type at least two characters to search the documentation."
@@ -4248,6 +4412,14 @@ msgid "Usage breakdown"
 msgstr "用量明细"
 
 #, elixir-autogen, elixir-format
+msgid "Use a recovery code"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Use an authenticator app"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Use base"
 msgstr "使用基座"
 
@@ -4278,6 +4450,10 @@ msgstr "用于为目标国家生成文化笔记。"
 #, elixir-autogen, elixir-format
 msgid "User is not a member."
 msgstr "用户不是成员。"
+
+#, elixir-autogen, elixir-format
+msgid "User not found or protected by two-factor authentication."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "User not found."
@@ -4312,6 +4488,10 @@ msgid "Verified"
 msgstr "已验证"
 
 #, elixir-autogen, elixir-format
+msgid "Verify"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Verify %{domain} in analytics settings to start recording events from your snippet."
 msgstr "请在分析设置中验证 %{domain} 以开始记录您的代码片段中的事件。"
 
@@ -4332,6 +4512,10 @@ msgid "Verify you're human"
 msgstr "验证您是人类"
 
 #, elixir-autogen, elixir-format
+msgid "Verify your identity to finish signing in to Glossia."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Verifying…"
 msgstr "验证中…"
 
@@ -4346,10 +4530,6 @@ msgstr "版本历史"
 #, elixir-autogen, elixir-format
 msgid "Version history"
 msgstr "版本历史"
-
-#, elixir-autogen, elixir-format
-msgid "View"
-msgstr "查看"
 
 #, elixir-autogen, elixir-format
 msgid "View all posts"
@@ -4644,6 +4824,10 @@ msgid "Your provider API key. This will be encrypted at rest."
 msgstr "您的提供商 API 密钥。此密钥将在存储时加密。"
 
 #, elixir-autogen, elixir-format
+msgid "Your repository. Your review."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Your session expired. Please reload the page and try again."
 msgstr "您的会话已过期。请刷新页面并重试。"
 
@@ -4652,7 +4836,7 @@ msgid "Your team defines the voice and terminology, reviews translations, and re
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Your voice, in context"
+msgid "Your translated content"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -4660,8 +4844,8 @@ msgid "Your voice."
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "and"
-msgstr "和"
+msgid "and acknowledge its"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "case sensitivity changed for %{count} term"

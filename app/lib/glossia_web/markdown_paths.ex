@@ -35,6 +35,12 @@ defmodule GlossiaWeb.MarkdownPaths do
         ["cookies"] ->
           path(%URI{}, ~p"/cookies.md")
 
+        ["acceptable-use"] ->
+          path(%URI{}, ~p"/acceptable-use.md")
+
+        ["imprint"] ->
+          path(%URI{}, ~p"/imprint.md")
+
         ["blog", slug] ->
           path(%URI{}, ~p"/blog/#{slug <> ".md"}")
 
@@ -58,6 +64,12 @@ defmodule GlossiaWeb.MarkdownPaths do
 
         ["cookies", date] ->
           path(%URI{}, ~p"/cookies/#{date <> ".md"}")
+
+        ["acceptable-use", date] ->
+          path(%URI{}, ~p"/acceptable-use/#{date <> ".md"}")
+
+        ["imprint", date] ->
+          path(%URI{}, ~p"/imprint/#{date <> ".md"}")
       end
 
     I18n.localize_path(locale, markdown)

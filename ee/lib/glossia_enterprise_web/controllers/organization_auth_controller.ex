@@ -60,19 +60,13 @@ defmodule GlossiaEnterpriseWeb.OrganizationAuthController do
              link_user_id: state[:link_user_id],
              fingerprint: saved
            ) do
-      Glossia.Events.emit("user.signed_in", user.account, user,
-        resource_type: "user",
-        resource_id: to_string(user.id),
-        summary: "Signed in with organization identity provider"
-      )
-
       conn
-      |> put_session(:user_id, user.id)
-      |> put_session(:organization_sso, Authentication.session_proof(organization, user))
       |> delete_session(:oauth_session_params)
-      |> delete_session(:return_to)
-      |> configure_session(renew: true)
-      |> redirect(to: ~p"/#{organization.account.handle}")
+      |> GlossiaWeb.BrowserAuthentication.sign_in(
+        user,
+        ~p"/#{organization.account.handle}",
+        Authentication.session_proof(organization, user)
+      )
     else
       {:error, :identity_not_linked} ->
         conn

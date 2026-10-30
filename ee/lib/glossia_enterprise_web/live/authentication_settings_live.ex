@@ -50,6 +50,7 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
     socket
     |> assign(:organization, organization)
     |> assign(:sso_enforced, Authentication.enforced?(organization))
+    |> assign(:mfa_enforced, Authentication.mfa_enforced?(organization))
     |> assign(:scim_tokens, SCIM.list_tokens(organization, socket.assigns.current_user))
     |> assign(:provider, params["auth_provider"])
     |> assign(:form, to_form(params, as: :authentication))
@@ -166,6 +167,31 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
       {:error, _} ->
         {:noreply,
          put_flash(socket, :error, gettext("Enter a token name of at most 100 characters."))}
+    end
+  end
+
+  def handle_event("mfa-enforcement", _, socket) do
+    case Authentication.set_mfa_enforcement(
+           socket.assigns.organization,
+           socket.assigns.current_user,
+           not socket.assigns.mfa_enforced,
+           socket.assigns.browser_token
+         ) do
+      {:ok, enabled} ->
+        {:noreply,
+         socket
+         |> assign(:mfa_enforced, enabled)
+         |> put_flash(:info, gettext("MFA enforcement updated."))}
+
+      {:error, _} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext(
+             "Enable your own two-factor authentication and sign in again before changing this policy."
+           )
+         )}
     end
   end
 
@@ -380,6 +406,38 @@ defmodule GlossiaEnterpriseWeb.AuthenticationSettingsLive do
             type="button"
             phx-click="enforcement"
             label={if @sso_enforced, do: gettext("Disable enforcement"), else: gettext("Enforce SSO")}
+            variant="secondary"
+          />
+        </.card_section>
+      </.card>
+      <.card title={gettext("Require two-factor authentication")} icon="lock_password">
+        <.card_section data-part="form">
+          <p>
+            {gettext(
+              "Require members to enroll an authenticator before accessing this organization in a browser. Existing sessions are checked too. Members keep access to personal security settings so they can enroll."
+            )}
+          </p>
+          <Noora.Badge.badge
+            label={if @mfa_enforced, do: gettext("Enforced"), else: gettext("Optional")}
+            color={if @mfa_enforced, do: "success", else: "neutral"}
+          />
+          <p>
+            {gettext(
+              "This policy requires Glossia MFA even when your identity provider also requires MFA. API tokens and anonymous public pages are unchanged."
+            )}
+          </p>
+          <Noora.Button.button
+            id="mfa-enforcement"
+            type="button"
+            phx-click="mfa-enforcement"
+            label={
+              if @mfa_enforced, do: gettext("Disable MFA enforcement"), else: gettext("Enforce MFA")
+            }
+            variant="secondary"
+          />
+          <Noora.Button.button
+            href={~p"/-/settings/security"}
+            label={gettext("Manage your two-factor authentication")}
             variant="secondary"
           />
         </.card_section>

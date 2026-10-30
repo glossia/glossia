@@ -10,7 +10,6 @@ defmodule GlossiaWeb.ProfileHooks do
 
   import Phoenix.Component, only: [assign: 3]
 
-  alias Glossia.Accounts
   alias Glossia.Accounts.Scope
 
   def on_mount(:load_user_and_require_auth, _params, session, socket) do
@@ -18,14 +17,15 @@ defmodule GlossiaWeb.ProfileHooks do
       nil ->
         {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/login")}
 
-      user_id ->
-        user = Accounts.get_user(user_id)
+      _user_id ->
+        user = GlossiaWeb.BrowserAuthentication.current_user(session)
 
         if user do
           {:cont,
            socket
            |> assign(:current_scope, Scope.for_user(user))
-           |> assign(:current_user, user)}
+           |> assign(:current_user, user)
+           |> GlossiaWeb.BrowserSessionHooks.attach(session)}
         else
           {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/login")}
         end

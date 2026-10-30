@@ -1,0 +1,36 @@
+#mfa, #mfa-settings {
+  & [data-part="form"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--noora-spacing-5);
+  }
+
+  & .noora-button, & .noora-badge {
+    align-self: flex-start;
+  }
+
+  & p {
+    margin: var(--noora-spacing-0);
+    color: var(--noora-surface-label-secondary);
+    font: var(--noora-font-body-medium);
+  }
+
+  & [data-part="qr"] {
+    width: calc(var(--noora-spacing-12) * 4);
+    max-width: 100%;
+    align-self: center;
+  }
+
+  & #mfa-recovery-codes {
+    border: none;
+    border-radius: var(--noora-radius-4);
+    padding: var(--noora-spacing-5);
+    background: var(--noora-surface-background-secondary);
+    color: var(--noora-surface-label-primary);
+    font-family: var(--noora-font-code);
+    font-size: var(--text-sm);
+    resize: none;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}

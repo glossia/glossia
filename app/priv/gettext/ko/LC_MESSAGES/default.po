@@ -155,10 +155,6 @@ msgid "A little more context"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "A little playful"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "A reason is required to impersonate a user."
 msgstr "사용자를 impersonate 하기 위한 이유는 필수입니다."
 
@@ -183,6 +179,10 @@ msgid "A suggestion title is required."
 msgstr "제안 제목을 입력해야 합니다."
 
 #, elixir-autogen, elixir-format
+msgid "A thoughtful welcome. A little more formal."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "A warm welcome. Never a literal translation."
 msgstr ""
 
@@ -191,7 +191,7 @@ msgid "A world of possibility"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "AI drafts the translations. Your team decides what goes live."
+msgid "AI localization for your product and docs. Your voice in every language. Your translations, reviewed in Git."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -229,6 +229,10 @@ msgstr "초대 수락 또는 거절"
 #, elixir-autogen, elixir-format
 msgid "Accept or decline the invitation:"
 msgstr "초대 수락 또는 거부:"
+
+#, elixir-autogen, elixir-format
+msgid "Acceptable Use"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Access credentials"
@@ -355,6 +359,10 @@ msgid "Alternative: verify with a homepage meta tag"
 msgstr "대안: 홈페이지 메타 태그로 확인하세요."
 
 #, elixir-autogen, elixir-format
+msgid "Always you"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "An error occurred during setup."
 msgstr "설치 중 오류가 발생했습니다."
 
@@ -479,8 +487,20 @@ msgid "Authentication and REST interfaces."
 msgstr "인증 및 REST 인터페이스"
 
 #, elixir-autogen, elixir-format
+msgid "Authentication code"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Authentication failed. Please try again."
 msgstr "인증 실패. 다시 시도해주세요."
+
+#, elixir-autogen, elixir-format
+msgid "Authentication or recovery code"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Authenticator setup QR code"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Authorization callback URL"
@@ -525,6 +545,10 @@ msgstr "Glossia 로 돌아가기"
 #, elixir-autogen, elixir-format
 msgid "Back to app"
 msgstr "앱으로 돌아가기"
+
+#, elixir-autogen, elixir-format
+msgid "Back to sign in"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Back to terms"
@@ -611,6 +635,10 @@ msgid "Cancel"
 msgstr "취소"
 
 #, elixir-autogen, elixir-format
+msgid "Cancel setup"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Cancel translation"
 msgstr "번역 취소"
 
@@ -651,16 +679,16 @@ msgid "Change"
 msgstr "변경"
 
 #, elixir-autogen, elixir-format
+msgid "Change the voice. Keep the meaning."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Changed"
 msgstr "변경됨"
 
 #, elixir-autogen, elixir-format
 msgid "Changelog"
 msgstr "변경 이력"
-
-#, elixir-autogen, elixir-format
-msgid "Changes"
-msgstr "변경사항"
 
 #, elixir-autogen, elixir-format
 msgid "Check the decision model configuration and provider availability, then retry. Unchecked output was not accepted."
@@ -932,6 +960,14 @@ msgid "Copy prompt"
 msgstr "프롬프트 복사"
 
 #, elixir-autogen, elixir-format
+msgid "Copy recovery codes"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Copy setup key"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Copy your client secret now. You will not be able to see it again."
 msgstr "클라이언트 시크릿을 지금 복사하세요. 다시는 볼 수 없습니다."
 
@@ -1172,7 +1208,7 @@ msgid "Define the tone, formality, and style guidelines for your content."
 msgstr "콘텐츠의 톤, 격식, 스타일 가이드라인을 정의하세요."
 
 #, elixir-autogen, elixir-format
-msgid "Define your tone and glossary. Every translation starts here."
+msgid "Define tone and terminology once. Reuse them across projects and languages."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1232,7 +1268,7 @@ msgid "Diagnostic details"
 msgstr "진단 세부 정보"
 
 #, elixir-autogen, elixir-format
-msgid "Different words. The same feeling."
+msgid "Disable two-factor authentication"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1352,6 +1388,18 @@ msgid "Email cannot be changed here."
 msgstr "이메일은 여기서 변경할 수 없습니다."
 
 #, elixir-autogen, elixir-format
+msgid "Enable two-factor authentication"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Enabled"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Enter an authentication code or an unused recovery code to manage your factor. Changing it signs out your other browser sessions."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Enter the code shown in your mobile app to continue."
 msgstr "계속하려면 모바일 앱에 표시된 코드를 입력하세요."
 
@@ -1385,6 +1433,14 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Example language"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Example view"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Example voice"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1425,6 +1481,10 @@ msgstr "Glossia 가 코드베이스의 콘텐츠 에이전트가 될 수 있게 
 
 #, elixir-autogen, elixir-format
 msgid "Explore the source"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Explore the workflow"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1516,12 +1576,20 @@ msgid "For example: en, es-MX, zh-Hant"
 msgstr "예를 들어: en, es-MX, zh-Hant"
 
 #, elixir-autogen, elixir-format
+msgid "Formal"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Formality"
 msgstr "격식도"
 
 #, elixir-autogen, elixir-format
 msgid "From builders who worked at"
 msgstr "이전 회사에서 일한 개발자들로부터"
+
+#, elixir-autogen, elixir-format
+msgid "From your voice to your repository"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "From your words to the world."
@@ -1546,6 +1614,10 @@ msgstr "격차?"
 #, elixir-autogen, elixir-format
 msgid "General"
 msgstr "일반"
+
+#, elixir-autogen, elixir-format
+msgid "Generate new recovery codes"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Generate new token"
@@ -1660,10 +1732,6 @@ msgid "Glossia inspects the repository and opens a pull request with a generated
 msgstr "Glossia 는 저장소를 검사하고 선택한 언어용 생성된 L10N.md 를 포함한 풀 리퀘스트를 엽니다."
 
 #, elixir-autogen, elixir-format
-msgid "Glossia is a language OS where linguists and teams shape how your organization speaks across every language and surface."
-msgstr "Glossia 는 언어학자와 팀이 귀사의 모든 언어와 표면에서 소통하는 방식을 형성하는 언어 운영체제입니다."
-
-#, elixir-autogen, elixir-format
 msgid "Glossia is inspecting the repository and preparing a pull request. This usually takes a few minutes, and you can leave this page and come back."
 msgstr "Glossia 는 저장소를 검사하고 풀 리퀘스트를 준비하고 있습니다. 보통 몇 분이 소요되며, 이 페이지를 떠난 후 다시 돌아올 수 있습니다."
 
@@ -1736,6 +1804,10 @@ msgid "How-to guides"
 msgstr "사용 가이드"
 
 #, elixir-autogen, elixir-format
+msgid "I saved my recovery codes"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "If you cannot edit your domain records, add this meta tag to the head of your homepage on %{domain} and publish it. Glossia checks this domain, so adding the tag to another site does not verify ownership."
 msgstr "도메인 레코드를 편집할 수 없는 경우, %{domain} 홈페이지의 head 에 이 메타 태그를 추가하여 게시하세요. Glossia 는 이 도메인을 확인하므로 다른 사이트에 태그를 추가하면 소유 관계가 확인되지 않습니다."
 
@@ -1770,6 +1842,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Incomplete output"
 msgstr "불완전한 결과"
+
+#, elixir-autogen, elixir-format
+msgid "Informal"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Input"
@@ -1868,7 +1944,11 @@ msgid "Just a quick check"
 msgstr "잠시만 확인 중입니다"
 
 #, elixir-autogen, elixir-format
-msgid "Keep content in your repository. Glossia works alongside your code."
+msgid "Keep source and translated files in Git, alongside the code that uses them."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Keep these codes somewhere safe. Each code works once if you lose your authenticator. They will not be shown again."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1950,6 +2030,14 @@ msgstr "포괄 규칙으로 만들기 위해 설정값을 비워 두세요."
 #, elixir-autogen, elixir-format
 msgid "Legal"
 msgstr "법적"
+
+#, elixir-autogen, elixir-format
+msgid "Legal Notice"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Legal documents"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Linguist"
@@ -2444,6 +2532,10 @@ msgid "Not detected"
 msgstr "식별되지 않음"
 
 #, elixir-autogen, elixir-format
+msgid "Not enabled"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Not recorded"
 msgstr "기록되지 않음"
 
@@ -2756,6 +2848,10 @@ msgid "Proposed changes"
 msgstr "제안된 변경 사항"
 
 #, elixir-autogen, elixir-format
+msgid "Protect your account with an authenticator app, such as 1Password or Google Authenticator."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Provide a clear title, full context, and a concise summary of intent."
 msgstr "명확한 제목, 전체 컨텍스트 및 간결한 의도 요약을 제공하세요."
 
@@ -2824,6 +2920,10 @@ msgid "Quality settings changed"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Questions? A direct line."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Queued"
 msgstr "대기 중"
 
@@ -2882,6 +2982,14 @@ msgstr "레코드 유형"
 #, elixir-autogen, elixir-format
 msgid "Record value"
 msgstr "레코드 값"
+
+#, elixir-autogen, elixir-format
+msgid "Recovery code"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Recovery codes"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Reference"
@@ -3008,6 +3116,10 @@ msgid "Review the local changes and push or merge them into the default branch w
 msgstr "준비되면 로컬 변경 사항을 검토하고 기본 분기에 푸시하거나 병합하세요."
 
 #, elixir-autogen, elixir-format
+msgid "Review translation pull requests with your team. Merge when you're ready."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Revision"
 msgstr "수정안"
 
@@ -3096,6 +3208,14 @@ msgid "Save permissions"
 msgstr "권한 저장"
 
 #, elixir-autogen, elixir-format
+msgid "Save your recovery codes"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Scan this QR code with your authenticator app, or enter the setup key manually. Then enter its six-digit code."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Scopes"
 msgstr "스코프"
 
@@ -3176,6 +3296,10 @@ msgid "Search..."
 msgstr "검색..."
 
 #, elixir-autogen, elixir-format
+msgid "Security"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "See how it works"
 msgstr ""
 
@@ -3214,6 +3338,10 @@ msgstr "모두 선택"
 #, elixir-autogen, elixir-format
 msgid "Select and copy the prompt"
 msgstr "프롬프트 선택 및 복사"
+
+#, elixir-autogen, elixir-format
+msgid "Select and copy the value manually."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Select at least one target language."
@@ -3284,6 +3412,10 @@ msgid "Set up project"
 msgstr "프로젝트 설정"
 
 #, elixir-autogen, elixir-format
+msgid "Set up two-factor authentication"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Set up web analytics"
 msgstr "웹 분석 설정하기"
 
@@ -3326,6 +3458,10 @@ msgstr "설정 지침 준비 완료"
 #, elixir-autogen, elixir-format
 msgid "Setup is queued and starts shortly. You can leave this page and come back."
 msgstr "프로젝트 설정이 대기 중이며 곧 시작됩니다. 이 페이지를 떠났다가 다시 돌아오셔도 됩니다."
+
+#, elixir-autogen, elixir-format
+msgid "Setup key"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Setup pull request was closed"
@@ -3378,6 +3514,10 @@ msgstr "%{limit}개 결과를 표시 중입니다. 검색 조건을 좁히려면
 #, elixir-autogen, elixir-format
 msgid "Sign in"
 msgstr "로그인"
+
+#, elixir-autogen, elixir-format
+msgid "Sign in again before changing two-factor authentication."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Sign in as test user"
@@ -3568,6 +3708,10 @@ msgid "Thanks for your interest! We’ll get back to you by email to help you ge
 msgstr "관심 주셔서 감사합니다! 시작을 돕기 위해 이메일로 연락드리겠습니다."
 
 #, elixir-autogen, elixir-format
+msgid "That code is invalid or has already been used. Try a new code."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "That guidance scope is not available for this goal. Your draft is saved."
 msgstr "해당 가이드 범위는 이 목표에 적용되지 않습니다. 초안은 저장되었습니다."
 
@@ -3666,6 +3810,10 @@ msgstr "저장소에 이미 L10N.md 가 있거나 작성됩니다. Glossia 는 �
 #, elixir-autogen, elixir-format
 msgid "The repository and language choices are ready for the setup assistant."
 msgstr "저장소 및 언어 선택이 설정 보조를 위해 준비되었습니다."
+
+#, elixir-autogen, elixir-format
+msgid "The same words, in files your application can use."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The setup assistant completed this step."
@@ -3988,6 +4136,10 @@ msgid "Too many attempts. Please wait a moment and try again."
 msgstr "시도가 너무 많습니다. 잠시 후 다시 시도해 주세요. "
 
 #, elixir-autogen, elixir-format
+msgid "Too many attempts. Wait five minutes and try again."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Too many files"
 msgstr "파일이 너무 많습니다"
 
@@ -4010,10 +4162,6 @@ msgstr "총"
 #, elixir-autogen, elixir-format
 msgid "Total tokens"
 msgstr "총 토큰"
-
-#, elixir-autogen, elixir-format
-msgid "Translate your product, docs, and content with AI that knows how you speak."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Translated"
@@ -4168,6 +4316,14 @@ msgid "Translations"
 msgstr "번역물"
 
 #, elixir-autogen, elixir-format
+msgid "Translations arrive as pull requests. You decide what ships."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Try a different voice"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Try adjusting your search query."
 msgstr "검색 쿼리를 조정해 보세요."
 
@@ -4186,6 +4342,14 @@ msgstr "Turnstile 가 사용 불가합니다. 잠시 후에 다시 시도해 주
 #, elixir-autogen, elixir-format
 msgid "Tutorials"
 msgstr "튜토리얼"
+
+#, elixir-autogen, elixir-format
+msgid "Two-factor authentication"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Two-factor authentication disabled."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Type at least two characters to search the documentation."
@@ -4248,6 +4412,14 @@ msgid "Usage breakdown"
 msgstr "사용량 세부 내역"
 
 #, elixir-autogen, elixir-format
+msgid "Use a recovery code"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Use an authenticator app"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Use base"
 msgstr "기초 사용"
 
@@ -4278,6 +4450,10 @@ msgstr "대상 국가에 대한 문화적 참고 사항을 생성하는 데 사�
 #, elixir-autogen, elixir-format
 msgid "User is not a member."
 msgstr "회원이 아닙니다."
+
+#, elixir-autogen, elixir-format
+msgid "User not found or protected by two-factor authentication."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "User not found."
@@ -4312,6 +4488,10 @@ msgid "Verified"
 msgstr "인증됨"
 
 #, elixir-autogen, elixir-format
+msgid "Verify"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Verify %{domain} in analytics settings to start recording events from your snippet."
 msgstr "분석 설정에서 %{domain} 를 확인하여 스니펫에서 이벤트를 기록하기 시작하세요."
 
@@ -4332,6 +4512,10 @@ msgid "Verify you're human"
 msgstr "인간임을 확인하십시오"
 
 #, elixir-autogen, elixir-format
+msgid "Verify your identity to finish signing in to Glossia."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Verifying…"
 msgstr "검증 중…"
 
@@ -4346,10 +4530,6 @@ msgstr "버전 이력"
 #, elixir-autogen, elixir-format
 msgid "Version history"
 msgstr "버전 이력"
-
-#, elixir-autogen, elixir-format
-msgid "View"
-msgstr "보기"
 
 #, elixir-autogen, elixir-format
 msgid "View all posts"
@@ -4644,6 +4824,10 @@ msgid "Your provider API key. This will be encrypted at rest."
 msgstr "제공자 API 키입니다. 저장 시 암호화됩니다."
 
 #, elixir-autogen, elixir-format
+msgid "Your repository. Your review."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Your session expired. Please reload the page and try again."
 msgstr "세션이 만료되었습니다. 페이지를 새로고침하여 다시 시도해주세요."
 
@@ -4652,7 +4836,7 @@ msgid "Your team defines the voice and terminology, reviews translations, and re
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Your voice, in context"
+msgid "Your translated content"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -4660,8 +4844,8 @@ msgid "Your voice."
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "and"
-msgstr "및"
+msgid "and acknowledge its"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "case sensitivity changed for %{count} term"

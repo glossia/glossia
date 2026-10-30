@@ -10,8 +10,8 @@ defmodule Glossia.Accounts.ReservedHandles do
   """
 
   @routes ~w(
-    admin api auth billing blog cookies dashboard dev docs
-    interest login logout oauth org organizations privacy
+    acceptable-use admin api auth billing blog cookies dashboard dev docs
+    imprint interest login logout oauth org organizations privacy
     settings signup support terms up webhooks www mcp
   )
 

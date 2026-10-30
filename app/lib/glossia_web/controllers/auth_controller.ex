@@ -183,10 +183,10 @@ defmodule GlossiaWeb.AuthController do
               :organization_sso,
               Glossia.OrganizationAuthentication.session_proof(organization, user)
             )
-            |> finalize_session(user, "user.signed_in", "Signed in", true)
+            |> finalize_session(user, true)
 
           {:ok, user} ->
-            finalize_session(conn, user, "user.signed_in", "Signed in")
+            finalize_session(conn, user)
 
           {:error, :not_registered} ->
             conn
@@ -235,21 +235,16 @@ defmodule GlossiaWeb.AuthController do
   defp sign_in(provider, response, _conn),
     do: Accounts.sign_in_user_from_oauth(provider, response)
 
-  defp finalize_session(conn, user, event_type, summary, organization_sign_in? \\ false) do
+  defp finalize_session(conn, user, organization_sign_in? \\ false) do
     return_to = get_session(conn, :return_to)
     conn = if organization_sign_in?, do: conn, else: delete_session(conn, :organization_sso)
 
-    Events.emit(event_type, user.account, user,
-      resource_type: "user",
-      resource_id: to_string(user.id),
-      summary: summary
+    GlossiaWeb.BrowserAuthentication.sign_in(
+      conn,
+      user,
+      return_to || ~p"/dashboard",
+      get_session(conn, :organization_sso)
     )
-
-    conn
-    |> delete_session(:return_to)
-    |> put_session(:user_id, user.id)
-    |> configure_session(renew: true)
-    |> redirect(to: return_to || ~p"/dashboard")
   end
 
   defp callback_error(conn) do
@@ -272,23 +267,14 @@ defmodule GlossiaWeb.AuthController do
 
       user ->
         return_to = get_session(conn, :return_to)
-
-        Events.emit("user.signed_in", user.account, user,
-          resource_type: "user",
-          resource_id: to_string(user.id),
-          summary: "Signed in (dev)"
-        )
-
-        conn
-        |> delete_session(:return_to)
-        |> delete_session(:organization_sso)
-        |> put_session(:user_id, user.id)
-        |> configure_session(renew: true)
-        |> redirect(to: return_to || ~p"/dashboard")
+        GlossiaWeb.BrowserAuthentication.sign_in(conn, user, return_to || ~p"/dashboard")
     end
   end
 
   def logout(conn, _params) do
+    Glossia.Accounts.MFA.revoke(get_session(conn, :browser_token))
+    Glossia.Accounts.MFA.revoke(get_session(conn, :mfa_challenge))
+
     if user = conn.assigns[:current_user] do
       Events.emit("user.signed_out", user.account, user,
         resource_type: "user",

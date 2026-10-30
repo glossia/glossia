@@ -1,3 +1,8 @@
+<% example_translations = [
+  {"es", "Estás en tu casa.", "Siéntase como en casa."},
+  {"de", "Fühl dich wie zu Hause.", "Fühlen Sie sich wie zu Hause."},
+  {"ja", "どうぞ、くつろいで。", "どうぞ、ごゆっくりおくつろぎください。"}
+] %>
 <div id="home">
   <section data-part="hero" aria-labelledby="home-title">
     <div class="container">
@@ -6,7 +11,9 @@
         {gettext("Your voice.")} <em>{gettext("Every language.")}</em>
       </h1>
       <p data-part="lead">
-        {gettext("Translate your product, docs, and content with AI that knows how you speak.")}
+        {gettext(
+          "AI localization for your product and docs. Your voice in every language. Your translations, reviewed in Git."
+        )}
       </p>
       <div data-part="cta-row">
         <Noora.Button.button href={~p"/signup"} label={gettext("Get early access")} size="large">
@@ -22,7 +29,7 @@
       <p data-part="onboarding-note">{gettext("Built with care. Onboarding teams gradually.")}</p>
 
       <div data-part="workspace">
-        <Noora.Card.card title={gettext("Your voice, in context")} icon="language">
+        <Noora.Card.card title={gettext("From your voice to your repository")} icon="language">
           <:actions>
             <Noora.Badge.badge
               label={gettext("Example workspace")}
@@ -33,26 +40,63 @@
           <div data-part="example-grid">
             <Noora.Card.card_section data-part="voice">
               <span data-part="panel-label">
-                <Noora.Icon.icon name="books" /> {gettext("Brand voice")}
+                <Noora.Icon.icon name="books" /> {gettext("Brand voice")} <span>L10N.md</span>
               </span>
-              <p data-part="voice-description">
+              <p data-part="voice-description" data-example-brief="informal">
                 {gettext("A warm welcome. Never a literal translation.")}
+              </p>
+              <p data-part="voice-description" data-example-brief="formal" hidden>
+                {gettext("A thoughtful welcome. A little more formal.")}
               </p>
               <div data-part="voice-tags">
                 <Noora.Tag.tag label={gettext("Warm")} />
                 <Noora.Tag.tag label={gettext("Clear")} />
-                <Noora.Tag.tag label={gettext("A little playful")} />
+                <Noora.Tag.tag label={gettext("Always you")} />
+              </div>
+              <div data-part="voice-choice">
+                <p>{gettext("Try a different voice")}</p>
+                <div role="group" aria-label={gettext("Example voice")} data-part="voice-controls">
+                  <Noora.Button.button
+                    :for={
+                      {voice, label} <- [
+                        {"informal", gettext("Informal")},
+                        {"formal", gettext("Formal")}
+                      ]
+                    }
+                    label={label}
+                    variant="secondary"
+                    size="medium"
+                    type="button"
+                    data-example-voice={voice}
+                    aria-pressed={to_string(voice == "informal")}
+                    aria-controls="home-preview home-files"
+                  />
+                </div>
               </div>
               <span data-part="context-note">
                 <Noora.Icon.icon name="check" /> {gettext("Shared across your projects")}
               </span>
             </Noora.Card.card_section>
             <Noora.Card.card_section data-part="content-example">
-              <div data-part="source">
-                <span data-part="panel-label">
-                  {gettext("Original")} <span lang="en">EN</span>
-                </span>
-                <p lang="en">Make yourself at home.</p>
+              <div data-part="example-toolbar">
+                <span data-part="panel-label">{gettext("Your translated content")}</span>
+                <div role="group" aria-label={gettext("Example view")} data-part="view-controls">
+                  <Noora.Button.button
+                    :for={
+                      {view, label} <- [
+                        {"preview", gettext("Preview")},
+                        {"files", gettext("Files")}
+                      ]
+                    }
+                    label={label}
+                    variant="secondary"
+                    size="medium"
+                    type="button"
+                    data-example-view={view}
+                    aria-pressed={to_string(view == "preview")}
+                    aria-controls={"home-#{view}"}
+                  />
+                </div>
               </div>
               <div
                 data-part="translation-controls"
@@ -70,30 +114,64 @@
                   lang={language}
                   data-example-language={language}
                   aria-pressed={to_string(language == "es")}
-                  aria-controls={"home-translation-#{language}"}
+                  aria-controls={"home-translation-#{language} home-file-#{language}"}
                 />
               </div>
-              <div data-part="translation-output" aria-live="polite" aria-atomic="true">
-                <p
-                  :for={
-                    {language, translation} <- [
-                      {"es", "Estás en tu casa."},
-                      {"de", "Fühl dich wie zu Hause."},
-                      {"ja", "どうぞ、くつろいで。"}
-                    ]
-                  }
-                  id={"home-translation-#{language}"}
-                  data-part="translation"
-                  lang={language}
-                  hidden={language != "es"}
-                >
-                  {translation}
+              <div id="home-preview" data-example-panel="preview">
+                <div data-part="source">
+                  <span data-part="panel-label">
+                    {gettext("Original")} <span lang="en">EN</span>
+                  </span>
+                  <p lang="en">Make yourself at home.</p>
+                </div>
+                <div data-part="translation-output" aria-live="polite" aria-atomic="true">
+                  <p
+                    :for={{language, informal, formal} <- example_translations}
+                    id={"home-translation-#{language}"}
+                    data-part="translation"
+                    lang={language}
+                    data-informal={informal}
+                    data-formal={formal}
+                    hidden={language != "es"}
+                  >
+                    {informal}
+                  </p>
+                </div>
+              </div>
+              <div id="home-files" data-example-panel="files" hidden>
+                <p data-part="file-explanation">
+                  {gettext("The same words, in files your application can use.")}
                 </p>
+                <div aria-live="polite" aria-atomic="true">
+                  <div
+                    :for={{language, informal, _formal} <- example_translations}
+                    id={"home-file-#{language}"}
+                    data-example-file={language}
+                    hidden={language != "es"}
+                  >
+                    <span data-part="file-name">
+                      <Noora.Icon.icon name="file_text" /> locales/{language}.json
+                    </span>
+                    <pre data-part="file-content"><code lang={language}>{"{\n  \"welcome\": #{JSON.encode!(informal)}\n}"}</code></pre>
+                  </div>
+                </div>
               </div>
             </Noora.Card.card_section>
           </div>
+          <Noora.Card.card_section data-part="review-summary">
+            <Noora.Icon.icon name="git_branch" />
+            <div>
+              <strong>{gettext("Your repository. Your review.")}</strong>
+              <p>{gettext("Translations arrive as pull requests. You decide what ships.")}</p>
+            </div>
+            <a href={locale_path(~p"/docs/tutorials/getting-started")}>
+              {gettext("Explore the workflow")} <Noora.Icon.icon name="arrow_right" />
+            </a>
+          </Noora.Card.card_section>
         </Noora.Card.card>
-        <p data-part="example-caption">{gettext("Different words. The same feeling.")}</p>
+        <p data-part="example-caption">
+          {gettext("Change the voice. Keep the meaning.")}
+        </p>
       </div>
 
       <div data-part="builders">
@@ -120,11 +198,15 @@
         <li :for={
           {number, icon, title, description} <- [
             {"01", "books", gettext("Set your voice."),
-             gettext("Define your tone and glossary. Every translation starts here.")},
+             gettext(
+               "Define tone and terminology once. Reuse them across projects and languages."
+             )},
             {"02", "brand_github", gettext("Connect your content."),
-             gettext("Keep content in your repository. Glossia works alongside your code.")},
+             gettext(
+               "Keep source and translated files in Git, alongside the code that uses them."
+             )},
             {"03", "circle_check", gettext("Review and ship."),
-             gettext("AI drafts the translations. Your team decides what goes live.")}
+             gettext("Review translation pull requests with your team. Merge when you're ready.")}
           ]
         }>
           <Noora.Card.card_section>
@@ -323,6 +405,11 @@
     const home = document.getElementById("home");
     const buttons = home.querySelectorAll("[data-example-language]");
     const translations = home.querySelectorAll('[data-part="translation"]');
+    const files = home.querySelectorAll("[data-example-file]");
+    const views = home.querySelectorAll("[data-example-view]");
+    const panels = home.querySelectorAll("[data-example-panel]");
+    const voices = home.querySelectorAll("[data-example-voice]");
+    const briefs = home.querySelectorAll("[data-example-brief]");
 
     buttons.forEach(button => {
       button.addEventListener("click", () => {
@@ -332,6 +419,39 @@
         });
         translations.forEach(translation => {
           translation.hidden = translation.lang !== language;
+        });
+        files.forEach(file => {
+          file.hidden = file.dataset.exampleFile !== language;
+        });
+      });
+    });
+
+    views.forEach(button => {
+      button.addEventListener("click", () => {
+        views.forEach(control => {
+          control.setAttribute("aria-pressed", String(control === button));
+        });
+        panels.forEach(panel => {
+          panel.hidden = panel.dataset.examplePanel !== button.dataset.exampleView;
+        });
+      });
+    });
+
+    voices.forEach(button => {
+      button.addEventListener("click", () => {
+        const voice = button.dataset.exampleVoice;
+        voices.forEach(control => {
+          control.setAttribute("aria-pressed", String(control === button));
+        });
+        briefs.forEach(brief => {
+          brief.hidden = brief.dataset.exampleBrief !== voice;
+        });
+        translations.forEach(translation => {
+          translation.textContent = translation.dataset[voice];
+        });
+        files.forEach(file => {
+          const translation = home.querySelector(`#home-translation-${file.dataset.exampleFile}`);
+          file.querySelector("code").textContent = JSON.stringify({ welcome: translation.dataset[voice] }, null, 2);
         });
       });
     });

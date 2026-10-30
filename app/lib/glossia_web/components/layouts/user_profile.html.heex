@@ -70,6 +70,12 @@
         navigate={~p"/-/settings/preferences"}
         selected={@live_action == :preferences}
       />
+      <.sidebar_item
+        label={gettext("Security")}
+        icon="lock_password"
+        href={~p"/-/settings/security"}
+        selected={@live_action == :security}
+      />
     </.sidebar>
   </:sidebar>
 

@@ -176,6 +176,9 @@ defmodule GlossiaWeb.Router do
     get "/logout", AuthController, :logout
     post "/gate/:provider", AuthController, :verify_signup_gate
 
+    get "/mfa", MFAController, :challenge
+    post "/mfa", MFAController, :verify
+
     if Application.compile_env(:glossia, :organization_authentication) do
       scope alias: false do
         post "/organization", GlossiaEnterpriseWeb.OrganizationAuthController, :request
@@ -528,6 +531,12 @@ defmodule GlossiaWeb.Router do
     pipe_through [:browser, :require_auth, :user_profile]
 
     post "/-/settings/profile/avatar", ProfileAvatarController, :update
+
+    get "/-/settings/security", MFAController, :settings
+    post "/-/settings/security/begin", MFAController, :begin
+    post "/-/settings/security/confirm", MFAController, :confirm
+    post "/-/settings/security/cancel", MFAController, :cancel
+    post "/-/settings/security/manage", MFAController, :manage
 
     live_session :user_profile,
       layout: {GlossiaWeb.Layouts, :user_profile},

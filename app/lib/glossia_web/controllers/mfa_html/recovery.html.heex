@@ -1,0 +1,35 @@
+<div id="mfa-settings">
+  <Noora.Card.card title={gettext("Save your recovery codes")} icon="lock_password">
+    <Noora.Card.card_section data-part="form">
+      <p>
+        {gettext(
+          "Keep these codes somewhere safe. Each code works once if you lose your authenticator. They will not be shown again."
+        )}
+      </p>
+      <textarea
+        id="mfa-recovery-codes"
+        aria-label={gettext("Recovery codes")}
+        rows="10"
+        readonly
+        spellcheck="false"
+      >{Enum.join(@codes, "\n")}</textarea>
+      <Noora.Button.button
+        type="button"
+        variant="secondary"
+        label={gettext("Copy recovery codes")}
+        data-mfa-copy="mfa-recovery-codes"
+      />
+      <span
+        data-mfa-copy-status
+        role="status"
+        data-copied={gettext("Copied")}
+        data-copy-failed={gettext("Select and copy the value manually.")}
+      >
+      </span>
+      <Noora.Button.button
+        href={~p"/-/settings/security"}
+        label={gettext("I saved my recovery codes")}
+      />
+    </Noora.Card.card_section>
+  </Noora.Card.card>
+</div>

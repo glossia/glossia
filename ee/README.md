@@ -46,6 +46,16 @@ These interfaces can disable enforcement for recovery, but enabling it requires
 the tested browser login above. No self-hosted license keys or entitlements are
 introduced.
 
+**Organization MFA enforcement** requires personal authenticator enrollment for
+signed-in browser access, including existing LiveView events. Only an enrolled,
+recently authenticated administrator can enable it. Unenrolled members keep access
+to personal security settings. Members shows enrollment status, and audit logs
+record factor and policy changes. This requires Glossia MFA even with SSO; IdP
+MFA assurance is not inferred. Anonymous public pages and bearer credentials are
+unchanged. Personal MFA, recovery codes, and browser session storage live in the
+Community core. See the [MFA guide](../app/priv/docs/how-to/two-factor-authentication.md)
+for rollout and recovery limitations.
+
 **SCIM provisioning** adds organization-owned, hash-only bearer tokens, SCIM 2.0
 Users and discovery endpoints, and synthetic Admins/Members/Linguists groups.
 Deactivation removes organization membership and roles without disabling the

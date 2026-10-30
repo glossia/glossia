@@ -29,6 +29,13 @@ defmodule Glossia.OrganizationAuthentication do
     end
   end
 
+  def mfa_required?(account, user) do
+    case Glossia.Extensions.organization_authentication() do
+      nil -> false
+      authentication -> authentication.mfa_required?(account, user)
+    end
+  end
+
   def check_session(conn) do
     case Glossia.Extensions.organization_authentication() do
       nil -> conn

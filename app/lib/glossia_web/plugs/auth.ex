@@ -1,7 +1,6 @@
 defmodule GlossiaWeb.Plugs.Auth do
   import Plug.Conn
 
-  alias Glossia.Accounts
   alias Glossia.Accounts.Scope
   alias Glossia.TemporaryAccess
 
@@ -12,7 +11,7 @@ defmodule GlossiaWeb.Plugs.Auth do
 
     conn =
       if user_id do
-        case Accounts.get_user(user_id) do
+        case GlossiaWeb.BrowserAuthentication.current_user(get_session(conn)) do
           nil ->
             conn
             |> delete_session(:user_id)

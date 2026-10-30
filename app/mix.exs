@@ -128,6 +128,8 @@ defmodule Glossia.MixProject do
       {:yaml_elixir, "~> 2.12"},
       {:toml, "~> 0.7"},
       {:noora, "~> 0.86"},
+      {:nimble_totp, "~> 1.0"},
+      {:qr_code, "~> 3.2"},
       {:cloak_ecto, "~> 1.3"},
       {:condukt, "~> 1.12"},
       {:cloak, "~> 1.1"},

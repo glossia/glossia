@@ -107,6 +107,21 @@ defmodule Glossia.Seeds do
     ensure_member!(acme, maria, "linguist")
     ensure_member!(northwind, dev, "member")
 
+    # A separate, non-login fixture demonstrates enrollment in Members without
+    # changing the developer's test login or enforcing policy on seed accounts.
+    mfa_demo = ensure_user!(handle: "mfa-demo", email: "mfa-demo@glossia.test", name: "MFA Demo")
+    ensure_member!(acme, mfa_demo, "member")
+
+    unless Glossia.Accounts.MFA.enabled?(mfa_demo) do
+      {"session", token} = Glossia.Accounts.MFA.sign_in(mfa_demo)
+      {:ok, factor} = Glossia.Accounts.MFA.begin_enrollment(mfa_demo, token)
+
+      {:ok, _codes, verified} =
+        Glossia.Accounts.MFA.confirm(mfa_demo, token, NimbleTOTP.verification_code(factor.secret))
+
+      Glossia.Accounts.MFA.revoke(verified)
+    end
+
     {:ok, _} =
       Glossia.MemberPermissions.update(
         acme,

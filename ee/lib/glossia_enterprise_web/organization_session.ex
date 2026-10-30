@@ -29,11 +29,19 @@ defmodule GlossiaEnterpriseWeb.OrganizationSession do
         query: if(conn.query_string == "", do: nil, else: conn.query_string)
       }
 
+      destination =
+        if OrganizationAuthentication.mfa_required?(account, user),
+          do: ~p"/-/settings/security",
+          else: ~p"/auth/login"
+
       conn
       |> put_session(:return_to, URI.to_string(return_to))
       |> fetch_flash([])
-      |> put_flash(:info, gettext("Sign in with your organization to access this account."))
-      |> redirect(to: ~p"/auth/login")
+      |> put_flash(
+        :info,
+        gettext("Your organization requires additional authentication to access this account.")
+      )
+      |> redirect(to: destination)
       |> halt()
     else
       _ -> conn

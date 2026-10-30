@@ -14,10 +14,8 @@ defmodule GlossiaWeb.PomeriumAccessController do
          account when not is_nil(account) <- Accounts.get_account_by_handle(handle),
          {:ok, grant} <- TemporaryAccess.authorize_pomerium_access(user, account, identity) do
       conn
-      |> configure_session(renew: true)
-      |> put_session(:user_id, user.id)
       |> put_session(:pomerium_access, %{"user_id" => user.id, "grant_id" => grant.id})
-      |> redirect(to: ~p"/#{account.handle}")
+      |> GlossiaWeb.BrowserAuthentication.sign_in(user, ~p"/#{account.handle}")
     else
       _error ->
         conn

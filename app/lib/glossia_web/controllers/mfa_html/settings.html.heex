@@ -1,0 +1,99 @@
+<div id="mfa-settings">
+  <Noora.Card.card title={gettext("Two-factor authentication")} icon="lock_password">
+    <Noora.Card.card_section data-part="form">
+      <Noora.Alert.alert
+        :if={@error}
+        id="mfa-error"
+        title={@error}
+        status="error"
+        type="secondary"
+      />
+      <Noora.Badge.badge
+        label={if @enabled, do: gettext("Enabled"), else: gettext("Not enabled")}
+        color={if @enabled, do: "success", else: "neutral"}
+      />
+      <p>
+        {gettext(
+          "Protect your account with an authenticator app, such as 1Password or Google Authenticator."
+        )}
+      </p>
+      <.form
+        :if={!@enabled && !@setup_key}
+        for={%{}}
+        action={~p"/-/settings/security/begin"}
+        method="post"
+      >
+        <Noora.Button.button label={gettext("Set up two-factor authentication")} />
+      </.form>
+      <div :if={@setup_key} data-part="form">
+        <p>
+          {gettext(
+            "Scan this QR code with your authenticator app, or enter the setup key manually. Then enter its six-digit code."
+          )}
+        </p>
+        <img src={@qr} alt={gettext("Authenticator setup QR code")} data-part="qr" />
+        <Noora.TextInput.text_input
+          id="mfa-setup-key"
+          name="setup_key"
+          value={@setup_key}
+          label={gettext("Setup key")}
+          aria-label={gettext("Setup key")}
+          {%{readonly: true}}
+        />
+        <Noora.Button.button
+          type="button"
+          variant="secondary"
+          label={gettext("Copy setup key")}
+          data-mfa-copy="mfa-setup-key"
+        />
+        <span
+          data-mfa-copy-status
+          role="status"
+          data-copied={gettext("Copied")}
+          data-copy-failed={gettext("Select and copy the value manually.")}
+        >
+        </span>
+        <.code_form email={@current_user.email} action={~p"/-/settings/security/confirm"}>
+          <Noora.Button.button label={gettext("Enable two-factor authentication")} />
+        </.code_form>
+        <.form for={%{}} action={~p"/-/settings/security/cancel"} method="post">
+          <Noora.Button.button label={gettext("Cancel setup")} variant="secondary" />
+        </.form>
+      </div>
+      <div :if={@enabled} data-part="form">
+        <p>
+          {gettext(
+            "Enter an authentication code or an unused recovery code to manage your factor. Changing it signs out your other browser sessions."
+          )}
+        </p>
+        <.form
+          for={%{}}
+          action={~p"/-/settings/security/manage"}
+          method="post"
+          data-part="form"
+          id="mfa-manage-form"
+        >
+          <Noora.TextInput.text_input
+            id="mfa-manage-code"
+            name="mfa_code"
+            value=""
+            label={gettext("Authentication or recovery code")}
+            aria-label={gettext("Authentication or recovery code")}
+            {%{autocomplete: "one-time-code"}}
+            required
+          />
+          <Noora.Button.button
+            {%{name: "operation", value: "regenerate"}}
+            label={gettext("Generate new recovery codes")}
+            variant="secondary"
+          />
+          <Noora.Button.button
+            {%{name: "operation", value: "disable"}}
+            label={gettext("Disable two-factor authentication")}
+            variant="destructive"
+          />
+        </.form>
+      </div>
+    </Noora.Card.card_section>
+  </Noora.Card.card>
+</div>

@@ -6,6 +6,8 @@ defmodule GlossiaWeb.LegalController do
   def terms(conn, params), do: show_document(conn, "terms", params)
   def privacy(conn, params), do: show_document(conn, "privacy", params)
   def cookies(conn, params), do: show_document(conn, "cookies", params)
+  def acceptable_use(conn, params), do: show_document(conn, "acceptable-use", params)
+  def imprint(conn, params), do: show_document(conn, "imprint", params)
 
   defp show_document(conn, document, %{"date" => date}) do
     locale = conn.assigns.locale
@@ -15,7 +17,7 @@ defmodule GlossiaWeb.LegalController do
     render(conn, :show,
       version: version,
       all_versions: all_versions,
-      viewing_historical: true,
+      viewing_historical: version.date != hd(all_versions).date,
       page_title: version.title
     )
   end

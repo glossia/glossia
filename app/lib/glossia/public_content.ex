@@ -34,21 +34,34 @@ defmodule Glossia.PublicContent.Builder do
       end)
 
     legal =
-      Enum.flat_map(~w(terms privacy cookies), fn document ->
+      Enum.flat_map(Glossia.Legal.documents(), fn document ->
         path =
           case document do
             "terms" -> path(%URI{}, ~p"/terms")
             "privacy" -> path(%URI{}, ~p"/privacy")
             "cookies" -> path(%URI{}, ~p"/cookies")
+            "acceptable-use" -> path(%URI{}, ~p"/acceptable-use")
+            "imprint" -> path(%URI{}, ~p"/imprint")
           end
 
         versions =
           Enum.map(Enum.filter(legal_versions, &(&1.document == document)), fn version ->
             version_path =
               case document do
-                "terms" -> path(%URI{}, ~p"/terms/#{Date.to_iso8601(version.date)}")
-                "privacy" -> path(%URI{}, ~p"/privacy/#{Date.to_iso8601(version.date)}")
-                "cookies" -> path(%URI{}, ~p"/cookies/#{Date.to_iso8601(version.date)}")
+                "terms" ->
+                  path(%URI{}, ~p"/terms/#{Date.to_iso8601(version.date)}")
+
+                "privacy" ->
+                  path(%URI{}, ~p"/privacy/#{Date.to_iso8601(version.date)}")
+
+                "cookies" ->
+                  path(%URI{}, ~p"/cookies/#{Date.to_iso8601(version.date)}")
+
+                "acceptable-use" ->
+                  path(%URI{}, ~p"/acceptable-use/#{Date.to_iso8601(version.date)}")
+
+                "imprint" ->
+                  path(%URI{}, ~p"/imprint/#{Date.to_iso8601(version.date)}")
               end
 
             {version_path,

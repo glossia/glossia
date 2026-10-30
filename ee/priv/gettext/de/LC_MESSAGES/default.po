@@ -80,6 +80,10 @@ msgid "Custom OAuth2"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Disable MFA enforcement"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Disable SSO enforcement before changing the identity provider."
 msgstr ""
 
@@ -94,6 +98,14 @@ msgstr "Deaktiviert"
 #, elixir-autogen, elixir-format
 msgid "Domain ownership verified."
 msgstr "Domainbesitz wurde verifiziert."
+
+#, elixir-autogen, elixir-format
+msgid "Enable your own two-factor authentication and sign in again before changing this policy."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Enforce MFA"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Enforce SSO"
@@ -172,6 +184,14 @@ msgid "Let your team sign in with Google Workspace, Okta, or a custom OAuth2 pro
 msgstr "Lassen Sie Ihr Team sich mit Google Workspace oder Okta anmelden."
 
 #, elixir-autogen, elixir-format
+msgid "MFA enforcement updated."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Manage your two-factor authentication"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "New account changes and organization sign-ins will appear here. Earlier activity is not backfilled."
 msgstr ""
 
@@ -240,11 +260,19 @@ msgid "Redirect address"
 msgstr "Weiterleitungsadresse"
 
 #, elixir-autogen, elixir-format
+msgid "Require members to enroll an authenticator before accessing this organization in a browser. Existing sessions are checked too. Members keep access to personal security settings so they can enroll."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Require organization sign-in for signed-in browser access to this account, including existing sessions. API tokens and anonymous public pages are unchanged."
 msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Require single sign-on"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Require two-factor authentication"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -296,10 +324,6 @@ msgid "Sign in with your existing method first, then return to this page to conn
 msgstr "Melden Sie sich zunächst mit Ihrer bestehende Methode an, kehren Sie dann auf diese Seite zurück, um Ihre Arbeitsidentität zu verknüpfen."
 
 #, elixir-autogen, elixir-format
-msgid "Sign in with your organization to access this account."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "System"
 msgstr ""
 
@@ -310,6 +334,10 @@ msgstr "Teammitglieder können dann am Anmeldeseite ihre Arbeits-E-Mail eingeben
 #, elixir-autogen, elixir-format
 msgid "Team members must belong to this Google Workspace domain. Personal Google accounts do not qualify."
 msgstr "Teammitglieder müssen zu diesem Google Workspace-Domain gehören. Persönliche Google-Konten sind nicht zulässig."
+
+#, elixir-autogen, elixir-format
+msgid "This policy requires Glossia MFA even when your identity provider also requires MFA. API tokens and anonymous public pages are unchanged."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "This token is shown only once. Store it securely and enter it in your identity provider as a bearer token."
@@ -378,3 +406,7 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Your organization access was removed. Contact your organization administrator."
 msgstr "Ihr Zugriff auf die Organisation wurde entfernt. Kontaktieren Sie Ihren Organisationsadministrator."
+
+#, elixir-autogen, elixir-format
+msgid "Your organization requires additional authentication to access this account."
+msgstr ""

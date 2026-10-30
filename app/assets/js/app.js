@@ -30,6 +30,7 @@ import LocalizationPriorityMap from "./analytics_map"
 import AnalyticsTraffic from "./analytics_traffic"
 import initSignupTurnstile from "./signup_turnstile"
 import TokiDraft from "./toki_draft"
+import "./mfa"
 
 function initSentry() {
   const dsn = document.querySelector("meta[name='sentry-dsn']")?.getAttribute("content")

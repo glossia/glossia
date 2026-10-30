@@ -24,9 +24,20 @@ defmodule GlossiaWeb.PageControllerTest do
            |> LazyHTML.text() =~ "Get early access"
 
     assert html
-           |> LazyHTML.query("[aria-live='polite'] [lang='es']:not([hidden])")
+           |> LazyHTML.query("#home-preview [lang='es']:not([hidden])")
            |> LazyHTML.text()
            |> String.trim() == "Estás en tu casa."
+
+    assert html |> LazyHTML.query("#home-files[hidden]") |> LazyHTML.text() =~ "locales/es.json"
+
+    for {locale, expected} <- [
+          {"es", "Estás en tu casa."},
+          {"de", "Fühl dich wie zu Hause."},
+          {"ja", "どうぞ、くつろいで。"}
+        ] do
+      content = html |> LazyHTML.query("#home-file-#{locale} code") |> LazyHTML.text()
+      assert JSON.decode!(content) == %{"welcome" => expected}
+    end
   end
 
   test "feature discovery distinguishes enterprise features from community translation", %{

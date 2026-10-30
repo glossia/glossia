@@ -80,6 +80,10 @@ msgid "Custom OAuth2"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Disable MFA enforcement"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Disable SSO enforcement before changing the identity provider."
 msgstr ""
 
@@ -94,6 +98,14 @@ msgstr "비활성화"
 #, elixir-autogen, elixir-format
 msgid "Domain ownership verified."
 msgstr "도메인 소유권 확인 완료."
+
+#, elixir-autogen, elixir-format
+msgid "Enable your own two-factor authentication and sign in again before changing this policy."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Enforce MFA"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Enforce SSO"
@@ -172,6 +184,14 @@ msgid "Let your team sign in with Google Workspace, Okta, or a custom OAuth2 pro
 msgstr "팀 구성원이 Google Workspace 또는 Okta 로 로그인하세요."
 
 #, elixir-autogen, elixir-format
+msgid "MFA enforcement updated."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Manage your two-factor authentication"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "New account changes and organization sign-ins will appear here. Earlier activity is not backfilled."
 msgstr ""
 
@@ -240,11 +260,19 @@ msgid "Redirect address"
 msgstr "리다이렉트 주소"
 
 #, elixir-autogen, elixir-format
+msgid "Require members to enroll an authenticator before accessing this organization in a browser. Existing sessions are checked too. Members keep access to personal security settings so they can enroll."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Require organization sign-in for signed-in browser access to this account, including existing sessions. API tokens and anonymous public pages are unchanged."
 msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Require single sign-on"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Require two-factor authentication"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -296,10 +324,6 @@ msgid "Sign in with your existing method first, then return to this page to conn
 msgstr "기존 방법으로 먼저 로그인한 후, 작업 신분을 연결하려면 이 페이지로 돌아오세요."
 
 #, elixir-autogen, elixir-format
-msgid "Sign in with your organization to access this account."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "System"
 msgstr ""
 
@@ -310,6 +334,10 @@ msgstr "팀원은 로그인 페이지에서 업무용 이메일을 입력하고 
 #, elixir-autogen, elixir-format
 msgid "Team members must belong to this Google Workspace domain. Personal Google accounts do not qualify."
 msgstr "팀원은 이 Google Workspace 도메인에 속해야 합니다. 개인 Google 계정은 사용할 수 없습니다."
+
+#, elixir-autogen, elixir-format
+msgid "This policy requires Glossia MFA even when your identity provider also requires MFA. API tokens and anonymous public pages are unchanged."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "This token is shown only once. Store it securely and enter it in your identity provider as a bearer token."
@@ -378,3 +406,7 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Your organization access was removed. Contact your organization administrator."
 msgstr "조직 접근 권한이 제거되었습니다. 조직 관리자에게 문의하세요."
+
+#, elixir-autogen, elixir-format
+msgid "Your organization requires additional authentication to access this account."
+msgstr ""

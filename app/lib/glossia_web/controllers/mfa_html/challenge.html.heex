@@ -1,0 +1,44 @@
+<section id="login">
+  <div data-part="background" aria-hidden="true">
+    <div data-part="grid"></div>
+  </div>
+  <div data-part="frame">
+    <div data-part="content">
+      <img src={~p"/images/logo-rounded.png"} alt={gettext("Glossia logo")} data-part="logo" />
+      <div data-part="header">
+        <h1 data-part="title">{gettext("Two-factor authentication")}</h1>
+        <span data-part="subtitle">
+          {gettext("Verify your identity to finish signing in to Glossia.")}
+        </span>
+      </div>
+      <div id="mfa" data-part="providers">
+        <Noora.Alert.alert
+          :if={@error}
+          id="mfa-error"
+          title={@error}
+          status="error"
+          type="secondary"
+        />
+        <.code_form email={@user.email} recovery={@recovery} action={~p"/auth/mfa"}>
+          <Noora.Button.button type="submit" label={gettext("Verify")} size="large" />
+        </.code_form>
+        <Noora.Button.button
+          href={~p"/auth/mfa?#{[recovery: not @recovery]}"}
+          variant="secondary"
+          label={
+            if @recovery,
+              do: gettext("Use an authenticator app"),
+              else: gettext("Use a recovery code")
+          }
+        />
+      </div>
+    </div>
+    <div data-part="bottom-link">
+      <Noora.Button.button
+        href={~p"/auth/logout"}
+        label={gettext("Back to sign in")}
+        variant="secondary"
+      />
+    </div>
+  </div>
+</section>

@@ -28,6 +28,8 @@ defmodule GlossiaWeb.MarketingRoutes do
       get "/terms.md", LegalController, :terms
       get "/privacy.md", LegalController, :privacy
       get "/cookies.md", LegalController, :cookies
+      get "/acceptable-use.md", LegalController, :acceptable_use
+      get "/imprint.md", LegalController, :imprint
       get "/blog", BlogController, :index
       get "/blog/feed.xml", BlogController, :feed
       get "/blog/:slug", BlogController, :show
@@ -45,6 +47,10 @@ defmodule GlossiaWeb.MarketingRoutes do
       get "/privacy/:date", LegalController, :privacy
       get "/cookies", LegalController, :cookies
       get "/cookies/:date", LegalController, :cookies
+      get "/acceptable-use", LegalController, :acceptable_use
+      get "/acceptable-use/:date", LegalController, :acceptable_use
+      get "/imprint", LegalController, :imprint
+      get "/imprint/:date", LegalController, :imprint
     end
   end
 end

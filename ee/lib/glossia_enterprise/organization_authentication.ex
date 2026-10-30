@@ -16,7 +16,8 @@ defmodule GlossiaEnterprise.OrganizationAuthentication do
   def migrations(Glossia.Repo),
     do: [
       {20_261_028_120_000, GlossiaEnterprise.Identity.Migration},
-      {20_261_028_130_000, GlossiaEnterprise.Identity.OAuth2Migration}
+      {20_261_028_130_000, GlossiaEnterprise.Identity.OAuth2Migration},
+      {20_261_030_121_000, GlossiaEnterprise.Identity.MFAMigration}
     ]
 
   def migrations(_), do: []
@@ -145,10 +146,50 @@ defmodule GlossiaEnterprise.OrganizationAuthentication do
         true
 
       organization ->
-        is_nil(user) or not enforced?(organization) or
-          (not is_nil(organization.auth_provider) and verified?(organization) and
-             proof == session_proof(organization, user))
+        is_nil(user) or
+          (not mfa_required?(account, user) and
+             (not enforced?(organization) or
+                (not is_nil(organization.auth_provider) and verified?(organization) and
+                   proof == session_proof(organization, user))))
     end
+  end
+
+  def mfa_enforced?(organization), do: settings(organization).mfa_enforced
+
+  def mfa_required?(account, user) do
+    organization = Organizations.get_organization_for_account(account)
+
+    not is_nil(user) and not is_nil(organization) and mfa_enforced?(organization) and
+      not Glossia.Accounts.MFA.enabled?(user)
+  end
+
+  def set_mfa_enforcement(organization, actor, enabled, browser_token) when is_boolean(enabled) do
+    Repo.transaction(fn ->
+      # Factor changes use this same user lock, so revocation cannot race policy changes.
+      actor = Repo.one!(from u in User, where: u.id == ^actor.id, lock: "FOR UPDATE")
+      Repo.one!(from o in Organization, where: o.id == ^organization.id, lock: "FOR UPDATE")
+
+      unless Glossia.Roles.has_organization_role?(actor, organization, "admin") and
+               Glossia.Accounts.MFA.recently_authenticated?(actor, browser_token) and
+               (not enabled or Glossia.Accounts.MFA.enabled?(actor)) do
+        Repo.rollback(:mfa_required)
+      end
+
+      %SecuritySettings{organization_id: organization.id, mfa_enforced: enabled}
+      |> Repo.insert!(
+        on_conflict: [set: [mfa_enforced: enabled]],
+        conflict_target: :organization_id
+      )
+
+      audit(
+        organization,
+        actor,
+        "organization.mfa_enforcement_updated",
+        "Updated organization MFA enforcement"
+      )
+
+      enabled
+    end)
   end
 
   defdelegate check_session(conn), to: GlossiaEnterpriseWeb.OrganizationSession

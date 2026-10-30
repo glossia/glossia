@@ -27,6 +27,8 @@ Community includes the translation workflow and collaboration features:
 - Voice, glossary, and language memory.
 - Organizations, invitations, and member permissions.
 - Google, GitHub, and GitLab login.
+- [Personal two-factor authentication](/docs/how-to/two-factor-authentication)
+  with authenticator apps and single-use recovery codes.
 - Localization analytics, REST API, MCP server, CLI, and SDK.
 
 Organizations do not require Enterprise. Both editions use the same translation
@@ -36,6 +38,9 @@ engine and support the same languages and file formats.
 
 Enterprise adds access, audit, and execution controls:
 
+- [Organization MFA enforcement](/docs/how-to/two-factor-authentication): require
+  authenticator enrollment for browser access, view member enrollment, and audit
+  factor and policy changes.
 - [Single sign-on](/docs/how-to/organization-sign-in): connect Google Workspace,
   Okta, or a custom OAuth2 provider so verified work accounts can join your
   organization, and optionally require organization sign-in for browser access.

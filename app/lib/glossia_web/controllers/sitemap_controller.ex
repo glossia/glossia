@@ -21,12 +21,14 @@ defmodule GlossiaWeb.SitemapController do
         Enum.map(Docs.markdown_only_pages(), fn page ->
           %{path: PublicContent.markdown_path(Docs.path_for(page))}
         end) ++
-        Enum.map(~w(terms privacy cookies), fn document ->
+        Enum.map(Legal.documents(), fn document ->
           path =
             case document do
               "terms" -> ~p"/terms"
               "privacy" -> ~p"/privacy"
               "cookies" -> ~p"/cookies"
+              "acceptable-use" -> ~p"/acceptable-use"
+              "imprint" -> ~p"/imprint"
             end
 
           %{path: path, lastmod: Legal.latest_version!(document).date}

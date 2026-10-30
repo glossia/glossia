@@ -46,10 +46,10 @@ defmodule Glossia.ContentLocalesTest do
   end
 
   test "current legal pages describe open-core licensing in every locale" do
-    for locale <- I18n.locales(), document <- ~w(terms privacy cookies) do
+    for locale <- I18n.locales(), document <- Legal.documents() do
       version = Legal.latest_version!(document, locale)
 
-      assert version.date == ~D[2026-10-24]
+      assert version.date == ~D[2026-10-30]
       # New legal versions fall back to English until translated.
       assert version.body =~ "Apache-2.0"
       assert version.body =~ "Glossia Enterprise License"

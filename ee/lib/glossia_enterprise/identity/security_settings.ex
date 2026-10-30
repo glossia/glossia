@@ -7,6 +7,7 @@ defmodule GlossiaEnterprise.Identity.SecuritySettings do
   schema "organization_security_settings" do
     belongs_to :organization, Glossia.Accounts.Organization, type: Uniq.UUID, primary_key: true
     field :sso_enforced, :boolean, default: false
+    field :mfa_enforced, :boolean, default: false
     field :auth_authorize_url, :string
     field :auth_token_url, :string
     field :auth_userinfo_url, :string

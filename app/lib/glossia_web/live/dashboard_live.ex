@@ -5984,6 +5984,16 @@ defmodule GlossiaWeb.DashboardLive do
 
   defp members_page(assigns) do
     assigns =
+      assign(
+        assigns,
+        :mfa_enabled_users,
+        if(Glossia.Extensions.organization_authentication(),
+          do: Glossia.Accounts.MFA.enabled_user_ids(Enum.map(assigns.members, & &1.user)),
+          else: nil
+        )
+      )
+
+    assigns =
       assigns
       |> assign(
         :selected_member_role,
@@ -6191,6 +6201,21 @@ defmodule GlossiaWeb.DashboardLive do
               sort_order={if(@members_sort_key == "joined", do: @members_sort_dir)}
             >
               <Noora.Table.time_cell time={member.inserted_at} />
+            </:col>
+            <:col :let={member} :if={@mfa_enabled_users} label={gettext("Two-factor authentication")}>
+              <Noora.Table.badge_cell
+                label={
+                  if MapSet.member?(@mfa_enabled_users, member.user.id),
+                    do: gettext("Enabled"),
+                    else: gettext("Not enabled")
+                }
+                color={
+                  if MapSet.member?(@mfa_enabled_users, member.user.id),
+                    do: "success",
+                    else: "neutral"
+                }
+                style="light-fill"
+              />
             </:col>
             <:col :let={member}>
               <Noora.Button.button

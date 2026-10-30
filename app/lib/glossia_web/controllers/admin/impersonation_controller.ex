@@ -24,7 +24,7 @@ defmodule GlossiaWeb.Admin.ImpersonationController do
     else
       target = Accounts.get_user(user_id)
 
-      if target do
+      if target && not Glossia.Accounts.MFA.enabled?(target) do
         Glossia.Events.emit("admin.impersonation_started", admin.account, admin,
           resource_type: "user",
           resource_id: to_string(target.id),
@@ -48,7 +48,7 @@ defmodule GlossiaWeb.Admin.ImpersonationController do
         |> redirect(to: ~p"/dashboard")
       else
         conn
-        |> put_flash(:error, gettext("User not found."))
+        |> put_flash(:error, gettext("User not found or protected by two-factor authentication."))
         |> redirect(to: ~p"/admin/users")
       end
     end

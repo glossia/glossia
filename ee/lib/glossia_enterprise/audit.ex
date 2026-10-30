@@ -17,7 +17,24 @@ defmodule GlossiaEnterprise.Audit do
   def migrations(Glossia.Repo), do: [{20_261_028_110_000, GlossiaEnterprise.Audit.Migration}]
   def migrations(_repo), do: []
 
-  def handle_event(%{account: %{id: account_id}} = event) do
+  def handle_event(%{account: %{id: _}} = event) do
+    accounts =
+      if event.name in ~w(user.mfa_enabled user.mfa_disabled user.mfa_recovery_regenerated) do
+        event.user |> Organizations.list_user_organizations() |> Enum.map(& &1.account)
+      else
+        []
+      end
+
+    [event.account | accounts]
+    |> Enum.uniq_by(& &1.id)
+    |> Enum.each(&insert_event(event, &1.id))
+
+    :ok
+  end
+
+  def handle_event(_event), do: :ok
+
+  defp insert_event(event, account_id) do
     Repo.insert!(%Event{
       name: event.name,
       account_id: account_id,
@@ -30,11 +47,7 @@ defmodule GlossiaEnterprise.Audit do
       metadata: event.opts |> Keyword.take([:via]) |> Map.new(),
       occurred_at: event.occurred_at
     })
-
-    :ok
   end
-
-  def handle_event(_event), do: :ok
 
   def authorized?(%{} = user, %Account{} = account) do
     organization = Organizations.get_organization_for_account(account)

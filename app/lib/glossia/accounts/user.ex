@@ -33,6 +33,7 @@ defmodule Glossia.Accounts.User do
     field :locale, :string
     field :fluent_languages, {:array, :string}, default: []
     field :super_admin, :boolean, default: false
+    field :authentication_version, :integer, default: 0
     field :temporary_access_grant_id, :binary_id, virtual: true
 
     belongs_to :account, Glossia.Accounts.Account

@@ -15,6 +15,8 @@ defmodule Glossia.Legal do
                         {locale, Enum.sort_by(versions, & &1.date, {:desc, Date})}
                       end)
 
+  def documents, do: ~w(terms privacy cookies acceptable-use imprint)
+
   def all_versions(locale \\ Glossia.I18n.default_locale()) do
     Map.get(@versions_by_locale, locale, @versions)
   end

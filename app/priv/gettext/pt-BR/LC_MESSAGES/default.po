@@ -166,10 +166,6 @@ msgid "A little more context"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "A little playful"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "A reason is required to impersonate a user."
 msgstr "É necessário um motivo para assumir a conta de um usuário."
 
@@ -194,6 +190,10 @@ msgid "A suggestion title is required."
 msgstr "É necessário um título de sugestão."
 
 #, elixir-autogen, elixir-format
+msgid "A thoughtful welcome. A little more formal."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "A warm welcome. Never a literal translation."
 msgstr ""
 
@@ -202,7 +202,7 @@ msgid "A world of possibility"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "AI drafts the translations. Your team decides what goes live."
+msgid "AI localization for your product and docs. Your voice in every language. Your translations, reviewed in Git."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -240,6 +240,10 @@ msgstr "Aceitar ou recusar o convite"
 #, elixir-autogen, elixir-format
 msgid "Accept or decline the invitation:"
 msgstr "Aceitar ou recusar o convite:"
+
+#, elixir-autogen, elixir-format
+msgid "Acceptable Use"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Access credentials"
@@ -366,6 +370,10 @@ msgid "Alternative: verify with a homepage meta tag"
 msgstr "Alternativa: verificar com uma tag meta da página inicial"
 
 #, elixir-autogen, elixir-format
+msgid "Always you"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "An error occurred during setup."
 msgstr "Ocorreu um erro durante a configuração."
 
@@ -490,8 +498,20 @@ msgid "Authentication and REST interfaces."
 msgstr "Autenticação e interfaces REST."
 
 #, elixir-autogen, elixir-format
+msgid "Authentication code"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Authentication failed. Please try again."
 msgstr "Falha na autenticação. Tente novamente."
+
+#, elixir-autogen, elixir-format
+msgid "Authentication or recovery code"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Authenticator setup QR code"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Authorization callback URL"
@@ -536,6 +556,10 @@ msgstr "Voltar ao Glossia"
 #, elixir-autogen, elixir-format
 msgid "Back to app"
 msgstr "Voltar ao app"
+
+#, elixir-autogen, elixir-format
+msgid "Back to sign in"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Back to terms"
@@ -622,6 +646,10 @@ msgid "Cancel"
 msgstr "Cancelar"
 
 #, elixir-autogen, elixir-format
+msgid "Cancel setup"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Cancel translation"
 msgstr "Cancelar tradução"
 
@@ -662,16 +690,16 @@ msgid "Change"
 msgstr "Alterar"
 
 #, elixir-autogen, elixir-format
+msgid "Change the voice. Keep the meaning."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Changed"
 msgstr "Alterado"
 
 #, elixir-autogen, elixir-format
 msgid "Changelog"
 msgstr "Registro de alterações"
-
-#, elixir-autogen, elixir-format
-msgid "Changes"
-msgstr "Alterações"
 
 #, elixir-autogen, elixir-format
 msgid "Check the decision model configuration and provider availability, then retry. Unchecked output was not accepted."
@@ -944,6 +972,14 @@ msgid "Copy prompt"
 msgstr "Copiar prompt"
 
 #, elixir-autogen, elixir-format
+msgid "Copy recovery codes"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Copy setup key"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Copy your client secret now. You will not be able to see it again."
 msgstr "Copie seu segredo do cliente agora. Você não poderá vê-lo novamente."
 
@@ -1184,7 +1220,7 @@ msgid "Define the tone, formality, and style guidelines for your content."
 msgstr "Defina o tom, formalidade e diretrizes de estilo para seu conteúdo."
 
 #, elixir-autogen, elixir-format
-msgid "Define your tone and glossary. Every translation starts here."
+msgid "Define tone and terminology once. Reuse them across projects and languages."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1244,7 +1280,7 @@ msgid "Diagnostic details"
 msgstr "Detalhes do diagnóstico"
 
 #, elixir-autogen, elixir-format
-msgid "Different words. The same feeling."
+msgid "Disable two-factor authentication"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1364,6 +1400,18 @@ msgid "Email cannot be changed here."
 msgstr "O e-mail não pode ser alterado aqui."
 
 #, elixir-autogen, elixir-format
+msgid "Enable two-factor authentication"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Enabled"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Enter an authentication code or an unused recovery code to manage your factor. Changing it signs out your other browser sessions."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Enter the code shown in your mobile app to continue."
 msgstr "Digite o código exibido no seu aplicativo móvel para continuar."
 
@@ -1397,6 +1445,14 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Example language"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Example view"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Example voice"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1437,6 +1493,10 @@ msgstr "Explore as capacidades que fazem do Glossia o agente de conteúdo para s
 
 #, elixir-autogen, elixir-format
 msgid "Explore the source"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Explore the workflow"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1528,12 +1588,20 @@ msgid "For example: en, es-MX, zh-Hant"
 msgstr "Por exemplo: en, es-MX, zh-Hant"
 
 #, elixir-autogen, elixir-format
+msgid "Formal"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Formality"
 msgstr "Formalidade"
 
 #, elixir-autogen, elixir-format
 msgid "From builders who worked at"
 msgstr "De desenvolvedores que trabalharam em"
+
+#, elixir-autogen, elixir-format
+msgid "From your voice to your repository"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "From your words to the world."
@@ -1558,6 +1626,10 @@ msgstr "Lacuna?"
 #, elixir-autogen, elixir-format
 msgid "General"
 msgstr "Geral"
+
+#, elixir-autogen, elixir-format
+msgid "Generate new recovery codes"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Generate new token"
@@ -1672,10 +1744,6 @@ msgid "Glossia inspects the repository and opens a pull request with a generated
 msgstr "Glossia inspeciona o repositório e abre um pull request com um L10N.md gerado para os idiomas que você escolhe."
 
 #, elixir-autogen, elixir-format
-msgid "Glossia is a language OS where linguists and teams shape how your organization speaks across every language and surface."
-msgstr "Glossia é um Sistema Operacional de Idiomas onde linguistas e equipes moldam como sua organização se comunica em todas as línguas e superfícies."
-
-#, elixir-autogen, elixir-format
 msgid "Glossia is inspecting the repository and preparing a pull request. This usually takes a few minutes, and you can leave this page and come back."
 msgstr "Glossia está inspecionando o repositório e preparando um pull request. Isso geralmente leva alguns minutos, e você pode sair desta página e voltar."
 
@@ -1748,6 +1816,10 @@ msgid "How-to guides"
 msgstr "Guias de como fazer"
 
 #, elixir-autogen, elixir-format
+msgid "I saved my recovery codes"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "If you cannot edit your domain records, add this meta tag to the head of your homepage on %{domain} and publish it. Glossia checks this domain, so adding the tag to another site does not verify ownership."
 msgstr "Se você não pode editar os registros do seu domínio, adicione esta tag meta ao cabeçalho da sua página inicial em %{domain} e publique-a. Glossia verifica este domínio, portanto, adicionar a tag a outro site não confirma a propriedade."
 
@@ -1782,6 +1854,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Incomplete output"
 msgstr "Saída incompleta"
+
+#, elixir-autogen, elixir-format
+msgid "Informal"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Input"
@@ -1880,7 +1956,11 @@ msgid "Just a quick check"
 msgstr "Apenas uma verificação rápida"
 
 #, elixir-autogen, elixir-format
-msgid "Keep content in your repository. Glossia works alongside your code."
+msgid "Keep source and translated files in Git, alongside the code that uses them."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Keep these codes somewhere safe. Each code works once if you lose your authenticator. They will not be shown again."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1962,6 +2042,14 @@ msgstr "Deixe sem definir para tornar esta uma regra catch-all."
 #, elixir-autogen, elixir-format
 msgid "Legal"
 msgstr "Jurídico"
+
+#, elixir-autogen, elixir-format
+msgid "Legal Notice"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Legal documents"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Linguist"
@@ -2456,6 +2544,10 @@ msgid "Not detected"
 msgstr "Não detectado"
 
 #, elixir-autogen, elixir-format
+msgid "Not enabled"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Not recorded"
 msgstr "Não registrado."
 
@@ -2768,6 +2860,10 @@ msgid "Proposed changes"
 msgstr "Alterações propostas"
 
 #, elixir-autogen, elixir-format
+msgid "Protect your account with an authenticator app, such as 1Password or Google Authenticator."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Provide a clear title, full context, and a concise summary of intent."
 msgstr "Forneça um título claro, contexto completo e um resumo conciso da intenção."
 
@@ -2836,6 +2932,10 @@ msgid "Quality settings changed"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Questions? A direct line."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Queued"
 msgstr "Em fila"
 
@@ -2894,6 +2994,14 @@ msgstr "Tipo de registro"
 #, elixir-autogen, elixir-format
 msgid "Record value"
 msgstr "Valor do registro"
+
+#, elixir-autogen, elixir-format
+msgid "Recovery code"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Recovery codes"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Reference"
@@ -3020,6 +3128,10 @@ msgid "Review the local changes and push or merge them into the default branch w
 msgstr "Revise as alterações locais e faça o push ou merge para o ramo padrão quando estiver pronto."
 
 #, elixir-autogen, elixir-format
+msgid "Review translation pull requests with your team. Merge when you're ready."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Revision"
 msgstr "Revisão"
 
@@ -3108,6 +3220,14 @@ msgid "Save permissions"
 msgstr "Salvar permissões"
 
 #, elixir-autogen, elixir-format
+msgid "Save your recovery codes"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Scan this QR code with your authenticator app, or enter the setup key manually. Then enter its six-digit code."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Scopes"
 msgstr "Escopos"
 
@@ -3188,6 +3308,10 @@ msgid "Search..."
 msgstr "Pesquisar..."
 
 #, elixir-autogen, elixir-format
+msgid "Security"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "See how it works"
 msgstr ""
 
@@ -3226,6 +3350,10 @@ msgstr "Selecionar todos"
 #, elixir-autogen, elixir-format
 msgid "Select and copy the prompt"
 msgstr "Selecione e copie o prompt."
+
+#, elixir-autogen, elixir-format
+msgid "Select and copy the value manually."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Select at least one target language."
@@ -3296,6 +3424,10 @@ msgid "Set up project"
 msgstr "Configurar o projeto"
 
 #, elixir-autogen, elixir-format
+msgid "Set up two-factor authentication"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Set up web analytics"
 msgstr "Configurar análise web"
 
@@ -3338,6 +3470,10 @@ msgstr "Instruções de configuração preparadas"
 #, elixir-autogen, elixir-format
 msgid "Setup is queued and starts shortly. You can leave this page and come back."
 msgstr "A configuração está na fila e começará em breve. Você pode sair desta página e voltar."
+
+#, elixir-autogen, elixir-format
+msgid "Setup key"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Setup pull request was closed"
@@ -3390,6 +3526,10 @@ msgstr "Mostrando as primeiras %{limit} correspondências. Continue digitando pa
 #, elixir-autogen, elixir-format
 msgid "Sign in"
 msgstr "Entrar"
+
+#, elixir-autogen, elixir-format
+msgid "Sign in again before changing two-factor authentication."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Sign in as test user"
@@ -3580,6 +3720,10 @@ msgid "Thanks for your interest! We’ll get back to you by email to help you ge
 msgstr "Obrigado pelo seu interesse! Entraremos em contato por e-mail para ajudar você a começar."
 
 #, elixir-autogen, elixir-format
+msgid "That code is invalid or has already been used. Try a new code."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "That guidance scope is not available for this goal. Your draft is saved."
 msgstr "Este escopo de orientação não está disponível para este objetivo. Seu rascunho foi salvo."
 
@@ -3678,6 +3822,10 @@ msgstr "O repositório já possui um L10N.md, ou você o escreverá. Glossia cri
 #, elixir-autogen, elixir-format
 msgid "The repository and language choices are ready for the setup assistant."
 msgstr "As escolhas do repositório e de idioma estão prontas para o assistente de configuração."
+
+#, elixir-autogen, elixir-format
+msgid "The same words, in files your application can use."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The setup assistant completed this step."
@@ -4000,6 +4148,10 @@ msgid "Too many attempts. Please wait a moment and try again."
 msgstr "Demasiadas tentativas. Por favor, aguarde um momento e tente novamente."
 
 #, elixir-autogen, elixir-format
+msgid "Too many attempts. Wait five minutes and try again."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Too many files"
 msgstr "Muitos arquivos"
 
@@ -4022,10 +4174,6 @@ msgstr "Total"
 #, elixir-autogen, elixir-format
 msgid "Total tokens"
 msgstr "Total de tokens"
-
-#, elixir-autogen, elixir-format
-msgid "Translate your product, docs, and content with AI that knows how you speak."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Translated"
@@ -4180,6 +4328,14 @@ msgid "Translations"
 msgstr "Traduções"
 
 #, elixir-autogen, elixir-format
+msgid "Translations arrive as pull requests. You decide what ships."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Try a different voice"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Try adjusting your search query."
 msgstr "Tente ajustar sua consulta de pesquisa."
 
@@ -4198,6 +4354,14 @@ msgstr "O Turnstile não está disponível. Por favor, tente novamente em breve.
 #, elixir-autogen, elixir-format
 msgid "Tutorials"
 msgstr "Tutoriais"
+
+#, elixir-autogen, elixir-format
+msgid "Two-factor authentication"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Two-factor authentication disabled."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Type at least two characters to search the documentation."
@@ -4260,6 +4424,14 @@ msgid "Usage breakdown"
 msgstr "Detalhamento do uso"
 
 #, elixir-autogen, elixir-format
+msgid "Use a recovery code"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Use an authenticator app"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Use base"
 msgstr "Usar base"
 
@@ -4290,6 +4462,10 @@ msgstr "Usado para gerar notas culturais para países-alvo."
 #, elixir-autogen, elixir-format
 msgid "User is not a member."
 msgstr "O usuário não é membro."
+
+#, elixir-autogen, elixir-format
+msgid "User not found or protected by two-factor authentication."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "User not found."
@@ -4324,6 +4500,10 @@ msgid "Verified"
 msgstr "Verificado"
 
 #, elixir-autogen, elixir-format
+msgid "Verify"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Verify %{domain} in analytics settings to start recording events from your snippet."
 msgstr "Verifique %{domain} nas configurações de análise web para começar a registrar eventos do seu trecho de código."
 
@@ -4344,6 +4524,10 @@ msgid "Verify you're human"
 msgstr "Verifique se você é humano"
 
 #, elixir-autogen, elixir-format
+msgid "Verify your identity to finish signing in to Glossia."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Verifying…"
 msgstr "Verificando…"
 
@@ -4358,10 +4542,6 @@ msgstr "Histórico de Versões"
 #, elixir-autogen, elixir-format
 msgid "Version history"
 msgstr "Histórico de versões"
-
-#, elixir-autogen, elixir-format
-msgid "View"
-msgstr "Visualizar"
 
 #, elixir-autogen, elixir-format
 msgid "View all posts"
@@ -4656,6 +4836,10 @@ msgid "Your provider API key. This will be encrypted at rest."
 msgstr "Sua chave de API do provedor. Ela será criptografada em repouso."
 
 #, elixir-autogen, elixir-format
+msgid "Your repository. Your review."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Your session expired. Please reload the page and try again."
 msgstr "Sua sessão expirou. Por favor, recarregue a página e tente novamente."
 
@@ -4664,7 +4848,7 @@ msgid "Your team defines the voice and terminology, reviews translations, and re
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Your voice, in context"
+msgid "Your translated content"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -4672,8 +4856,8 @@ msgid "Your voice."
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "and"
-msgstr "e"
+msgid "and acknowledge its"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "case sensitivity changed for %{count} term"

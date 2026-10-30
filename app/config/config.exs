@@ -11,7 +11,14 @@ config :glossia,
   ecto_repos: [Glossia.Repo, Glossia.IngestRepo],
   generators: [timestamp_type: :utc_datetime]
 
-config :phoenix, :filter_parameters, ["password", "passwd", "secret", "token"]
+config :phoenix, :filter_parameters, [
+  "password",
+  "passwd",
+  "secret",
+  "token",
+  "mfa_code",
+  "setup_key"
+]
 
 # Build the MDEx NIF with Lumis so docs, blog, and other markdown content
 # render with syntax highlighting instead of plain monospace code blocks.

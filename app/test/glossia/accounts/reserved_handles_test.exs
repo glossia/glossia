@@ -31,7 +31,7 @@ defmodule Glossia.Accounts.ReservedHandlesTest do
   end
 
   test "still reserves the application's own routes" do
-    for route <- ~w(admin api auth dashboard docs settings signup) do
+    for route <- ~w(admin api auth dashboard docs settings signup acceptable-use imprint) do
       assert ReservedHandles.reserved?(route)
     end
   end

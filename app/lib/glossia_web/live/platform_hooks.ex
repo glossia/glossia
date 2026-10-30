@@ -22,22 +22,17 @@ defmodule GlossiaWeb.PlatformHooks do
 
   def on_mount(:load_user, _params, session, socket) do
     user =
-      case session["user_id"] do
-        nil ->
-          nil
-
-        user_id ->
-          user_id
-          |> Accounts.get_user()
-          |> TemporaryAccess.attach_pomerium_access(session["pomerium_access"])
-      end
+      session
+      |> GlossiaWeb.BrowserAuthentication.current_user()
+      |> TemporaryAccess.attach_pomerium_access(session["pomerium_access"])
 
     {:cont,
      socket
      |> assign(:current_scope, Scope.for_user(user))
      |> assign(:current_user, user)
      |> assign(:organization_sso, session["organization_sso"])
-     |> assign(:impersonating_from, session["impersonating_from"])}
+     |> assign(:impersonating_from, session["impersonating_from"])
+     |> GlossiaWeb.BrowserSessionHooks.attach(session)}
   end
 
   def on_mount(:load_account, params, _session, socket) do
@@ -121,7 +116,13 @@ defmodule GlossiaWeb.PlatformHooks do
        ) do
       {:cont, socket}
     else
-      {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/auth/login")}
+      destination =
+        if Glossia.OrganizationAuthentication.mfa_required?(
+             socket.assigns.account,
+             socket.assigns.current_user
+           ), do: ~p"/-/settings/security", else: ~p"/auth/login"
+
+      {:halt, Phoenix.LiveView.redirect(socket, to: destination)}
     end
   end
 

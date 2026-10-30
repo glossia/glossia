@@ -28,7 +28,7 @@ defmodule GlossiaWeb.PageController do
       posts: Blog.recent_posts(3, conn.assigns.locale),
       page_description:
         gettext(
-          "Glossia is a language OS where linguists and teams shape how your organization speaks across every language and surface."
+          "AI localization for your product and docs. Your voice in every language. Your translations, reviewed in Git."
         )
     )
   end
