@@ -127,7 +127,9 @@ pipeline. `.github/workflows/ios-release.yml` uploads the exact commit after
 **Mobile Native** succeeds on a push to `main`. Fork/PR runs, failed checks and
 superseded commits cannot publish. Manual dispatch is restricted to current `main`.
 Uploads remain disabled until the repository variable `IOS_INFISICAL_IDENTITY_ID`
-is configured. No Apple or Infisical account changes are made by these scripts.
+is configured. After upload and receipt publication, a separate job reconciles
+TestFlight access for `pedro@pepicrft.me`. It never creates Apple team users,
+grants team roles, changes Infisical policy, or publishes to the public App Store.
 
 `ios/distribution/check.sh` uses `mobile/native/cliff.toml` and independent,
 reachable stable `ios@x.y.z` tags, starting at `0.1.0`. Features bump minors,
@@ -159,7 +161,10 @@ Use an active Apple Developer Program team with its agreements accepted:
 5. Create a **team App Store Connect API key** under Users and Access →
    Integrations → App Store Connect API. **Developer** is sufficient for build
    uploads; provide its key ID, issuer UUID and downloaded private `.p8`.
-   **App Manager** access is needed if we also manage store metadata/review.
+   **App Manager** access is needed for external TestFlight tester/group management
+   (and metadata/review). The distribution job reuses this same key, with no new
+   secrets. Listing team users may require greater permissions; if unavailable,
+   the helper cannot infer internal eligibility and uses an external group.
    This is not an APNs key. No Apple ID password or two-factor code is needed.
 
 Keep private keys and passwords out of Git and chat. Place them directly in
@@ -198,15 +203,68 @@ device bundle, validates both profiles/team/certificate, scopes entitlements,
 embeds production APNs metadata, stamps Apple SDK/ARM64/iPad metadata, signs the
 extension before its containing app, verifies the signature, and deletes its
 temporary Keychain/private files. The source plist and Once cache are unchanged.
-Habibi's historical clean-runner signing failure means this setup still needs a
-real signed CI run with Glossia's credentials; local fixture checks cannot prove it.
+Signed CI uploads have succeeded for `ios@0.1.0` (8.1) and `ios@0.1.1` (10.1).
+Upload success alone does not prove Apple processing or TestFlight access.
 
 Apple validation precedes upload. A successful upload creates an exact-SHA
-GitHub release/tag, without a public IPA artifact. It does **not** submit for
-App Review, publish publicly, or invite TestFlight testers. Upload acceptance
-is not successful Apple processing. If upload outcome is uncertain, inspect
-App Store Connect before retrying. If only GitHub release creation fails, create
-the tag/release for that uploaded SHA rather than uploading another build.
+GitHub release/tag, without a public IPA artifact, **before** TestFlight runs.
+If upload outcome is uncertain, inspect App Store Connect before retrying. If
+only GitHub release creation fails, create the tag/release for that uploaded SHA
+rather than uploading another build.
+
+### TestFlight access and distribution-only retries
+
+`ios/distribution/testflight.py VERSION BUILD` uses Python's standard library and
+OpenSSL with the existing three `ASC_API_*` credentials. Its private-key file is
+temporary, owner-readable only, and deleted on success/failure; credentials,
+JWTs and Apple response bodies are never logged. No package installation is needed.
+
+The helper resolves `ai.glossia.app` and matches **both** the iOS marketing version
+and build number, never the latest build. It waits up to 10 minutes for processing
+(configurable with `--timeout 1..1200`), fails on invalid/failed/expired builds,
+and reads back tester/group/build relationships before reporting success.
+Writes are read-before-write and never automatically retried. An uncertain write
+requires a distribution-only rerun, which first reads Apple state again.
+
+An existing internal group already containing Pedro is preferred. Otherwise,
+the helper checks existing ASC user roles and app visibility before resolving
+the unique **Glossia internal** group or creating it. It fails on duplicate named
+groups rather than picking an unrelated internal cohort. It does not create or
+promote team users. Without confirmed internal eligibility it creates/reuses
+the private, email-invitation-only
+**Glossia beta** external group. If Apple has no internal group yet, an empty
+**Glossia internal** prerequisite group is created, without adding team users.
+New internal groups allow all builds; existing groups are not broadened. Each
+future releasable native build is explicitly reconciled into the selected group.
+
+External distribution can require **TestFlight App Review**, beta test information,
+and export-compliance answers. The helper does not invent legal declarations,
+review credentials, contact information or test notes, and does not submit reviews.
+It preserves tester membership but fails the job with the exact Apple beta state
+in the workflow summary until the build is approved/ready for testing. Complete
+the real metadata and beta review in App Store Connect, then retry distribution.
+For ready external builds it enables automatic tester notifications and assigns
+the build. Notifications alone do not prove an invitation was sent: external
+tester readback must report `INVITED`, `ACCEPTED`, or `INSTALLED`. `NOT_INVITED`,
+`REVOKED`, missing, or unknown states fail with an actionable blocker. Send/resend
+the invitation or restore revoked access in App Store Connect, then retry
+distribution only; the helper does not send or retry invitation requests.
+Confirm invitation acceptance and installation separately on the device.
+
+After this workflow is on `main`, an operator can retry an existing receipt:
+
+```sh
+gh workflow run ios-release.yml --ref main \
+  -f distribution_only=true -f version=0.1.1 -f build=10.1
+```
+
+This path checks the exact `ios@VERSION` upload receipt and **never builds, signs,
+validates, uploads, or creates another release/tag**. Normal upload/version jobs
+are skipped. A failed distribution job can also use GitHub's **Re-run failed jobs**;
+do not rerun all jobs after an accepted upload. A missing receipt must be repaired
+against the actually uploaded SHA/build first, not bypassed by uploading again.
+Distribution failures retain the existing upload receipt, so subsequent release
+version selection will not consider that upload unreleased.
 
 Before public release, complete the listing/screenshots, support/privacy URLs,
 age rating, App Privacy and encryption/export-compliance declarations (including
@@ -215,8 +273,10 @@ build and submit for App Review. APNs delivery separately requires server-side
 provider credentials; they never belong in the app or upload secrets.
 
 From `mobile/native/`, run `mise run test:ios-distribution` for disposable release
-histories and profile fixtures, or `mise run release:ios-check` on a clean,
-committed checkout to inspect the next version without publishing.
+histories, profile fixtures, and mocked TestFlight reconciliation/signing tests,
+or `mise run release:ios-check` on a clean, committed checkout to inspect the next
+version without publishing. Fixture tests make no live Apple calls and cannot
+prove current credentials, beta approval, or actual tester access.
 
 ## Remote push opt-in
 

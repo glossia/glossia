@@ -6,6 +6,17 @@ on:
     branches: [main]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      distribution_only:
+        description: 'Reconcile TestFlight for an existing uploaded release, without building/uploading'
+        type: boolean
+        default: false
+      version:
+        description: 'Existing marketing version for distribution-only (for example 0.1.1)'
+        type: string
+      build:
+        description: 'Existing build number for distribution-only (for example 10.1)'
+        type: string
 
 permissions:
   contents: read
@@ -22,7 +33,7 @@ concurrency:
 jobs:
   version:
     if: >-
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && !inputs.distribution_only) ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push' &&
        github.event.workflow_run.head_branch == 'main' &&
@@ -126,3 +137,56 @@ jobs:
           printf '\nApp Store Connect upload: Glossia %s (%s).\n' "$VERSION" "$BUILD" >> "$RUNNER_TEMP/ios-release-notes.md"
           gh release create "$TAG" --target "$SOURCE_SHA" --title "Glossia iOS $VERSION" \
             --notes-file "$RUNNER_TEMP/ios-release-notes.md" --latest=false
+
+  # A separate job makes "rerun failed jobs" distribution-only too. Never place
+  # this inside upload: a beta review failure must not repeat an accepted upload.
+  distribute:
+    needs: [version, upload]
+    if: >-
+      always() && !cancelled() && vars.IOS_INFISICAL_IDENTITY_ID != '' &&
+      (needs.upload.result == 'success' ||
+       (github.event_name == 'workflow_dispatch' && inputs.distribution_only && github.ref == 'refs/heads/main'))
+    runs-on: macos-26
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      VERSION: ${{ needs.version.outputs.version || inputs.version }}
+      BUILD: ${{ needs.version.outputs.build || inputs.build }}
+      DISTRIBUTION_ONLY: ${{ inputs.distribution_only }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          ref: ${{ needs.version.outputs.sha || github.sha }}
+          fetch-depth: 0
+      - name: Require an existing exact upload receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "$DISTRIBUTION_ONLY" == true ]]; then
+            test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          fi
+          python3 - <<'PY'
+          import json, os, re, subprocess
+          version, build = os.environ['VERSION'], os.environ['BUILD']
+          if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version) or not re.fullmatch(r'[1-9][0-9]*(\.[0-9]+){0,2}', build):
+              raise SystemExit('Explicit existing version and build are required.')
+          receipt = subprocess.run(['gh', 'release', 'view', f'ios@{version}', '--json', 'body'],
+                                   check=True, capture_output=True, text=True)
+          if f'App Store Connect upload: Glossia {version} ({build}).' not in json.loads(receipt.stdout)['body'].splitlines():
+              raise SystemExit('No exact upload receipt. Inspect Apple state; do not upload again.')
+          PY
+      - name: Load existing dedicated ASC credentials
+        uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
+        with:
+          method: oidc
+          identity-id: ${{ vars.IOS_INFISICAL_IDENTITY_ID }}
+          oidc-audience: https://github.com/glossia
+          project-slug: glossia
+          env-slug: prod
+          secret-path: /glossia-ios-releases
+          include-imports: false
+          domain: https://eu.infisical.com
+      - name: Reconcile TestFlight access without building or uploading
+        run: python3 -B mobile/native/ios/distribution/testflight.py "$VERSION" "$BUILD"
