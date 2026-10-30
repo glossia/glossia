@@ -10,10 +10,23 @@ defmodule GlossiaWeb.PageControllerTest do
     response = html_response(conn, 200)
 
     assert response =~ "Language OS"
+    assert response =~ "Your voice."
+    assert response =~ "Every language."
     assert response =~ "https://community.glossia.ai"
     assert response =~ "Visit the forum"
     assert response =~ "Compare Community and Enterprise"
     refute response =~ "discord.gg"
+
+    html = LazyHTML.from_document(response)
+
+    assert html
+           |> LazyHTML.query("#home a[href='/signup']")
+           |> LazyHTML.text() =~ "Get early access"
+
+    assert html
+           |> LazyHTML.query("[aria-live='polite'] [lang='es']:not([hidden])")
+           |> LazyHTML.text()
+           |> String.trim() == "Estás en tu casa."
   end
 
   test "feature discovery distinguishes enterprise features from community translation", %{

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap");
 
 /* ====================================================================
    1. PRIMITIVE TOKENS
@@ -77,6 +77,7 @@
   --font-size-5xl: 1.5rem;
   --font-size-6xl: 1.75rem;
   --font-size-7xl: clamp(1.875rem, 3.5vw, 2.25rem);
+  --font-size-8xl: clamp(2.75rem, 6vw, 4.5rem);
 
   /* Font weights */
   --weight-normal: 400;
@@ -175,7 +176,7 @@
   --color-native-dark-tint: var(--color-native-dark-accent);
 
   /* Typography */
-  --font-body: var(--font-family-serif);
+  --font-body: var(--font-family-sans);
   --font-heading: var(--font-family-serif);
   --font-code: var(--font-family-mono);
   --text-2xs: var(--font-size-2xs);
@@ -191,6 +192,7 @@
   --text-5xl: var(--font-size-5xl);
   --text-6xl: var(--font-size-6xl);
   --text-display: var(--font-size-7xl);
+  --text-hero: var(--font-size-8xl);
 
   /* Layout */
   --max-width: 1080px;
@@ -295,6 +297,7 @@ body {
 }
 
 main { flex: 1; }
+button, input, select, textarea { font-family: var(--font-body); }
 
 a { color: var(--color-primary); text-decoration: none; text-underline-offset: 0.15em; }
 a:hover { text-decoration: underline; }
@@ -310,6 +313,7 @@ h1, h2, h3, h4 {
 h1 { font-size: var(--text-display); font-weight: var(--weight-bold); }
 h2 { font-size: var(--text-6xl); margin-bottom: var(--space-2); }
 h3 { font-size: var(--text-4xl); margin-bottom: var(--space-1-5); }
+h3, h4 { font-family: var(--font-body); }
 
 p { margin-bottom: var(--space-4); }
 p:last-child { margin-bottom: 0; }
@@ -405,7 +409,7 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  font-family: var(--font-code);
+  font-family: var(--font-body);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
   line-height: 1;
@@ -604,6 +608,7 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
   z-index: var(--z-sticky);
   background: var(--color-bg);
   border-bottom: var(--space-px) solid var(--color-border);
+  font-family: var(--font-family-sans);
 }
 
 .nav {
@@ -614,8 +619,8 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 }
 
 .logo {
-  font-family: var(--font-code);
-  font-weight: var(--weight-bold);
+  font-family: var(--font-family-sans);
+  font-weight: var(--weight-semibold);
   font-size: var(--text-4xl);
   color: var(--color-text);
   text-decoration: none;
@@ -682,7 +687,7 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-body);
+  font-family: var(--font-family-sans);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
   padding: var(--space-1-5) var(--space-4);
@@ -1150,6 +1155,7 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 }
 
 .feature-index-card h2 {
+  font-family: var(--font-body);
   font-size: var(--text-3xl);
   margin: 0;
 }
@@ -1284,7 +1290,7 @@ pre code { background: none; color: inherit; padding: 0; font-size: inherit; bor
 .blog-card-author { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
 .blog-card-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
 .blog-card-name { font-weight: var(--weight-medium); font-size: var(--text-sm); color: var(--color-text); }
-.blog-card .meta { color: var(--color-text-muted); font-size: var(--text-sm); font-family: var(--font-code); }
+.blog-card .meta { color: var(--color-text-muted); font-size: var(--text-sm); font-family: var(--font-body); }
 
 .blog-hero { padding-top: var(--space-16); padding-bottom: var(--space-4); }
 .blog-hero h1 { margin-bottom: var(--space-2); }
@@ -4348,7 +4354,7 @@ a.ticket-comment-time:hover {
 .mobile-menu-toggle.open .menu-icon { display: none; }
 .mobile-menu-toggle.open .close-icon { display: block; }
 
-.mobile-menu { display: none; flex-direction: column; background: var(--color-surface); border-bottom: var(--space-px) solid var(--color-border); padding: var(--space-2) 5vw var(--space-4); gap: 0; position: fixed; top: var(--header-height); left: 0; right: 0; z-index: var(--z-dropdown); box-shadow: var(--shadow-default); }
+.mobile-menu { display: none; flex-direction: column; background: var(--color-surface); border-bottom: var(--space-px) solid var(--color-border); padding: var(--space-2) 5vw var(--space-4); gap: 0; position: fixed; top: var(--header-height); left: 0; right: 0; z-index: var(--z-dropdown); box-shadow: var(--shadow-default); font-family: var(--font-family-sans); }
 .mobile-menu.open { display: flex; }
 .mobile-menu a { display: block; padding: var(--space-2-5) var(--space-2); font-size: var(--text-lg); font-weight: var(--weight-medium); color: var(--color-text-secondary); text-decoration: none; border-bottom: var(--space-px) solid var(--color-border); }
 .mobile-menu a:last-child { border-bottom: none; }

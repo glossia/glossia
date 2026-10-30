@@ -3,6 +3,7 @@ html:has(#docs-page-layout) {
 }
 
 body:has(#docs-page-layout) {
+  --font-heading: var(--font-family-sans);
   --docs-nav-height: calc(var(--noora-spacing-10) + var(--noora-spacing-8));
   --docs-sidebar-width: calc(var(--noora-spacing-10) * 5 + var(--noora-spacing-5));
   --docs-content-width: var(--max-width-docs);
@@ -44,7 +45,7 @@ body:has(#docs-page-layout) {
   top: var(--space-0);
   justify-content: space-between;
   align-items: center;
-  z-index: var(--z-sticky);
+  z-index: var(--z-dropdown);
   border-bottom: var(--space-px) solid var(--noora-content-divider-line);
   background: var(--noora-surface-background-primary);
   padding: var(--noora-spacing-5) var(--noora-spacing-7);
@@ -128,7 +129,8 @@ body:has(#docs-page-layout) {
       border-radius: var(--noora-radius-3);
       background: var(--noora-surface-background-primary);
       padding: var(--noora-spacing-2);
-      min-width: var(--noora-spacing-16);
+      width: max-content;
+      min-width: var(--min-width-dropdown);
     }
 
     & a {
@@ -136,6 +138,7 @@ body:has(#docs-page-layout) {
       padding: var(--noora-spacing-3);
       color: var(--noora-surface-label-primary);
       text-decoration: none;
+      white-space: nowrap;
 
       &:hover,
       &[aria-current="true"] {

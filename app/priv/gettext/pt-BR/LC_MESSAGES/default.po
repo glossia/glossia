@@ -162,12 +162,12 @@ msgid "A brief description of this project"
 msgstr "Uma breve descrição deste projeto"
 
 #, elixir-autogen, elixir-format
-msgid "A collaborative platform for your linguistic identity"
-msgstr "Uma plataforma colaborativa para sua identidade linguística"
+msgid "A little more context"
+msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "A queryable map that connects your voices, glossary, audiences, and rules. Agents and integrations query it at runtime, so every decision a linguist makes flows through to every piece of content it touches."
-msgstr "Um mapeamento consultável que conecta suas vozes, glossário, públicos e regras. Agentes e integrações consultam-no em tempo de execução, de forma que toda decisão de um linguista flui para todo o conteúdo que ele atinge."
+msgid "A little playful"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "A reason is required to impersonate a user."
@@ -176,10 +176,6 @@ msgstr "É necessário um motivo para assumir a conta de um usuário."
 #, elixir-autogen, elixir-format
 msgid "A recognizable name shown when users authorize this application."
 msgstr "Um nome reconhecível mostrado quando os usuários autorizam este aplicativo."
-
-#, elixir-autogen, elixir-format
-msgid "A shared foundation for every team, with additional controls in Enterprise."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "A short description about yourself"
@@ -198,8 +194,16 @@ msgid "A suggestion title is required."
 msgstr "É necessário um título de sugestão."
 
 #, elixir-autogen, elixir-format
-msgid "AI agents translate, adapt, and refine your content, guided by your linguistic preferences. When context changes, the system knows what is affected and revisits it automatically."
-msgstr "Agentes de IA traduzem, adaptam e refinam seu conteúdo, guiados por suas preferências linguísticas. Quando o contexto muda, o sistema identifica o que é afetado e o revisita automaticamente."
+msgid "A warm welcome. Never a literal translation."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "A world of possibility"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "AI drafts the translations. Your team decides what goes live."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "AI-generated cultural notes per country. You can edit them."
@@ -208,6 +212,10 @@ msgstr "Notas culturais por país geradas por IA. Você pode editá-las."
 #, elixir-autogen, elixir-format
 msgid "API key"
 msgstr "Chave de API"
+
+#, elixir-autogen, elixir-format, fuzzy
+msgid "API reference"
+msgstr "Preferências"
 
 #, elixir-autogen, elixir-format
 msgid "APIs"
@@ -330,10 +338,6 @@ msgid "Admin Overview"
 msgstr "Visão Geral de Administrador"
 
 #, elixir-autogen, elixir-format
-msgid "Agentic localization and content revisiting"
-msgstr "Localização autônoma e revisão de conteúdo"
-
-#, elixir-autogen, elixir-format
 msgid "All conversations"
 msgstr "Todas as conversas"
 
@@ -344,10 +348,6 @@ msgstr "Todos os arquivos estão atualizados. Nenhuma tradução foi necessária
 #, elixir-autogen, elixir-format
 msgid "All members"
 msgstr "Todos os membros"
-
-#, elixir-autogen, elixir-format
-msgid "All of your linguistic preferences live in one place. Every team draws from the same foundation, so your organization sounds consistent whether it is a product screen, a marketing campaign, or a support reply."
-msgstr "Todas as suas preferências linguísticas estão em um só lugar. Todas as equipes utilizam a mesma base, de modo que sua organização soa consistente, seja em uma tela de produto, uma campanha de marketing ou uma resposta de suporte."
 
 #, elixir-autogen, elixir-format
 msgid "All roles"
@@ -372,6 +372,10 @@ msgstr "Ocorreu um erro durante a configuração."
 #, elixir-autogen, elixir-format
 msgid "An invitation is already pending for this email."
 msgstr "Um convite já está pendente para este e-mail."
+
+#, elixir-autogen, elixir-format
+msgid "An open-source foundation. Extra controls when your team needs them."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Analytics"
@@ -478,10 +482,6 @@ msgid "Ask about your project's translations, terminology, or cultural context."
 msgstr "Pergunte sobre as traduções, terminologia ou contexto cultural do seu projeto."
 
 #, elixir-autogen, elixir-format
-msgid "Ask questions, share feedback, and connect with other builders using Glossia."
-msgstr "Faça perguntas, compartilhe feedback e conecte-se com outros desenvolvedores usando o Glossia."
-
-#, elixir-autogen, elixir-format
 msgid "Audit logs"
 msgstr ""
 
@@ -558,6 +558,10 @@ msgid "Blog"
 msgstr "Blog"
 
 #, elixir-autogen, elixir-format
+msgid "Brand voice"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Breadcrumbs"
 msgstr "Pão de migalhas"
 
@@ -566,20 +570,12 @@ msgid "Briefly describe what you do and who you serve..."
 msgstr "Descreva brevemente o que você faz e quem você atende..."
 
 #, elixir-autogen, elixir-format
-msgid "Bring context to the tools you already use"
-msgstr "Traga contexto para as ferramentas que você já usa"
+msgid "Bring your voice. We'll help it travel."
+msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Build your own solutions on top of the foundation through"
-msgstr "Construa suas próprias soluções sobre a fundação através de"
-
-#, elixir-autogen, elixir-format
-msgid "Built for the people who shape how organizations speak"
-msgstr "Desenvolvido para as pessoas que moldam como as organizações se comunicam"
-
-#, elixir-autogen, elixir-format
-msgid "Built on the foundation, ready for your use cases"
-msgstr "Construído sobre a fundação, pronto para seus casos de uso"
+msgid "Built with care. Onboarding teams gradually."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Built with love from Berlin."
@@ -678,10 +674,6 @@ msgid "Changes"
 msgstr "Alterações"
 
 #, elixir-autogen, elixir-format
-msgid "Check out the docs"
-msgstr "Confira a documentação"
-
-#, elixir-autogen, elixir-format
 msgid "Check the decision model configuration and provider availability, then retry. Unchecked output was not accepted."
 msgstr "Verifique a configuração do modelo de decisão e a disponibilidade do provedor, depois tente novamente. A saída não verificada não foi aceita."
 
@@ -722,6 +714,10 @@ msgstr "Escolha quem escreverá a configuração de localização."
 #, elixir-autogen, elixir-format
 msgid "Claim organization"
 msgstr "Reivindicar organização"
+
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Clear"
+msgstr "Limpar tudo"
 
 #, elixir-autogen, elixir-format
 msgid "Clear all"
@@ -828,10 +824,6 @@ msgid "Configure web analytics for this project."
 msgstr "Configure a análise web para este projeto."
 
 #, elixir-autogen, elixir-format
-msgid "Connect Google Workspace or Okta."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "Connect a Git provider"
 msgstr "Conecte um provedor de Git"
 
@@ -840,12 +832,8 @@ msgid "Connect your coding agent to Glossia and set up localization in your loca
 msgstr "Conecte seu agente de codificação ao Glossia e configure a localização no seu checkout local. Revise as alterações antes de enviá-las."
 
 #, elixir-autogen, elixir-format
-msgid "Connect your workflows and understand your audience."
+msgid "Connect your content."
 msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "Connect your writing platforms, content systems, and AI assistants to your organization's linguistic knowledge."
-msgstr "Conecte suas plataformas de escrita, sistemas de conteúdo e assistentes de IA ao conhecimento linguístico da sua organização."
 
 #, elixir-autogen, elixir-format
 msgid "Connection instructions"
@@ -858,10 +846,6 @@ msgstr "Conexões"
 #, elixir-autogen, elixir-format
 msgid "Connections will show up here after you sign in with a provider."
 msgstr "As conexões aparecerão aqui após fazer login com um provedor."
-
-#, elixir-autogen, elixir-format
-msgid "Contact us"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Content"
@@ -896,20 +880,12 @@ msgid "Content outcomes from runs started during the last 14 days."
 msgstr "Resultados do conteúdo das execuções iniciadas nos últimos 14 dias."
 
 #, elixir-autogen, elixir-format
-msgid "Content ownership"
-msgstr "Propriedade do conteúdo"
-
-#, elixir-autogen, elixir-format
 msgid "Content, segment %{index} of %{count}"
 msgstr "Conteúdo, segmento %{index} de %{count}"
 
 #, elixir-autogen, elixir-format
 msgid "Context"
 msgstr "Contexto"
-
-#, elixir-autogen, elixir-format
-msgid "Context graph"
-msgstr "Grafo de contexto"
 
 #, elixir-autogen, elixir-format
 msgid "Continue"
@@ -926,10 +902,6 @@ msgstr "Continuar com o GitHub"
 #, elixir-autogen, elixir-format
 msgid "Continue with GitLab"
 msgstr "Continuar com o GitLab"
-
-#, elixir-autogen, elixir-format
-msgid "Continuous localization"
-msgstr "Localização contínua"
 
 #, elixir-autogen, elixir-format
 msgid "Conversation history"
@@ -1120,10 +1092,6 @@ msgid "Create an organization"
 msgstr "Criar uma organização"
 
 #, elixir-autogen, elixir-format
-msgid "Create an organization, invite your team, and organize work into projects. Each project has its own voices, glossary, and rules that linguists iterate on together."
-msgstr "Crie uma organização, convide sua equipe e organize o trabalho em projetos. Cada projeto tem suas próprias vozes, glossário e regras que os linguistas refinam juntos."
-
-#, elixir-autogen, elixir-format
 msgid "Create organization"
 msgstr "Criar organização"
 
@@ -1216,6 +1184,10 @@ msgid "Define the tone, formality, and style guidelines for your content."
 msgstr "Defina o tom, formalidade e diretrizes de estilo para seu conteúdo."
 
 #, elixir-autogen, elixir-format
+msgid "Define your tone and glossary. Every translation starts here."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Definition"
 msgstr "Definição"
 
@@ -1270,6 +1242,10 @@ msgstr "Dispositivo autorizado. Você pode retornar ao aplicativo."
 #, elixir-autogen, elixir-format
 msgid "Diagnostic details"
 msgstr "Detalhes do diagnóstico"
+
+#, elixir-autogen, elixir-format
+msgid "Different words. The same feeling."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Discard"
@@ -1408,11 +1384,23 @@ msgid "Every assessed dimension must reach this score from 1 to 10. Major and cr
 msgstr "Todas as dimensões avaliadas devem atingir esta pontuação de 1 a 10. Erros graves e críticos sempre solicitam correção."
 
 #, elixir-autogen, elixir-format
-msgid "Every change to a voice, glossary entry, or rule is versioned. See what changed, who changed it, and why. Roll back when needed."
-msgstr "Todas as alterações em voz, entrada do glossário ou regra são versionadas. Veja o que mudou, quem o alterou e por quê. Reverta quando necessário."
+msgid "Every language."
+msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Everything in Community, plus access, audit, and execution controls."
+msgid "Everything in Community, with more control for your organization."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Everywhere."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Example language"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Example workspace"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1450,10 +1438,6 @@ msgstr "Explore as capacidades que fazem do Glossia o agente de conteúdo para s
 #, elixir-autogen, elixir-format
 msgid "Explore the source"
 msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "FAQ"
-msgstr "FAQ"
 
 #, elixir-autogen, elixir-format
 msgid "Failed"
@@ -1544,10 +1528,6 @@ msgid "For example: en, es-MX, zh-Hant"
 msgstr "Por exemplo: en, es-MX, zh-Hant"
 
 #, elixir-autogen, elixir-format
-msgid "For the first time in history, we have tools that can capture context and interact with the outside world to produce and transform content across languages. LLMs changed what is possible, but possibility alone is not enough. You need a system that orchestrates those capabilities reliably: hashing to avoid redundant work, validation to catch errors, and retries to close the loop. On top of that, we build experiences for humans to review, correct, and enhance the system over time. That is what we are building from first principles and from years of experience building developer experiences and localization systems."
-msgstr "Pela primeira vez na história, temos ferramentas capazes de capturar contexto e interagir com o mundo exterior para produzir e transformar conteúdo em diversos idiomas. As LLMs mudaram o que é possível, mas a possibilidade por si só não basta. Você precisa de um sistema que orquestre essas capacidades de forma confiável: hash para evitar trabalho redundante, validação para detectar erros e tentativas de repetição para fechar o ciclo. Além disso, construímos experiências para que humanos revisem, corrijam e aprimorem o sistema ao longo do tempo. É isso que construímos a partir dos primeiros princípios e anos de experiência criando experiências de desenvolvedores e sistemas de localização."
-
-#, elixir-autogen, elixir-format
 msgid "Formality"
 msgstr "Formalidade"
 
@@ -1556,8 +1536,8 @@ msgid "From builders who worked at"
 msgstr "De desenvolvedores que trabalharam em"
 
 #, elixir-autogen, elixir-format
-msgid "From the blog"
-msgstr "Do blog"
+msgid "From your words to the world."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Front matter"
@@ -1600,6 +1580,10 @@ msgid "Generative models write translations; the default decision model checks t
 msgstr "Modelos gerativos produzem traduções; o modelo de decisão padrão verifica a qualidade quando configurado. Cada categoria tem seu próprio padrão."
 
 #, elixir-autogen, elixir-format
+msgid "Get early access"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Get in touch"
 msgstr "Fale conosco"
 
@@ -1632,10 +1616,6 @@ msgid "Give your token a descriptive name and select the scopes it needs."
 msgstr "Dê um nome descritivo ao seu token e selecione os escopos necessários."
 
 #, elixir-autogen, elixir-format
-msgid "Global definitions on Glossia set the baseline for your organization. Project-level context narrows the scope. The result: every agent gets exactly the right instructions without you repeating yourself."
-msgstr "Definições globais na Glossia estabelecem a base para sua organização. O contexto em nível de projeto delimita o escopo. O resultado: cada agente recebe exatamente as instruções certas sem que você precise se repetir."
-
-#, elixir-autogen, elixir-format
 msgid "Glossary"
 msgstr "Glossário"
 
@@ -1664,10 +1644,6 @@ msgid "Glossia"
 msgstr "Glossia"
 
 #, elixir-autogen, elixir-format
-msgid "Glossia captures your linguistic preferences in one place so linguists and teams can shape how your organization speaks across every language and surface."
-msgstr "Glossia captura suas preferências linguísticas em um só lugar para que linguistas e equipes possam moldar como sua organização se expressa em cada idioma e superfície."
-
-#, elixir-autogen, elixir-format
 msgid "Glossia could not preserve every required token in this file after retrying."
 msgstr "O Glossia não pôde preservar todos os tokens obrigatórios neste arquivo após nova tentativa."
 
@@ -1694,10 +1670,6 @@ msgstr "O Glossia não pôde traduzir este arquivo. Retente a sessão de traduç
 #, elixir-autogen, elixir-format
 msgid "Glossia inspects the repository and opens a pull request with a generated L10N.md for the languages you choose."
 msgstr "Glossia inspeciona o repositório e abre um pull request com um L10N.md gerado para os idiomas que você escolhe."
-
-#, elixir-autogen, elixir-format
-msgid "Glossia integrates with your existing workflows through"
-msgstr "A Glossia integra-se com seus fluxos de trabalho existentes através de"
 
 #, elixir-autogen, elixir-format
 msgid "Glossia is a language OS where linguists and teams shape how your organization speaks across every language and surface."
@@ -1732,6 +1704,10 @@ msgid "Go to project"
 msgstr "Ir para o projeto"
 
 #, elixir-autogen, elixir-format
+msgid "Good questions."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Guidelines"
 msgstr "Diretrizes"
 
@@ -1750,6 +1726,10 @@ msgstr "Alta prioridade"
 #, elixir-autogen, elixir-format
 msgid "Homepage URL"
 msgstr "URL da página inicial"
+
+#, elixir-autogen, elixir-format
+msgid "How Glossia works"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "How can I make this translation sound more natural?\n\n"
@@ -1796,6 +1776,10 @@ msgid "In progress"
 msgstr "Em andamento"
 
 #, elixir-autogen, elixir-format
+msgid "In your repository. Translations arrive as pull requests, so your team keeps its existing review process and version history."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Incomplete output"
 msgstr "Saída incompleta"
 
@@ -1818,10 +1802,6 @@ msgstr "Trecho de instalação"
 #, elixir-autogen, elixir-format
 msgid "Install the Glossia GitHub App to import repositories and set up localization."
 msgstr "Instale o aplicativo GitHub da Glossia para importar repositórios e configurar a localização."
-
-#, elixir-autogen, elixir-format
-msgid "Integrate linguistic context into your existing tools and workflows through APIs and MCP. Your content stays consistent without adding manual steps to the development process."
-msgstr "Integre contexto linguístico nas suas ferramentas e fluxos de trabalho existentes através de APIs e MCP. Seu conteúdo permanece consistente sem adicionar etapas manuais ao processo de desenvolvimento."
 
 #, elixir-autogen, elixir-format
 msgid "Interested in Glossia?"
@@ -1892,10 +1872,6 @@ msgid "Join teams that ship content with the same confidence they ship code."
 msgstr "Junte-se a equipes que lançam conteúdo com a mesma confiança com que lançam código."
 
 #, elixir-autogen, elixir-format
-msgid "Join the community"
-msgstr "Junte-se à comunidade"
-
-#, elixir-autogen, elixir-format
 msgid "Joined"
 msgstr "Entrou"
 
@@ -1904,12 +1880,8 @@ msgid "Just a quick check"
 msgstr "Apenas uma verificação rápida"
 
 #, elixir-autogen, elixir-format
-msgid "Keep content in Git and review translations through pull requests."
+msgid "Keep content in your repository. Glossia works alongside your code."
 msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "L10N.md files sit alongside your content. They carry instructions, tone guidance, and per-language overrides that scope context to exactly where it is needed."
-msgstr "Os arquivos L10N.md ficam ao lado do seu conteúdo. Eles contêm instruções, orientação de tom e sobrescritas por idioma que direcionam o contexto para exatamente onde é necessário."
 
 #, elixir-autogen, elixir-format
 msgid "Language"
@@ -1921,14 +1893,6 @@ msgstr "Sistema Operacional de Idiomas"
 
 #, elixir-autogen, elixir-format
 msgid "Language instructions changed"
-msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "Language managers"
-msgstr "Gerentes de idioma"
-
-#, elixir-autogen, elixir-format
-msgid "Language memory"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -2004,30 +1968,6 @@ msgid "Linguist"
 msgstr "Linguista"
 
 #, elixir-autogen, elixir-format
-msgid "Linguist-centered collaboration"
-msgstr "Colaboração centrada nos linguistas"
-
-#, elixir-autogen, elixir-format
-msgid "Linguists and translators"
-msgstr "Linguistas e tradutores"
-
-#, elixir-autogen, elixir-format
-msgid "Linguists at the center"
-msgstr "Linguistas no centro"
-
-#, elixir-autogen, elixir-format
-msgid "Linguists contribute across multiple organizations, refine preferences, and see the impact of their decisions propagate through the system in real time."
-msgstr "Linguistas contribuem em múltiplas organizações, refinam preferências e veem como o impacto de suas decisões se propaga pelo sistema em tempo real."
-
-#, elixir-autogen, elixir-format
-msgid "Linguists review, refine, and approve content directly. They are not at the end of a chain but at the center, shaping how your organization speaks before anything ships."
-msgstr "Linguistas revisam, refinam e aprovam o conteúdo diretamente. Eles não estão no fim de uma cadeia, mas no centro, moldando a forma como sua organização se comunica antes de qualquer coisa ser lançada."
-
-#, elixir-autogen, elixir-format
-msgid "Linked repo"
-msgstr "Repositório vinculado"
-
-#, elixir-autogen, elixir-format
 msgid "LinkedIn"
 msgstr "LinkedIn"
 
@@ -2094,6 +2034,10 @@ msgstr "Torne este o modelo de decisão para avaliar a qualidade da tradução."
 #, elixir-autogen, elixir-format
 msgid "Make this the default generative model for project setup and translations without an explicit model handle."
 msgstr "Torne este o modelo gerativo padrão para configuração do projeto e traduções sem um identificador de modelo explícito."
+
+#, elixir-autogen, elixir-format
+msgid "Make yourself understood."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Manage application credentials and authorization callbacks."
@@ -2230,6 +2174,10 @@ msgstr "Modelos"
 #, elixir-autogen, elixir-format
 msgid "Models will show up here once you configure one."
 msgstr "Os modelos aparecerão aqui assim que você configurar um."
+
+#, elixir-autogen, elixir-format
+msgid "More about content ownership"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Move down"
@@ -2488,8 +2436,8 @@ msgid "No users found."
 msgstr "Nenhum usuário encontrado."
 
 #, elixir-autogen, elixir-format
-msgid "No. Glossia acts as a broker between your content and the models. We work with linguists to understand which models perform best at certain tasks and define those defaults for you, so you get the best experience combining the models, the system, and your context. The landscape is moving fast, and you want the flexibility to switch models quickly without rewiring your pipeline. Glossia gives you strong defaults out of the box while keeping the freedom to override with any provider you prefer."
-msgstr "Não. O Glossia atua como um intermediário entre seu conteúdo e os modelos. Trabalhamos com linguistas para entender quais modelos performam melhor em certas tarefas e definimos esses padrões para você, para que tenha a melhor experiência combinando os modelos, o sistema e seu contexto. O cenário muda rapidamente, e você deseja a flexibilidade de alternar modelos rapidamente sem reconfigurar seu pipeline. O Glossia oferece padrões sólidos prontos para uso, mantendo a liberdade de substituir por qualquer provedor que você prefira."
+msgid "No. Glossia provides model defaults, and you can configure your own providers when you need more control."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "None"
@@ -2520,6 +2468,10 @@ msgid "Note"
 msgstr "Nota"
 
 #, elixir-autogen, elixir-format
+msgid "Notes from the workshop."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Notes on localization, language systems, and agentic workflows."
 msgstr "Notas sobre localização, sistemas linguísticos e fluxos de trabalho agênticos."
 
@@ -2544,10 +2496,6 @@ msgid "OR"
 msgstr "OU"
 
 #, elixir-autogen, elixir-format
-msgid "On Glossia"
-msgstr "Na Glossia"
-
-#, elixir-autogen, elixir-format
 msgid "On this page"
 msgstr "Nesta página"
 
@@ -2558,14 +2506,6 @@ msgstr "Assim que o trecho estiver em produção, as visualizações de página 
 #, elixir-autogen, elixir-format
 msgid "Once the snippet is live, visitor languages will appear here."
 msgstr "Assim que o trecho estiver em produção, os idiomas dos visitantes aparecerão aqui."
-
-#, elixir-autogen, elixir-format
-msgid "One place where linguists and language managers define how an organization speaks, track every change, and collaborate across projects. Think of it as what GitHub did for software teams, but for the people who shape language."
-msgstr "Um único lugar onde linguistas e gestores de linguagem definem como uma organização se comunica, rastreiam todas as alterações e colaboram entre projetos. Pense nisso como o que o GitHub fez para equipes de software, mas para as pessoas que moldam a linguagem."
-
-#, elixir-autogen, elixir-format
-msgid "One source of truth for how you speak"
-msgstr "Uma única fonte da verdade sobre como você se comunica"
 
 #, elixir-autogen, elixir-format
 msgid "Only provider-reported counts are shown. Historical translations, local Pi sessions, and decision evaluations are not included."
@@ -2592,8 +2532,8 @@ msgid "Open analytics settings"
 msgstr "Abrir configurações de análise"
 
 #, elixir-autogen, elixir-format
-msgid "Open integrations"
-msgstr "Abrir integrações"
+msgid "Open by design"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Open project"
@@ -2602,10 +2542,6 @@ msgstr "Abrir projeto"
 #, elixir-autogen, elixir-format
 msgid "Open pull request"
 msgstr "Abrir pull request"
-
-#, elixir-autogen, elixir-format
-msgid "Open source. Enterprise when you need it."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Open suggestions"
@@ -2644,12 +2580,12 @@ msgid "Organizations"
 msgstr "Organizações"
 
 #, elixir-autogen, elixir-format
-msgid "Organizations and projects"
-msgstr "Organizações e projetos"
-
-#, elixir-autogen, elixir-format
 msgid "Organizations let you collaborate with your team on content projects."
 msgstr "Organizações permitem que você colabore com sua equipe em projetos de conteúdo."
+
+#, elixir-autogen, elixir-format
+msgid "Original"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Outcome"
@@ -2760,10 +2696,6 @@ msgid "Private conversation"
 msgstr "Conversa privada"
 
 #, elixir-autogen, elixir-format
-msgid "Product and engineering teams"
-msgstr "Equipes de Produto e Engenharia"
-
-#, elixir-autogen, elixir-format
 msgid "Profile"
 msgstr "Perfil"
 
@@ -2780,20 +2712,8 @@ msgid "Project"
 msgstr "Projeto"
 
 #, elixir-autogen, elixir-format
-msgid "Project A"
-msgstr "Projeto A"
-
-#, elixir-autogen, elixir-format
-msgid "Project B"
-msgstr "Projeto B"
-
-#, elixir-autogen, elixir-format
 msgid "Project avatar"
 msgstr "Avatar do projeto."
-
-#, elixir-autogen, elixir-format
-msgid "Project context (repository example)"
-msgstr "Contexto do projeto (exemplo de repositório)"
 
 #, elixir-autogen, elixir-format
 msgid "Project created"
@@ -2924,10 +2844,6 @@ msgid "Quote reply"
 msgstr "Responder citando"
 
 #, elixir-autogen, elixir-format
-msgid "REST APIs"
-msgstr "APIs REST"
-
-#, elixir-autogen, elixir-format
 msgid "RSS Feed"
 msgstr "Feed RSS"
 
@@ -2982,10 +2898,6 @@ msgstr "Valor do registro"
 #, elixir-autogen, elixir-format
 msgid "Reference"
 msgstr "Referência"
-
-#, elixir-autogen, elixir-format
-msgid "Refine voice definitions, update glossary, and review content directly. Your expertise becomes the foundation that agents and integrations draw from across every project."
-msgstr "Ajuste definições de voz, atualize o glossário e revise o conteúdo diretamente. Sua experiência se torna a base na qual agentes e integrações se sustentam em todos os projetos."
 
 #, elixir-autogen, elixir-format
 msgid "Regenerate client secret"
@@ -3095,6 +3007,10 @@ msgstr ""
 msgid "Review and push"
 msgstr "Revisar e push"
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Review and ship."
+msgstr "Revisar e push"
+
 #, elixir-autogen, elixir-format
 msgid "Review provider billing"
 msgstr "Revisar cobrança do provedor"
@@ -3102,10 +3018,6 @@ msgstr "Revisar cobrança do provedor"
 #, elixir-autogen, elixir-format
 msgid "Review the local changes and push or merge them into the default branch when ready."
 msgstr "Revise as alterações locais e faça o push ou merge para o ramo padrão quando estiver pronto."
-
-#, elixir-autogen, elixir-format
-msgid "Review who changed what across your organization."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Revision"
@@ -3162,10 +3074,6 @@ msgstr "Regras de roteamento apontam para modelos configurados. Adicione um em M
 #, elixir-autogen, elixir-format
 msgid "Rule not found."
 msgstr "Regra não encontrada."
-
-#, elixir-autogen, elixir-format
-msgid "Run translation jobs in dedicated environments."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Running"
@@ -3280,6 +3188,10 @@ msgid "Search..."
 msgstr "Pesquisar..."
 
 #, elixir-autogen, elixir-format
+msgid "See how it works"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Segment %{index} of %{count}"
 msgstr "Segmento %{index} de %{count}"
 
@@ -3388,6 +3300,10 @@ msgid "Set up web analytics"
 msgstr "Configurar análise web"
 
 #, elixir-autogen, elixir-format
+msgid "Set your voice."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Setting up localization"
 msgstr "Configurando localização"
 
@@ -3432,12 +3348,16 @@ msgid "Setup update"
 msgstr "Atualização de configuração"
 
 #, elixir-autogen, elixir-format
-msgid "Share voice and terminology across projects."
+msgid "Shared across your projects"
 msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Shared translation goals will appear here when help is needed. You can also start a private conversation with Toki."
 msgstr "Objetivos de tradução compartilhados aparecerão aqui quando for preciso pedir ajuda. Você também pode iniciar uma conversa privada com o Toki."
+
+#, elixir-autogen, elixir-format
+msgid "Shared voice and glossary"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Shared with invited teammates"
@@ -3532,10 +3452,6 @@ msgid "Source file is not valid text"
 msgstr "O arquivo de origem não é texto válido"
 
 #, elixir-autogen, elixir-format
-msgid "Speak new languages, reach new markets"
-msgstr "Fale novas línguas, alcance novos mercados"
-
-#, elixir-autogen, elixir-format
 msgid "Split the source into smaller documents or reduce the supplied context before retrying. Unchecked output was not accepted."
 msgstr "Divida a fonte em documentos menores ou reduza o contexto fornecido antes de tentar novamente. A saída não verificada não foi aceita."
 
@@ -3550,10 +3466,6 @@ msgstr "Estado"
 #, elixir-autogen, elixir-format
 msgid "Step-by-step lessons to get started with Glossia."
 msgstr "Lições passo a passo para começar com o Glossia."
-
-#, elixir-autogen, elixir-format
-msgid "Stop gluing tools together. Glossia is the system you have been looking for: one place to maintain glossary, enforce consistency, and coordinate across teams and projects."
-msgstr "Pare de unir ferramentas. O Glossia é o sistema que você procurava: um único lugar para manter o glossário, garantir consistência e coordenar entre equipes e projetos."
 
 #, elixir-autogen, elixir-format
 msgid "Stop impersonating"
@@ -3608,8 +3520,16 @@ msgid "Table of contents"
 msgstr "Tabela de conteúdos"
 
 #, elixir-autogen, elixir-format
+msgid "Take the quick tour"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Talk it through with Toki"
 msgstr "Fale sobre isso com o Toki"
+
+#, elixir-autogen, elixir-format
+msgid "Talk to us"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Target audience"
@@ -3688,6 +3608,10 @@ msgid "The discussion changed. Read the latest reply before approving. Your guid
 msgstr "A discussão mudou. Leia a última resposta antes de aprovar. Seu rascunho de orientação está salvo."
 
 #, elixir-autogen, elixir-format
+msgid "The essentials for working across languages. Open source, always."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The general character of your writing."
 msgstr "O caráter geral da sua escrita."
 
@@ -3728,14 +3652,6 @@ msgid "The model to use, sourced from models.dev. Leave blank when routing throu
 msgstr "O modelo a usar, proveniente de models.dev. Deixe em branco ao encaminhar por um gateway que ancora o modelo (ex: Atlas)."
 
 #, elixir-autogen, elixir-format
-msgid "The more specific the context, the closer to the content"
-msgstr "Quanto mais específico o contexto, mais próximo do conteúdo"
-
-#, elixir-autogen, elixir-format
-msgid "The open-source platform for teams working across languages."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "The page you're looking for doesn't exist or may have moved."
 msgstr ""
 
@@ -3762,10 +3678,6 @@ msgstr "O repositório já possui um L10N.md, ou você o escreverá. Glossia cri
 #, elixir-autogen, elixir-format
 msgid "The repository and language choices are ready for the setup assistant."
 msgstr "As escolhas do repositório e de idioma estão prontas para o assistente de configuração."
-
-#, elixir-autogen, elixir-format
-msgid "The same linguistic foundation that keeps your content consistent also powers expansion into new languages. Linguists refine the voice once, and every market benefits from that work immediately."
-msgstr "A mesma base linguística que mantém seu conteúdo consistente também impulsiona a expansão para novas línguas. Linguistas refinam a voz uma vez, e cada mercado se beneficia imediatamente desse trabalho."
 
 #, elixir-autogen, elixir-format
 msgid "The setup assistant completed this step."
@@ -3842,6 +3754,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "There was a problem signing you in. Please try again."
 msgstr "Ocorreu um problema ao fazer login. Por favor, tente novamente."
+
+#, elixir-autogen, elixir-format
+msgid "There's a human behind every great translation. And behind Glossia, too."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "This code has expired. Start again from the app."
@@ -4106,6 +4022,10 @@ msgstr "Total"
 #, elixir-autogen, elixir-format
 msgid "Total tokens"
 msgstr "Total de tokens"
+
+#, elixir-autogen, elixir-format
+msgid "Translate your product, docs, and content with AI that knows how you speak."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Translated"
@@ -4436,10 +4356,6 @@ msgid "Version History"
 msgstr "Histórico de Versões"
 
 #, elixir-autogen, elixir-format
-msgid "Version everything"
-msgstr "Versionar tudo"
-
-#, elixir-autogen, elixir-format
 msgid "Version history"
 msgstr "Histórico de versões"
 
@@ -4524,14 +4440,6 @@ msgid "Voice suggestion submitted as suggestion #%{number}."
 msgstr "Sugestão de voz enviada como sugestão #%{number}."
 
 #, elixir-autogen, elixir-format
-msgid "Voices"
-msgstr "Vozes"
-
-#, elixir-autogen, elixir-format
-msgid "Voices, glossary, audience profiles, and style rules live on the platform. They are shared across every project in your organization and versioned so nothing gets lost."
-msgstr "Vozes, glossário, perfis de público e regras de estilo residem na plataforma. São compartilhados em todos os projetos da sua organização e versionados para que nada se perca."
-
-#, elixir-autogen, elixir-format
 msgid "Wait a moment, then retry this translation session."
 msgstr "Aguarde um momento e, em seguida, tente novamente esta sessão de tradução."
 
@@ -4540,16 +4448,12 @@ msgid "Waiting to start"
 msgstr "Aguardando início"
 
 #, elixir-autogen, elixir-format
+msgid "Warm"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Warning"
 msgstr "Aviso"
-
-#, elixir-autogen, elixir-format
-msgid "We are building experiences where humans take part in the agentic loops through interfaces that run in the browser or on the go. Implementation details like tools, models, and environments are abstracted away so reviewers can focus on the content itself. We are also designing agentic experiences for linguists to contribute directly to the system, refining voice, glossary, and quality standards without needing to touch config files or code."
-msgstr "Estamos construindo experiências onde humanos participam de loops agênticos por meio de interfaces que funcionam no navegador ou em qualquer lugar. Detalhes de implementação como ferramentas, modelos e ambientes são abstraídos para que revisores foquem no conteúdo em si. Também projetamos experiências para linguistas contribuírem diretamente ao sistema, refinando voz, glossário e padrões de qualidade sem precisar mexer em arquivos de configuração ou código."
-
-#, elixir-autogen, elixir-format
-msgid "We build solutions on top of the language OS, and you can build your own. The same foundation powers everything."
-msgstr "Construímos soluções sobre o sistema operacional de linguagem, e você pode construir o seu próprio. A mesma base alimenta tudo."
 
 #, elixir-autogen, elixir-format
 msgid "We couldn't complete this request. Please check the address or try again later."
@@ -4558,6 +4462,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "We couldn’t send your request. Please try again in a moment."
 msgstr "Não foi possível enviar sua solicitação. Por favor, tente novamente em breve."
+
+#, elixir-autogen, elixir-format, fuzzy
+msgid "We're onboarding teams gradually. Let's find your fit."
+msgstr "Estamos onboarding equipes gradualmente. Deixe seu e-mail para mostrar seu interesse."
 
 #, elixir-autogen, elixir-format
 msgid "Web analytics"
@@ -4592,24 +4500,12 @@ msgid "Where do humans participate?"
 msgstr "Onde os humanos participam?"
 
 #, elixir-autogen, elixir-format
-msgid "Whether you define the voice, manage the workflows, or build the products, Glossia gives you a shared system to work from."
-msgstr "Seja para definir a voz, gerenciar fluxos de trabalho ou construir produtos, a Glossia oferece um sistema compartilhado para trabalhar."
+msgid "Where does my content live?"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Who you are writing for."
 msgstr "Para quem você está escrevendo."
-
-#, elixir-autogen, elixir-format
-msgid "Why Glossia"
-msgstr "Por que Glossia"
-
-#, elixir-autogen, elixir-format
-msgid "Why a language OS"
-msgstr "Por que um sistema operacional de idiomas"
-
-#, elixir-autogen, elixir-format
-msgid "Why build this now?"
-msgstr "Por que construir isso agora?"
 
 #, elixir-autogen, elixir-format
 msgid "Why translating"
@@ -4744,12 +4640,12 @@ msgid "Your guidance draft"
 msgstr "Seu rascunho de orientação"
 
 #, elixir-autogen, elixir-format
-msgid "Your localization baseline is ready for review."
-msgstr "Sua linha base de localização está pronta para revisão."
+msgid "Your language. Your way."
+msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Your organization already has systems for code, design, and data. Language deserves the same level of care."
-msgstr "Sua organização já possui sistemas para código, design e dados. O idioma merece o mesmo nível de cuidado."
+msgid "Your localization baseline is ready for review."
+msgstr "Sua linha base de localização está pronta para revisão."
 
 #, elixir-autogen, elixir-format
 msgid "Your profile"
@@ -4764,16 +4660,20 @@ msgid "Your session expired. Please reload the page and try again."
 msgstr "Sua sessão expirou. Por favor, recarregue a página e tente novamente."
 
 #, elixir-autogen, elixir-format
-msgid "Your writing tools, content platforms, and AI assistants can all tap into your organization's linguistic knowledge without switching systems."
-msgstr "Suas ferramentas de escrita, plataformas de conteúdo e assistentes de IA podem acessar o conhecimento linguístico da sua organização sem mudar de sistema."
+msgid "Your team defines the voice and terminology, reviews translations, and refines the result. AI handles the repetitive work; people shape the language."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Your voice, in context"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Your voice."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "and"
 msgstr "e"
-
-#, elixir-autogen, elixir-format
-msgid "and open standards like"
-msgstr "e padrões abertos como"
 
 #, elixir-autogen, elixir-format
 msgid "case sensitivity changed for %{count} term"
