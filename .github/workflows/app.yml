@@ -49,7 +49,8 @@ env:
   RUSTLER_PRECOMPILED_FORCE_BUILD_ALL: "true"
   # Lumis's vendored Perl parser declares bsearch, which conflicts with
   # glibc 2.43's C23 macro on Ubuntu 26.04. Keep native C builds on GNU C17.
-  CFLAGS: "-std=gnu17"
+  # Erlang's source build requires an explicit optimization flag in CFLAGS.
+  CFLAGS: "-O2 -g -std=gnu17"
 
 # Both PR checks and post-merge checks use hosted runners. Image publication
 # waits for the post-merge checks, so an unavailable self-hosted runner would
