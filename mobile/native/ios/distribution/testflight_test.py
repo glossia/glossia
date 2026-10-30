@@ -26,6 +26,8 @@ class Apple:
         self.prereleases = {"build": resource("preReleaseVersions", "pre", version="0.1.1", platform="IOS")}
         self.groups = [resource("betaGroups", "internal", name="Team", isInternalGroup=True)]
         self.testers = []
+        # Testers belong to the resolved app unless explicitly assigned another app.
+        self.tester_apps = {}
         self.users = []
         self.visible = []
         self.memberships = {"internal": {"betaTesters": [], "builds": []}}
@@ -43,8 +45,11 @@ class Apple:
         if path == "/v1/apps/app/betaGroups":
             return copy.deepcopy(self.groups)
         if path == "/v1/betaTesters":
-            assert query == {"filter[email]": EMAIL}
-            return copy.deepcopy(self.testers)
+            return [self.tester_response(row, query) for row in self.testers
+                    if (not query.get("filter[email]")
+                        or row["attributes"]["email"].lower() == query["filter[email]"].lower())
+                    and (not query.get("filter[apps]")
+                         or self.tester_apps.get(row["id"], "app") == query["filter[apps]"])]
         if path == "/v1/users":
             if self.denied_users:
                 raise APIError(403, "GET", path)
@@ -56,7 +61,17 @@ class Apple:
             return [{"id": x} for x in self.memberships[parts[3]][parts[5]]]
         raise AssertionError(path)
 
-    def get(self, path):
+    def tester_response(self, row, query):
+        result = copy.deepcopy(row)
+        fields = query.get("fields[betaTesters]")
+        if fields is None:
+            result["attributes"].pop("state", None)
+        else:
+            result["attributes"] = {key: value for key, value in result["attributes"].items()
+                                    if key in fields.split(",")}
+        return result
+
+    def get(self, path, **query):
         if path.endswith("/preReleaseVersion"):
             return {"data": self.prereleases[path.split("/")[3]]}
         if path == "/v1/builds/build/buildBetaDetail":
@@ -64,7 +79,10 @@ class Apple:
         for rows in [self.testers, self.groups]:
             for row in rows:
                 if path == f"/v1/{row['type']}/{row['id']}":
-                    return {"data": copy.deepcopy(row)}
+                    result = self.tester_response(row, query) if row["type"] == "betaTesters" else copy.deepcopy(row)
+                    if row["type"] == "betaTesters" and "state" in result["attributes"]:
+                        result["attributes"]["state"] = None
+                    return {"data": result}
         raise AssertionError(path)
 
     def request(self, method, path, payload):
@@ -92,6 +110,52 @@ class Apple:
 
 
 class TestFlightTests(unittest.TestCase):
+    def test_same_email_in_other_app_selects_exact_app_and_validates_its_invitation(self):
+        for state in ("NOT_INVITED", "INVITED", "ACCEPTED", "INSTALLED"):
+            with self.subTest(state=state):
+                api = Apple()
+                api.testers = [resource("betaTesters", "other-tester", email=EMAIL, state="ACCEPTED"),
+                               resource("betaTesters", "tester", email=EMAIL, state=state)]
+                api.tester_apps["other-tester"] = "other-app"
+                if state == "NOT_INVITED":
+                    with self.assertRaisesRegex(DistributionError, "invitation state NOT_INVITED"):
+                        distribute(api, "0.1.1", "10.1")
+                else:
+                    message = distribute(api, "0.1.1", "10.1")
+                    self.assertIn(f"tester tester, invitation state {state}", message)
+                self.assertEqual(api.memberships["group-1"], {"betaTesters": ["tester"], "builds": ["build"]})
+                self.assertFalse(any(path == "/v1/betaTesters" for _, path, _ in api.writes))
+                self.assertEqual(api.testers[0]["attributes"]["state"], "ACCEPTED")
+
+    def test_final_app_scoped_readback_rejects_missing_changed_or_duplicate_identity(self):
+        for invalid in ("missing", "changed-id", "changed-email", "duplicate"):
+            with self.subTest(invalid=invalid):
+                api = Apple()
+                api.testers = [resource("betaTesters", "tester", email=EMAIL, state="INVITED")]
+                original = api.all
+                tester_reads = 0
+
+                def changed_readback(path, **query):
+                    nonlocal tester_reads
+                    rows = original(path, **query)
+                    if path == "/v1/betaTesters":
+                        tester_reads += 1
+                        if tester_reads == 2:
+                            if invalid == "missing":
+                                return []
+                            if invalid == "changed-id":
+                                rows[0]["id"] = "replacement-tester"
+                            if invalid == "changed-email":
+                                rows[0]["attributes"]["email"] = "other@example.invalid"
+                            if invalid == "duplicate":
+                                rows.append(resource("betaTesters", "duplicate", email=EMAIL, state="INVITED"))
+                    return rows
+
+                api.all = changed_readback
+                with self.assertRaisesRegex(DistributionError, "Multiple matching" if invalid == "duplicate"
+                                            else "identity/group readback"):
+                    distribute(api, "0.1.1", "10.1")
+
     def test_external_distribution_and_repeat_have_no_duplicate_writes(self):
         api = Apple()
         self.assertIn("relationships confirmed", distribute(api, "0.1.1", "10.1"))

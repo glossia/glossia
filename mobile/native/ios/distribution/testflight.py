@@ -199,7 +199,8 @@ def distribute(api, version, build, timeout=600):
     selected = wait_for_build(api, app_id, version, build, timeout)
     build_id = selected["id"]
     groups = api.all(f"/v1/apps/{app_id}/betaGroups")
-    testers = api.all("/v1/betaTesters", **{"filter[email]": EMAIL})
+    testers = api.all("/v1/betaTesters", **{"filter[email]": EMAIL, "filter[apps]": app_id,
+                                           "fields[betaTesters]": "email,inviteType,state"})
     tester = unique([t for t in testers if t["attributes"].get("email", "").lower() == EMAIL],
                     "beta testers")
     internals = sorted([g for g in groups if g["attributes"].get("isInternalGroup")], key=lambda g: g["id"])
@@ -244,9 +245,14 @@ def distribute(api, version, build, timeout=600):
             "type": "buildBetaDetails", "id": detail["id"], "attributes": {"autoNotifyEnabled": True}}})
     ensure_member(api, group_id, "builds", build_id, "builds")
     # Read back identities and membership, rather than treating a POST as proof.
-    confirmed = api.get(f"/v1/betaTesters/{tester['id']}")["data"]
+    # Apple's individual tester endpoint can return null state even with a fieldset.
+    confirmed_testers = api.all("/v1/betaTesters", **{
+        "filter[email]": EMAIL, "filter[apps]": app_id,
+        "fields[betaTesters]": "email,inviteType,state"})
+    confirmed = unique([t for t in confirmed_testers
+                        if t["attributes"].get("email", "").lower() == EMAIL], "beta testers")
     confirmed_group = api.get(f"/v1/betaGroups/{group_id}")["data"]
-    if (confirmed["attributes"].get("email", "").lower() != EMAIL
+    if (confirmed is None or confirmed["id"] != tester["id"]
             or confirmed_group["attributes"].get("isInternalGroup") is not internal):
         raise DistributionError("Apple identity/group readback did not match the requested access.")
     invitation = confirmed["attributes"].get("state", "unknown")
