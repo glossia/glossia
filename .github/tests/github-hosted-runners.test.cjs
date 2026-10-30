@@ -11,6 +11,7 @@ const standardRunners = new Set([
   'macos-14',
   'macos-15',
   'macos-15-intel',
+  'macos-26',
   'windows-latest',
 ]);
 
@@ -41,6 +42,7 @@ for (const runner of [
   'hetzner-docker',
   '[self-hosted, linux]',
   'ubuntu-24.04-16core',
+  'macos-26-xlarge',
   "${{ github.event_name == 'pull_request' && 'ubuntu-latest' || 'hetzner-docker' }}",
 ]) {
   test(`rejects runner selection ${runner}`, () => {
