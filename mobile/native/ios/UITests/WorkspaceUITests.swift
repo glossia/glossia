@@ -84,7 +84,7 @@ final class WorkspaceUITests: XCTestCase {
         let history = XCTAttachment(screenshot: app.screenshot())
         history.name = "ios-toki-conversation-history"; history.lifetime = .keepAlways; add(history)
         existing.tap()
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Of course. Gather")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Of course. Start")).firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["toki-mascot"].exists)
         app.navigationBars.buttons["Toki"].tap()
         app.buttons["new-conversation"].tap()
@@ -198,13 +198,13 @@ final class WorkspaceUITests: XCTestCase {
     func testChatOpensAtLatestReplyAndShowsGenerationStatus() {
         let app = XCUIApplication(bundleIdentifier: "ai.glossia.mobile.preview")
         for (screen, text) in [
-            ("chat", "Of course. Gather your product names, navigation labels, and the terms people see during onboarding. We can decide which to translate and which to keep."),
+            ("chat", "1. Product names: keep Glossia and Toki in English."),
             ("thinking", "Toki is thinking…"),
             ("failed", "Toki couldn't finish")
         ] {
             app.launchArguments = [screen]
             app.launch()
-            let message = app.staticTexts.matching(NSPredicate(format: "label == %@", text)).firstMatch
+            let message = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
             XCTAssertTrue(message.waitForExistence(timeout: 5), screen)
             XCTAssertTrue(message.isHittable, screen)
             let composer = app.descendants(matching: .any)["toki-composer"].firstMatch

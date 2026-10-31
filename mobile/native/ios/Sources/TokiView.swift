@@ -517,7 +517,10 @@ struct TokiConversationView: View {
                             } else {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(outgoing ? humanAuthor : "Toki").font(.caption.weight(.medium)).foregroundStyle(tokens.muted)
-                                    Text(message["content"] as? String ?? "").textSelection(.enabled)
+                                    let content = message["content"] as? String ?? ""
+                                    Text(outgoing ? AttributedString(content) : (try? AttributedString(
+                                        markdown: content, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+                                    )) ?? AttributedString(content)).textSelection(.enabled)
                                 }
                                 .padding(16)
                                 .background(outgoing ? tokens.accentSoft : tokens.surface,
@@ -574,6 +577,8 @@ struct TokiConversationView: View {
         }
         .navigationTitle(model.sharedGoal ? ((model.detail?["conversation"] as? [String: Any])?["title"] as? String ?? String(localized: "Linguistic review")) : model.status == "draft" ? String(localized: "New conversation") : "Toki")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(tokens.canvas, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .navigationBarBackButtonHidden(model.decision != nil || model.resolving)
         .toolbar {

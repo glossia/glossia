@@ -153,7 +153,7 @@ struct GlossiaPreviewApp: App {
             ["id": "one", "role": "user", "content": "We’re launching in Japan. Where should we start?"],
             ["id": "two", "role": "assistant", "content": "Let's start with your welcome flow and pricing page.\n\nYour project already supports English, Spanish and German. Japanese would be a new target language.\n\nBefore translating, agree on a glossary for your product names and a voice that feels natural to your Japanese readers."],
             ["id": "three", "role": "user", "content": "Can you help me plan the glossary?"],
-            ["id": "four", "role": "assistant", "content": "Of course. Gather your product names, navigation labels, and the terms people see during onboarding. We can decide which to translate and which to keep."],
+            ["id": "four", "role": "assistant", "content": "Of course. Start with three groups:\n\n1. **Product names:** keep *Glossia* and *Toki* in English.\n2. **Navigation labels:** translate them, for example `Settings`.\n3. **Onboarding terms:** decide which to translate and which to keep.\n\nThen share the list and we can review it together."],
         ],
     ]
 
