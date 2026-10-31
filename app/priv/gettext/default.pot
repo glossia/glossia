@@ -1464,6 +1464,14 @@ msgid "Edit routing rule"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Edited text could not be located on this page."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Edited text highlighted in the preview."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Edition:"
 msgstr ""
 
@@ -2972,7 +2980,7 @@ msgid "Private conversation"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Private preview · Not your live app"
+msgid "Private preview"
 msgstr ""
 
 #, elixir-autogen, elixir-format

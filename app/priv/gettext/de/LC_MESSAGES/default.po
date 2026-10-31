@@ -417,6 +417,10 @@ msgstr "Alle Lokalisierungen"
 msgid "Apache-2.0 core + Enterprise License"
 msgstr ""
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "App preview"
+msgstr "Vorschau"
+
 #, elixir-autogen, elixir-format
 msgid "App: %{name}"
 msgstr "App: %{name}"
@@ -790,6 +794,10 @@ msgstr "Alles löschen"
 #, elixir-autogen, elixir-format
 msgid "Clear selection"
 msgstr "Auswahl löschen"
+
+#, elixir-autogen, elixir-format
+msgid "Click or tap to interact · Scroll here to explore"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Click to upload"
@@ -1456,6 +1464,14 @@ msgid "Edit routing rule"
 msgstr "Routing-Regel bearbeiten"
 
 #, elixir-autogen, elixir-format
+msgid "Edited text could not be located on this page."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Edited text highlighted in the preview."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Edition:"
 msgstr ""
 
@@ -1541,6 +1557,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Example workspace"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Expand"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1649,6 +1669,14 @@ msgstr "Filter"
 
 #, elixir-autogen, elixir-format
 msgid "Find the right term"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Finding page…"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Finding the right screen and starting the app. Keep editing."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1976,6 +2004,10 @@ msgid "Install the Glossia GitHub App to import repositories and set up localiza
 msgstr "Installieren Sie die Glossia GitHub-App, um Repositorien zu importieren und die Lokalisierung einzurichten."
 
 #, elixir-autogen, elixir-format
+msgid "Interactive app preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Interested in Glossia?"
 msgstr "Interesse an Glossia haben?"
 
@@ -2178,6 +2210,14 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Live"
 msgstr "Live"
+
+#, elixir-autogen, elixir-format
+msgid "Live app previews require an isolated runner. Your content can still be edited and saved here."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Live application preview of %{path}"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Locale guidance"
@@ -2691,6 +2731,10 @@ msgstr ""
 msgid "Not recorded"
 msgstr "Nicht protokolliert"
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Not running"
+msgstr "Laufend"
+
 #, elixir-autogen, elixir-format
 msgid "Not started"
 msgstr "Nicht gestartet"
@@ -2904,6 +2948,10 @@ msgid "Preferences"
 msgstr "Einstellungen"
 
 #, elixir-autogen, elixir-format
+msgid "Preparing your app"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Preview"
 msgstr "Vorschau"
 
@@ -2930,6 +2978,10 @@ msgstr "Datenschutzerklärung"
 #, elixir-autogen, elixir-format
 msgid "Private conversation"
 msgstr "Privates Gespräch"
+
+#, elixir-autogen, elixir-format
+msgid "Private preview"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Profile"
@@ -3252,6 +3304,10 @@ msgid "Requested permissions:"
 msgstr "Angeforderte Berechtigungen:"
 
 #, elixir-autogen, elixir-format
+msgid "Resize app preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Resolved"
 msgstr "Gelöst"
 
@@ -3512,6 +3568,10 @@ msgid "See how it works"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "See unsaved edits in your app. Nothing is published."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Segment %{index} of %{count}"
 msgstr "%{index} von %{count}"
 
@@ -3728,6 +3788,10 @@ msgid "Showing the first 200 matches. Refine your search to find a specific phra
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Shrink"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Sign in"
 msgstr "Anmelden"
 
@@ -3812,8 +3876,16 @@ msgid "Split the source into smaller documents or reduce the supplied context be
 msgstr "Spalten Sie die Quelle in kleinere Dokumente auf oder reduzieren Sie den bereitgestellten Kontext, bevor Sie erneut versuchen. Die nicht geprüfte Ausgabe wurde nicht akzeptiert."
 
 #, elixir-autogen, elixir-format
+msgid "Start live preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Started"
 msgstr "Gestartet"
+
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Starting…"
+msgstr "Einstellungen"
 
 #, elixir-autogen, elixir-format
 msgid "Status"
@@ -3826,6 +3898,10 @@ msgstr "Schritt-für-Schritt-Anleitungen zum Einstieg in Glossia."
 #, elixir-autogen, elixir-format
 msgid "Stop impersonating"
 msgstr "Identitätsübernahme beenden"
+
+#, elixir-autogen, elixir-format
+msgid "Stop preview"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Stopped because newer content arrived."
@@ -3968,6 +4044,10 @@ msgid "The URL where users return after authorizing the application."
 msgstr "Die URL, an die Benutzer nach der Autorisierung der Anwendung zurückkehren."
 
 #, elixir-autogen, elixir-format
+msgid "The app preview could not start safely. Your edits are unchanged. Check the repository and preview runner, then try again."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The complete document exceeds the decision model assessment limit."
 msgstr "Das vollständige Dokument überschreitet das Bewertungslimit des Entscheidungsmodells."
 
@@ -4030,6 +4110,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "The percentage of checked content reused without another translation."
 msgstr "Der Prozentsatz des geprüften Inhalts, der ohne weitere Übersetzung wiederverwendet wird."
+
+#, elixir-autogen, elixir-format
+msgid "The preview stopped. Start it again to reconnect."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The project instructions changed."
@@ -4636,6 +4720,10 @@ msgid "URL"
 msgstr "URL"
 
 #, elixir-autogen, elixir-format
+msgid "Unavailable"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Unchanged"
 msgstr "Unverändert"
 
@@ -4674,6 +4762,10 @@ msgstr "Aktualisiert"
 #, elixir-autogen, elixir-format
 msgid "Updated for: %{countries}"
 msgstr "Aktualisiert für: %{countries}"
+
+#, elixir-autogen, elixir-format
+msgid "Updating…"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Upload an image to represent this project."

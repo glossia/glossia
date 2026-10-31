@@ -52,21 +52,16 @@ defmodule Glossia.Editor.PreviewRuntime do
           message: "Starting the discovered page and browser."
         })
 
-        parent = self()
-
-        {runtime, monitor} =
+        {_runtime, monitor} =
           spawn_monitor(fn ->
-            result =
-              adapter.execute_preview(
-                sandbox.id,
-                "exec node #{shell_quote(sibling(root, "preview-runtime.mjs"))} #{shell_quote(sibling(root, "preview-launch.json"))}",
-                cwd: root,
-                timeout_ms: 900_000,
-                output_limit_bytes: 4_000,
-                env: browser_env(adapter)
-              )
-
-            send(parent, {:runtime_done, result})
+            adapter.execute_preview(
+              sandbox.id,
+              "exec node #{shell_quote(sibling(root, "preview-runtime.mjs"))} #{shell_quote(sibling(root, "preview-launch.json"))}",
+              cwd: root,
+              timeout_ms: 900_000,
+              output_limit_bytes: 4_000,
+              env: browser_env(adapter)
+            )
           end)
 
         Process.send_after(self(), :poll_preview_frame, 1_000)
@@ -81,7 +76,6 @@ defmodule Glossia.Editor.PreviewRuntime do
           id: sandbox.id,
           root: root,
           revision: 0,
-          runtime: runtime,
           monitor: monitor,
           path: manifest["path"],
           probe_field: launch["probe_field"],
@@ -346,7 +340,8 @@ defmodule Glossia.Editor.PreviewRuntime do
          "probe_content" => probe,
          "original_content" => content,
          "probe_marker" => marker,
-         "probe_field" => field.id
+         "probe_field" => field.id,
+         "highlight_targets" => highlight_targets(file, [field])
        })}
     else
       _ -> {:error, :ambiguous_route}
@@ -360,12 +355,13 @@ defmodule Glossia.Editor.PreviewRuntime do
 
         with {:ok, files} <- snapshots(state.user, state.project, file),
              true <-
-               Enum.all?(files, fn file ->
-                 Enum.any?(state.files, &(&1.id == file.id && Preview.same_base?(&1, file)))
-               end),
+               length(files) == length(state.files) &&
+                 Enum.all?(files, fn file ->
+                   Enum.any?(state.files, &(&1.id == file.id && Preview.same_base?(&1, file)))
+                 end),
              :ok <- upload_input(state, files, revision, content) do
-          for input <- state.inputs,
-              do: send(state.session, {:preview_input_ack, self(), input.sequence})
+          if input = List.last(state.inputs),
+            do: send(state.session, {:preview_input_ack, self(), input.sequence})
 
           loop(%{state | revision: revision, file: file, inputs: []})
         else
@@ -390,9 +386,6 @@ defmodule Glossia.Editor.PreviewRuntime do
         send(state.session, {:preview_input_ack, self(), sequence})
         loop(state)
 
-      {:runtime_done, _result} ->
-        fail(state.session, :unusable_app)
-
       {:DOWN, ref, :process, _, _} when ref == state.monitor ->
         fail(state.session, :unusable_app)
 
@@ -400,13 +393,13 @@ defmodule Glossia.Editor.PreviewRuntime do
         Process.send_after(self(), :poll_preview_frame, 1_000)
 
         case read_frame(state) do
-          {:ok, frame, revision, sequence, input_sequence}
+          {:ok, frame, revision, sequence, input_sequence, highlights}
           when revision == state.revision and sequence > state.last_sequence ->
             send(state.session, {:preview_input_ack, self(), input_sequence})
 
             event(state.session, %{
               status: :ready,
-              message: "Live app preview",
+              message: if(highlights > 0, do: :text_highlighted, else: :text_not_found),
               frame: frame,
               path: state.path,
               revision: revision
@@ -445,17 +438,23 @@ defmodule Glossia.Editor.PreviewRuntime do
       marker = "GlossiaPreview" <> String.replace(Ecto.UUID.generate(), "-", "")
 
       with {:ok, fields} <- Content.fields(state.file.format, content),
+           {:ok, original_fields} <-
+             Content.fields(state.file.format, state.file.draft_content || state.file.content),
            field when not is_nil(field) <- Enum.find(fields, &(&1.id == state.probe_field)),
            {:ok, probe} <-
              Content.update(state.file.format, content, %{
                field.id => field.value <> " " <> marker
              }) do
+        changed = Enum.reject(fields, &(&1 in original_fields))
+
         payload =
           JSON.encode!(%{
             revision: revision,
             files: files,
             probe_content: probe,
-            probe_marker: marker
+            probe_marker: marker,
+            highlight_targets:
+              highlight_targets(state.file, if(changed == [], do: [field], else: changed))
           })
 
         if byte_size(payload) <= 12_000_000 do
@@ -471,6 +470,34 @@ defmodule Glossia.Editor.PreviewRuntime do
     end
   end
 
+  defp highlight_targets(file, fields) do
+    fields
+    |> Enum.take(32)
+    |> Enum.filter(&(byte_size(&1.value) <= 16_000))
+    |> Enum.flat_map(fn field ->
+      if file.format == "markdown" && field.id == "body" do
+        field.value
+        |> MDEx.parse_document!(extension: [table: true, strikethrough: true])
+        |> Enum.filter(fn node ->
+          node.__struct__ in [MDEx.Paragraph, MDEx.Heading, MDEx.TableCell, MDEx.CodeBlock]
+        end)
+        |> Enum.map(&highlight_text/1)
+      else
+        [field.value]
+      end
+    end)
+    |> Enum.take(100)
+  end
+
+  defp highlight_text(%module{literal: text})
+       when module in [MDEx.Text, MDEx.Code, MDEx.CodeBlock],
+       do: text
+
+  defp highlight_text(%module{}) when module in [MDEx.SoftBreak, MDEx.LineBreak], do: " "
+  defp highlight_text(%MDEx.Image{}), do: ""
+  defp highlight_text(%{nodes: nodes}), do: Enum.map_join(nodes, &highlight_text/1)
+  defp highlight_text(_), do: ""
+
   defp read_frame(state) do
     with {:ok, bytes} <-
            state.adapter.download_preview_file(
@@ -484,14 +511,16 @@ defmodule Glossia.Editor.PreviewRuntime do
             "frame" => frame,
             "revision" => revision,
             "sequence" => sequence,
-            "input_sequence" => input_sequence
+            "input_sequence" => input_sequence,
+            "highlights" => highlights
           }} <-
            JSON.decode(bytes),
          true <- is_integer(sequence) && sequence > 0 && is_integer(revision),
          true <- is_integer(input_sequence) && input_sequence >= 0,
+         true <- is_integer(highlights) && highlights in 0..100,
          true <- is_binary(frame) && byte_size(frame) <= @frame_bytes,
          {:ok, <<255, 216, _::binary>>} <- Base.decode64(frame) do
-      {:ok, frame, revision, sequence, input_sequence}
+      {:ok, frame, revision, sequence, input_sequence, highlights}
     else
       _ -> {:error, :frame_unavailable}
     end

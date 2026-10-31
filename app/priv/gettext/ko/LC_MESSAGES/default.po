@@ -406,6 +406,10 @@ msgstr "모든 로케일"
 msgid "Apache-2.0 core + Enterprise License"
 msgstr ""
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "App preview"
+msgstr "미리보기"
+
 #, elixir-autogen, elixir-format
 msgid "App: %{name}"
 msgstr "앱: %{name}"
@@ -778,6 +782,10 @@ msgstr "전체 초기화"
 #, elixir-autogen, elixir-format
 msgid "Clear selection"
 msgstr "선택 지우기"
+
+#, elixir-autogen, elixir-format
+msgid "Click or tap to interact · Scroll here to explore"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Click to upload"
@@ -1444,6 +1452,14 @@ msgid "Edit routing rule"
 msgstr "라우팅 규칙 편집"
 
 #, elixir-autogen, elixir-format
+msgid "Edited text could not be located on this page."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Edited text highlighted in the preview."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Edition:"
 msgstr ""
 
@@ -1529,6 +1545,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Example workspace"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Expand"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1637,6 +1657,14 @@ msgstr "필터"
 
 #, elixir-autogen, elixir-format
 msgid "Find the right term"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Finding page…"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Finding the right screen and starting the app. Keep editing."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1964,6 +1992,10 @@ msgid "Install the Glossia GitHub App to import repositories and set up localiza
 msgstr "저장소 가져오기와 지역화 설정을 위해 Glossia GitHub App 을 설치하세요."
 
 #, elixir-autogen, elixir-format
+msgid "Interactive app preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Interested in Glossia?"
 msgstr "Glossia 에 관심이 있으신가요?"
 
@@ -2166,6 +2198,14 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Live"
 msgstr "실시간"
+
+#, elixir-autogen, elixir-format
+msgid "Live app previews require an isolated runner. Your content can still be edited and saved here."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Live application preview of %{path}"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Locale guidance"
@@ -2679,6 +2719,10 @@ msgstr ""
 msgid "Not recorded"
 msgstr "기록되지 않음"
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Not running"
+msgstr "진행 중"
+
 #, elixir-autogen, elixir-format
 msgid "Not started"
 msgstr "시작되지 않았습니다"
@@ -2892,6 +2936,10 @@ msgid "Preferences"
 msgstr "설정"
 
 #, elixir-autogen, elixir-format
+msgid "Preparing your app"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Preview"
 msgstr "미리보기"
 
@@ -2918,6 +2966,10 @@ msgstr "개인정보처리방침"
 #, elixir-autogen, elixir-format
 msgid "Private conversation"
 msgstr "개인 대화"
+
+#, elixir-autogen, elixir-format
+msgid "Private preview"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Profile"
@@ -3240,6 +3292,10 @@ msgid "Requested permissions:"
 msgstr "요청된 권한:"
 
 #, elixir-autogen, elixir-format
+msgid "Resize app preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Resolved"
 msgstr "해결됨"
 
@@ -3500,6 +3556,10 @@ msgid "See how it works"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "See unsaved edits in your app. Nothing is published."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Segment %{index} of %{count}"
 msgstr "%{count} 부분 중 %{index} 번째"
 
@@ -3716,6 +3776,10 @@ msgid "Showing the first 200 matches. Refine your search to find a specific phra
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Shrink"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Sign in"
 msgstr "로그인"
 
@@ -3800,8 +3864,16 @@ msgid "Split the source into smaller documents or reduce the supplied context be
 msgstr "원문을 더 작은 문서로 나누거나 제공된 문맥을 줄여 다시 시도하세요. 검증되지 않은 출력은 승인되지 않았습니다."
 
 #, elixir-autogen, elixir-format
+msgid "Start live preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Started"
 msgstr "시작됨"
+
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Starting…"
+msgstr "설정"
 
 #, elixir-autogen, elixir-format
 msgid "Status"
@@ -3814,6 +3886,10 @@ msgstr "Glossia 시작을 위한 단계별 레슨"
 #, elixir-autogen, elixir-format
 msgid "Stop impersonating"
 msgstr "더 이상 대신하지 마세요"
+
+#, elixir-autogen, elixir-format
+msgid "Stop preview"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Stopped because newer content arrived."
@@ -3956,6 +4032,10 @@ msgid "The URL where users return after authorizing the application."
 msgstr "애플리케이션 인증 후 사용자가 되돌아오는 URL 입니다."
 
 #, elixir-autogen, elixir-format
+msgid "The app preview could not start safely. Your edits are unchanged. Check the repository and preview runner, then try again."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The complete document exceeds the decision model assessment limit."
 msgstr "전체 문서는 판단 모델 평가 한도를 초과합니다."
 
@@ -4018,6 +4098,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "The percentage of checked content reused without another translation."
 msgstr "다른 번역 없이 재사용된 검사된 콘텐츠 비율"
+
+#, elixir-autogen, elixir-format
+msgid "The preview stopped. Start it again to reconnect."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The project instructions changed."
@@ -4624,6 +4708,10 @@ msgid "URL"
 msgstr "URL"
 
 #, elixir-autogen, elixir-format
+msgid "Unavailable"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Unchanged"
 msgstr "변경 없음"
 
@@ -4662,6 +4750,10 @@ msgstr "업데이트됨"
 #, elixir-autogen, elixir-format
 msgid "Updated for: %{countries}"
 msgstr "국가별 업데이트: %{countries}"
+
+#, elixir-autogen, elixir-format
+msgid "Updating…"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Upload an image to represent this project."

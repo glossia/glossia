@@ -417,6 +417,10 @@ msgstr "Cualquier idioma"
 msgid "Apache-2.0 core + Enterprise License"
 msgstr ""
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "App preview"
+msgstr "Vista previa"
+
 #, elixir-autogen, elixir-format
 msgid "App: %{name}"
 msgstr "Aplicación: %{name}"
@@ -790,6 +794,10 @@ msgstr "Limpiar todo"
 #, elixir-autogen, elixir-format
 msgid "Clear selection"
 msgstr "Cancelar selección"
+
+#, elixir-autogen, elixir-format
+msgid "Click or tap to interact · Scroll here to explore"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Click to upload"
@@ -1456,6 +1464,14 @@ msgid "Edit routing rule"
 msgstr "Editar regla de enrutamiento"
 
 #, elixir-autogen, elixir-format
+msgid "Edited text could not be located on this page."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Edited text highlighted in the preview."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Edition:"
 msgstr ""
 
@@ -1541,6 +1557,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Example workspace"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Expand"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1649,6 +1669,14 @@ msgstr "Filtrar"
 
 #, elixir-autogen, elixir-format
 msgid "Find the right term"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Finding page…"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Finding the right screen and starting the app. Keep editing."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1976,6 +2004,10 @@ msgid "Install the Glossia GitHub App to import repositories and set up localiza
 msgstr "Instala la aplicación de GitHub de Glossia para importar repositorios y configurar la localización."
 
 #, elixir-autogen, elixir-format
+msgid "Interactive app preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Interested in Glossia?"
 msgstr "¿Interesado en Glossia?"
 
@@ -2178,6 +2210,14 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Live"
 msgstr "En vivo"
+
+#, elixir-autogen, elixir-format
+msgid "Live app previews require an isolated runner. Your content can still be edited and saved here."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Live application preview of %{path}"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Locale guidance"
@@ -2691,6 +2731,10 @@ msgstr ""
 msgid "Not recorded"
 msgstr "No registrado."
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Not running"
+msgstr "Ejecutando"
+
 #, elixir-autogen, elixir-format
 msgid "Not started"
 msgstr "No iniciado"
@@ -2904,6 +2948,10 @@ msgid "Preferences"
 msgstr "Preferencias"
 
 #, elixir-autogen, elixir-format
+msgid "Preparing your app"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Preview"
 msgstr "Vista previa"
 
@@ -2930,6 +2978,10 @@ msgstr "Política de privacidad"
 #, elixir-autogen, elixir-format
 msgid "Private conversation"
 msgstr "Conversación privada"
+
+#, elixir-autogen, elixir-format
+msgid "Private preview"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Profile"
@@ -3252,6 +3304,10 @@ msgid "Requested permissions:"
 msgstr "Permisos solicitados:"
 
 #, elixir-autogen, elixir-format
+msgid "Resize app preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Resolved"
 msgstr "Resuelto"
 
@@ -3512,6 +3568,10 @@ msgid "See how it works"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "See unsaved edits in your app. Nothing is published."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Segment %{index} of %{count}"
 msgstr "Segmento %{index} de %{count}"
 
@@ -3728,6 +3788,10 @@ msgid "Showing the first 200 matches. Refine your search to find a specific phra
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Shrink"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Sign in"
 msgstr "Iniciar sesión"
 
@@ -3812,8 +3876,16 @@ msgid "Split the source into smaller documents or reduce the supplied context be
 msgstr "Divida el documento de origen en documentos más pequeños o reduzca el contexto suministrado antes de volver a intentarlo. La salida sin verificar no fue aceptada."
 
 #, elixir-autogen, elixir-format
+msgid "Start live preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Started"
 msgstr "Iniciada"
+
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Starting…"
+msgstr "Configuración"
 
 #, elixir-autogen, elixir-format
 msgid "Status"
@@ -3826,6 +3898,10 @@ msgstr "Lecciones paso a paso para empezar con Glossia."
 #, elixir-autogen, elixir-format
 msgid "Stop impersonating"
 msgstr "Detener la impersonación"
+
+#, elixir-autogen, elixir-format
+msgid "Stop preview"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Stopped because newer content arrived."
@@ -3968,6 +4044,10 @@ msgid "The URL where users return after authorizing the application."
 msgstr "La URL a la que los usuarios regresan después de autorizar la aplicación."
 
 #, elixir-autogen, elixir-format
+msgid "The app preview could not start safely. Your edits are unchanged. Check the repository and preview runner, then try again."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The complete document exceeds the decision model assessment limit."
 msgstr "El documento completo supera el límite de evaluación del modelo de decisión."
 
@@ -4030,6 +4110,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "The percentage of checked content reused without another translation."
 msgstr "El porcentaje de contenido revisado reutilizado sin otra traducción."
+
+#, elixir-autogen, elixir-format
+msgid "The preview stopped. Start it again to reconnect."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The project instructions changed."
@@ -4636,6 +4720,10 @@ msgid "URL"
 msgstr "URL"
 
 #, elixir-autogen, elixir-format
+msgid "Unavailable"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Unchanged"
 msgstr "Sin cambios"
 
@@ -4674,6 +4762,10 @@ msgstr "Actualizado"
 #, elixir-autogen, elixir-format
 msgid "Updated for: %{countries}"
 msgstr "Actualizado para: %{countries}"
+
+#, elixir-autogen, elixir-format
+msgid "Updating…"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Upload an image to represent this project."

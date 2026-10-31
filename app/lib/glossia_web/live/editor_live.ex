@@ -132,6 +132,11 @@ defmodule GlossiaWeb.EditorLive do
 
   def handle_event("stop_preview", _, socket), do: {:noreply, stop_live_preview(socket)}
 
+  def handle_event("preview_heartbeat", _, socket) do
+    pid = socket.assigns.live_preview.pid
+    {:reply, %{accepted: not is_nil(pid) && Preview.heartbeat(pid) == :ok}, socket}
+  end
+
   def handle_event("preview_input", %{"revision" => revision, "input" => input}, socket) do
     state = socket.assigns.live_preview
 
@@ -256,6 +261,18 @@ defmodule GlossiaWeb.EditorLive do
       # Frames stay on the authenticated LiveView connection. Repository HTML
       # and scripts are never mounted in the editor's browser origin.
       event = Map.take(event, [:status, :message, :frame, :path, :revision])
+
+      event =
+        case event[:message] do
+          :text_highlighted ->
+            Map.put(event, :message, gettext("Edited text highlighted in the preview."))
+
+          :text_not_found ->
+            Map.put(event, :message, gettext("Edited text could not be located on this page."))
+
+          _ ->
+            event
+        end
 
       if Map.get(event, :revision, state.revision) >= state.revision do
         {:noreply, assign(socket, live_preview: Map.merge(state, event))}
@@ -903,6 +920,9 @@ defmodule GlossiaWeb.EditorLive do
               <p id="editor-preview-help" data-part="muted">
                 {gettext("Click or tap to interact · Scroll here to explore")}
               </p>
+              <p :if={@live_preview.message} data-part="muted" role="status">
+                {@live_preview.message}
+              </p>
             </Noora.Card.card_section>
             <Noora.Card.card_section
               :if={!@live_preview.frame && @live_preview.pid}
@@ -917,7 +937,7 @@ defmodule GlossiaWeb.EditorLive do
               />
             </Noora.Card.card_section>
             <Noora.Card.card_section :if={@live_preview.pid} data-part="preview-footer">
-              <span data-part="muted">{gettext("Private preview · Not your live app")}</span>
+              <span data-part="muted">{gettext("Private preview")}</span>
               <Noora.Button.button
                 id="editor-stop-preview"
                 label={gettext("Stop preview")}

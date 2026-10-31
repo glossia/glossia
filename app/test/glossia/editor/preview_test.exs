@@ -54,7 +54,12 @@ defmodule Glossia.Editor.PreviewTest do
 
     root = Path.join(c.tmp_dir, "repository")
     File.mkdir_p!(Path.join(root, "es"))
-    File.write!(Path.join(root, "es/products.json"), ~s({"title":"Original product","count":7}))
+
+    File.write!(
+      Path.join(root, "es/products.json"),
+      ~s({"title":"Original product","count":7,"z_notes":"Not rendered by the app"})
+    )
+
     File.write!(Path.join(root, "es/guide.md"), "# Original guide\n\nA real Markdown page.\n")
     File.write!(Path.join(root, "es/info.yaml"), "title: Original YAML\ncount: 7\n")
     File.write!(Path.join(root, "server.mjs"), server())
@@ -173,7 +178,8 @@ defmodule Glossia.Editor.PreviewTest do
     block_discovery(c)
     {:ok, pid} = Preview.start(c.user, c.project, c.file.id, self())
     assert_receive {:discovery_waiting, worker, _id}, 10_000
-    {:ok, [field]} = Content.fields(c.file.format, c.file.content)
+    {:ok, fields} = Content.fields(c.file.format, c.file.content)
+    field = Enum.find(fields, &(&1.label == "$.title"))
     assert {:ok, 1} = Preview.update(pid, c.file.id, 1, %{field.id => "Accepted product"})
     assert {:error, :stale} = Preview.update(pid, c.file.id, 0, %{})
     assert {:error, _} = Preview.update(pid, c.file.id, 1, %{"unknown" => "bad"})
@@ -282,12 +288,13 @@ defmodule Glossia.Editor.PreviewTest do
     assert_receive {:editor_preview, ^pid, %{frame: "current"}}, 1_000
     Repo.update!(change(c.file, conflict: true))
     assert {:error, :unauthorized} = Preview.interact(pid, 1, click)
+    assert {:error, :unauthorized} = Preview.heartbeat(pid)
     assert :ok = Preview.stop(pid)
     assert {:error, :stopped} = Preview.interact(pid, 1, click)
     wait_terminated(c.project)
   end
 
-  test "viewing fresh frames refreshes idle timeout and ignores an obsolete timer", c do
+  test "owner activity renews the idle lease but streamed frames cannot keep it alive", c do
     c = c.fixture
     block_discovery(c)
     {:ok, pid} = Preview.start(c.user, c.project, c.file.id, self())
@@ -301,8 +308,19 @@ defmodule Glossia.Editor.PreviewTest do
 
     assert_receive {:editor_preview, ^pid, %{frame: "fixture"}}, 1_000
     send(pid, {:timeout, old, :idle_deadline})
-    assert Process.alive?(pid)
-    assert :ok = Preview.stop(pid)
+    idle = :sys.get_state(pid).idle
+
+    assert {:error, :not_owner} = Task.async(fn -> Preview.heartbeat(pid) end) |> Task.await()
+    assert :ok = Preview.heartbeat(pid)
+    send(pid, {:timeout, idle, :idle_deadline})
+    idle = :sys.get_state(pid).idle
+
+    send(pid, {:preview_event, worker, %{status: :ready, revision: 0, frame: "another"}})
+    assert_receive {:editor_preview, ^pid, %{frame: "another"}}, 1_000
+    monitor = Process.monitor(pid)
+    send(pid, {:timeout, idle, :idle_deadline})
+    assert_receive {:editor_preview, ^pid, %{status: :stopped}}, 1_000
+    assert_receive {:DOWN, ^monitor, :process, ^pid, :normal}, 1_000
     wait_terminated(c.project)
   end
 
@@ -489,6 +507,30 @@ defmodule Glossia.Editor.PreviewTest do
       end)
 
     assert streamed >= 2
+    # The second click performs a real navigation whose body arrives later.
+    # Highlighting must wait, not terminate the session on the partial document.
+    assert :ok = Preview.interact(pid, 0, %{"type" => "click", "x" => 60, "y" => 40})
+
+    assert Enum.reduce_while(1..100, false, fn _, _ ->
+             case LocalAdapter.download_file(sandbox.id, Path.join(root, "streamed.json")) do
+               {:ok, "started"} ->
+                 {:halt, true}
+
+               _ ->
+                 Process.sleep(50)
+                 {:cont, false}
+             end
+           end)
+
+    assert_receive {:editor_preview, ^pid,
+                    %{
+                      status: :ready,
+                      message: :text_not_found,
+                      frame: navigated
+                    }},
+                   10_000
+
+    refute navigated == first.frame
     assert {:ok, 1} = Preview.update(pid, c.file.id, c.file.lock_version, %{})
 
     assert {:error, :stale} =
@@ -509,6 +551,7 @@ defmodule Glossia.Editor.PreviewTest do
       {:ok, pid} = Preview.start(c.user, c.project, file.id, self())
       first = frame(pid, 0)
       assert first.path != "/"
+      assert first.message == :text_highlighted
       assert <<255, 216, _::binary>> = Base.decode64!(first.frame)
       {:ok, fields} = Content.fields(file.format, file.content)
       field = hd(fields)
@@ -522,6 +565,7 @@ defmodule Glossia.Editor.PreviewTest do
 
       changed = frame(pid, 8)
       refute changed.frame == first.frame
+      assert changed.message == :text_highlighted
 
       sandbox =
         Repo.one!(
@@ -548,10 +592,45 @@ defmodule Glossia.Editor.PreviewTest do
 
       assert {:ok, 9} = Preview.update(pid, file.id, saved.lock_version, %{})
       assert frame(pid, 9).path == first.path
+
+      if file.format == "json" do
+        # The repository renders newlines as <br>, not whitespace text nodes.
+        assert {:ok, 10} =
+                 Preview.update(pid, file.id, saved.lock_version, %{field.id => "Hello\nworld"})
+
+        assert frame(pid, 10).message == :text_highlighted
+
+        notes = Enum.find(fields, &(&1.label == "$.z_notes"))
+
+        assert {:ok, 11} =
+                 Preview.update(pid, file.id, saved.lock_version, %{
+                   field.id => "Changed #{file.format} 8",
+                   notes.id => "Repository-only editorial notes"
+                 })
+
+        assert frame(pid, 11).message == :text_not_found
+      end
+
       assert :ok = Preview.stop(pid)
       wait_terminated(c.project)
       wait_ports_closed([14173, 19222])
     end
+  end
+
+  @tag :live
+  @tag timeout: 60_000
+  test "a removed non-current file invalidates the preview snapshot", c do
+    c = c.fixture
+    {:ok, pid} = Preview.start(c.user, c.project, c.file.id, self())
+    frame(pid, 0)
+    other = Enum.find(c.files, &(&1.id != c.file.id))
+    Repo.update!(change(other, active: false))
+
+    assert {:ok, 1} = Preview.update(pid, c.file.id, c.file.lock_version, %{})
+    assert_receive {:editor_preview, ^pid, %{status: :error, message: message}}, 10_000
+    assert message =~ "repository no longer matches"
+    wait_terminated(c.project)
+    wait_ports_closed([14173, 19222])
   end
 
   defp block_discovery(c) do
@@ -656,6 +735,13 @@ defmodule Glossia.Editor.PreviewTest do
         fs.writeFileSync('interaction.json', JSON.stringify({clicks: Number(params.get('clicks')), y: Number(params.get('y')), path: params.get('path')}));
         res.end('ok'); return;
       }
+      if (req.url === '/es/streamed') {
+        fs.writeFileSync('streamed.json', 'started');
+        res.setHeader('Content-Type','text/html; charset=utf-8');
+        res.write('<!doctype html><html><head><title>Streamed navigation</title>');
+        setTimeout(() => res.end('</head><body><h1>A different document</h1></body></html>'), 1200);
+        return;
+      }
       let content;
       if (req.url === '/es/products') content = JSON.parse(fs.readFileSync('es/products.json', 'utf8')).title;
       else if (req.url === '/es/guide') content = fs.readFileSync('es/guide.md', 'utf8').replace(/^# /, '');
@@ -667,7 +753,7 @@ defmodule Glossia.Editor.PreviewTest do
       // repository execution. Node has an intentionally minimal environment.
       if (process.env.GITHUB_TOKEN || process.env.DATABASE_URL || fs.existsSync('.git')) process.exit(4);
       res.setHeader('Content-Type','text/html; charset=utf-8');
-      res.end('<!doctype html><html><body style="font:32px sans-serif;min-height:3000px;background:linear-gradient(white,steelblue)"><button id="click" style="position:fixed;left:20px;top:20px;width:120px;height:50px">Click me</button><h1 style="margin-top:120px">' + escape(content) + '</h1><script>let clicks=0;function report(){fetch("/state?"+new URLSearchParams({clicks,y:scrollY,path:location.pathname+location.search}))}document.querySelector("button").onclick=()=>{clicks++;document.querySelector("button").textContent="Clicked "+clicks;history.pushState({},"","/es/interactive?clicked="+clicks);report()};addEventListener("scroll",report);report();</script></body></html>');
+      res.end('<!doctype html><html><body style="font:32px sans-serif;min-height:3000px;background:linear-gradient(white,steelblue)"><button id="click" style="position:fixed;left:20px;top:20px;width:120px;height:50px">Click me</button><p style="margin-top:120px">' + escape(content).replaceAll('\n', '<br>') + '</p><script>let clicks=0;function report(){fetch("/state?"+new URLSearchParams({clicks,y:scrollY,path:location.pathname+location.search}))}document.querySelector("button").onclick=()=>{clicks++;if(clicks===2){location.href="/es/streamed";return}document.querySelector("button").textContent="Clicked "+clicks;history.pushState({},"","/es/interactive?clicked="+clicks);report()};addEventListener("scroll",report);report();</script></body></html>');
     }).listen(Number(process.env.PORT), process.env.HOST);
     """
   end

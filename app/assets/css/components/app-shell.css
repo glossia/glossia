@@ -76,5 +76,34 @@
     & .noora-shell__page-content {
       padding: var(--noora-spacing-6);
     }
+
+    /* Keep account context clear of the header controls in either writing
+     * direction without collapsing profile or admin breadcrumbs. */
+    & .noora-shell__context .noora-breadcrumbs:has(#organization-breadcrumb) {
+      min-inline-size: var(--noora-spacing-0);
+      max-inline-size: 100%;
+
+      & > .noora-breadcrumb:not(#organization-breadcrumb),
+      & > [data-part="slash"],
+      & > [data-part="arrow"],
+      & #organization-breadcrumb > [data-part="link"] > .noora-badge {
+        display: none;
+      }
+
+      & #organization-breadcrumb {
+        min-inline-size: var(--noora-spacing-0);
+        flex-wrap: nowrap;
+
+        & > [data-part="link"] {
+          min-inline-size: var(--noora-spacing-0);
+
+          & > [data-part="label"] {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+      }
+    }
   }
 }

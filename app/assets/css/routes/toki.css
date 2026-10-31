@@ -154,25 +154,3 @@
     & [data-part="composer-actions"] { align-items: flex-start; }
   }
 }
-
-/* Keep a long account handle from colliding with the header controls on the
-   narrow conversation view, in either writing direction. */
-#noora-shell:has(#toki-page) {
-  @media (max-width: 768px) {
-    & .noora-shell__context .noora-breadcrumbs {
-      min-inline-size: var(--noora-spacing-0);
-      max-inline-size: 100%;
-    }
-    & .noora-shell__context .noora-breadcrumb:not(#organization-breadcrumb),
-    & .noora-shell__context [data-part="slash"],
-    & .noora-shell__context [data-part="arrow"],
-    & #organization-breadcrumb .noora-badge { display: none; }
-    & #organization-breadcrumb,
-    & #organization-breadcrumb > [data-part="link"] { min-inline-size: var(--noora-spacing-0); }
-    & #organization-breadcrumb > [data-part="link"] > [data-part="label"] {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
-}

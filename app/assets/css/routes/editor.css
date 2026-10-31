@@ -159,10 +159,17 @@
     & [data-part="preview-footer"] {
       display: flex;
       flex-direction: row;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: var(--noora-spacing-4);
+      padding: var(--noora-spacing-5);
+      box-shadow: none;
+      border-radius: var(--noora-radius-0);
+      background: transparent;
       font: var(--noora-font-body-small);
+      & [data-part="muted"] { min-inline-size: var(--noora-spacing-0); overflow-wrap: anywhere; }
+      & #editor-stop-preview { flex-shrink: 0; max-inline-size: 100%; }
     }
     & #editor-preview-help { font: var(--noora-font-body-small); }
     & [data-part="preview-empty"].noora-table {

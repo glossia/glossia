@@ -406,6 +406,10 @@ msgstr "任意区域"
 msgid "Apache-2.0 core + Enterprise License"
 msgstr ""
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "App preview"
+msgstr "预览"
+
 #, elixir-autogen, elixir-format
 msgid "App: %{name}"
 msgstr "应用：%{name}"
@@ -778,6 +782,10 @@ msgstr "全部清除"
 #, elixir-autogen, elixir-format
 msgid "Clear selection"
 msgstr "清除选择"
+
+#, elixir-autogen, elixir-format
+msgid "Click or tap to interact · Scroll here to explore"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Click to upload"
@@ -1444,6 +1452,14 @@ msgid "Edit routing rule"
 msgstr "编辑路由规则"
 
 #, elixir-autogen, elixir-format
+msgid "Edited text could not be located on this page."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Edited text highlighted in the preview."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Edition:"
 msgstr ""
 
@@ -1529,6 +1545,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Example workspace"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Expand"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1637,6 +1657,14 @@ msgstr "筛选"
 
 #, elixir-autogen, elixir-format
 msgid "Find the right term"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Finding page…"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Finding the right screen and starting the app. Keep editing."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1964,6 +1992,10 @@ msgid "Install the Glossia GitHub App to import repositories and set up localiza
 msgstr "安装 Glossia GitHub App 以导入仓库并设置本地化。"
 
 #, elixir-autogen, elixir-format
+msgid "Interactive app preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Interested in Glossia?"
 msgstr "对 Glossia 感兴趣吗？"
 
@@ -2166,6 +2198,14 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Live"
 msgstr "实时"
+
+#, elixir-autogen, elixir-format
+msgid "Live app previews require an isolated runner. Your content can still be edited and saved here."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Live application preview of %{path}"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Locale guidance"
@@ -2679,6 +2719,10 @@ msgstr ""
 msgid "Not recorded"
 msgstr "未记录"
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Not running"
+msgstr "运行中"
+
 #, elixir-autogen, elixir-format
 msgid "Not started"
 msgstr "未开始"
@@ -2892,6 +2936,10 @@ msgid "Preferences"
 msgstr "偏好设置"
 
 #, elixir-autogen, elixir-format
+msgid "Preparing your app"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Preview"
 msgstr "预览"
 
@@ -2918,6 +2966,10 @@ msgstr "隐私政策"
 #, elixir-autogen, elixir-format
 msgid "Private conversation"
 msgstr "私密对话"
+
+#, elixir-autogen, elixir-format
+msgid "Private preview"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Profile"
@@ -3240,6 +3292,10 @@ msgid "Requested permissions:"
 msgstr "请求的权限："
 
 #, elixir-autogen, elixir-format
+msgid "Resize app preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Resolved"
 msgstr "已解决"
 
@@ -3500,6 +3556,10 @@ msgid "See how it works"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "See unsaved edits in your app. Nothing is published."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Segment %{index} of %{count}"
 msgstr "第 %{index} 段 / 共 %{count} 段"
 
@@ -3716,6 +3776,10 @@ msgid "Showing the first 200 matches. Refine your search to find a specific phra
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Shrink"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Sign in"
 msgstr "登录"
 
@@ -3800,8 +3864,16 @@ msgid "Split the source into smaller documents or reduce the supplied context be
 msgstr "在重试前将源文档拆分为更小的部分或减少提供的上下文。未经检查的输出无法接受。"
 
 #, elixir-autogen, elixir-format
+msgid "Start live preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Started"
 msgstr "已启动"
+
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Starting…"
+msgstr "设置"
 
 #, elixir-autogen, elixir-format
 msgid "Status"
@@ -3814,6 +3886,10 @@ msgstr "循序渐进的课程，帮助您开始使用 Glossia。"
 #, elixir-autogen, elixir-format
 msgid "Stop impersonating"
 msgstr "停止冒充"
+
+#, elixir-autogen, elixir-format
+msgid "Stop preview"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Stopped because newer content arrived."
@@ -3956,6 +4032,10 @@ msgid "The URL where users return after authorizing the application."
 msgstr "用户授权应用后返回的 URL。"
 
 #, elixir-autogen, elixir-format
+msgid "The app preview could not start safely. Your edits are unchanged. Check the repository and preview runner, then try again."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The complete document exceeds the decision model assessment limit."
 msgstr "完整文档已超过决策模型的评估限制。"
 
@@ -4018,6 +4098,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "The percentage of checked content reused without another translation."
 msgstr "无需另译即可重用的已核查内容百分比。"
+
+#, elixir-autogen, elixir-format
+msgid "The preview stopped. Start it again to reconnect."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The project instructions changed."
@@ -4624,6 +4708,10 @@ msgid "URL"
 msgstr "网址"
 
 #, elixir-autogen, elixir-format
+msgid "Unavailable"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Unchanged"
 msgstr "未更改"
 
@@ -4662,6 +4750,10 @@ msgstr "已更新"
 #, elixir-autogen, elixir-format
 msgid "Updated for: %{countries}"
 msgstr "已更新为：%{countries}"
+
+#, elixir-autogen, elixir-format
+msgid "Updating…"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Upload an image to represent this project."

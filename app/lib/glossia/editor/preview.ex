@@ -50,6 +50,8 @@ defmodule Glossia.Editor.Preview do
   """
   def interact(pid, revision, input), do: call(pid, {:interact, revision, input})
 
+  def heartbeat(pid), do: call(pid, :heartbeat)
+
   def stop(pid) do
     case call(pid, :stop) do
       {:error, :stopped} -> :ok
@@ -89,8 +91,9 @@ defmodule Glossia.Editor.Preview do
       worker_ref: nil,
       revision: 0,
       input_sequence: 0,
-      inputs: MapSet.new(),
+      acked_sequence: 0,
       idle: timer,
+      started: false,
       ready: false,
       content: file.draft_content || file.content
     }
@@ -124,24 +127,15 @@ defmodule Glossia.Editor.Preview do
          true <- byte_size(content) <= @max_bytes do
       revision = state.revision + 1
       send(state.worker, {:update, revision, content, current})
-      Process.cancel_timer(state.idle)
-
-      timer =
-        :erlang.start_timer(
-          if(state.ready, do: @idle_ms, else: @startup_ms),
-          self(),
-          :idle_deadline
-        )
 
       {:reply, {:ok, revision},
-       %{
+       renew_idle(%{
          state
          | revision: revision,
-           idle: timer,
            content: content,
            file: current,
            ready: false
-       }}
+       })}
     else
       false -> {:reply, {:error, :stale}, state}
       {:error, reason} -> {:reply, {:error, reason}, state}
@@ -165,15 +159,23 @@ defmodule Glossia.Editor.Preview do
       not frame_authorized?(state) ->
         {:reply, {:error, :unauthorized}, state}
 
-      MapSet.size(state.inputs) >= 32 ->
+      state.input_sequence - state.acked_sequence >= 32 ->
         {:reply, {:error, :busy}, state}
 
       true ->
         sequence = state.input_sequence + 1
         send(state.worker, {:interact, revision, sequence, input})
 
-        {:reply, :ok,
-         %{state | input_sequence: sequence, inputs: MapSet.put(state.inputs, sequence)}}
+        {:reply, :ok, renew_idle(%{state | input_sequence: sequence})}
+    end
+  end
+
+  def handle_call(:heartbeat, {caller, _}, state) do
+    cond do
+      caller != state.owner -> {:reply, {:error, :not_owner}, state}
+      not frame_authorized?(state) -> {:reply, {:error, :unauthorized}, state}
+      state.started -> {:reply, :ok, renew_idle(state)}
+      true -> {:reply, :ok, state}
     end
   end
 
@@ -185,7 +187,7 @@ defmodule Glossia.Editor.Preview do
   @impl true
   def handle_info({:preview_input_ack, worker, sequence}, %{worker: worker} = state)
       when is_integer(sequence) and sequence <= state.input_sequence do
-    {:noreply, %{state | inputs: MapSet.reject(state.inputs, &(&1 <= sequence))}}
+    {:noreply, %{state | acked_sequence: max(state.acked_sequence, sequence)}}
   end
 
   def handle_info({:preview_event, worker, event}, %{worker: worker} = state) do
@@ -196,10 +198,11 @@ defmodule Glossia.Editor.Preview do
       Map.has_key?(event, :frame) ->
         if frame_authorized?(state) do
           emit(state, event)
-          Process.cancel_timer(state.idle)
 
-          {:noreply,
-           %{state | idle: :erlang.start_timer(@idle_ms, self(), :idle_deadline), ready: true}}
+          # The first frame ends startup. Later frames are output, not proof
+          # that someone is still using the editor, and cannot renew its lease.
+          next = %{state | started: true, ready: true}
+          {:noreply, if(state.started, do: next, else: renew_idle(next))}
         else
           emit(state, %{
             status: :error,
@@ -238,6 +241,20 @@ defmodule Glossia.Editor.Preview do
   end
 
   def handle_info(_, state), do: {:noreply, state}
+
+  defp renew_idle(state) do
+    Process.cancel_timer(state.idle)
+
+    %{
+      state
+      | idle:
+          :erlang.start_timer(
+            if(state.started, do: @idle_ms, else: @startup_ms),
+            self(),
+            :idle_deadline
+          )
+    }
+  end
 
   defp emit(state, event),
     do:

@@ -406,6 +406,10 @@ msgstr "任意の言語"
 msgid "Apache-2.0 core + Enterprise License"
 msgstr ""
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "App preview"
+msgstr "プレビュー"
+
 #, elixir-autogen, elixir-format
 msgid "App: %{name}"
 msgstr "アプリ：%{name}"
@@ -778,6 +782,10 @@ msgstr "すべてをクリア"
 #, elixir-autogen, elixir-format
 msgid "Clear selection"
 msgstr "選択をクリア"
+
+#, elixir-autogen, elixir-format
+msgid "Click or tap to interact · Scroll here to explore"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Click to upload"
@@ -1444,6 +1452,14 @@ msgid "Edit routing rule"
 msgstr "ルーティングルールの編集"
 
 #, elixir-autogen, elixir-format
+msgid "Edited text could not be located on this page."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Edited text highlighted in the preview."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Edition:"
 msgstr ""
 
@@ -1529,6 +1545,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Example workspace"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Expand"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1637,6 +1657,14 @@ msgstr "フィルター"
 
 #, elixir-autogen, elixir-format
 msgid "Find the right term"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Finding page…"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Finding the right screen and starting the app. Keep editing."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1964,6 +1992,10 @@ msgid "Install the Glossia GitHub App to import repositories and set up localiza
 msgstr "Glossia GitHub App をインストールして、リポジトリをインポートし、ローカライズを設定してください。"
 
 #, elixir-autogen, elixir-format
+msgid "Interactive app preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Interested in Glossia?"
 msgstr "Glossia に興味はありますか？"
 
@@ -2166,6 +2198,14 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Live"
 msgstr "ライブ"
+
+#, elixir-autogen, elixir-format
+msgid "Live app previews require an isolated runner. Your content can still be edited and saved here."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Live application preview of %{path}"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Locale guidance"
@@ -2679,6 +2719,10 @@ msgstr ""
 msgid "Not recorded"
 msgstr "記録なし"
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Not running"
+msgstr "実行中"
+
 #, elixir-autogen, elixir-format
 msgid "Not started"
 msgstr "開始されていません"
@@ -2892,6 +2936,10 @@ msgid "Preferences"
 msgstr "設定"
 
 #, elixir-autogen, elixir-format
+msgid "Preparing your app"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Preview"
 msgstr "プレビュー"
 
@@ -2918,6 +2966,10 @@ msgstr "プライバシーポリシー"
 #, elixir-autogen, elixir-format
 msgid "Private conversation"
 msgstr "個別会話"
+
+#, elixir-autogen, elixir-format
+msgid "Private preview"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Profile"
@@ -3240,6 +3292,10 @@ msgid "Requested permissions:"
 msgstr "要求された権限:"
 
 #, elixir-autogen, elixir-format
+msgid "Resize app preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Resolved"
 msgstr "解決済"
 
@@ -3500,6 +3556,10 @@ msgid "See how it works"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "See unsaved edits in your app. Nothing is published."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Segment %{index} of %{count}"
 msgstr "%{count} 件中 %{index} 件"
 
@@ -3716,6 +3776,10 @@ msgid "Showing the first 200 matches. Refine your search to find a specific phra
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Shrink"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Sign in"
 msgstr "サインイン"
 
@@ -3800,8 +3864,16 @@ msgid "Split the source into smaller documents or reduce the supplied context be
 msgstr "ソースを小さなドキュメントに分割するか、再試行前に提供された文脈を削減してください。未検証の出力は受け入れられませんでした。"
 
 #, elixir-autogen, elixir-format
+msgid "Start live preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Started"
 msgstr "開始済み"
+
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Starting…"
+msgstr "設定"
 
 #, elixir-autogen, elixir-format
 msgid "Status"
@@ -3814,6 +3886,10 @@ msgstr "Glossia を始めるためのステップバイステップレッスン�
 #, elixir-autogen, elixir-format
 msgid "Stop impersonating"
 msgstr "なりすましを中止"
+
+#, elixir-autogen, elixir-format
+msgid "Stop preview"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Stopped because newer content arrived."
@@ -3956,6 +4032,10 @@ msgid "The URL where users return after authorizing the application."
 msgstr "アプリケーションを認証した後、ユーザーが戻る URL です。"
 
 #, elixir-autogen, elixir-format
+msgid "The app preview could not start safely. Your edits are unchanged. Check the repository and preview runner, then try again."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The complete document exceeds the decision model assessment limit."
 msgstr "ドキュメント全体のサイズが決定モデルの評価上限を超えています。"
 
@@ -4018,6 +4098,10 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "The percentage of checked content reused without another translation."
 msgstr "確認済みのコンテンツのうち、別の翻訳なしで再利用された割合。"
+
+#, elixir-autogen, elixir-format
+msgid "The preview stopped. Start it again to reconnect."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The project instructions changed."
@@ -4624,6 +4708,10 @@ msgid "URL"
 msgstr "URL"
 
 #, elixir-autogen, elixir-format
+msgid "Unavailable"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Unchanged"
 msgstr "変更なし"
 
@@ -4662,6 +4750,10 @@ msgstr "更新済み"
 #, elixir-autogen, elixir-format
 msgid "Updated for: %{countries}"
 msgstr "更新：%{countries}"
+
+#, elixir-autogen, elixir-format
+msgid "Updating…"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Upload an image to represent this project."
