@@ -104,6 +104,17 @@ distribute success
 check '.memberships["group-1"].builds == ["build"]' 'selected latest or wrong version/platform'
 done_case 'exact app, marketing version, build and iOS platform, not latest'
 
+reset
+edit '.expected_build = "20261031143005" | .builds[0].attributes.version = "20261031143005" |
+  .builds += [{type:"builds",id:"newer",attributes:{version:"20261031143006",processingState:"VALID"}}] |
+  .prereleases.newer = .prereleases.build'
+run success 0.1.1 20261031143005 --timeout 1
+check '.memberships["group-1"].builds == ["build"]' 'timestamp lookup selected a newer build'
+writes=$(jq '.writes | length' "$state")
+run success 0.1.1 20261031143005 --timeout 1
+check ".writes | length == $writes" 'timestamp distribution rerun made duplicate writes'
+done_case 'exact timestamp build distribution and idempotent retry'
+
 for invitation in NOT_INVITED REVOKED UNKNOWN INVITED ACCEPTED INSTALLED; do
   reset; tester "$invitation"
   edit '.testers = [{type:"betaTesters",id:"other-tester",attributes:{email:"pedro@pepicrft.me",state:"ACCEPTED"}}] + .testers |
@@ -288,10 +299,35 @@ workflow_has "$fixture/upload-workflow" '!inputs.distribution_only'
 workflow_has "$fixture/distribution-workflow" 'needs: [version, upload]'
 workflow_has "$fixture/distribution-workflow" "needs.upload.result == 'success'"
 workflow_has "$fixture/distribution-workflow" 'inputs.distribution_only'
+workflow_has "$fixture/distribution-workflow" 'BUILD: ${{ needs.upload.outputs.build || inputs.build }}'
 workflow_has "$fixture/distribution-workflow" 'bash mobile/native/ios/distribution/testflight.sh "$VERSION" "$BUILD"'
 ! grep -Eq 'upload\.sh|bundle\.sh|build:ios|gh release create' "$fixture/distribution-workflow" ||
   fail 'distribution-only job builds, uploads, or creates a receipt'
 done_case 'workflow separates successful upload receipts from distribution-only retries'
+
+# Execute the upload job's generator twice with different runner timezones.
+awk '
+  /^  upload:$/ {upload=1}
+  upload && /^      - name: Generate UTC build number$/ {step=1; next}
+  step && /^      - / {exit}
+  step && /^        run: / {sub(/^        run: /, ""); print}
+' "$workflow" > "$fixture/build-number.sh"
+[[ -s "$fixture/build-number.sh" ]] || fail 'upload job has no build number generator'
+previous=0
+for timezone in Pacific/Kiritimati America/Los_Angeles; do
+  before=$(date -u +%Y%m%d%H%M%S)
+  TZ="$timezone" GITHUB_OUTPUT="$fixture/build-output" bash -e "$fixture/build-number.sh"
+  after=$(date -u +%Y%m%d%H%M%S)
+  output=$(cat "$fixture/build-output")
+  [[ "$output" =~ ^number=([0-9]{14})$ ]] || fail 'build number is not a 14-digit timestamp'
+  number=${BASH_REMATCH[1]}
+  [[ "$number" -ge "$before" && "$number" -le "$after" && "$number" -gt "$previous" ]] ||
+    fail 'upload attempt did not generate a fresh UTC timestamp'
+  previous=$number
+  rm "$fixture/build-output"
+  sleep 1
+done
+done_case 'upload attempts generate fresh UTC timestamps regardless of runner timezone'
 
 # Execute the actual workflow receipt gate, not a duplicate implementation.
 awk '
@@ -327,6 +363,8 @@ receipt_case() {
   fi
 }
 receipt_case success $'Release notes\nApp Store Connect upload: Glossia 0.1.1 (10.1).\nOther notes'
+receipt_case success 'App Store Connect upload: Glossia 0.1.1 (20261031143005).' 0.1.1 20261031143005
+receipt_case failure 'App Store Connect upload: Glossia 0.1.1 (20261031143006).' 0.1.1 20261031143005
 for receipt in '' 'App Store Connect upload: Glossia 0.1.2 (10.1).' \
   'App Store Connect upload: Glossia 0.1.1 (10.2).' \
   'prefix App Store Connect upload: Glossia 0.1.1 (10.1).' \

@@ -29,11 +29,10 @@ change() {
 }
 expect() {
   local output
-  output=$(GITHUB_RUN_NUMBER=37 GITHUB_RUN_ATTEMPT=2 bash "$check")
+  output=$(bash "$check")
   grep -qx "should-release=$1" <<< "$output"
   grep -qx "next-version=ios@$2" <<< "$output"
   grep -qx "next-version-number=$2" <<< "$output"
-  grep -qx 'build-number=37.2' <<< "$output"
 }
 
 reject # Unborn HEAD.
@@ -79,10 +78,6 @@ git -C "$fixture" tag ios@2.0.0
 mkdir -p "$fixture/.github/workflows"
 change .github/workflows/ios-release.yml 'fix: repair iOS distribution'
 expect true 2.0.1
-GITHUB_RUN_NUMBER=37 GITHUB_RUN_ATTEMPT=3 bash "$check" | grep -qx 'build-number=37.3'
-if GITHUB_RUN_NUMBER=0 bash "$check" >/dev/null 2>&1; then
-  echo "Invalid build number was accepted" >&2; exit 1
-fi
 touch "$fixture/uncommitted"
 reject
 rm "$fixture/uncommitted"
@@ -90,4 +85,4 @@ printf '\ninvalid = [\n' >> "$fixture/mobile/native/cliff.toml"
 git -C "$fixture" add .
 git -C "$fixture" commit -qm 'ci: invalid configuration fixture'
 reject
-echo 'iOS release fixtures passed: independent tags/paths, bootstrap, merges, bumps, retries and failures'
+echo 'iOS release fixtures passed: independent tags/paths, bootstrap, merges, bumps and failures'

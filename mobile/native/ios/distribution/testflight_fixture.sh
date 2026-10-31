@@ -105,7 +105,8 @@ if [[ "$method" == GET ]]; then
     /v1/apps)
       respond 200 "$(jq '{data:.apps,links:{next:(.apps_next // null)}}' "$state")" ;;
     /v1/builds)
-      [[ "$url" == *'filter[app]=app'* && "$url" == *'filter[version]=10.1'* ]] ||
+      expected_build=$(jq -r '.expected_build // "10.1"' "$state")
+      [[ "$url" == *'filter[app]=app'* && "$url" == *"filter[version]=$expected_build"* ]] ||
         fail_fixture 'build query is not scoped to the app and exact build'
       update '.build_reads += 1 | if .processing_delay and .build_reads > 1 then .builds[0].attributes.processingState = "VALID" else . end'
       respond 200 "$(jq '{data:.builds}' "$state")" ;;

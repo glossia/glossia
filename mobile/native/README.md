@@ -135,9 +135,13 @@ grants team roles, changes Infisical policy, or publishes to the public App Stor
 reachable stable `ios@x.y.z` tags, starting at `0.1.0`. Features bump minors,
 fixes bump patches, and breaking changes bump majors even during `0.x`.
 Maintenance and unrelated server/Expo changes do not release iOS. Both app and
-extension get the same version and `GITHUB_RUN_NUMBER.GITHUB_RUN_ATTEMPT` build
-number. Preserve the release workflow's run-counter history. Local bootstrap
-uploads should use `1.0.N`, below CI's first `1.1`.
+extension get the same version and UTC `YYYYMMDDHHmmss` build number (for example,
+`20261031143005`). Each upload job attempt generates a fresh timestamp after the
+device build, including upload-only reruns. The release queue serializes uploads;
+the timestamp is reused in the upload receipt and TestFlight lookup.
+Distribution-only retries keep the exact uploaded build number, including older
+dotted builds. Local uploads should also use `date -u +%Y%m%d%H%M%S` and must not
+race the CI release queue.
 
 ### Apple account requirements
 

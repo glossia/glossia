@@ -15,7 +15,7 @@ on:
         description: 'Existing marketing version for distribution-only (for example 0.1.1)'
         type: string
       build:
-        description: 'Existing build number for distribution-only (for example 10.1)'
+        description: 'Existing build number for distribution-only (for example 20261031143005)'
         type: string
 
 permissions:
@@ -44,7 +44,6 @@ jobs:
       release: ${{ steps.version.outputs.should-release }}
       version: ${{ steps.version.outputs.next-version-number }}
       tag: ${{ steps.version.outputs.next-version }}
-      build: ${{ steps.version.outputs.build-number }}
       sha: ${{ steps.current.outputs.sha }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -79,9 +78,10 @@ jobs:
     permissions:
       contents: write
       id-token: write
+    outputs:
+      build: ${{ steps.build.outputs.number }}
     env:
       VERSION: ${{ needs.version.outputs.version }}
-      BUILD: ${{ needs.version.outputs.build }}
       TAG: ${{ needs.version.outputs.tag }}
       SOURCE_SHA: ${{ needs.version.outputs.sha }}
     steps:
@@ -111,6 +111,10 @@ jobs:
           test "$(xcrun --sdk iphoneos --show-sdk-version | cut -d. -f1)" -ge 26
           mise -C mobile/native exec -- rustup target add aarch64-apple-ios
           mise -C mobile/native run build:ios-device
+      # Generate here so rerunning only upload also gets a fresh build number.
+      - name: Generate UTC build number
+        id: build
+        run: echo "number=$(date -u +%Y%m%d%H%M%S)" >> "$GITHUB_OUTPUT"
       - name: Load dedicated iOS signing and upload credentials
         uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
         with:
@@ -125,6 +129,8 @@ jobs:
       - name: Check upload credentials
         run: bash mobile/native/ios/distribution/upload.sh check
       - name: Sign app and extension, then package
+        env:
+          BUILD: ${{ steps.build.outputs.number }}
         run: bash mobile/native/ios/distribution/bundle.sh "$VERSION" "$BUILD" "$RUNNER_TEMP/Glossia.ipa"
       - name: Validate with App Store Connect
         run: bash mobile/native/ios/distribution/upload.sh validate "$RUNNER_TEMP/Glossia.ipa"
@@ -133,6 +139,7 @@ jobs:
       - name: Record the uploaded release
         env:
           GH_TOKEN: ${{ github.token }}
+          BUILD: ${{ steps.build.outputs.number }}
         run: |
           printf '\nApp Store Connect upload: Glossia %s (%s).\n' "$VERSION" "$BUILD" >> "$RUNNER_TEMP/ios-release-notes.md"
           gh release create "$TAG" --target "$SOURCE_SHA" --title "Glossia iOS $VERSION" \
@@ -153,7 +160,7 @@ jobs:
       id-token: write
     env:
       VERSION: ${{ needs.version.outputs.version || inputs.version }}
-      BUILD: ${{ needs.version.outputs.build || inputs.build }}
+      BUILD: ${{ needs.upload.outputs.build || inputs.build }}
       DISTRIBUTION_ONLY: ${{ inputs.distribution_only }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5

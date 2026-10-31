@@ -8,9 +8,9 @@ ROOT=$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)
 VERSION=${1:?Usage: bundle.sh VERSION BUILD_NUMBER [OUTPUT_IPA]}
 BUILD=${2:?Usage: bundle.sh VERSION BUILD_NUMBER [OUTPUT_IPA]}
 OUTPUT=${3:-$ROOT/mobile/native/.once/distribution/Glossia.ipa}
-# Local bootstrap builds 1.0.N precede CI's first run/attempt build 1.1.
+# Accept historical dotted builds as well as current UTC timestamp builds.
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && "$BUILD" =~ ^[1-9][0-9]*(\.[0-9]+){0,2}$ ]] || {
-  echo "Expected a stable version and a positive build number (CI: RUN_NUMBER.RUN_ATTEMPT)." >&2; exit 1;
+  echo "Expected a stable version and a positive build number (CI: UTC YYYYMMDDHHmmss)." >&2; exit 1;
 }
 [[ "$OUTPUT" == /* && ! -e "$OUTPUT" ]] || {
   echo "The output IPA must be a new absolute path." >&2; exit 1;

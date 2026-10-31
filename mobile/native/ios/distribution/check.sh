@@ -9,14 +9,6 @@ if [[ -n $(git -C "$ROOT" status --porcelain) ]]; then
   exit 1
 fi
 
-run=${GITHUB_RUN_NUMBER:-1}
-attempt=${GITHUB_RUN_ATTEMPT:-1}
-if [[ ! "$run" =~ ^[1-9][0-9]*$ || ! "$attempt" =~ ^[1-9][0-9]*$ ]]; then
-  echo "GitHub run number and attempt must be positive integers." >&2
-  exit 1
-fi
-build="$run.$attempt"
-
 # Like Habibi, keep native releases independent of server, CLI and SDK tags.
 export GITHUB_TOKEN="" GH_TOKEN=""
 cliff=(git cliff --repository "$ROOT" --config "$ROOT/mobile/native/cliff.toml" --use-branch-tags)
@@ -63,8 +55,8 @@ fi
 
 case "${1:-check}" in
   check)
-    outputs=$(printf 'should-release=%s\nnext-version=ios@%s\nnext-version-number=%s\nbuild-number=%s\n' \
-      "$should_release" "$version" "$version" "$build")
+    outputs=$(printf 'should-release=%s\nnext-version=ios@%s\nnext-version-number=%s\n' \
+      "$should_release" "$version" "$version")
     printf '%s\n' "$outputs"
     [[ -z "${GITHUB_OUTPUT:-}" ]] || printf '%s\n' "$outputs" >> "$GITHUB_OUTPUT"
     ;;
