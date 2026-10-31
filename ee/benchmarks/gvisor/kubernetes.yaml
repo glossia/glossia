@@ -1,0 +1,205 @@
+# Glossia Enterprise License: see ee/LICENSE.md.
+# NONPRODUCTION ONLY: isolated, trusted-runner experiment, not a production operator.
+# Privileged root is intentional for the nested runsc baseline. It is NOT a
+# security boundary or a security claim. Use a disposable, dedicated cluster
+# with trusted benchmark inputs, never an application/production cluster.
+# Installing the CRD and namespace requires administrator privileges; the
+# runtime ServiceAccount below receives only namespaced SandboxSession access.
+# The namespace permits privileged pods; it does not isolate hostile workloads.
+# No host namespaces, host paths, runtime sockets, or public services are used.
+# The local image must already be loaded on the selected cluster node. A default
+# StorageClass must provision the dedicated PVC. PVCs are retained deliberately;
+# clean up benchmark data explicitly after the experiment.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: glossia-sandbox-bench
+  labels:
+    app.kubernetes.io/name: glossia-gvisor-bench
+    pod-security.kubernetes.io/enforce: privileged
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sandboxsessions.bench.glossia.ai
+  labels:
+    app.kubernetes.io/name: glossia-gvisor-bench
+spec:
+  group: bench.glossia.ai
+  scope: Namespaced
+  names:
+    plural: sandboxsessions
+    singular: sandboxsession
+    kind: SandboxSession
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              description: Fixed benchmark inputs only; no commands, images, or paths.
+              required:
+                - desiredState
+                - title
+              properties:
+                desiredState:
+                  type: string
+                  enum:
+                    - Running
+                    - Suspended
+                title:
+                  type: string
+                  maxLength: 200
+                  x-kubernetes-validations:
+                    - rule: self == oldSelf
+                      message: title is immutable after creation
+                inputSequence:
+                  type: integer
+                  minimum: 0
+                  maximum: 9007199254740991
+                  default: 0
+                  description: Cumulative click count; the runner delivers every missing sequence in batches of at most 32.
+                  x-kubernetes-validations:
+                    - rule: self >= oldSelf
+                      message: inputSequence must not decrease
+            status:
+              type: object
+              description: Benchmark evidence, not a stable production status API.
+              x-kubernetes-preserve-unknown-fields: true
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gvisor-reconciler
+  namespace: glossia-sandbox-bench
+  labels:
+    app.kubernetes.io/name: glossia-gvisor-bench
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gvisor-reconciler
+  namespace: glossia-sandbox-bench
+  labels:
+    app.kubernetes.io/name: glossia-gvisor-bench
+rules:
+  - apiGroups:
+      - bench.glossia.ai
+    resources:
+      - sandboxsessions
+      - sandboxsessions/status
+      - sandboxsessions/finalizers
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gvisor-reconciler
+  namespace: glossia-sandbox-bench
+  labels:
+    app.kubernetes.io/name: glossia-gvisor-bench
+subjects:
+  - kind: ServiceAccount
+    name: gvisor-reconciler
+    namespace: glossia-sandbox-bench
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: gvisor-reconciler
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gvisor-reconciler
+  namespace: glossia-sandbox-bench
+  labels:
+    app.kubernetes.io/name: glossia-gvisor-bench
+spec:
+  # No Service is needed: the reconciler exposes no endpoint or stable DNS API.
+  serviceName: gvisor-reconciler
+  replicas: 1
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: glossia-gvisor-bench
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: glossia-gvisor-bench
+    spec:
+      serviceAccountName: gvisor-reconciler
+      hostPID: false
+      hostNetwork: false
+      hostIPC: false
+      containers:
+        - name: reconciler
+          image: glossia-gvisor-reconciler:local
+          imagePullPolicy: Never
+          command:
+            - flock
+            - --nonblock
+            - /state/writer.lock
+            - mix
+            - run
+            - --no-compile
+            - reconcile.exs
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            privileged: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "4"
+              memory: 6Gi
+          volumeMounts:
+            - name: state
+              mountPath: /state
+            - name: runsc
+              mountPath: /run/bench-runsc
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: runsc
+          emptyDir: {}
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: state
+        labels:
+          app.kubernetes.io/name: glossia-gvisor-bench
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi

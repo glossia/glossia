@@ -1,0 +1,25 @@
+# Glossia Enterprise License: see ee/LICENSE.md.
+# Apply only after the benchmark CRD is Established.
+apiVersion: bench.glossia.ai/v1alpha1
+kind: SandboxSession
+metadata:
+  name: session-a
+  namespace: glossia-sandbox-bench
+  labels:
+    app.kubernetes.io/name: glossia-gvisor-bench
+spec:
+  title: "El faro de las palabras"
+  desiredState: Running
+  inputSequence: 0
+---
+apiVersion: bench.glossia.ai/v1alpha1
+kind: SandboxSession
+metadata:
+  name: session-b
+  namespace: glossia-sandbox-bench
+  labels:
+    app.kubernetes.io/name: glossia-gvisor-bench
+spec:
+  title: "Un jardín de historias"
+  desiredState: Running
+  inputSequence: 0
