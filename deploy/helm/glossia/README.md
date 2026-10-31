@@ -39,6 +39,42 @@ needs whichever of these match the components you enable:
 | `hermes.enabled` | `smolanalytics.enabled=true`, a [Slack Socket Mode](https://api.slack.com/apis/connections/socket) application, a [Together](https://docs.together.ai/docs/quickstart) key, and a read-only [Grafana service account](https://grafana.com/docs/grafana/latest/administration/service-accounts/) token |
 | `bifrost.enabled` | A default storage class, or an explicit `bifrost.persistence.storageClass`; an encryption key Secret (`glossia-bifrost`) is recommended but optional |
 
+## Editor live app previews
+
+Previews are opt-in (`editorPreview.enabled: false` by default). Enable them
+only on an enterprise deployment with Cilium and a configured, verified Kata
+runtime (`managedRunner.k8s.runtimeClassName`, for example `kata-qemu`). Keep
+the image's Node and Chromium runtime available. Community host-local execution
+is not isolation and remains disabled except for explicitly trusted development
+fixtures.
+
+The chart installs a preview-specific Cilium policy and grants the application
+read-only access to that exact policy. Before creating a preview, the app checks
+the policy's actual specification, not an annotation or its name. Previews deny
+ingress and access to cluster workloads, nodes, private networks and metadata;
+the only cluster exception is kube-dns. Public HTTP/HTTPS is allowed for
+dependencies. Do not add broad policies selecting preview pods, expose their
+ports, or remove their policy while sessions exist. NodeLocal/host-network DNS
+is not supported by this policy.
+
+This configuration preflight is **not proof of network enforcement**. Before
+enabling the feature for untrusted repositories, use a disposable preview pod
+to verify that Cilium covers the Kata interface: public package downloads and
+kube-dns must work, while app/database services, the Kubernetes API, node and
+metadata addresses must be unreachable. Check both IPv4 and IPv6 where enabled.
+Keep previews disabled if these checks cannot be completed.
+
+Discovery reads bounded repository sources; inference credentials stay on the
+trusted application node. Repository installation/startup runs separately,
+without model, GitHub, database or application secrets. Apps requiring production
+credentials or ambiguous routes fail closed. An editor's unsaved changes update
+only the disposable checkout, never the database draft or repository.
+
+The hosted browser receives JPEG frames over its authenticated LiveView
+connection. No public preview service, runner URL, iframe, tunnel, or additional
+ingress is needed. Leaving the page or stopping a preview reclaims its sandbox;
+sessions also have a fixed deadline.
+
 ## Install
 
 ```bash

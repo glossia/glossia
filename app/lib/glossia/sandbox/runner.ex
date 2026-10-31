@@ -43,6 +43,44 @@ defmodule Glossia.Sandbox.Runner do
     start_command(state, from, fn -> run_shell_command(state, command, opts) end)
   end
 
+  def handle_call({:execute_preview, command, opts}, from, state) do
+    start_command(state, from, fn ->
+      with {:ok, cwd} <- command_cwd(state, opts) do
+        env = [{"PATH", System.get_env("PATH")}, {"HOME", state.root_path}] ++ command_env(opts)
+        assignments = Enum.map(env, fn {key, value} -> "#{key}=#{value}" end)
+
+        {output, status} =
+          MuonTrap.cmd("env", ["-i" | assignments] ++ ["sh", "-c", command],
+            cd: cwd,
+            timeout: Keyword.get(opts, :timeout_ms, 30_000),
+            stderr_to_stdout: true,
+            into: ""
+          )
+
+        safe_response(output, status, Keyword.get(opts, :output_limit_bytes, 4_000))
+      end
+    end)
+  end
+
+  def handle_call({:download_preview_file, path, limit}, _from, state) do
+    result =
+      with {:ok, path} <- existing_sandbox_path(state, path) do
+        File.open(path, [:read, :binary], fn io ->
+          case IO.binread(io, limit + 1) do
+            content when is_binary(content) and byte_size(content) <= limit -> {:ok, content}
+            :eof -> {:ok, ""}
+            _ -> {:error, :file_too_large}
+          end
+        end)
+        |> case do
+          {:ok, value} -> value
+          error -> error
+        end
+      end
+
+    {:reply, result, state}
+  end
+
   def handle_call({:download_file, path}, _from, state) do
     with {:ok, path} <- existing_sandbox_path(state, path),
          {:ok, content} <- File.read(path) do

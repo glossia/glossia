@@ -418,6 +418,10 @@ msgid "Apache-2.0 core + Enterprise License"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "App preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "App: %{name}"
 msgstr ""
 
@@ -789,6 +793,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Clear selection"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Click or tap to interact · Scroll here to explore"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1544,6 +1552,10 @@ msgid "Example workspace"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Expand"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Expiration"
 msgstr ""
 
@@ -1649,6 +1661,14 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Find the right term"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Finding page…"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Finding the right screen and starting the app. Keep editing."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1976,6 +1996,10 @@ msgid "Install the Glossia GitHub App to import repositories and set up localiza
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Interactive app preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Interested in Glossia?"
 msgstr ""
 
@@ -2177,6 +2201,14 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Live"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Live app previews require an isolated runner. Your content can still be edited and saved here."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Live application preview of %{path}"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -2692,6 +2724,10 @@ msgid "Not recorded"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Not running"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Not started"
 msgstr ""
 
@@ -2904,6 +2940,10 @@ msgid "Preferences"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Preparing your app"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Preview"
 msgstr ""
 
@@ -2929,6 +2969,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Private conversation"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Private preview · Not your live app"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3252,6 +3296,10 @@ msgid "Requested permissions:"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Resize app preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Resolved"
 msgstr ""
 
@@ -3512,6 +3560,10 @@ msgid "See how it works"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "See unsaved edits in your app. Nothing is published."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Segment %{index} of %{count}"
 msgstr ""
 
@@ -3728,6 +3780,10 @@ msgid "Showing the first 200 matches. Refine your search to find a specific phra
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Shrink"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Sign in"
 msgstr ""
 
@@ -3812,7 +3868,15 @@ msgid "Split the source into smaller documents or reduce the supplied context be
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Start live preview"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Started"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Starting…"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3825,6 +3889,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Stop impersonating"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Stop preview"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -3968,6 +4036,10 @@ msgid "The URL where users return after authorizing the application."
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "The app preview could not start safely. Your edits are unchanged. Check the repository and preview runner, then try again."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "The complete document exceeds the decision model assessment limit."
 msgstr ""
 
@@ -4029,6 +4101,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "The percentage of checked content reused without another translation."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "The preview stopped. Start it again to reconnect."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -4636,6 +4712,10 @@ msgid "URL"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Unavailable"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Unchanged"
 msgstr ""
 
@@ -4673,6 +4753,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Updated for: %{countries}"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Updating…"
 msgstr ""
 
 #, elixir-autogen, elixir-format

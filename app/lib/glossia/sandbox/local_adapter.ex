@@ -40,6 +40,21 @@ defmodule Glossia.Sandbox.LocalAdapter do
   def repo_path(id), do: call(id, :repo_path)
 
   @impl true
+  def preview_isolated?, do: false
+
+  @impl true
+  def download_preview_file(id, path, limit), do: call(id, {:download_preview_file, path, limit})
+
+  @impl true
+  def execute_preview(id, command, opts) do
+    if Application.get_env(:glossia, Glossia.Editor.Preview, [])[:trusted_local] == true do
+      call(id, {:execute_preview, command, opts})
+    else
+      {:error, :preview_requires_isolation}
+    end
+  end
+
+  @impl true
   def delete(id) do
     call(id, :delete)
   end

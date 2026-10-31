@@ -48,7 +48,7 @@ defmodule GlossiaWeb.EditorLiveTest do
         source_path: source.path,
         locale: "es",
         format: "json",
-        content: ~s({"title":"Hola","count":7})
+        content: ~s({"title":"Hola","subtitle":"Sin cambios","count":7})
       })
 
     {:ok, view, _} =
@@ -57,10 +57,23 @@ defmodule GlossiaWeb.EditorLiveTest do
     assert has_element?(view, "[data-part='source']", "Welcome")
     assert has_element?(view, "textarea[aria-label='Title']", "Hola")
     refute has_element?(view, "textarea[aria-label='Count']")
-    {:ok, [field]} = Glossia.Editor.Content.fields("json", target.content)
-    form(view, "#editor-form", %{"values" => %{field.id => "Bienvenidos"}}) |> render_change()
+    {:ok, fields} = Glossia.Editor.Content.fields("json", target.content)
+    field = Enum.find(fields, &(&1.label == "$.title"))
+    untouched = Enum.find(fields, &(&1.label == "$.subtitle"))
+
+    values = %{
+      field.id => "Hola",
+      untouched.id => "Sin cambios",
+      ("_unused_" <> untouched.id) => ""
+    }
+
+    params = %{"file_id" => target.id, "version" => "1", "values" => values}
+    render_change(view, "change", params)
+    assert has_element?(view, "#editor-form[data-dirty='false']")
+    params = put_in(params, ["values", field.id], "Bienvenidos")
+    render_change(view, "change", params)
     assert has_element?(view, "#editor-publish[disabled]")
-    form(view, "#editor-form", %{"values" => %{field.id => "Bienvenidos"}}) |> render_submit()
+    render_submit(view, "save", params)
     assert has_element?(view, "[data-part='save-status']", "Draft saved")
 
     {:ok, reloaded, _} =
@@ -70,6 +83,7 @@ defmodule GlossiaWeb.EditorLiveTest do
 
     assert Jason.decode!(Repo.get!(EditorFile, target.id).draft_content) == %{
              "title" => "Bienvenidos",
+             "subtitle" => "Sin cambios",
              "count" => 7
            }
 
@@ -246,5 +260,115 @@ defmodule GlossiaWeb.EditorLiveTest do
     assert_raise Ecto.NoResultsError, fn ->
       live(conn, ~p"/#{c.user.account.handle}/#{c.project.handle}/-/editor")
     end
+  end
+
+  test "live previews reject obsolete frames and stop without saving edits", c do
+    record =
+      Repo.insert!(%EditorFile{
+        project_id: c.project.id,
+        path: "page.txt",
+        source_path: "page.txt",
+        locale: "en",
+        format: "text",
+        content: "Original"
+      })
+
+    session = start_supervised!({Agent, fn -> 0 end})
+    parent = self()
+
+    Mimic.stub(Glossia.Editor.Preview, :start, fn _, _, _, owner ->
+      send(parent, {:preview_owner, owner})
+      {:ok, session}
+    end)
+
+    Mimic.stub(Glossia.Editor.Preview, :update, fn _, _, _, _ ->
+      {:ok, Agent.get_and_update(session, fn revision -> {revision + 1, revision + 1} end)}
+    end)
+
+    Mimic.stub(Glossia.Editor.Preview, :stop, fn pid -> Agent.stop(pid) end)
+
+    Mimic.stub(Glossia.Editor.Preview, :interact, fn ^session, revision, input ->
+      send(parent, {:preview_input, revision, input})
+      :ok
+    end)
+
+    {:ok, view, _} =
+      live(c.conn, ~p"/#{c.user.account.handle}/#{c.project.handle}/-/editor/#{record.id}")
+
+    element(view, "#editor-start-preview") |> render_click()
+    assert_receive {:preview_owner, owner}
+    assert has_element?(view, "#editor-stop-preview")
+
+    send(
+      owner,
+      {:editor_preview, session,
+       %{status: :ready, revision: 1, frame: "first", path: "/en/guide"}}
+    )
+
+    assert has_element?(view, "#editor-app-frame[data-revision='1'][src$='first']")
+
+    input = %{"type" => "click", "x" => 350, "y" => 120}
+    render_hook(view, "preview_input", %{revision: 1, input: input})
+    assert_receive {:preview_input, 1, ^input}
+
+    form(view, "#editor-form", %{"values" => %{"text" => "Unsaved edit"}}) |> render_change()
+    assert has_element?(view, "#editor-app-frame[data-status='updating']")
+
+    render_hook(view, "preview_input", %{revision: 1, input: input})
+    render_hook(view, "preview_input", %{revision: 2, input: input})
+    refute_receive {:preview_input, _, _}
+
+    send(owner, {:editor_preview, session, %{status: :ready, revision: 1, frame: "obsolete"}})
+    refute has_element?(view, "#editor-app-frame[src$='obsolete']")
+    assert has_element?(view, "#editor-app-frame[data-status='updating']")
+
+    send(
+      owner,
+      {:editor_preview, session,
+       %{status: :ready, revision: 2, frame: "latest", path: "/en/guide"}}
+    )
+
+    assert has_element?(
+             view,
+             "#editor-app-frame[data-revision='2'][data-status='ready'][src$='latest']"
+           )
+
+    assert Repo.get!(EditorFile, record.id).draft_content == nil
+
+    render_hook(view, "preview_input", %{revision: 1, input: input})
+    refute_receive {:preview_input, _, _}
+    render_hook(view, "preview_input", %{revision: 2, input: input})
+    assert_receive {:preview_input, 2, ^input}
+
+    element(view, "#editor-stop-preview") |> render_click()
+    refute Process.alive?(session)
+    refute has_element?(view, "#editor-app-frame")
+    send(owner, {:editor_preview, session, %{status: :ready, revision: 9, frame: "late"}})
+    refute has_element?(view, "#editor-app-frame")
+  end
+
+  test "preview startup failure leaves content editing available", c do
+    record =
+      Repo.insert!(%EditorFile{
+        project_id: c.project.id,
+        path: "page.txt",
+        source_path: "page.txt",
+        locale: "en",
+        format: "text",
+        content: "Original"
+      })
+
+    Mimic.stub(Glossia.Editor.Preview, :start, fn _, _, _, _ ->
+      {:error, :preview_requires_isolation}
+    end)
+
+    {:ok, view, _} =
+      live(c.conn, ~p"/#{c.user.account.handle}/#{c.project.handle}/-/editor/#{record.id}")
+
+    element(view, "#editor-start-preview") |> render_click()
+    assert has_element?(view, "#editor-app-preview [role='status']", "isolated runner")
+    form(view, "#editor-form", %{"values" => %{"text" => "Still editable"}}) |> render_change()
+    form(view, "#editor-form") |> render_submit()
+    assert Repo.get!(EditorFile, record.id).draft_content == "Still editable"
   end
 end

@@ -3,7 +3,7 @@ defmodule GlossiaWeb.EditorLive do
   import GlossiaWeb.DashboardComponents
 
   alias Glossia.{Editor, Projects}
-  alias Glossia.Editor.Content
+  alias Glossia.Editor.{Content, Preview}
   alias Noora.Filter
 
   def mount(_params, _session, socket) do
@@ -15,11 +15,15 @@ defmodule GlossiaWeb.EditorLive do
        fields: [],
        values: %{},
        dirty: false,
-       selected: %{}
+       selected: %{},
+       live_preview: empty_live_preview()
      )}
   end
 
   def handle_params(params, _uri, socket) do
+    socket =
+      if socket.assigns[:file_id] != params["id"], do: stop_live_preview(socket), else: socket
+
     project = Projects.get_project(socket.assigns.account, params["project"])
     unless project, do: raise(Ecto.NoResultsError, queryable: Glossia.Accounts.Project)
     project = %{project | account: socket.assigns.account}
@@ -80,6 +84,8 @@ defmodule GlossiaWeb.EditorLive do
        )}
 
   def handle_event("change", %{"values" => values} = params, socket) do
+    values = without_form_metadata(values)
+
     {:noreply,
      socket
      |> assign(
@@ -87,11 +93,59 @@ defmodule GlossiaWeb.EditorLive do
        dirty: values != field_values(socket.assigns.fields),
        form_version: Map.get(params, "version", socket.assigns.form_version)
      )
-     |> preview()}
+     |> preview()
+     |> update_live_preview()}
+  end
+
+  def handle_event("start_preview", _, socket) do
+    if socket.assigns.file && is_nil(socket.assigns.live_preview.pid) do
+      case Preview.start(
+             socket.assigns.current_user,
+             socket.assigns.project,
+             socket.assigns.file.id,
+             self()
+           ) do
+        {:ok, pid} ->
+          state = %{
+            empty_live_preview()
+            | pid: pid,
+              monitor: Process.monitor(pid),
+              status: :starting
+          }
+
+          {:noreply, socket |> assign(live_preview: state) |> update_live_preview()}
+
+        {:error, reason} ->
+          {:noreply,
+           assign(socket,
+             live_preview: %{
+               empty_live_preview()
+               | status: :error,
+                 message: preview_error(reason)
+             }
+           )}
+      end
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("stop_preview", _, socket), do: {:noreply, stop_live_preview(socket)}
+
+  def handle_event("preview_input", %{"revision" => revision, "input" => input}, socket) do
+    state = socket.assigns.live_preview
+
+    result =
+      if state.pid && state.status == :ready && revision == state.revision,
+        do: Preview.interact(state.pid, revision, input),
+        else: {:error, :not_ready}
+
+    {:reply, %{accepted: result == :ok}, socket}
   end
 
   def handle_event("save", %{"values" => values} = params, socket) do
     f = socket.assigns.file
+    values = without_form_metadata(values)
 
     result =
       with true <- params["file_id"] == f.id,
@@ -195,6 +249,117 @@ defmodule GlossiaWeb.EditorLive do
       {:noreply,
        socket |> assign(busy: false) |> load() |> assign(error: error(:repository_unavailable))}
 
+  def handle_info({:editor_preview, pid, event}, socket) do
+    state = socket.assigns.live_preview
+
+    if state.pid == pid do
+      # Frames stay on the authenticated LiveView connection. Repository HTML
+      # and scripts are never mounted in the editor's browser origin.
+      event = Map.take(event, [:status, :message, :frame, :path, :revision])
+
+      if Map.get(event, :revision, state.revision) >= state.revision do
+        {:noreply, assign(socket, live_preview: Map.merge(state, event))}
+      else
+        {:noreply, socket}
+      end
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info({:DOWN, ref, :process, pid, _reason}, socket) do
+    state = socket.assigns.live_preview
+
+    if state.monitor == ref && state.pid == pid do
+      state = %{
+        state
+        | pid: nil,
+          monitor: nil,
+          frame: nil,
+          status: if(state.status in [:error, :stopped], do: state.status, else: :error),
+          message:
+            if(state.status in [:error, :stopped],
+              do: state.message,
+              else: gettext("The preview stopped. Start it again to reconnect.")
+            )
+      }
+
+      {:noreply, assign(socket, live_preview: state)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  defp empty_live_preview do
+    %{pid: nil, monitor: nil, status: :idle, message: nil, frame: nil, path: nil, revision: 0}
+  end
+
+  defp stop_live_preview(socket) do
+    state = socket.assigns.live_preview
+    if state.monitor, do: Process.demonitor(state.monitor, [:flush])
+    if state.pid, do: Preview.stop(state.pid)
+    assign(socket, live_preview: empty_live_preview())
+  end
+
+  defp update_live_preview(socket) do
+    state = socket.assigns.live_preview
+
+    if state.pid && socket.assigns.file do
+      result =
+        with {:ok, version} <- Ecto.Type.cast(:integer, socket.assigns.form_version) do
+          Preview.update(state.pid, socket.assigns.file.id, version, socket.assigns.values)
+        else
+          :error -> {:error, :stale}
+        end
+
+      case result do
+        {:ok, revision} ->
+          assign(socket,
+            live_preview: %{
+              state
+              | revision: revision,
+                status: if(state.frame, do: :updating, else: state.status),
+                message: nil
+            }
+          )
+
+        {:error, reason} ->
+          socket
+          |> stop_live_preview()
+          |> assign(
+            live_preview: %{
+              empty_live_preview()
+              | status: :error,
+                message: preview_error(reason)
+            }
+          )
+      end
+    else
+      socket
+    end
+  end
+
+  defp preview_error(:preview_requires_isolation),
+    do:
+      gettext(
+        "Live app previews require an isolated runner. Your content can still be edited and saved here."
+      )
+
+  defp preview_error(:stale), do: error(:stale)
+
+  defp preview_error(_),
+    do:
+      gettext(
+        "The app preview could not start safely. Your edits are unchanged. Check the repository and preview runner, then try again."
+      )
+
+  defp preview_status(:ready), do: gettext("Live")
+  defp preview_status(:updating), do: gettext("Updating…")
+  defp preview_status(:starting), do: gettext("Starting…")
+  defp preview_status(:discovering), do: gettext("Finding page…")
+  defp preview_status(:error), do: gettext("Unavailable")
+  defp preview_status(_), do: gettext("Not running")
+
   defp patch(socket, params),
     do:
       push_patch(socket,
@@ -246,6 +411,7 @@ defmodule GlossiaWeb.EditorLive do
         file && file.active && !file.conflict && is_nil(file.branch) && is_nil(content_error)
     )
     |> preview()
+    |> update_live_preview()
   end
 
   defp field_values(fields), do: Map.new(fields, &{&1.id, &1.value})
@@ -261,6 +427,9 @@ defmodule GlossiaWeb.EditorLive do
 
   defp publishable?(file),
     do: file.active && !file.conflict && is_nil(file.branch) && !is_nil(file.draft_content)
+
+  defp without_form_metadata(values),
+    do: Map.reject(values, fn {key, _} -> String.starts_with?(key, "_unused_") end)
 
   defp field_label(label) do
     label
@@ -432,235 +601,333 @@ defmodule GlossiaWeb.EditorLive do
       </Noora.Alert.alert>
 
       <%= if @file do %>
-        <Noora.Card.card icon="file_text" title={@file.path}>
-          <:actions><Noora.Tag.tag label={status(@file)} /></:actions>
-          <Noora.Card.card_section data-part="document-meta">
-            <span>{String.upcase(@file.format)} · {@file.locale}</span>
-            <span :if={@source}>{gettext("Source:")} {@source.path} · {@source.locale}</span>
-            <span :if={!@file.blob_sha}>
-              {gettext("Not in the repository yet. Start from the source content.")}
-            </span>
-          </Noora.Card.card_section>
-          <Noora.Card.card_section :if={@file.pull_request_url} data-part="review">
-            <Noora.Alert.alert
-              status="success"
-              title={
-                gettext(
-                  "Your edit is ready for review. Merge the pull request to update the repository."
-                )
-              }
-            />
-            <Noora.Button.button
-              label={gettext("View pull request")}
-              href={@file.pull_request_url}
-              variant="secondary"
-              target="_blank"
-              rel="noopener noreferrer"
-            />
-            <Noora.Button.button
-              label={gettext("Check review status")}
-              phx-click="refresh_review"
-              variant="secondary"
-              disabled={@busy}
-            />
-          </Noora.Card.card_section>
-          <Noora.Card.card_section :if={@file.branch && !@file.pull_request_url}>
-            <Noora.Alert.alert
-              status="warning"
-              title={
-                gettext(
-                  "Publication started. The draft is frozen; retry to recover the same pull request, not create a duplicate."
-                )
-              }
-            />
-          </Noora.Card.card_section>
-          <Noora.Card.card_section
-            :if={@fields == [] && !@content_error}
-            class="noora-table"
-            data-part="empty"
-          >
-            <Noora.Table.table_empty_state
-              icon="file_text"
-              title={gettext("No editable text")}
-              subtitle={
-                gettext(
-                  "This file contains no text fields. Numbers, flags, and structure stay managed in the repository."
-                )
-              }
-            />
-          </Noora.Card.card_section>
-          <.form
-            :if={@fields != []}
-            for={%{}}
-            id="editor-form"
-            phx-change="change"
-            phx-submit="save"
-            phx-hook="ContentEditor"
-            data-dirty={to_string(@dirty)}
-            data-preview={@preview}
-            data-leave-confirm={gettext("Leave without saving these edits?")}
-          >
-            <input type="hidden" name="file_id" value={@file.id} />
-            <input type="hidden" name="version" value={@form_version} />
-            <Noora.Card.card_section :if={@file.format == "markdown"} data-part="formatting">
-              <Noora.Button.button
-                :for={
-                  {format, label} <- [
-                    {"paragraph", gettext("Text")},
-                    {"heading", gettext("Heading")},
-                    {"bold", gettext("Bold")},
-                    {"italic", gettext("Italic")},
-                    {"list", gettext("List")},
-                    {"ordered", gettext("Numbered list")},
-                    {"quote", gettext("Quote")},
-                    {"link", gettext("Link")},
-                    {"undo", gettext("Undo")},
-                    {"redo", gettext("Redo")}
-                  ]
+        <div data-part="workspace">
+          <Noora.Card.card icon="file_text" title={@file.path}>
+            <:actions><Noora.Tag.tag label={status(@file)} /></:actions>
+            <Noora.Card.card_section data-part="document-meta">
+              <span>{String.upcase(@file.format)} · {@file.locale}</span>
+              <span :if={@source}>{gettext("Source:")} {@source.path} · {@source.locale}</span>
+              <span :if={!@file.blob_sha}>
+                {gettext("Not in the repository yet. Start from the source content.")}
+              </span>
+            </Noora.Card.card_section>
+            <Noora.Card.card_section :if={@file.pull_request_url} data-part="review">
+              <Noora.Alert.alert
+                status="success"
+                title={
+                  gettext(
+                    "Your edit is ready for review. Merge the pull request to update the repository."
+                  )
                 }
-                label={label}
-                type="button"
+              />
+              <Noora.Button.button
+                label={gettext("View pull request")}
+                href={@file.pull_request_url}
                 variant="secondary"
-                data-format={format}
-                disabled={!@editable || @busy}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+              <Noora.Button.button
+                label={gettext("Check review status")}
+                phx-click="refresh_review"
+                variant="secondary"
+                disabled={@busy}
+              />
+            </Noora.Card.card_section>
+            <Noora.Card.card_section :if={@file.branch && !@file.pull_request_url}>
+              <Noora.Alert.alert
+                status="warning"
+                title={
+                  gettext(
+                    "Publication started. The draft is frozen; retry to recover the same pull request, not create a duplicate."
+                  )
+                }
               />
             </Noora.Card.card_section>
             <Noora.Card.card_section
-              :if={@file.format == "markdown"}
-              id="editor-link-controls"
-              data-part="link-controls"
-              phx-update="ignore"
-              hidden
-              data-invalid-url={gettext("Enter a valid https, http, or mailto link.")}
+              :if={@fields == [] && !@content_error}
+              class="noora-table"
+              data-part="empty"
             >
-              <Noora.TextInput.text_input
-                id="editor-link-url"
-                name="link_url"
-                label={gettext("Link URL")}
-                type="basic"
-              />
-              <Noora.Button.button
-                type="button"
-                label={gettext("Apply link")}
-                data-format="apply_link"
-                variant="secondary"
-              />
-              <Noora.Button.button
-                type="button"
-                label={gettext("Remove link")}
-                data-format="remove_link"
-                variant="secondary"
+              <Noora.Table.table_empty_state
+                icon="file_text"
+                title={gettext("No editable text")}
+                subtitle={
+                  gettext(
+                    "This file contains no text fields. Numbers, flags, and structure stay managed in the repository."
+                  )
+                }
               />
             </Noora.Card.card_section>
-            <Noora.Card.card_section data-part="fields">
-              <div
-                :for={field <- @fields}
-                data-part="field-row"
-                data-body={@file.format == "markdown" && field.label == "Body"}
+            <.form
+              :if={@fields != []}
+              for={%{}}
+              id="editor-form"
+              phx-change="change"
+              phx-submit="save"
+              phx-hook="ContentEditor"
+              data-dirty={to_string(@dirty)}
+              data-preview={@preview}
+              data-leave-confirm={gettext("Leave without saving these edits?")}
+            >
+              <input type="hidden" name="file_id" value={@file.id} />
+              <input type="hidden" name="version" value={@form_version} />
+              <Noora.Card.card_section :if={@file.format == "markdown"} data-part="formatting">
+                <Noora.Button.button
+                  :for={
+                    {format, label} <- [
+                      {"paragraph", gettext("Text")},
+                      {"heading", gettext("Heading")},
+                      {"bold", gettext("Bold")},
+                      {"italic", gettext("Italic")},
+                      {"list", gettext("List")},
+                      {"ordered", gettext("Numbered list")},
+                      {"quote", gettext("Quote")},
+                      {"link", gettext("Link")},
+                      {"undo", gettext("Undo")},
+                      {"redo", gettext("Redo")}
+                    ]
+                  }
+                  label={label}
+                  type="button"
+                  variant="secondary"
+                  data-format={format}
+                  disabled={!@editable || @busy}
+                />
+              </Noora.Card.card_section>
+              <Noora.Card.card_section
+                :if={@file.format == "markdown"}
+                id="editor-link-controls"
+                data-part="link-controls"
+                phx-update="ignore"
+                hidden
+                data-invalid-url={gettext("Enter a valid https, http, or mailto link.")}
               >
-                <div :if={Map.has_key?(@source_fields, field.id)} data-part="source">
-                  <Noora.Label.label label={
-                    gettext("Source · %{label}", label: field_label(field.label))
-                  } />
+                <Noora.TextInput.text_input
+                  id="editor-link-url"
+                  name="link_url"
+                  label={gettext("Link URL")}
+                  type="basic"
+                />
+                <Noora.Button.button
+                  type="button"
+                  label={gettext("Apply link")}
+                  data-format="apply_link"
+                  variant="secondary"
+                />
+                <Noora.Button.button
+                  type="button"
+                  label={gettext("Remove link")}
+                  data-format="remove_link"
+                  variant="secondary"
+                />
+              </Noora.Card.card_section>
+              <Noora.Card.card_section data-part="fields">
+                <div
+                  :for={field <- @fields}
+                  data-part="field-row"
+                  data-body={@file.format == "markdown" && field.label == "Body"}
+                >
+                  <div :if={Map.has_key?(@source_fields, field.id)} data-part="source">
+                    <Noora.Label.label label={
+                      gettext("Source · %{label}", label: field_label(field.label))
+                    } />
+                    <%= if @file.format == "markdown" && field.id == "body" do %>
+                      <article class="prose" dir="auto">
+                        {raw(markdown_html(@source_fields[field.id]))}
+                      </article>
+                    <% else %>
+                      <p dir="auto">{@source_fields[field.id]}</p>
+                    <% end %>
+                  </div>
                   <%= if @file.format == "markdown" && field.id == "body" do %>
-                    <article class="prose" dir="auto">
-                      {raw(markdown_html(@source_fields[field.id]))}
-                    </article>
+                    <input
+                      type="hidden"
+                      id="editor-body"
+                      name="values[body]"
+                      value={@values[field.id]}
+                      disabled={!@editable || @busy}
+                    />
+                    <div id={field_dom_id(field.id)} data-part="visual-editor" phx-update="ignore">
+                      <Noora.Label.label label={gettext("Body")} />
+                      <div data-part="visual-warning" hidden>
+                        <Noora.Alert.alert
+                          status="warning"
+                          title={
+                            gettext(
+                              "This document uses formatting the visual editor cannot safely preserve, such as embedded HTML, entities, or footnotes. Its body is read-only. You can still edit the text fields above."
+                            )
+                          }
+                        />
+                      </div>
+                      <div data-part="visual-surface" data-label={gettext("Body")}></div>
+                      <article
+                        id="editor-preview"
+                        data-part="visual-fallback"
+                        class="prose"
+                        dir="auto"
+                      >
+                        {raw(@preview)}
+                      </article>
+                    </div>
                   <% else %>
-                    <p dir="auto">{@source_fields[field.id]}</p>
+                    <Noora.TextArea.text_area
+                      id={field_dom_id(field.id)}
+                      name={"values[#{field.id}]"}
+                      label={field_label(field.label)}
+                      value={@values[field.id]}
+                      rows={if @file.format == "markdown", do: 1, else: 3}
+                      max_length={1_000_000}
+                      show_character_count={false}
+                      disabled={!@editable || @busy}
+                      aria-label={field_label(field.label)}
+                      phx-debounce="250"
+                      dir="auto"
+                    />
                   <% end %>
                 </div>
-                <%= if @file.format == "markdown" && field.id == "body" do %>
-                  <input
-                    type="hidden"
-                    id="editor-body"
-                    name="values[body]"
-                    value={@values[field.id]}
-                    disabled={!@editable || @busy}
-                  />
-                  <div id={field_dom_id(field.id)} data-part="visual-editor" phx-update="ignore">
-                    <Noora.Label.label label={gettext("Body")} />
-                    <div data-part="visual-warning" hidden>
-                      <Noora.Alert.alert
-                        status="warning"
-                        title={
-                          gettext(
-                            "This document uses formatting the visual editor cannot safely preserve, such as embedded HTML, entities, or footnotes. Its body is read-only. You can still edit the text fields above."
-                          )
-                        }
-                      />
-                    </div>
-                    <div data-part="visual-surface" data-label={gettext("Body")}></div>
-                    <article id="editor-preview" data-part="visual-fallback" class="prose" dir="auto">
-                      {raw(@preview)}
-                    </article>
-                  </div>
-                <% else %>
-                  <Noora.TextArea.text_area
-                    id={field_dom_id(field.id)}
-                    name={"values[#{field.id}]"}
-                    label={field_label(field.label)}
-                    value={@values[field.id]}
-                    rows={if @file.format == "markdown", do: 1, else: 3}
-                    max_length={1_000_000}
-                    show_character_count={false}
-                    disabled={!@editable || @busy}
-                    aria-label={field_label(field.label)}
-                    phx-debounce="250"
-                    dir="auto"
-                  />
-                <% end %>
-              </div>
-            </Noora.Card.card_section>
-            <Noora.Card.card_section data-part="save-bar">
-              <div data-part="save-status">
-                <strong>
-                  {if @dirty,
-                    do: gettext("Unsaved changes"),
-                    else:
-                      if(@file.draft_content, do: gettext("Draft saved"), else: gettext("Up to date"))}
-                </strong>
-                <span>
-                  {gettext("Save here first. Review this file or group saved changes from All files.")}
-                </span>
-              </div>
+              </Noora.Card.card_section>
+              <Noora.Card.card_section data-part="save-bar">
+                <div data-part="save-status">
+                  <strong>
+                    {if @dirty,
+                      do: gettext("Unsaved changes"),
+                      else:
+                        if(@file.draft_content,
+                          do: gettext("Draft saved"),
+                          else: gettext("Up to date")
+                        )}
+                  </strong>
+                  <span>
+                    {gettext(
+                      "Save here first. Review this file or group saved changes from All files."
+                    )}
+                  </span>
+                </div>
+                <Noora.Button.button
+                  :if={@file.draft_content && !@file.branch}
+                  label={gettext("Discard draft")}
+                  type="button"
+                  variant="secondary"
+                  phx-click="discard"
+                  disabled={@busy}
+                  data-confirm={gettext("Discard the saved draft? This cannot be undone.")}
+                />
+                <Noora.Button.button
+                  id="editor-save"
+                  label={gettext("Save draft")}
+                  type="submit"
+                  variant="secondary"
+                  disabled={!@editable || !@dirty || @busy}
+                />
+                <Noora.Button.button
+                  :if={!@file.pull_request_url}
+                  id="editor-publish"
+                  type="button"
+                  label={
+                    if @file.branch,
+                      do: gettext("Retry pull request"),
+                      else: gettext("Create pull request")
+                  }
+                  phx-click="publish"
+                  disabled={
+                    @dirty || @busy || !@file.draft_content ||
+                      (is_nil(@file.branch) && (@file.conflict || !@file.active))
+                  }
+                  data-confirm={
+                    gettext("Create a GitHub pull request with the saved changes to this file?")
+                  }
+                />
+              </Noora.Card.card_section>
+            </.form>
+          </Noora.Card.card>
+          <Noora.Card.card
+            id="editor-app-preview"
+            icon="device_desktop"
+            title={gettext("App preview")}
+            phx-hook="AppPreview"
+            data-expanded="false"
+            data-expand-label={gettext("Expand")}
+            data-collapse-label={gettext("Shrink")}
+            role="region"
+            aria-label={gettext("Interactive app preview")}
+          >
+            <:actions>
+              <Noora.Tag.tag label={preview_status(@live_preview.status)} />
               <Noora.Button.button
-                :if={@file.draft_content && !@file.branch}
-                label={gettext("Discard draft")}
-                type="button"
+                id="editor-expand-preview"
+                label={gettext("Expand")}
+                aria-label={gettext("Resize app preview")}
+                size="small"
                 variant="secondary"
-                phx-click="discard"
-                disabled={@busy}
-                data-confirm={gettext("Discard the saved draft? This cannot be undone.")}
+                aria-expanded="false"
+                aria-controls="editor-app-preview"
+                data-preview-toggle
               />
+            </:actions>
+            <Noora.Card.card_section :if={!@live_preview.frame} data-part="preview-controls">
+              <p :if={!@live_preview.pid} data-part="muted">
+                {gettext("See unsaved edits in your app. Nothing is published.")}
+              </p>
               <Noora.Button.button
-                id="editor-save"
-                label={gettext("Save draft")}
-                type="submit"
+                :if={is_nil(@live_preview.pid)}
+                id="editor-start-preview"
+                label={gettext("Start live preview")}
                 variant="secondary"
-                disabled={!@editable || !@dirty || @busy}
-              />
-              <Noora.Button.button
-                :if={!@file.pull_request_url}
-                id="editor-publish"
-                type="button"
-                label={
-                  if @file.branch,
-                    do: gettext("Retry pull request"),
-                    else: gettext("Create pull request")
-                }
-                phx-click="publish"
-                disabled={
-                  @dirty || @busy || !@file.draft_content ||
-                    (is_nil(@file.branch) && (@file.conflict || !@file.active))
-                }
-                data-confirm={
-                  gettext("Create a GitHub pull request with the saved changes to this file?")
-                }
+                phx-click="start_preview"
+                disabled={!@editable || @busy}
               />
             </Noora.Card.card_section>
-          </.form>
-        </Noora.Card.card>
+            <Noora.Card.card_section :if={@live_preview.status == :error && @live_preview.message}>
+              <Noora.Alert.alert
+                status={if @live_preview.status == :error, do: "warning", else: "information"}
+                title={@live_preview.message}
+                role="status"
+              />
+            </Noora.Card.card_section>
+            <Noora.Card.card_section :if={@live_preview.frame} data-part="preview-browser">
+              <div data-part="preview-location">
+                <code>{@live_preview.path}</code>
+                <span>{preview_status(@live_preview.status)}</span>
+              </div>
+              <img
+                id="editor-app-frame"
+                src={"data:image/jpeg;base64,#{@live_preview.frame}"}
+                alt={gettext("Live application preview of %{path}", path: @live_preview.path || "/")}
+                data-revision={@live_preview.revision}
+                data-status={@live_preview.status}
+                tabindex="0"
+                draggable="false"
+                aria-describedby="editor-preview-help"
+              />
+              <p id="editor-preview-help" data-part="muted">
+                {gettext("Click or tap to interact · Scroll here to explore")}
+              </p>
+            </Noora.Card.card_section>
+            <Noora.Card.card_section
+              :if={!@live_preview.frame && @live_preview.pid}
+              class="noora-table"
+              data-part="preview-empty"
+              role="status"
+            >
+              <Noora.Table.table_empty_state
+                icon="device_desktop"
+                title={gettext("Preparing your app")}
+                subtitle={gettext("Finding the right screen and starting the app. Keep editing.")}
+              />
+            </Noora.Card.card_section>
+            <Noora.Card.card_section :if={@live_preview.pid} data-part="preview-footer">
+              <span data-part="muted">{gettext("Private preview · Not your live app")}</span>
+              <Noora.Button.button
+                id="editor-stop-preview"
+                label={gettext("Stop preview")}
+                size="small"
+                variant="secondary"
+                phx-click="stop_preview"
+              />
+            </Noora.Card.card_section>
+          </Noora.Card.card>
+        </div>
       <% else %>
         <Noora.Card.card
           :if={@drafts != []}

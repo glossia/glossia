@@ -14,6 +14,64 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapterTest do
     Application.put_env(:glossia, :managed_runner, k8s: k8s)
   end
 
+  test "editor previews fail closed without an explicitly configured Kata runtime" do
+    for runtime <- [nil, "", "runc", "gvisor"] do
+      put_placement(runtime_class_name: runtime)
+      refute KataAdapter.preview_isolated?()
+
+      assert {:error, :preview_requires_isolation} =
+               KataAdapter.build_manifest("preview", %{purpose: "editor_preview"})
+
+      assert {:error, :preview_requires_isolation} =
+               KataAdapter.execute_preview("unused", "true", [])
+    end
+
+    put_placement(runtime_class_name: "kata-qemu")
+    assert KataAdapter.preview_isolated?()
+
+    assert {:ok, %{"spec" => spec, "metadata" => metadata}} =
+             KataAdapter.build_manifest("preview", %{purpose: "editor_preview"})
+
+    assert spec["runtimeClassName"] == "kata-qemu"
+    assert metadata["labels"]["glossia.ai/purpose"] == "editor_preview"
+  end
+
+  test "preview admission requires the chart's complete network restrictions" do
+    # Validate the shipped chart body, not an independently maintained fixture.
+    spec =
+      Path.expand(
+        "../../../../deploy/helm/glossia/templates/editor-preview-network-policy.yaml",
+        __DIR__
+      )
+      |> File.read!()
+      |> String.split("\nspec:\n", parts: 2)
+      |> List.last()
+      |> String.split("\n{{-", parts: 2)
+      |> hd()
+      |> YamlElixir.read_from_string!()
+
+    policy = %{
+      "apiVersion" => "cilium.io/v2",
+      "kind" => "CiliumNetworkPolicy",
+      "metadata" => %{},
+      "spec" => spec
+    }
+
+    assert KataAdapter.preview_network_policy_valid?(policy)
+
+    for unsafe <- [
+          nil,
+          %{},
+          put_in(policy, ["metadata", "deletionTimestamp"], "2026-10-31T00:00:00Z"),
+          Map.put(policy, "specs", [spec]),
+          put_in(policy, ["spec", "egressDeny"], []),
+          put_in(policy, ["spec", "egress"], [%{"toEntities" => ["all"]}]),
+          put_in(policy, ["spec", "endpointSelector"], %{"matchLabels" => %{}})
+        ] do
+      refute KataAdapter.preview_network_policy_valid?(unsafe)
+    end
+  end
+
   test "leaves the runtime class unset when the cluster does not configure one" do
     put_placement(runtime_class_name: "", node_selector: %{}, tolerations: [], affinity: %{})
 

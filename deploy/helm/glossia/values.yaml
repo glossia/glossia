@@ -4,6 +4,10 @@
 
 fullnameOverride: ""
 
+# Requires Cilium and a verified Kata network boundary before enabling.
+editorPreview:
+  enabled: false
+
 replicaCount: 2
 
 # The replicas form an Erlang cluster, which is what lets Phoenix.PubSub span

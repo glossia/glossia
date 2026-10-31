@@ -15,6 +15,13 @@ rules:
   - apiGroups: [""]
     resources: ["pods/exec", "pods/log"]
     verbs: ["create", "get"]
+  {{- if .Values.editorPreview.enabled }}
+  # Previews may inspect their required isolation policy, never change it.
+  - apiGroups: ["cilium.io"]
+    resources: ["ciliumnetworkpolicies"]
+    resourceNames: [{{ printf "%s-editor-previews" (include "glossia.fullname" .) | quote }}]
+    verbs: ["get"]
+  {{- end }}
   # Release recovery only reads this application's rollout status. It cannot
   # inspect other Deployments or change which release Kubernetes deploys.
   - apiGroups: ["apps"]

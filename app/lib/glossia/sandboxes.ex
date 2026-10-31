@@ -89,7 +89,8 @@ defmodule Glossia.Sandboxes do
 
   def execute_sandbox(sandbox, command, opts \\ [])
 
-  def execute_sandbox(%Sandbox{purpose: "project_setup"}, _command, _opts) do
+  def execute_sandbox(%Sandbox{purpose: purpose}, _command, _opts)
+      when purpose in ["project_setup", "editor_preview"] do
     {:error, :sandbox_operation_not_allowed}
   end
 
@@ -106,7 +107,8 @@ defmodule Glossia.Sandboxes do
 
   def read_file(sandbox, path, opts \\ [])
 
-  def read_file(%Sandbox{purpose: "project_setup"}, _path, _opts) do
+  def read_file(%Sandbox{purpose: purpose}, _path, _opts)
+      when purpose in ["project_setup", "editor_preview"] do
     {:error, :sandbox_operation_not_allowed}
   end
 
@@ -119,7 +121,8 @@ defmodule Glossia.Sandboxes do
 
   def write_file(sandbox, path, content, opts \\ [])
 
-  def write_file(%Sandbox{purpose: "project_setup"}, _path, _content, _opts) do
+  def write_file(%Sandbox{purpose: purpose}, _path, _content, _opts)
+      when purpose in ["project_setup", "editor_preview"] do
     {:error, :sandbox_operation_not_allowed}
   end
 
@@ -133,7 +136,8 @@ defmodule Glossia.Sandboxes do
 
   def delete_file(sandbox, path, opts \\ [])
 
-  def delete_file(%Sandbox{purpose: "project_setup"}, _path, _opts) do
+  def delete_file(%Sandbox{purpose: purpose}, _path, _opts)
+      when purpose in ["project_setup", "editor_preview"] do
     {:error, :sandbox_operation_not_allowed}
   end
 

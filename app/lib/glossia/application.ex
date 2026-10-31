@@ -93,6 +93,7 @@ defmodule Glossia.Application do
         Glossia.Pomerium.JWKSCache,
         Glossia.Sandbox.ProcessRegistry,
         {DynamicSupervisor, name: Glossia.Sandbox.Supervisor, strategy: :one_for_one},
+        {DynamicSupervisor, name: Glossia.Editor.Preview.Supervisor, strategy: :one_for_one},
         Glossia.Sandbox.Reaper,
         Glossia.Projects.SetupRecovery
       ] ++

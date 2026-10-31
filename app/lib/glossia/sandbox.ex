@@ -13,6 +13,12 @@ defmodule Glossia.Sandbox do
   @callback delete_file(sandbox_id(), String.t()) :: :ok | {:error, term()}
   @callback repo_path(sandbox_id()) :: {:ok, String.t()} | {:error, term()}
   @callback start_agent_session(sandbox_id(), pid(), keyword()) :: {:ok, pid()} | {:error, term()}
+  @callback execute_preview(sandbox_id(), String.t(), keyword()) ::
+              {:ok, map()} | {:error, term()}
+  @callback preview_isolated?() :: boolean()
+  @callback download_preview_file(sandbox_id(), String.t(), pos_integer()) ::
+              {:ok, binary()} | {:error, term()}
+  @optional_callbacks execute_preview: 3, preview_isolated?: 0, download_preview_file: 3
 
   def adapter do
     :glossia

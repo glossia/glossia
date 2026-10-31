@@ -1,0 +1,79 @@
+{{- /* Repository code must not reach the cluster, nodes, metadata or VPC.
+  Kata provides kernel isolation, not network isolation. DNS is the sole
+  cluster exception; dependency downloads use public HTTPS/HTTP only. */}}
+{{- if .Values.editorPreview.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ include "glossia.fullname" . }}-editor-previews
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+    app.kubernetes.io/component: editor-preview-network
+spec:
+  endpointSelector:
+    matchLabels:
+      "k8s:app.kubernetes.io/name": glossia
+      "k8s:app.kubernetes.io/component": sandbox
+      "k8s:glossia.ai/purpose": editor_preview
+  enableDefaultDeny:
+    ingress: true
+    egress: true
+  ingress: []
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+  # Explicit denies also protect against additive policies allowing ingress
+  # or access to private addresses classified as world rather than cluster.
+  ingressDeny:
+    - fromEntities:
+        - all
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+        - unmanaged
+        - health
+        - init
+        - ingress
+    - toEndpoints:
+        - matchExpressions:
+            - key: "k8s:io.kubernetes.pod.namespace"
+              operator: NotIn
+              values: [kube-system]
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+          matchExpressions:
+            - key: "k8s:k8s-app"
+              operator: NotIn
+              values: [kube-dns]
+    - toCIDR:
+        - 0.0.0.0/8
+        - 10.0.0.0/8
+        - 100.64.0.0/10
+        - 127.0.0.0/8
+        - 169.254.0.0/16
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+        - 198.18.0.0/15
+        - "::/128"
+        - "::1/128"
+        - "fc00::/7"
+        - "fe80::/10"
+{{- end }}

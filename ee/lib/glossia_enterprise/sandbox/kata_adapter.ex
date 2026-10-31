@@ -49,18 +49,114 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapter do
   @exec_timeout_ms 300_000
   @create_wait_timeout_ms 120_000
 
+  # Keep this admission contract aligned with the chart's policy. A policy's
+  # name or annotation alone is not evidence of its actual restrictions.
+  @preview_network_policy %{
+    "endpointSelector" => %{
+      "matchLabels" => %{
+        "k8s:app.kubernetes.io/name" => "glossia",
+        "k8s:app.kubernetes.io/component" => "sandbox",
+        "k8s:glossia.ai/purpose" => "editor_preview"
+      }
+    },
+    "enableDefaultDeny" => %{"ingress" => true, "egress" => true},
+    "ingress" => [],
+    "ingressDeny" => [%{"fromEntities" => ["all"]}],
+    "egress" => [
+      %{
+        "toEndpoints" => [
+          %{
+            "matchLabels" => %{
+              "k8s:io.kubernetes.pod.namespace" => "kube-system",
+              "k8s:k8s-app" => "kube-dns"
+            }
+          }
+        ],
+        "toPorts" => [
+          %{
+            "ports" => [
+              %{"port" => "53", "protocol" => "UDP"},
+              %{"port" => "53", "protocol" => "TCP"}
+            ]
+          }
+        ]
+      },
+      %{
+        "toEntities" => ["world"],
+        "toPorts" => [
+          %{
+            "ports" => [
+              %{"port" => "80", "protocol" => "TCP"},
+              %{"port" => "443", "protocol" => "TCP"}
+            ]
+          }
+        ]
+      }
+    ],
+    "egressDeny" => [
+      %{
+        "toEntities" => [
+          "host",
+          "remote-node",
+          "kube-apiserver",
+          "unmanaged",
+          "health",
+          "init",
+          "ingress"
+        ]
+      },
+      %{
+        "toEndpoints" => [
+          %{
+            "matchExpressions" => [
+              %{
+                "key" => "k8s:io.kubernetes.pod.namespace",
+                "operator" => "NotIn",
+                "values" => ["kube-system"]
+              }
+            ]
+          },
+          %{
+            "matchLabels" => %{"k8s:io.kubernetes.pod.namespace" => "kube-system"},
+            "matchExpressions" => [
+              %{"key" => "k8s:k8s-app", "operator" => "NotIn", "values" => ["kube-dns"]}
+            ]
+          }
+        ]
+      },
+      %{
+        "toCIDR" => [
+          "0.0.0.0/8",
+          "10.0.0.0/8",
+          "100.64.0.0/10",
+          "127.0.0.0/8",
+          "169.254.0.0/16",
+          "172.16.0.0/12",
+          "192.168.0.0/16",
+          "198.18.0.0/15",
+          "::/128",
+          "::1/128",
+          "fc00::/7",
+          "fe80::/10"
+        ]
+      }
+    ]
+  }
+
   @impl true
   def create(params) when is_map(params) do
     sandbox_id = to_string(params[:id] || params["id"] || Ecto.UUID.generate())
     name = sandbox_name(sandbox_id)
+    preview? = (params[:purpose] || params["purpose"]) == "editor_preview"
 
     with {:ok, namespace} <- Kubernetes.namespace(),
          {:ok, manifest} <- build_manifest(name, params),
+         :ok <- ensure_preview_network_policy(namespace, preview?),
          {:ok, _pod} <- Kubernetes.create_pod(namespace, manifest),
          :ok <- wait_ready(namespace, name) do
       {:ok, sandbox_id}
     else
-      {:error, :already_exists} ->
+      {:error, :already_exists} when not preview? ->
         # A retried create finds the pod it already scheduled: succeed.
         {:ok, sandbox_id}
 
@@ -176,6 +272,79 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapter do
   def repo_path(_sandbox_id), do: {:ok, configured(:repo_path, @default_repo_path)}
 
   @impl true
+  def preview_isolated? do
+    case placement(:runtime_class_name) do
+      "kata" <> _ -> true
+      _ -> false
+    end
+  end
+
+  @impl true
+  def download_preview_file(sandbox_id, path, limit) do
+    with :ok <- ensure_safe_path(path),
+         {:ok, namespace} <- Kubernetes.namespace() do
+      script =
+        "const f=require('fs'),b=Buffer.alloc(Number(process.argv[2])+1),d=f.openSync(process.argv[1],'r');const n=f.readSync(d,b,0,b.length,0);if(n>b.length-1)process.exit(2);process.stdout.write(b.subarray(0,n).toString('base64'))"
+
+      case kubectl(
+             [
+               "exec",
+               "-n",
+               namespace,
+               sandbox_name(sandbox_id),
+               "--",
+               "node",
+               "-e",
+               script,
+               path,
+               to_string(limit)
+             ],
+             timeout: @kubectl_timeout_ms
+           ) do
+        {output, 0} -> Base.decode64(output)
+        _ -> {:error, :preview_file_unavailable}
+      end
+    end
+  end
+
+  @impl true
+  def execute_preview(sandbox_id, command, opts) do
+    with true <- preview_isolated?(),
+         {:ok, namespace} <- Kubernetes.namespace() do
+      cwd = Keyword.get(opts, :cwd, configured(:repo_path, @default_repo_path))
+      env = Keyword.get(opts, :env, %{})
+      assignments = Enum.map(env, fn {key, value} -> "#{key}=#{value}" end)
+
+      args =
+        [
+          "exec",
+          "-n",
+          namespace,
+          sandbox_name(sandbox_id),
+          "--",
+          "env",
+          "-i",
+          "PATH=/usr/local/bin:/usr/bin:/bin",
+          "HOME=/tmp/glossia"
+        ] ++
+          assignments ++
+          ["sh", "-c", "cd #{shell_escape(cwd)} && #{command}"]
+
+      {output, code} = kubectl(args, timeout: Keyword.get(opts, :timeout_ms, 30_000))
+
+      {:ok,
+       %{
+         "exitCode" => code,
+         "stdout" => Output.truncate(output, Keyword.get(opts, :output_limit_bytes, 4_000)),
+         "stderr" => ""
+       }}
+    else
+      false -> {:error, :preview_requires_isolation}
+      error -> error
+    end
+  end
+
+  @impl true
   def start_agent_session(sandbox_id, caller, opts) do
     # Runs the harness agent inside the pod and forwards its NDJSON event
     # stream back to `caller` as `{:agent_event, event}` / `{:agent_done, _}`.
@@ -196,9 +365,20 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapter do
 
   @doc false
   def build_manifest(name, params) do
+    purpose = params[:purpose] || params["purpose"]
+
+    if purpose == "editor_preview" && not preview_isolated?() do
+      {:error, :preview_requires_isolation}
+    else
+      do_build_manifest(name, params)
+    end
+  end
+
+  defp do_build_manifest(name, params) do
     image = params[:image] || params["image"] || configured(:image, @default_image)
     repo_path = configured(:repo_path, @default_repo_path)
     deadline = params[:deadline_at] || params["deadline_at"]
+    purpose = params[:purpose] || params["purpose"]
 
     {:ok,
      %{
@@ -206,11 +386,13 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapter do
        "kind" => "Pod",
        "metadata" => %{
          "name" => name,
-         "labels" => %{
-           "app.kubernetes.io/name" => "glossia",
-           "app.kubernetes.io/component" => "sandbox",
-           "glossia.ai/sandbox-id" => name
-         }
+         "labels" =>
+           %{
+             "app.kubernetes.io/name" => "glossia",
+             "app.kubernetes.io/component" => "sandbox",
+             "glossia.ai/sandbox-id" => name
+           }
+           |> maybe_put("glossia.ai/purpose", purpose)
        },
        "spec" =>
          %{
@@ -253,6 +435,32 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapter do
   end
 
   defp active_deadline_seconds(_), do: nil
+
+  @doc false
+  def preview_network_policy_valid?(policy) do
+    is_map(policy) && policy["kind"] == "CiliumNetworkPolicy" &&
+      policy["apiVersion"] == "cilium.io/v2" &&
+      is_map(policy["metadata"]) &&
+      is_nil(get_in(policy, ["metadata", "deletionTimestamp"])) &&
+      not Map.has_key?(policy, "specs") && policy["spec"] == @preview_network_policy
+  end
+
+  defp ensure_preview_network_policy(_namespace, false), do: :ok
+
+  defp ensure_preview_network_policy(namespace, true) do
+    name = System.get_env("GLOSSIA_ENGINE_DEPLOYMENT", "glossia") <> "-editor-previews"
+
+    with {bytes, 0} <-
+           kubectl(["get", "ciliumnetworkpolicy", name, "-n", namespace, "-o", "json"],
+             timeout: @kubectl_timeout_ms
+           ),
+         {:ok, policy} <- JSON.decode(bytes),
+         true <- preview_network_policy_valid?(policy) do
+      :ok
+    else
+      _ -> {:error, :preview_network_policy_required}
+    end
+  end
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, _key, ""), do: map
