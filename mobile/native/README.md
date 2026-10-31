@@ -214,10 +214,12 @@ rather than uploading another build.
 
 ### TestFlight access and distribution-only retries
 
-`ios/distribution/testflight.py VERSION BUILD` uses Python's standard library and
-OpenSSL with the existing three `ASC_API_*` credentials. Its private-key file is
+`bash ios/distribution/testflight.sh VERSION BUILD` uses Bash, curl, jq, OpenSSL,
+and xxd with the existing three `ASC_API_*` credentials. Its private-key file is
 temporary, owner-readable only, and deleted on success/failure; credentials,
-JWTs and Apple response bodies are never logged. No package installation is needed.
+JWTs and Apple response bodies are never logged. The TestFlight helper, its tests,
+and the workflow receipt check do not use Python. The tools are available on the
+GitHub-hosted macOS release runner.
 
 The helper resolves `ai.glossia.app` and matches **both** the iOS marketing version
 and build number, never the latest build. It waits up to 10 minutes for processing

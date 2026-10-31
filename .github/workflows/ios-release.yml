@@ -167,16 +167,15 @@ jobs:
           if [[ "$DISTRIBUTION_ONLY" == true ]]; then
             test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
           fi
-          python3 - <<'PY'
-          import json, os, re, subprocess
-          version, build = os.environ['VERSION'], os.environ['BUILD']
-          if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version) or not re.fullmatch(r'[1-9][0-9]*(\.[0-9]+){0,2}', build):
-              raise SystemExit('Explicit existing version and build are required.')
-          receipt = subprocess.run(['gh', 'release', 'view', f'ios@{version}', '--json', 'body'],
-                                   check=True, capture_output=True, text=True)
-          if f'App Store Connect upload: Glossia {version} ({build}).' not in json.loads(receipt.stdout)['body'].splitlines():
-              raise SystemExit('No exact upload receipt. Inspect Apple state; do not upload again.')
-          PY
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && "$BUILD" =~ ^[1-9][0-9]*(\.[0-9]+){0,2}$ ]] || {
+            echo 'Explicit existing version and build are required.' >&2
+            exit 1
+          }
+          receipt=$(gh release view "ios@$VERSION" --json body --jq '.body')
+          grep -Fx -- "App Store Connect upload: Glossia $VERSION ($BUILD)." <<< "$receipt" >/dev/null || {
+            echo 'No exact upload receipt. Inspect Apple state; do not upload again.' >&2
+            exit 1
+          }
       - name: Load existing dedicated ASC credentials
         uses: Infisical/secrets-action@8a06c1bdcd5b8635d510c52d4b57a92c1ccef785 # v1.0.9
         with:
@@ -189,4 +188,4 @@ jobs:
           include-imports: false
           domain: https://eu.infisical.com
       - name: Reconcile TestFlight access without building or uploading
-        run: python3 -B mobile/native/ios/distribution/testflight.py "$VERSION" "$BUILD"
+        run: bash mobile/native/ios/distribution/testflight.sh "$VERSION" "$BUILD"
