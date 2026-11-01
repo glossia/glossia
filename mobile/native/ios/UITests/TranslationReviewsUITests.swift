@@ -125,7 +125,10 @@ final class TranslationReviewsUITests: XCTestCase {
     }
 
     private func capture(_ app: XCUIApplication, _ name: String) {
-        let attachment = XCTAttachment(screenshot: app.screenshot())
-        attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
+        // Screenshots are review evidence, not assertions; hosted simulators can time out serving them.
+        XCTExpectFailure("Screenshot capture can time out on hosted simulators", options: .nonStrict()) {
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
+        }
     }
 }
