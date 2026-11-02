@@ -11,6 +11,7 @@ defmodule GlossiaWeb.EditorLive do
      assign(socket,
        error: nil,
        busy: false,
+       sync: :pending,
        file: nil,
        fields: [],
        values: %{},
@@ -60,8 +61,26 @@ defmodule GlossiaWeb.EditorLive do
         ]
       )
 
-    {:noreply, load(socket)}
+    {:noreply, socket |> load() |> start_sync()}
   end
+
+  # The repository is the source of truth, so the file list refreshes from it
+  # whenever the editor opens instead of waiting for a manual sync. File pages
+  # reuse the snapshot to avoid a clone on every navigation between files.
+  defp start_sync(%{assigns: %{sync: :pending, file_id: nil}} = socket) do
+    if connected?(socket) do
+      user = socket.assigns.current_user
+      project = socket.assigns.project
+
+      socket
+      |> assign(sync: :running)
+      |> start_async(:sync, fn -> Editor.synchronize(user, project) end)
+    else
+      socket
+    end
+  end
+
+  defp start_sync(socket), do: socket
 
   def handle_event("search", %{"search" => search}, socket),
     do: {:noreply, patch(socket, Map.put(socket.assigns.params, "search", search))}
@@ -203,7 +222,7 @@ defmodule GlossiaWeb.EditorLive do
   end
 
   def handle_event(event, _, socket)
-      when event in ["synchronize", "publish", "publish_many", "refresh_review"] do
+      when event in ["publish", "publish_many", "refresh_review"] do
     if socket.assigns.busy || socket.assigns.dirty do
       {:noreply, socket}
     else
@@ -217,9 +236,6 @@ defmodule GlossiaWeb.EditorLive do
        |> assign(busy: true, error: nil)
        |> start_async(:repository_action, fn ->
          case event do
-           "synchronize" ->
-             Editor.synchronize(user, project)
-
            "publish" ->
              Editor.publish(user, project, file.id, file.lock_version)
 
@@ -246,6 +262,23 @@ defmodule GlossiaWeb.EditorLive do
 
       {:error, reason} ->
         {:noreply, assign(socket, error: error(reason))}
+    end
+  end
+
+  def handle_async(:sync, result, socket) do
+    socket = socket |> assign(sync: :done) |> load()
+
+    # A failed background refresh only matters when there is nothing to show;
+    # otherwise the last snapshot stays usable and publishing reports failures.
+    case result do
+      {:ok, {:error, reason}} when socket.assigns.files == [] ->
+        {:noreply, assign(socket, error: error(reason))}
+
+      {:exit, _} when socket.assigns.files == [] ->
+        {:noreply, assign(socket, error: error(:repository_unavailable))}
+
+      _ ->
+        {:noreply, socket}
     end
   end
 
@@ -546,7 +579,7 @@ defmodule GlossiaWeb.EditorLive do
   defp error(:repository_changed),
     do:
       gettext(
-        "The repository file changed. Your draft is safe. Discard it and sync to load the latest version."
+        "The repository file changed. Your draft is safe. Discard it, then return to all files to load the latest version."
       )
 
   defp error(:publication_pending),
@@ -595,13 +628,6 @@ defmodule GlossiaWeb.EditorLive do
             variant="secondary"
             navigate={~p"/#{@handle}/#{@project.handle}/-/editor"}
             data-confirm={if @dirty, do: gettext("Leave without saving these edits?")}
-          />
-          <Noora.Button.button
-            id="editor-sync"
-            label={if @busy, do: gettext("Working…"), else: gettext("Sync repository")}
-            variant="secondary"
-            phx-click="synchronize"
-            disabled={@busy || @dirty}
           />
         </:actions>
       </.page_header>
@@ -955,37 +981,6 @@ defmodule GlossiaWeb.EditorLive do
           title={gettext("Review saved changes")}
         >
           <:actions>
-            <Noora.Tag.tag label={gettext("%{count} selected", count: map_size(@selected))} />
-          </:actions>
-          <Noora.Card.card_section data-part="draft-selection">
-            <p>
-              {gettext(
-                "Choose the saved drafts to include together in one pull request. Unselected files stay untouched."
-              )}
-            </p>
-            <div :for={file <- @drafts} data-part="draft-option">
-              <Noora.Button.button
-                id={"editor-select-#{file.id}"}
-                label={file.path}
-                variant="secondary"
-                aria-pressed={to_string(Map.has_key?(@selected, file.id))}
-                phx-click={"select_file:#{file.id}"}
-                disabled={@busy}
-              >
-                <:icon_left>
-                  <Noora.Icon.icon name={
-                    if Map.has_key?(@selected, file.id), do: "check", else: "plus"
-                  } />
-                </:icon_left>
-              </Noora.Button.button>
-              <Noora.Button.button
-                label={gettext("Edit")}
-                variant="secondary"
-                navigate={~p"/#{@handle}/#{@project.handle}/-/editor/#{file.id}"}
-              />
-            </div>
-          </Noora.Card.card_section>
-          <Noora.Card.card_section data-part="batch-actions">
             <Noora.Button.button
               id="editor-publish-many"
               label={gettext("Create pull request (%{count} files)", count: map_size(@selected))}
@@ -997,6 +992,44 @@ defmodule GlossiaWeb.EditorLive do
                 )
               }
             />
+          </:actions>
+          <Noora.Card.card_section data-part="draft-selection">
+            <p data-part="muted">
+              {gettext(
+                "Choose the saved drafts to include together in one pull request. Unselected files stay untouched."
+              )}
+            </p>
+            <Noora.Table.table id="editor-drafts" rows={@drafts} row_key={&"draft-#{&1.id}"}>
+              <:col :let={file} label={gettext("File")}>
+                <label
+                  id={"editor-select-#{file.id}"}
+                  data-part="draft-option"
+                  data-disabled={@busy}
+                  phx-click={"select_file:#{file.id}"}
+                >
+                  <Noora.CheckboxControl.checkbox_control checked={Map.has_key?(@selected, file.id)} />
+                  <Noora.Table.text_cell label={file.path} sublabel={file.source_path} />
+                </label>
+              </:col>
+              <:col :let={file} label={gettext("Language")}>
+                <Noora.Table.text_cell label={file.locale} />
+              </:col>
+              <:col :let={file} label={gettext("Status")}>
+                <Noora.Table.text_cell label={status(file)} />
+              </:col>
+              <:col :let={file}>
+                <Noora.Table.button_cell>
+                  <:button>
+                    <Noora.Button.button
+                      label={gettext("Edit")}
+                      variant="secondary"
+                      size="small"
+                      navigate={~p"/#{@handle}/#{@project.handle}/-/editor/#{file.id}"}
+                    />
+                  </:button>
+                </Noora.Table.button_cell>
+              </:col>
+            </Noora.Table.table>
           </Noora.Card.card_section>
         </Noora.Card.card>
         <Noora.Card.card icon="folders" title={gettext("Repository content")}>
@@ -1106,17 +1139,27 @@ defmodule GlossiaWeb.EditorLive do
                 <Noora.Table.table_empty_state
                   icon="folders"
                   title={
-                    if @files == [],
-                      do: gettext("Your content starts here"),
-                      else: gettext("No matching files")
+                    cond do
+                      @files != [] -> gettext("No matching files")
+                      @sync == :running -> gettext("Loading your content")
+                      true -> gettext("Your content starts here")
+                    end
                   }
                   subtitle={
-                    if @files == [],
-                      do:
+                    cond do
+                      @files != [] ->
+                        gettext("Try a different search or remove a filter.")
+
+                      @sync == :running ->
                         gettext(
-                          "Sync your repository to discover the sources and translations configured in L10N.md. Markdown, JSON, YAML, and text are supported."
-                        ),
-                      else: gettext("Try a different search or remove a filter.")
+                          "Reading the sources and translations configured in L10N.md from your repository."
+                        )
+
+                      true ->
+                        gettext(
+                          "Add the sources and translations to edit in L10N.md. Markdown, JSON, YAML, and text are supported."
+                        )
+                    end
                   }
                 />
               </:empty_state>

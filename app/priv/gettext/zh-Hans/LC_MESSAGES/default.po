@@ -53,10 +53,6 @@ msgid_plural "%{count} repositories"
 msgstr[0] "%{count} 个仓库"
 
 #, elixir-autogen, elixir-format
-msgid "%{count} selected"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "%{count} term added"
 msgid_plural "%{count} terms added"
 msgstr[0] ""
@@ -317,6 +313,10 @@ msgstr "向本组织添加成员并选择其角色。"
 #, elixir-autogen, elixir-format
 msgid "Add term"
 msgstr "添加术语"
+
+#, elixir-autogen, elixir-format
+msgid "Add the sources and translations to edit in L10N.md. Markdown, JSON, YAML, and text are supported."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Add this server to your agent, then sign in to Glossia and approve access."
@@ -2208,6 +2208,10 @@ msgid "Live application preview of %{path}"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Loading your content"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Locale guidance"
 msgstr "区域设置指引"
 
@@ -3148,6 +3152,10 @@ msgid "Read the docs"
 msgstr "阅读文档"
 
 #, elixir-autogen, elixir-format
+msgid "Reading the sources and translations configured in L10N.md from your repository."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Ready to get started?"
 msgstr "准备好开始了吗？"
 
@@ -3932,14 +3940,6 @@ msgid "Swap the language cards"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Sync repository"
-msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "Sync your repository to discover the sources and translations configured in L10N.md. Markdown, JSON, YAML, and text are supported."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "System-wide metrics at a glance."
 msgstr "系统指标一览。"
 
@@ -4127,8 +4127,8 @@ msgstr "仓库中已有 L10N.md，否则将由您编写。Glossia 现在创建�
 msgid "The repository and language choices are ready for the setup assistant."
 msgstr "仓库和语言选择已为设置助手准备就绪。"
 
-#, elixir-autogen, elixir-format
-msgid "The repository file changed. Your draft is safe. Discard it and sync to load the latest version."
+#, elixir-autogen, elixir-format, fuzzy
+msgid "The repository file changed. Your draft is safe. Discard it, then return to all files to load the latest version."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -5062,10 +5062,6 @@ msgstr "与 Toki 和您的流利队友一同处理翻译决策。"
 #, elixir-autogen, elixir-format
 msgid "Working on %{step}"
 msgstr "正在处理 %{step}"
-
-#, elixir-autogen, elixir-format
-msgid "Working…"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Write"

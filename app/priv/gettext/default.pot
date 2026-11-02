@@ -58,10 +58,6 @@ msgstr[0] ""
 msgstr[1] ""
 
 #, elixir-autogen, elixir-format
-msgid "%{count} selected"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "%{count} term added"
 msgid_plural "%{count} terms added"
 msgstr[0] ""
@@ -327,6 +323,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Add term"
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "Add the sources and translations to edit in L10N.md. Markdown, JSON, YAML, and text are supported."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -2220,6 +2220,10 @@ msgid "Live application preview of %{path}"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Loading your content"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Locale guidance"
 msgstr ""
 
@@ -3160,6 +3164,10 @@ msgid "Read the docs"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Reading the sources and translations configured in L10N.md from your repository."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Ready to get started?"
 msgstr ""
 
@@ -3944,14 +3952,6 @@ msgid "Swap the language cards"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Sync repository"
-msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "Sync your repository to discover the sources and translations configured in L10N.md. Markdown, JSON, YAML, and text are supported."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "System-wide metrics at a glance."
 msgstr ""
 
@@ -4140,7 +4140,7 @@ msgid "The repository and language choices are ready for the setup assistant."
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "The repository file changed. Your draft is safe. Discard it and sync to load the latest version."
+msgid "The repository file changed. Your draft is safe. Discard it, then return to all files to load the latest version."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -5073,10 +5073,6 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Working on %{step}"
-msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "Working…"
 msgstr ""
 
 #, elixir-autogen, elixir-format

@@ -53,10 +53,6 @@ msgid_plural "%{count} repositories"
 msgstr[0] "%{count} リポジトリ"
 
 #, elixir-autogen, elixir-format
-msgid "%{count} selected"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "%{count} term added"
 msgid_plural "%{count} terms added"
 msgstr[0] ""
@@ -317,6 +313,10 @@ msgstr "この組織にメンバーを追加し、役割を選択してくださ
 #, elixir-autogen, elixir-format
 msgid "Add term"
 msgstr "用語を追加"
+
+#, elixir-autogen, elixir-format
+msgid "Add the sources and translations to edit in L10N.md. Markdown, JSON, YAML, and text are supported."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Add this server to your agent, then sign in to Glossia and approve access."
@@ -2208,6 +2208,10 @@ msgid "Live application preview of %{path}"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Loading your content"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Locale guidance"
 msgstr "ロケール ガイド"
 
@@ -3148,6 +3152,10 @@ msgid "Read the docs"
 msgstr "ドキュメントを読む"
 
 #, elixir-autogen, elixir-format
+msgid "Reading the sources and translations configured in L10N.md from your repository."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Ready to get started?"
 msgstr "すぐに始められるでしょうか？"
 
@@ -3932,14 +3940,6 @@ msgid "Swap the language cards"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Sync repository"
-msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "Sync your repository to discover the sources and translations configured in L10N.md. Markdown, JSON, YAML, and text are supported."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "System-wide metrics at a glance."
 msgstr "システム全体のメトリクスを要約。"
 
@@ -4127,8 +4127,8 @@ msgstr "リポジトリにはすでに L10N.md があるか、あなたが作成
 msgid "The repository and language choices are ready for the setup assistant."
 msgstr "リポジトリと言語選択はセットアップアシスタント用に準備が完了しました"
 
-#, elixir-autogen, elixir-format
-msgid "The repository file changed. Your draft is safe. Discard it and sync to load the latest version."
+#, elixir-autogen, elixir-format, fuzzy
+msgid "The repository file changed. Your draft is safe. Discard it, then return to all files to load the latest version."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -5062,10 +5062,6 @@ msgstr "Toki と熟練チームメンバーと共に翻訳の決断を一緒に�
 #, elixir-autogen, elixir-format
 msgid "Working on %{step}"
 msgstr "%{step} 処理中"
-
-#, elixir-autogen, elixir-format
-msgid "Working…"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Write"

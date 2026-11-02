@@ -58,10 +58,6 @@ msgstr[0] "%{count} dépôt"
 msgstr[1] "%{count} dépôts"
 
 #, elixir-autogen, elixir-format
-msgid "%{count} selected"
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "%{count} term added"
 msgid_plural "%{count} terms added"
 msgstr[0] ""
@@ -328,6 +324,10 @@ msgstr "Ajouter quelqu'un à cette organisation et choisir son rôle."
 #, elixir-autogen, elixir-format
 msgid "Add term"
 msgstr "Ajouter un terme"
+
+#, elixir-autogen, elixir-format
+msgid "Add the sources and translations to edit in L10N.md. Markdown, JSON, YAML, and text are supported."
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Add this server to your agent, then sign in to Glossia and approve access."
@@ -2220,6 +2220,10 @@ msgid "Live application preview of %{path}"
 msgstr ""
 
 #, elixir-autogen, elixir-format
+msgid "Loading your content"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Locale guidance"
 msgstr "Conseils de localisation"
 
@@ -3160,6 +3164,10 @@ msgid "Read the docs"
 msgstr "Consulter la documentation"
 
 #, elixir-autogen, elixir-format
+msgid "Reading the sources and translations configured in L10N.md from your repository."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Ready to get started?"
 msgstr "Prêt à commencer ?"
 
@@ -3944,14 +3952,6 @@ msgid "Swap the language cards"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Sync repository"
-msgstr ""
-
-#, elixir-autogen, elixir-format
-msgid "Sync your repository to discover the sources and translations configured in L10N.md. Markdown, JSON, YAML, and text are supported."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "System-wide metrics at a glance."
 msgstr "Métriques système en un coup d'œil."
 
@@ -4139,8 +4139,8 @@ msgstr "Le dépôt possède déjà un L10N.md, ou vous le rédigerez. Glossia cr
 msgid "The repository and language choices are ready for the setup assistant."
 msgstr "Les choix de dépôt et de langue sont prêts pour l'assistant de configuration."
 
-#, elixir-autogen, elixir-format
-msgid "The repository file changed. Your draft is safe. Discard it and sync to load the latest version."
+#, elixir-autogen, elixir-format, fuzzy
+msgid "The repository file changed. Your draft is safe. Discard it, then return to all files to load the latest version."
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -5074,10 +5074,6 @@ msgstr "Travaillez ensemble sur les décisions de traduction, avec Toki et vos c
 #, elixir-autogen, elixir-format
 msgid "Working on %{step}"
 msgstr "En cours pour %{step}"
-
-#, elixir-autogen, elixir-format
-msgid "Working…"
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Write"

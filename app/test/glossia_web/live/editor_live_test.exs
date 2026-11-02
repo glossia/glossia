@@ -24,6 +24,15 @@ defmodule GlossiaWeb.EditorLiveTest do
     path = ~p"/#{c.user.account.handle}/#{c.project.handle}/-/editor"
     {:ok, view, _} = live(c.conn, path)
     assert has_element?(view, "#platform-sidebar a[href$='/-/editor']", "Editor")
+    refute has_element?(view, "button", "Sync repository")
+
+    render_async(view)
+
+    assert has_element?(
+             view,
+             "#editor-error",
+             "Connect this project to a GitHub repository first."
+           )
 
     assert has_element?(
              view,

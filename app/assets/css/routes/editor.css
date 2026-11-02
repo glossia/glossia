@@ -10,7 +10,7 @@
   & [data-part="muted"], & [data-part="document-meta"], & [data-part="save-status"] span {
     color: var(--noora-surface-label-secondary);
   }
-  & [data-part="document-meta"], & [data-part="toolbar"], & [data-part="review"], & [data-part="save-bar"], & [data-part="formatting"], & [data-part="draft-option"], & [data-part="batch-actions"], & [data-part="link-controls"] {
+  & [data-part="document-meta"], & [data-part="toolbar"], & [data-part="review"], & [data-part="save-bar"], & [data-part="formatting"], & [data-part="link-controls"] {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -20,12 +20,12 @@
   & [data-part="toolbar"] form { flex: 1; }
   & [data-part="draft-selection"] { gap: var(--noora-spacing-6); }
   & [data-part="draft-option"] {
-    justify-content: space-between;
-    & button[aria-pressed] { min-inline-size: var(--noora-spacing-0); }
-    & button[aria-pressed] span { white-space: normal; overflow-wrap: anywhere; text-align: start; }
-    & button[aria-pressed="true"] { box-shadow: var(--noora-light-border-focus); }
+    display: flex;
+    align-items: center;
+    padding-inline-start: var(--noora-spacing-7);
+    cursor: pointer;
+    &[data-disabled] { cursor: not-allowed; opacity: 0.6; }
   }
-  & [data-part="batch-actions"] { justify-content: flex-end; }
   & [data-part="formatting"] {
     gap: var(--noora-spacing-4);
     & button[aria-pressed="true"] { box-shadow: var(--noora-light-border-focus); }
@@ -187,10 +187,9 @@
     & [data-part="field-row"] { grid-template-columns: 1fr; }
     & [data-part="save-bar"] { position: static; }
     & [data-part="save-status"] { flex-basis: 100%; }
-    & [data-part="formatting"] button, & [data-part="save-bar"] button, & [data-part="batch-actions"] button { min-block-size: var(--noora-spacing-10); }
+    & [data-part="formatting"] button, & [data-part="save-bar"] button { min-block-size: var(--noora-spacing-10); }
     & [data-part="save-bar"] button { flex: 1 1 100%; }
     & [data-part="source"] { max-block-size: calc(var(--noora-spacing-16) * 2); overflow: auto; }
-    & [data-part="draft-option"] { align-items: flex-start; flex-wrap: nowrap; }
     & [data-part="toolbar"] { align-items: stretch; }
     & [data-part="toolbar"] form { flex-basis: 100%; }
     & [data-part="visual-surface"] .tiptap { min-block-size: calc(var(--noora-spacing-16) * 3); }
