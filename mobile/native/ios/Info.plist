@@ -10,6 +10,8 @@
     <key>CFBundleDevelopmentRegion</key><string>en</string>
     <key>CFBundleShortVersionString</key><string>0.1.0</string>
     <key>CFBundleVersion</key><string>1</string>
+    <!-- Only exempt encryption: HTTPS/WSS through Apple's system TLS. -->
+    <key>ITSAppUsesNonExemptEncryption</key><false/>
     <!-- Once compiles the catalog but does not merge actool's partial plist. -->
     <key>CFBundleIcons</key><dict>
         <key>CFBundlePrimaryIcon</key><dict>
