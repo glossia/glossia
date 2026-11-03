@@ -1,0 +1,11 @@
+You do not need an account to review Glossia. On the welcome screen, tap "Explore the demo" (below "Self-hosted server"). It opens a sample workspace (Acme / Website) with local sample data, so you can use every feature without signing in. Nothing in the demo is saved or sent to a server.
+
+To try each feature in the demo:
+1. Toki, the AI language assistant: open "Our next language" to read a conversation, then type a message and tap Send. Toki shows that it is working and replies after a few seconds. Demo replies are sample text. Use the compose button (top right) to start a new conversation. Dictation and text import in the composer run on the device.
+2. Shared language decision: open "Spanish onboarding", tap "Review decision", optionally keep it as reusable guidance, and save it. The related translation then shows its question as answered.
+3. Translations tab: open "Introduce team workspaces" to watch its progress update file by file until it finishes. Open "Spanish onboarding tone" to see its open language question and jump to the shared conversation.
+4. Analytics tab: switch between 7, 30 and 90 days to see pageviews, visitors, top pages and language gaps.
+5. Workspace switcher (top left): switch between the Website and Documentation projects.
+6. Profile tab: change the app language and your fluent languages. Tap "Exit demo" to return to the welcome screen.
+
+"Sign in with Glossia" opens OAuth in the system browser for people who already have a Glossia account and team projects. Signed in, the app shows the same screens with the team's real data. Optional push notifications need a signed-in account.

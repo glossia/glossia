@@ -66,7 +66,9 @@ struct GlossiaPreviewApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if screen == "login" { GlossiaLoginView(session: session) }
+                // The login scenario exercises the production demo, including its request routing.
+                if screen == "login" && session.demo != nil { GlossiaWorkspaceView(session: session).id(session.projectContext) }
+                else if screen == "login" { GlossiaLoginView(session: session) }
                 else if ["chat", "thinking", "failed", "empty-chat"].contains(screen) || screen.hasPrefix("activity-") {
                     NavigationStack { TokiConversationView(model: chat) }
                 } else if screen == "workspace" {

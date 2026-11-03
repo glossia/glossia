@@ -114,6 +114,8 @@ if [[ "$method" == GET ]]; then
       identifier=${path#/v1/builds/}; identifier=${identifier%/preReleaseVersion}
       respond 200 "$(jq --arg id "$identifier" '{data:.prereleases[$id]}' "$state")" ;;
     /v1/apps/app/betaGroups) respond 200 "$(jq '{data:.groups}' "$state")" ;;
+    /v1/apps/app/betaAppReviewDetail) respond 200 "$(jq '{data:.review}' "$state")" ;;
+    /v1/builds/build/betaBuildLocalizations) respond 200 "$(jq '{data:.build_localizations}' "$state")" ;;
     /v1/betaTesters)
       update '.tester_reads += 1'
       # Simulate sparse fieldsets: state is absent unless explicitly requested.
@@ -166,6 +168,15 @@ case "$method:$path" in
     group=$(jq -r '.data.relationships.betaGroups.data[0].id' <<< "$payload")
     update --arg group "$group" --argjson row "$(jq '.data' <<< "$response")" \
       '.testers += [$row] | .memberships[$group].betaTesters += ["tester"]' ;;
+  PATCH:/v1/betaAppReviewDetails/review)
+    update --argjson payload "$payload" '.review.attributes += $payload.data.attributes' ;;
+  POST:/v1/betaBuildLocalizations)
+    update --argjson payload "$payload" '.build_localizations += [{type:"betaBuildLocalizations",
+      id:"localization-\(.build_localizations | length)", attributes:$payload.data.attributes,
+      build:$payload.data.relationships.build.data.id}]' ;;
+  PATCH:/v1/betaBuildLocalizations/*)
+    update --arg id "${path##*/}" --argjson payload "$payload" \
+      '.build_localizations |= map(if .id == $id then .attributes += $payload.data.attributes else . end)' ;;
   PATCH:/v1/buildBetaDetails/detail)
     update --argjson payload "$payload" '.detail.attributes += $payload.data.attributes' ;;
   POST:/v1/betaGroups/*/relationships/*)

@@ -18,7 +18,7 @@ state=$TESTFLIGHT_FIXTURE_STATE
 passed=0
 
 fail() { printf 'FAIL: %s\n' "$*" >&2; cat "$fixture/output" >&2; exit 1; }
-check() { jq -e "$1" "$state" >/dev/null || fail "$2"; }
+check() { local message=${!#}; jq -e "${@:1:$#-1}" "$state" >/dev/null || fail "$message"; }
 edit() { jq "$@" "$state" > "$state.next"; mv "$state.next" "$state"; }
 contains() { grep -Fqi -- "$1" "$fixture/output" || fail "missing output: $1"; }
 no_writes() { check '.writes == []' 'failure changed Apple state'; }
@@ -34,9 +34,14 @@ reset() {
   "testers":[],"tester_apps":{},"users":[],"visible":[],
   "memberships":{"internal":{"betaTesters":[],"builds":[]}},
   "detail":{"type":"buildBetaDetails","id":"detail","attributes":{"internalBuildState":"READY_FOR_BETA_TESTING","externalBuildState":"READY_FOR_BETA_TESTING","autoNotifyEnabled":false}},
+  "review":{"type":"betaAppReviewDetails","id":"review","attributes":{"contactFirstName":"Pedro","contactLastName":"Piñera",
+    "contactPhone":"+490000000","contactEmail":"review@example.invalid","demoAccountRequired":false,"notes":null}},
+  "build_localizations":[{"type":"betaBuildLocalizations","id":"en","attributes":{"locale":"en-US","whatsNew":"Existing notes"}}],
   "writes":[],"requests":[],"tester_reads":0,"build_reads":0,"denied_users":false
 }
 JSON
+  # Most cases start from already reconciled review information.
+  edit --rawfile notes "$SOURCE/beta-review-notes.txt" '.review.attributes.notes = ($notes | rtrimstr("\n"))'
 }
 tester() {
   edit --arg invitation "$1" '.testers = [{type:"betaTesters",id:"tester",attributes:{email:"pedro@pepicrft.me",state:$invitation}}]'
@@ -194,6 +199,32 @@ edit '.groups = [] | .memberships = {} | .detail.attributes.externalBuildState =
 distribute success
 check '[.groups[].attributes.isInternalGroup] == [true,false]' 'missing prerequisite internal group'
 done_case 'external prerequisite internal group and approved build'
+
+reset
+edit '.review.attributes += {demoAccountRequired:true,demoAccountName:"reviewer",notes:"Old notes"} |
+  .build_localizations = [{type:"betaBuildLocalizations",id:"ja",attributes:{locale:"ja",whatsNew:null}}] |
+  .detail.attributes.externalBuildState = "READY_FOR_BETA_SUBMISSION"'
+distribute failure; contains 'READY_FOR_BETA_SUBMISSION'
+check --rawfile notes "$SOURCE/beta-review-notes.txt" --rawfile what "$SOURCE/what-to-test.txt" '
+  .review.attributes.demoAccountRequired == false and .review.attributes.notes == ($notes | rtrimstr("\n")) and
+  ([.build_localizations[] | select(.attributes.locale == "en-US")] ==
+    [{type:"betaBuildLocalizations",id:"localization-1",attributes:{locale:"en-US",whatsNew:($what | rtrimstr("\n"))},build:"build"}])' \
+  'review notes, sign-in requirement or What to Test were not reconciled'
+writes=$(jq '.writes | length' "$state")
+distribute failure
+check ".writes | length == $writes" 'review information rerun made duplicate writes'
+edit '.build_localizations[-1].attributes.whatsNew = ""'
+distribute failure
+check --rawfile what "$SOURCE/what-to-test.txt" '.build_localizations[-1].attributes.whatsNew == ($what | rtrimstr("\n"))' 'empty What to Test was not filled'
+edit '.build_localizations[-1].attributes.whatsNew = "Written by a person"'
+distribute failure
+check '.build_localizations[-1].attributes.whatsNew == "Written by a person"' 'replaced existing What to Test'
+done_case 'external review gets demo notes, no sign-in requirement and What to Test before submission'
+
+reset; edit '.review.attributes.contactPhone = ""'
+distribute failure; contains 'contact information'
+check '[.writes[] | select(.path | test("Review|Localization"))] == []' 'wrote review information without contact details'
+done_case 'incomplete beta review contact stops before review writes'
 
 for blocker in READY_FOR_BETA_SUBMISSION MISSING_EXPORT_COMPLIANCE BETA_REJECTED WAITING_FOR_BETA_REVIEW IN_BETA_REVIEW EXPIRED NOT_APPLICABLE; do
   reset

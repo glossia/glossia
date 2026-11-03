@@ -7,6 +7,7 @@ umask 077
 EMAIL=pedro@pepicrft.me
 BUNDLE=ai.glossia.app
 ORIGIN=https://api.appstoreconnect.apple.com
+SOURCE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 report() {
   printf '%s\n' "$1"
@@ -183,6 +184,38 @@ tester_list() {
   unique "$(jq -c --arg email "$EMAIL" '[.[] | select((.attributes.email // "" | ascii_downcase) == $email)]' <<< "$rows")" 'beta testers'
 }
 
+# External review needs reviewer instructions. The in-app demo replaces a demo
+# account. Contact details and legal answers stay owned by App Store Connect.
+review_information() {
+  local notes what detail id payload localizations localization
+  notes=$(<"$SOURCE/beta-review-notes.txt") what=$(<"$SOURCE/what-to-test.txt")
+  detail=$(api_request GET "/v1/apps/$app_id/betaAppReviewDetail") || exit $?
+  jq -e '.data.attributes | [.contactFirstName, .contactLastName, .contactPhone, .contactEmail] |
+    all(type == "string" and length > 0)' <<< "$detail" >/dev/null \
+    || fail 'Beta App Review contact information is incomplete. Add it under TestFlight > Test Information, then retry distribution only.'
+  id=$(jq -r '.data.id' <<< "$detail")
+  if ! jq -e --arg notes "$notes" '.data.attributes | .demoAccountRequired == false and .notes == $notes' <<< "$detail" >/dev/null; then
+    payload=$(jq -cn --arg id "$id" --arg notes "$notes" \
+      '{data:{type:"betaAppReviewDetails",id:$id,attributes:{demoAccountRequired:false,notes:$notes}}}')
+    api_request PATCH "/v1/betaAppReviewDetails/$id" "$payload" >/dev/null || exit $?
+    detail=$(api_request GET "/v1/apps/$app_id/betaAppReviewDetail") || exit $?
+    jq -e --arg notes "$notes" '.data.attributes | .demoAccountRequired == false and .notes == $notes' <<< "$detail" >/dev/null \
+      || fail 'Apple did not confirm the Beta App Review notes.'
+  fi
+  # Fill an empty What to Test, but never replace text someone wrote for this build.
+  localizations=$(api_list "/v1/builds/$build_id/betaBuildLocalizations") || exit $?
+  localization=$(unique "$(jq -c '[.[] | select(.attributes.locale == "en-US")]' <<< "$localizations")" 'en-US What to Test localizations') || exit $?
+  if [[ "$localization" == null ]]; then
+    payload=$(jq -cn --arg build "$build_id" --arg what "$what" \
+      '{data:{type:"betaBuildLocalizations",attributes:{locale:"en-US",whatsNew:$what},relationships:{build:{data:{type:"builds",id:$build}}}}}')
+    api_request POST /v1/betaBuildLocalizations "$payload" >/dev/null || exit $?
+  elif [[ -z $(jq -r '.attributes.whatsNew // ""' <<< "$localization") ]]; then
+    payload=$(jq -cn --arg id "$(jq -r '.id' <<< "$localization")" --arg what "$what" \
+      '{data:{type:"betaBuildLocalizations",id:$id,attributes:{whatsNew:$what}}}')
+    api_request PATCH "/v1/betaBuildLocalizations/$(jq -r '.id' <<< "$localization")" "$payload" >/dev/null || exit $?
+  fi
+}
+
 distribute() {
   local apps app selected groups tester internals group=null candidate users group_id internal payload
   local detail state_key state confirmed confirmed_group invitation
@@ -223,6 +256,7 @@ distribute() {
     tester=$(jq -ce '.data | select(type == "object")' <<< "$tester") || fail 'Invalid Apple tester response.'
   fi
   ensure_member "$group_id" betaTesters "$(jq -r '.id' <<< "$tester")" betaTesters
+  [[ "$internal" == true ]] || review_information
   detail=$(api_request GET "/v1/builds/$build_id/buildBetaDetail") || exit $?
   state_key=externalBuildState
   [[ "$internal" != true ]] || state_key=internalBuildState

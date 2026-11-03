@@ -233,6 +233,15 @@
 "⁨%@⁩ · %@" = "⁨%1$@⁩ · %2$@";
 
 
+/* GlossiaDemo.swift: static UI/model copy */
+"Acme" = "Acme";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Alex" = "Alex";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Alex Rivera" = "Alex Rivera";
+
 /* GlossiaPushNotifications.swift: static UI/model copy */
 "Allow Glossia notifications in iOS Settings to enable alerts." = "Allow Glossia notifications in iOS Settings to enable alerts.";
 
@@ -374,6 +383,9 @@
 /* TokiWorkStatusView.swift: static UI/model copy */
 "Delighted" = "Delighted";
 
+/* GlossiaDemo.swift: static UI/model copy */
+"Demo" = "Demo";
+
 /* TokiVoiceInput.swift: static UI/model copy */
 "Dictation reached its time limit. Your typed draft is unchanged." = "Dictation reached its time limit. Your typed draft is unchanged.";
 
@@ -410,6 +422,9 @@
 /* TranslationsView.swift: static UI/model copy */
 "Discuss with Toki" = "Discuss with Toki";
 
+/* GlossiaDemo.swift: static UI/model copy */
+"Documentation" = "Documentation";
+
 /* TokiView.swift: static UI/model copy */
 "Draft conversation" = "Draft conversation";
 
@@ -419,8 +434,14 @@
 /* ProfileView.swift: static UI/model copy */
 "Email" = "Email";
 
+/* ProfileView.swift: static UI/model copy */
+"Exit demo" = "Exit demo";
+
 /* TokiWorkStatusView.swift: static UI/model copy */
 "Expanded" = "Expanded";
+
+/* GlossiaLoginView.swift: static UI/model copy */
+"Explore the demo" = "Explore the demo";
 
 /* TranslationsView.swift: static UI/model copy */
 "Failed" = "Failed";
@@ -493,6 +514,9 @@
 
 /* TokiGoalView.swift: static UI/model copy */
 "Independent reusable rule" = "Independent reusable rule";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Introduce team workspaces" = "Introduce team workspaces";
 
 /* GlossiaSession.swift: static UI/model copy */
 "Invalid sign-in response." = "Invalid sign-in response.";
@@ -629,6 +653,12 @@
 /* WorkspacePicker.swift: static UI/model copy */
 "Organization" = "Organization";
 
+/* GlossiaDemo.swift: static UI/model copy */
+"Our next language" = "Our next language";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Our onboarding should feel friendly." = "Our onboarding should feel friendly.";
+
 /* AnalyticsView.swift: static UI/model copy */
 "Pageviews" = "Pageviews";
 
@@ -686,6 +716,9 @@
 /* TranslationsView.swift: static UI/model copy */
 "Refresh reviews" = "Refresh reviews";
 
+/* GlossiaDemo.swift: static UI/model copy */
+"Refresh the welcome experience" = "Refresh the welcome experience";
+
 /* GlossiaSession.swift: static UI/model copy */
 "Request failed." = "Request failed.";
 
@@ -709,6 +742,9 @@
 
 /* TranslationsView.swift: static UI/model copy */
 "Running" = "Running";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Sam" = "Sam";
 
 /* TokiGoalView.swift: static UI/model copy */
 "Save" = "Save";
@@ -752,6 +788,12 @@
 /* TranslationsView.swift: static UI/model copy */
 "Share translation link" = "Share translation link";
 
+/* GlossiaDemo.swift: static UI/model copy */
+"Should we address Spanish readers with **tú** or **usted** in onboarding?" = "Should we address Spanish readers with **tú** or **usted** in onboarding?";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Should we address the reader with tú or usted?" = "Should we address the reader with tú or usted?";
+
 /* TokiWorkStatusView.swift: static UI/model copy */
 "Shows when Toki's status was last checked" = "Shows when Toki's status was last checked";
 
@@ -775,6 +817,15 @@
 
 /* TranslationsView.swift: static UI/model copy */
 "Source language" = "Source language";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Spanish onboarding" = "Spanish onboarding";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Spanish onboarding tone" = "Spanish onboarding tone";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Start with your welcome flow and pricing page.\n\nYour project already supports English, Spanish and German. Japanese would be a new target language.\n\nBefore translating, agree on a glossary for your product names and a voice that feels natural to your Japanese readers." = "Start with your welcome flow and pricing page.\n\nYour project already supports English, Spanish and German. Japanese would be a new target language.\n\nBefore translating, agree on a glossary for your product names and a voice that feels natural to your Japanese readers.";
 
 /* TranslationsView.swift: static UI/model copy */
 "Status" = "Status";
@@ -823,6 +874,12 @@
 
 /* TokiView.swift: static UI/model copy */
 "This goal has closed. Your unsaved decision and guidance are retained below. Copy or explicitly discard the draft; it cannot be saved to a closed goal." = "This goal has closed. Your unsaved decision and guidance are retained below. Copy or explicitly discard the draft; it cannot be saved to a closed goal.";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"This is a demo reply with sample content. In your own workspace, Toki answers using your project’s glossary, voice, translations and analytics." = "This is a demo reply with sample content. In your own workspace, Toki answers using your project’s glossary, voice, translations and analytics.";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"This is not available in the demo." = "This is not available in the demo.";
 
 /* GlossiaSession.swift: static UI/model copy */
 "This link belongs to a different Glossia server. Sign in to that server and open the link again." = "This link belongs to a different Glossia server. Sign in to that server and open the link again.";
@@ -887,6 +944,9 @@
 /* TranslationsView.swift: static UI/model copy */
 "Translated items" = "Translated items";
 
+/* GlossiaDemo.swift: static UI/model copy */
+"Translated the team workspace pages." = "Translated the team workspace pages.";
+
 /* TranslationsView.swift: static UI/model copy */
 "Translation" = "Translation";
 
@@ -899,6 +959,9 @@
 /* GlossiaWorkspaceView.swift: static UI/model copy */
 "Translations" = "Translations";
 
+/* GlossiaLoginView.swift: static UI/model copy */
+"Try Glossia with sample data, without an account." = "Try Glossia with sample data, without an account.";
+
 /* WorkspacePicker.swift: static UI/model copy */
 "Try a different name or handle." = "Try a different name or handle.";
 
@@ -910,6 +973,12 @@
 
 /* TranslationsView.swift: static UI/model copy */
 "Unknown status" = "Unknown status";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Updated onboarding copy across two languages." = "Updated onboarding copy across two languages.";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Use informal tú in Spanish onboarding." = "Use informal tú in Spanish onboarding.";
 
 /* TokiView.swift: static UI/model copy */
 "View source translation" = "View source translation";
@@ -931,6 +1000,15 @@
 
 /* TokiSprite.swift: static UI/model copy */
 "Waving hello" = "Waving hello";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Website" = "Website";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"Welcome back!" = "Welcome back!";
+
+/* GlossiaDemo.swift: static UI/model copy */
+"We’re launching in Japan. Where should we start?" = "We’re launching in Japan. Where should we start?";
 
 /* TokiView.swift: static UI/model copy */
 "Which languages does this project support?" = "Which languages does this project support?";
@@ -961,3 +1039,6 @@
 
 /* TokiGoalView.swift: static UI/model copy */
 "Your unsaved decision draft is kept on this device." = "Your unsaved decision draft is kept on this device.";
+
+/* ProfileView.swift: static UI/model copy */
+"You’re exploring a demo workspace with sample data. Nothing you do here is saved or sent. Exit the demo to sign in with your own account." = "You’re exploring a demo workspace with sample data. Nothing you do here is saved or sent. Exit the demo to sign in with your own account.";

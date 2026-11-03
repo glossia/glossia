@@ -49,6 +49,10 @@ struct GlossiaLoginView: View {
                             }.buttonStyle(.bordered).controlSize(.large)
                             Text("Secure sign-in opens in your browser.")
                                 .font(.caption).foregroundStyle(tokens.muted)
+                            Button("Explore the demo") { session.startDemo() }
+                                .font(.subheadline.weight(.medium)).padding(.top, 8)
+                                .accessibilityHint("Try Glossia with sample data, without an account.")
+                                .accessibilityIdentifier("explore-demo")
                             Button("Reset saved sign-in") { Task { await session.signOut(resetRegistration: true) } }
                                 .font(.caption).padding(.vertical, 8)
                         }

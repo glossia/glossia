@@ -145,6 +145,46 @@ final class WorkspaceUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Sign in with Glossia"].exists)
     }
 
+    // App Review has no Glossia account. The demo must reach every feature signed out.
+    func testDemoReachesEveryFeatureWithoutAnAccount() {
+        let app = XCUIApplication(bundleIdentifier: "ai.glossia.mobile.preview")
+        app.launchArguments = ["login"]
+        app.launch()
+        app.buttons["explore-demo"].tap()
+        let chat = app.buttons["conversation-93cf36a3-802e-4f91-9112-77d8a919efc5"]
+        XCTAssertTrue(chat.waitForExistence(timeout: 10))
+        captureLanguage(app, "ios-demo-toki")
+        chat.tap()
+        let composer = app.descendants(matching: .any)["toki-composer"].firstMatch
+        XCTAssertTrue(composer.waitForExistence(timeout: 5))
+        composer.tap()
+        composer.typeText("What about Korean?")
+        app.buttons["thread-send"].tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "This is a demo reply")).firstMatch.waitForExistence(timeout: 15))
+        captureLanguage(app, "ios-demo-reply")
+        app.navigationBars.buttons["Toki"].tap()
+        app.buttons["conversation-a4d0ce96-ae72-4f53-9e41-506f718293a4"].tap()
+        XCTAssertTrue(app.buttons["goal-resolve"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons["Toki"].tap()
+        app.tabBars.buttons["Translations"].tap()
+        let running = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Introduce team workspaces")).firstMatch
+        XCTAssertTrue(running.waitForExistence(timeout: 5))
+        captureLanguage(app, "ios-demo-translations")
+        running.tap()
+        XCTAssertTrue(app.staticTexts["3 of 3 files translated"].waitForExistence(timeout: 20))
+        captureLanguage(app, "ios-demo-translation-progress")
+        app.tabBars.buttons["Analytics"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["analytics-traffic-chart"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["analytics-traffic-summary"].label.contains("pageviews"))
+        captureLanguage(app, "ios-demo-analytics")
+        app.tabBars.buttons["Profile"].tap()
+        XCTAssertTrue(app.staticTexts["Alex Rivera"].waitForExistence(timeout: 5))
+        captureLanguage(app, "ios-demo-profile")
+        app.swipeUp()
+        app.buttons["Exit demo"].tap()
+        XCTAssertTrue(app.buttons["Sign in with Glossia"].waitForExistence(timeout: 5))
+    }
+
     func testAppLanguageOverridePreservesDraftsAndPersistsAfterRelaunch() {
         let app = XCUIApplication(bundleIdentifier: "ai.glossia.mobile.preview")
         app.launchArguments = ["language-rtl", "--reset-app-language", "-AppleLocale", "de_DE"]

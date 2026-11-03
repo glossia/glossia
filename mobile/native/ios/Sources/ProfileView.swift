@@ -12,6 +12,12 @@ struct ProfileView: View {
 
     var body: some View {
         List {
+            if session.demo != nil {
+                Section {
+                    Label("You’re exploring a demo workspace with sample data. Nothing you do here is saved or sent. Exit the demo to sign in with your own account.", systemImage: "sparkles")
+                        .font(.subheadline)
+                }.listRowBackground(tokens.surface)
+            }
             if busy { ProgressView("Loading profile…") }
             if let error { GlossiaErrorView(message: error) { Task { await load() } } }
             if let user = value?["user"] as? [String: Any] {
@@ -45,7 +51,8 @@ struct ProfileView: View {
                     .font(.footnote).foregroundStyle(tokens.muted)
             }.listRowBackground(tokens.surface)
             Section {
-                Button("Sign out", role: .destructive) { confirmingSignOut = true }.disabled(session.busy)
+                if session.demo != nil { Button("Exit demo", role: .destructive) { Task { await session.signOut() } } }
+                else { Button("Sign out", role: .destructive) { confirmingSignOut = true }.disabled(session.busy) }
             }.listRowBackground(tokens.surface)
             if let message = session.errorMessage { Text(message).foregroundStyle(.red) }
         }

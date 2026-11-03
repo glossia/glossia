@@ -209,6 +209,7 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
     @Published var organization: String?
     @Published var project: String?
     @Published var tab = "toki"
+    @Published private(set) var demo: GlossiaDemo?
 
     let navigation = GlossiaNavigation()
     let push: GlossiaPushNotifications
@@ -225,7 +226,7 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
     }
 
     func configurePush() async {
-        guard server != nil else { await push.configure(origin: nil, request: nil); return }
+        guard server != nil, demo == nil else { await push.configure(origin: nil, request: nil); return }
         let identity = identity
         let request: GlossiaRequest = { [weak self] input in
             guard let self, self.identity == identity, self.server != nil else { throw CancellationError() }
@@ -244,6 +245,12 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
     func request(_ value: [String: Any], context: String) async throws -> [String: Any] {
         let live = value["operation"] as? String == "translation_live"
         let action = value["action"] as? String
+        if let demo {
+            guard context == projectContext || action == "close" else { throw CancellationError() }
+            let response = try await demo.request(value)
+            try Task.checkCancellation()
+            return response
+        }
         if live && ["next", "close"].contains(action ?? "") {
             if action != "close" { guard context == projectContext, server != nil else { throw CancellationError() } }
             let input = try JSONSerialization.data(withJSONObject: value)
@@ -275,6 +282,7 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
     }
 
     private func run(_ value: [String: Any], authenticated: Bool = false) async throws -> [String: Any] {
+        if authenticated, let demo { return try await demo.request(value) }
         let data = try JSONSerialization.data(withJSONObject: value)
         let result = try await runtime.run(data, authenticated: authenticated)
         return try JSONSerialization.jsonObject(with: result) as! [String: Any]
@@ -319,6 +327,17 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
             busy = false
             await reload()
         } catch { report(error) }
+    }
+
+    func startDemo() {
+        guard !busy, server == nil else { return }
+        navigation.reset()
+        identity = UUID()
+        demo = GlossiaDemo()
+        errorMessage = nil; tab = "toki"
+        organizations = GlossiaDemo.organizations; projects = GlossiaDemo.projects
+        organization = "acme"; project = "website"
+        server = GlossiaDemo.server
     }
 
     func reload() async {
@@ -367,7 +386,7 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
         projects = options
         self.organization = organization
         self.project = project
-        UserDefaults.standard.set(try? JSONSerialization.data(withJSONObject: self.selection), forKey: "glossia.selection")
+        if demo == nil { UserDefaults.standard.set(try? JSONSerialization.data(withJSONObject: self.selection), forKey: "glossia.selection") }
     }
 
     func destination(_ screen: GlossiaDestination.Screen, id: String? = nil, translationID: String? = nil) -> GlossiaDestination? {
@@ -445,13 +464,15 @@ final class GlossiaSession: NSObject, ObservableObject, ASWebAuthenticationPrese
         guard !busy else { return }
         push.prepareForSessionEnd()
         navigation.reset()
-        busy = true
-        defer { busy = false }
-        do { _ = try await run(["operation": resetRegistration ? "reset_sign_in" : "sign_out"]) }
-        catch { report(error); return }
+        if demo == nil {
+            busy = true
+            defer { busy = false }
+            do { _ = try await run(["operation": resetRegistration ? "reset_sign_in" : "sign_out"]) }
+            catch { report(error); return }
+        }
         // Keep sign-out retryable if secure storage refuses to remove the session.
         identity = UUID()
-        server = nil
+        demo = nil; server = nil
         appearanceServer = "https://glossia.ai"
         organizations = []; projects = []; organization = nil; project = nil
         errorMessage = nil; tab = "toki"

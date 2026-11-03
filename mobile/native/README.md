@@ -244,8 +244,13 @@ New internal groups allow all builds; existing groups are not broadened. Each
 future releasable native build is explicitly reconciled into the selected group.
 
 External distribution can require **TestFlight App Review**, beta test information,
-and export-compliance answers. The helper does not invent legal declarations,
-review credentials, contact information or test notes, and does not submit reviews.
+and export-compliance answers. For external groups, the helper sets Beta App Review
+notes from `ios/distribution/beta-review-notes.txt`, marks sign-in as not required
+because reviewers use the in-app **Explore the demo** workspace, and fills an empty
+English **What to Test** from `ios/distribution/what-to-test.txt`. It never replaces
+What to Test text someone already wrote. It requires existing review contact details
+and does not invent legal declarations, contact information or credentials, or
+submit reviews.
 It preserves tester membership but fails the job with the exact Apple beta state
 in the workflow summary until the build is approved/ready for testing. Complete
 the real metadata and beta review in App Store Connect, then retry distribution.
