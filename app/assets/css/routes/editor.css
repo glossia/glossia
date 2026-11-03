@@ -57,14 +57,29 @@
     & ol { list-style-type: decimal; }
     & blockquote { box-shadow: var(--noora-border-light-default); padding: var(--noora-spacing-5); }
     & img { max-inline-size: 100%; block-size: auto; }
-    & pre { white-space: pre-wrap; font-family: var(--font-mono); }
+    & pre { white-space: pre-wrap; font-family: var(--font-family-mono); }
     & table { inline-size: 100%; table-layout: fixed; }
     & td, & th { box-shadow: var(--noora-border-light-default); padding: var(--noora-spacing-4); }
     & ul[data-type="taskList"] { list-style: none; padding-inline-start: var(--noora-spacing-0); }
     & li[data-type="taskItem"] { display: flex; gap: var(--noora-spacing-4); }
   }
+  & [data-part="visual-fallback"] pre {
+    margin: var(--noora-spacing-0);
+    padding: var(--noora-spacing-5);
+    border-radius: var(--noora-radius-3);
+    background: var(--noora-surface-background-secondary);
+    color: var(--noora-surface-label-secondary);
+    font-family: var(--font-family-mono);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
   & [data-part="source"] article { padding: var(--noora-spacing-5); background: var(--noora-surface-background-secondary); border-radius: var(--noora-radius-3); }
   & #editor-search-results [data-part="label"] { white-space: normal; overflow-wrap: anywhere; }
+  /* Noora tables size to max-content; cap excerpts so the Language and Location columns stay visible. */
+  & #editor-search-results td:first-child [data-part="cell"] {
+    max-inline-size: calc(var(--noora-spacing-16) * 6);
+    flex-wrap: wrap;
+  }
   & [data-part="file-list"] { padding: var(--noora-spacing-0); }
   & [data-part="fields"] { display: grid; gap: var(--noora-spacing-7); }
   & [data-part="field-row"] {

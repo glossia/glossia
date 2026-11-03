@@ -123,10 +123,18 @@ const ContentEditor = {
     this.baseMarkdown = markdown
     const surface = this.el.querySelector("[data-part='visual-surface']")
     surface.hidden = unsupported
+    this.el.querySelector("[data-part='formatting']").hidden = unsupported
     this.el.querySelector("[data-part='visual-warning']").hidden = !unsupported
-    this.el.querySelector("[data-part='visual-fallback']").hidden = !unsupported
+    const fallback = this.el.querySelector("[data-part='visual-fallback']")
+    fallback.hidden = !unsupported
     if (unsupported) {
-      this.el.querySelector("[data-part='visual-fallback']").innerHTML = this.el.dataset.preview
+      // Bodies made only of HTML or comments render to nothing; show their source instead.
+      fallback.innerHTML = this.el.dataset.preview
+      if (!fallback.textContent.trim() && !fallback.querySelector("img")) {
+        const source = document.createElement("pre")
+        source.textContent = markdown
+        fallback.replaceChildren(source)
+      }
       this.rich.setEditable(false, false)
     } else {
       this.rich.commands.setContent(markdown, {contentType: "markdown", emitUpdate: false})

@@ -22,8 +22,10 @@ defmodule GlossiaWeb.EditorLive do
   end
 
   def handle_params(params, _uri, socket) do
-    socket =
-      if socket.assigns[:file_id] != params["id"], do: stop_live_preview(socket), else: socket
+    # Search, filter, and sort patches only re-rank the loaded snapshot. The
+    # database is read again on navigation, sync, and repository actions.
+    same_page? = Map.has_key?(socket.assigns, :files) && socket.assigns.file_id == params["id"]
+    socket = if same_page?, do: socket, else: stop_live_preview(socket)
 
     project = Projects.get_project(socket.assigns.account, params["project"])
     unless project, do: raise(Ecto.NoResultsError, queryable: Glossia.Accounts.Project)
@@ -61,7 +63,8 @@ defmodule GlossiaWeb.EditorLive do
         ]
       )
 
-    {:noreply, socket |> load() |> start_sync()}
+    socket = if same_page?, do: refresh_list(socket), else: load(socket)
+    {:noreply, start_sync(socket)}
   end
 
   # The repository is the source of truth, so the file list refreshes from it
@@ -445,8 +448,7 @@ defmodule GlossiaWeb.EditorLive do
     socket
     |> assign(
       files: files,
-      rows: filter_files(files, socket.assigns),
-      search_results: search_results(files, socket.assigns),
+      search_index: nil,
       drafts: Enum.filter(files, &publishable?/1),
       file: file,
       form_version: file && file.lock_version,
@@ -460,6 +462,7 @@ defmodule GlossiaWeb.EditorLive do
       editable:
         file && file.active && !file.conflict && is_nil(file.branch) && is_nil(content_error)
     )
+    |> refresh_list()
     |> preview()
     |> update_live_preview()
   end
@@ -485,7 +488,8 @@ defmodule GlossiaWeb.EditorLive do
     label
     |> String.trim_leading("$.")
     |> String.split(".")
-    |> Enum.map(&Phoenix.Naming.humanize/1)
+    # Keys such as `titleTemplate` read as "Title template", not "Titletemplate".
+    |> Enum.map(&(&1 |> Macro.underscore() |> Phoenix.Naming.humanize()))
     |> Enum.join(" › ")
   end
 
@@ -503,15 +507,44 @@ defmodule GlossiaWeb.EditorLive do
     end
   end
 
-  defp search_results(_files, %{search: ""}), do: []
+  defp refresh_list(%{assigns: %{search: ""}} = socket),
+    do:
+      assign(socket, rows: filter_files(socket.assigns.files, socket.assigns), search_results: [])
 
-  defp search_results(files, assigns) do
+  defp refresh_list(socket) do
+    index = socket.assigns.search_index || search_index(socket.assigns.files)
+    socket = assign(socket, search_index: index)
+
+    assign(socket,
+      rows: filter_files(socket.assigns.files, socket.assigns),
+      search_results: search_results(index, socket.assigns)
+    )
+  end
+
+  # Parsing every file is the expensive part of a search, so it happens once
+  # per loaded snapshot rather than on every keystroke.
+  defp search_index(files) do
+    files
+    |> Task.async_stream(
+      fn file ->
+        case Content.fields(file.format, file.draft_content || file.content) do
+          {:ok, fields} -> {file.id, fields}
+          _ -> {file.id, []}
+        end
+      end,
+      ordered: false,
+      timeout: :infinity
+    )
+    |> Map.new(fn {:ok, entry} -> entry end)
+  end
+
+  defp search_results(index, assigns) do
     query = Regex.compile!(Regex.escape(assigns.search), "iu")
 
-    files
+    assigns.files
     |> filter_files(assigns)
     |> Stream.flat_map(fn file ->
-      case Content.fields(file.format, file.draft_content || file.content) do
+      case Map.fetch(index, file.id) do
         {:ok, fields} ->
           for field <- fields, [{start, _}] <- [Regex.run(query, field.value, return: :index)] do
             # Locate the match in the original Unicode string for a useful
@@ -646,9 +679,12 @@ defmodule GlossiaWeb.EditorLive do
       <%= if @file do %>
         <div data-part="workspace">
           <Noora.Card.card icon="file_text" title={@file.path}>
-            <:actions><Noora.Tag.tag label={status(@file)} /></:actions>
-            <Noora.Card.card_section data-part="document-meta">
-              <span>{String.upcase(@file.format)} · {@file.locale}</span>
+            <:actions>
+              <Noora.Tag.tag label={String.upcase(@file.format)} />
+              <Noora.Tag.tag label={@file.locale} />
+              <Noora.Tag.tag label={status(@file)} />
+            </:actions>
+            <Noora.Card.card_section :if={@source || !@file.blob_sha} data-part="document-meta">
               <span :if={@source}>{gettext("Source:")} {@source.path} · {@source.locale}</span>
               <span :if={!@file.blob_sha}>
                 {gettext("Not in the repository yet. Start from the source content.")}
@@ -715,56 +751,6 @@ defmodule GlossiaWeb.EditorLive do
             >
               <input type="hidden" name="file_id" value={@file.id} />
               <input type="hidden" name="version" value={@form_version} />
-              <Noora.Card.card_section :if={@file.format == "markdown"} data-part="formatting">
-                <Noora.Button.button
-                  :for={
-                    {format, label} <- [
-                      {"paragraph", gettext("Text")},
-                      {"heading", gettext("Heading")},
-                      {"bold", gettext("Bold")},
-                      {"italic", gettext("Italic")},
-                      {"list", gettext("List")},
-                      {"ordered", gettext("Numbered list")},
-                      {"quote", gettext("Quote")},
-                      {"link", gettext("Link")},
-                      {"undo", gettext("Undo")},
-                      {"redo", gettext("Redo")}
-                    ]
-                  }
-                  label={label}
-                  type="button"
-                  variant="secondary"
-                  data-format={format}
-                  disabled={!@editable || @busy}
-                />
-              </Noora.Card.card_section>
-              <Noora.Card.card_section
-                :if={@file.format == "markdown"}
-                id="editor-link-controls"
-                data-part="link-controls"
-                phx-update="ignore"
-                hidden
-                data-invalid-url={gettext("Enter a valid https, http, or mailto link.")}
-              >
-                <Noora.TextInput.text_input
-                  id="editor-link-url"
-                  name="link_url"
-                  label={gettext("Link URL")}
-                  type="basic"
-                />
-                <Noora.Button.button
-                  type="button"
-                  label={gettext("Apply link")}
-                  data-format="apply_link"
-                  variant="secondary"
-                />
-                <Noora.Button.button
-                  type="button"
-                  label={gettext("Remove link")}
-                  data-format="remove_link"
-                  variant="secondary"
-                />
-              </Noora.Card.card_section>
               <Noora.Card.card_section data-part="fields">
                 <div
                   :for={field <- @fields}
@@ -793,6 +779,55 @@ defmodule GlossiaWeb.EditorLive do
                     />
                     <div id={field_dom_id(field.id)} data-part="visual-editor" phx-update="ignore">
                       <Noora.Label.label label={gettext("Body")} />
+                      <div data-part="formatting" role="toolbar" aria-label={gettext("Formatting")}>
+                        <Noora.Button.button
+                          :for={
+                            {format, label} <- [
+                              {"paragraph", gettext("Text")},
+                              {"heading", gettext("Heading")},
+                              {"bold", gettext("Bold")},
+                              {"italic", gettext("Italic")},
+                              {"list", gettext("List")},
+                              {"ordered", gettext("Numbered list")},
+                              {"quote", gettext("Quote")},
+                              {"link", gettext("Link")},
+                              {"undo", gettext("Undo")},
+                              {"redo", gettext("Redo")}
+                            ]
+                          }
+                          label={label}
+                          type="button"
+                          variant="secondary"
+                          size="small"
+                          data-format={format}
+                          disabled={!@editable || @busy}
+                        />
+                      </div>
+                      <div
+                        id="editor-link-controls"
+                        data-part="link-controls"
+                        hidden
+                        data-invalid-url={gettext("Enter a valid https, http, or mailto link.")}
+                      >
+                        <Noora.TextInput.text_input
+                          id="editor-link-url"
+                          name="link_url"
+                          label={gettext("Link URL")}
+                          type="basic"
+                        />
+                        <Noora.Button.button
+                          type="button"
+                          label={gettext("Apply link")}
+                          data-format="apply_link"
+                          variant="secondary"
+                        />
+                        <Noora.Button.button
+                          type="button"
+                          label={gettext("Remove link")}
+                          data-format="remove_link"
+                          variant="secondary"
+                        />
+                      </div>
                       <div data-part="visual-warning" hidden>
                         <Noora.Alert.alert
                           status="warning"

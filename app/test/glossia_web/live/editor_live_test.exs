@@ -57,7 +57,7 @@ defmodule GlossiaWeb.EditorLiveTest do
         source_path: source.path,
         locale: "es",
         format: "json",
-        content: ~s({"title":"Hola","subtitle":"Sin cambios","count":7})
+        content: ~s({"title":"Hola","subTitle":"Sin cambios","count":7})
       })
 
     {:ok, view, _} =
@@ -65,10 +65,11 @@ defmodule GlossiaWeb.EditorLiveTest do
 
     assert has_element?(view, "[data-part='source']", "Welcome")
     assert has_element?(view, "textarea[aria-label='Title']", "Hola")
+    assert has_element?(view, "textarea[aria-label='Sub title']", "Sin cambios")
     refute has_element?(view, "textarea[aria-label='Count']")
     {:ok, fields} = Glossia.Editor.Content.fields("json", target.content)
     field = Enum.find(fields, &(&1.label == "$.title"))
-    untouched = Enum.find(fields, &(&1.label == "$.subtitle"))
+    untouched = Enum.find(fields, &(&1.label == "$.subTitle"))
 
     values = %{
       field.id => "Hola",
@@ -92,7 +93,7 @@ defmodule GlossiaWeb.EditorLiveTest do
 
     assert Jason.decode!(Repo.get!(EditorFile, target.id).draft_content) == %{
              "title" => "Bienvenidos",
-             "subtitle" => "Sin cambios",
+             "subTitle" => "Sin cambios",
              "count" => 7
            }
 
