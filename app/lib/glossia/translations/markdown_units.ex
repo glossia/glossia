@@ -71,6 +71,10 @@ defmodule Glossia.Translations.MarkdownUnits do
 
   @tag_regex ~r/<(\/?)g(\d+)(\/?)>/
 
+  # An inline opening tag that is not self-closing: `<.localized_link href="...">`
+  # or `<a href="...">`. Captures the tag name.
+  @opening_tag_regex ~r/\A<(\.?[A-Za-z][\w.:-]*)(?:\s[^>]*[^\/>])?\s*>\z/s
+
   @doc """
   Plans the units of a Markdown `source`.
 
@@ -212,6 +216,13 @@ defmodule Glossia.Translations.MarkdownUnits do
     {elem(starts, sl - 1) + sc - 1, elem(starts, el - 1) + ec}
   end
 
+  # A paired inline tag spans from its opening to its closing tag.
+  defp range({:inline_pair, open, _inner, close}, starts) do
+    with {start, _} <- range(open, starts),
+         {_, stop} <- range(close, starts),
+         do: {start, stop}
+  end
+
   defp range(_node, _starts), do: nil
 
   # ── Collecting units ──────────────────────────────────────────────────────
@@ -281,6 +292,7 @@ defmodule Glossia.Translations.MarkdownUnits do
   # cannot be trusted, in which case the block is left as it is.
   defp template(nodes, source, starts, cursor, tags) do
     nodes
+    |> pair_inline_tags()
     |> Enum.reduce_while({:ok, {[], tags, cursor, nil}}, fn node, {:ok, acc} ->
       case template_node(node, source, starts, acc) do
         {:ok, acc} -> {:cont, {:ok, acc}}
@@ -323,8 +335,18 @@ defmodule Glossia.Translations.MarkdownUnits do
     {:ok, {[literal | parts], tags, stop, nil}}
   end
 
-  defp node_part(%module{nodes: [_ | _] = children}, source, starts, {start, stop}, parts, tags)
-       when module in @inline_containers do
+  defp node_part(%module{nodes: [_ | _] = children}, source, starts, range, parts, tags)
+       when module in @inline_containers,
+       do: pair_part(children, source, starts, range, parts, tags)
+
+  defp node_part({:inline_pair, _open, inner, _close}, source, starts, range, parts, tags),
+    do: pair_part(inner, source, starts, range, parts, tags)
+
+  defp node_part(_node, source, _starts, range, parts, tags), do: leaf(source, range, parts, tags)
+
+  # Wraps the prose of `children` in a `<gN>...</gN>` pair whose delimiters are
+  # the source bytes around it.
+  defp pair_part(children, source, starts, {start, stop}, parts, tags) do
     content = Enum.reject(children, &break?/1)
 
     with [_ | _] <- content,
@@ -346,7 +368,48 @@ defmodule Glossia.Translations.MarkdownUnits do
     end
   end
 
-  defp node_part(_node, source, _starts, range, parts, tags), do: leaf(source, range, parts, tags)
+  # The parser reads `<.localized_link href="...">text</.localized_link>` (and
+  # inline HTML such as `<a>`) as two unrelated tags around plain text. Sent
+  # to the model as two `<gN/>`, nothing tells it they belong together, so it
+  # can reorder or drop one of them while moving words around, which is common
+  # in Japanese, Korean, and Chinese. Grouping an opening tag with its matching
+  # closing sibling makes the link one `<gN>...</gN>` pair, which tag
+  # validation keeps whole and properly nested.
+  defp pair_inline_tags([%module{literal: literal} = open | rest])
+       when module in [MDEx.HtmlInline, MDEx.HeexInline] do
+    with [_, name] <- Regex.run(@opening_tag_regex, literal),
+         {:ok, inner, close, rest} <- split_at_closing_tag(rest, name, 0, []),
+         true <- Enum.any?(inner, &(not break?(&1))) do
+      [{:inline_pair, open, pair_inline_tags(inner), close} | pair_inline_tags(rest)]
+    else
+      _ -> [open | pair_inline_tags(rest)]
+    end
+  end
+
+  defp pair_inline_tags([node | rest]), do: [node | pair_inline_tags(rest)]
+  defp pair_inline_tags([]), do: []
+
+  defp split_at_closing_tag([], _name, _depth, _inner), do: :error
+
+  defp split_at_closing_tag([%module{literal: literal} = node | rest], name, depth, inner)
+       when module in [MDEx.HtmlInline, MDEx.HeexInline] do
+    cond do
+      literal == "</#{name}>" and depth == 0 ->
+        {:ok, Enum.reverse(inner), node, rest}
+
+      literal == "</#{name}>" ->
+        split_at_closing_tag(rest, name, depth - 1, [node | inner])
+
+      match?([_, ^name], Regex.run(@opening_tag_regex, literal)) ->
+        split_at_closing_tag(rest, name, depth + 1, [node | inner])
+
+      true ->
+        split_at_closing_tag(rest, name, depth, [node | inner])
+    end
+  end
+
+  defp split_at_closing_tag([node | rest], name, depth, inner),
+    do: split_at_closing_tag(rest, name, depth, [node | inner])
 
   defp leaf(source, {start, stop}, parts, tags) do
     {parts, tags} = atomic(binary_part(source, start, stop - start), parts, tags)
@@ -613,7 +676,8 @@ defmodule Glossia.Translations.MarkdownUnits do
   #
   # Within a block the inline syntax is compared as a set, because a
   # translation may legitimately move a link or a code span to follow the
-  # target language's word order. Inline HTML and component tags keep their
+  # target language's word order. A component or HTML link whose opening and
+  # closing tags pair up moves as a whole too. Unpaired inline tags keep their
   # order: swapping an opening and a closing tag would break the page.
   defp signature(%{nodes: nodes}), do: Enum.flat_map(nodes, &node_signature/1)
 
@@ -631,11 +695,17 @@ defmodule Glossia.Translations.MarkdownUnits do
   end
 
   defp inline_signature(children) do
+    children = pair_inline_tags(children)
     {children |> inline_nodes() |> Enum.sort(), children |> tag_literals() |> Enum.to_list()}
   end
 
+  # A paired tag moves as a whole, like a link, so it joins the unordered set;
+  # only unpaired tags must keep their order.
   defp inline_nodes(children) do
     Enum.flat_map(children, fn
+      {:inline_pair, open, inner, close} ->
+        [{:inline_pair, open.literal, close.literal, inline_signature(inner)}]
+
       %MDEx.Text{} ->
         []
 
@@ -653,7 +723,7 @@ defmodule Glossia.Translations.MarkdownUnits do
   defp tag_literals(children) do
     Enum.flat_map(children, fn
       %module{literal: literal} when module in [MDEx.HtmlInline, MDEx.HeexInline] -> [literal]
-      %{nodes: [_ | _] = nested} -> tag_literals(nested)
+      %{nodes: [_ | _] = nested} -> nested |> pair_inline_tags() |> tag_literals()
       _node -> []
     end)
   end

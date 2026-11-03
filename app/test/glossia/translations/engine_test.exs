@@ -188,8 +188,8 @@ defmodule Glossia.Translations.EngineTest do
             "Module cache" ->
               "Caché de módulos"
 
-            "See the <g1/>release channels<g2/>." ->
-              "Consulta los <g1/>canales de lanzamiento<g2/>."
+            "See the <g1>release channels</g1>." ->
+              "Consulta los <g1>canales de lanzamiento</g1>."
           end)
         )
       end)

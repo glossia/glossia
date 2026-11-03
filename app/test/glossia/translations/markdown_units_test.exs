@@ -64,7 +64,7 @@ defmodule Glossia.Translations.MarkdownUnitsTest do
     test "finds whole blocks of prose with inline syntax replaced by tags" do
       assert templates(plan!(@document)) == [
                "Cache <g1/>",
-               "Build artifacts are not shared across environments. Learn more in the <g1/>cache guide<g2/>.",
+               "Build artifacts are not shared across environments. Learn more in the <g1>cache guide</g1>.",
                "Module cache",
                "Cache modules as binaries.",
                "<g1>Fastest on Tuist Runners</g1>",
@@ -163,6 +163,26 @@ defmodule Glossia.Translations.MarkdownUnitsTest do
       assert output =~ "  - ES Nested item with ![a diagram](diagram.png)"
       assert output =~ "1. ES Ordered item\\\n   after a hard break"
       assert output =~ "```bash\ntuist cache --print-hashes\n```"
+    end
+
+    test "moves component and HTML links as a whole when the translation reorders them" do
+      source = """
+      The command <.localized_link href="/hashing">hashes</.localized_link> your project like the <.localized_link href="/cache">`module` cache</.localized_link> and <a href="/x">docs</a>.
+      """
+
+      plan = plan!(source)
+
+      assert templates(plan) == [
+               "The command <g1>hashes</g1> your project like the <g2><g3/> cache</g2> and <g4>docs</g4>."
+             ]
+
+      rendered =
+        render_all(plan, fn _ -> "<g4>文档</g4>和此命令以与<g2><g3/>快取</g2>相同的方式<g1>雜湊</g1>你的專案。" end)
+
+      assert MarkdownUnits.check(plan, rendered) == :ok
+
+      assert MarkdownUnits.splice(plan, rendered) ==
+               ~s(<a href="/x">文档</a>和此命令以与<.localized_link href="/cache">`module`快取</.localized_link>相同的方式<.localized_link href="/hashing">雜湊</.localized_link>你的專案。\n)
     end
   end
 
