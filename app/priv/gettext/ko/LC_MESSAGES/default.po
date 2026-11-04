@@ -1699,6 +1699,10 @@ msgstr "격식도"
 msgid "Format"
 msgstr ""
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Formatting"
+msgstr ""
+
 #, elixir-autogen, elixir-format
 msgid "From builders who worked at"
 msgstr "이전 회사에서 일한 개발자들로부터"

@@ -1711,6 +1711,10 @@ msgstr "Formalité"
 msgid "Format"
 msgstr ""
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Formatting"
+msgstr ""
+
 #, elixir-autogen, elixir-format
 msgid "From builders who worked at"
 msgstr "De constructeurs ayant travaillé chez"

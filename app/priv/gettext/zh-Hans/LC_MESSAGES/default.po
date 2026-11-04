@@ -1699,6 +1699,10 @@ msgstr "正式程度"
 msgid "Format"
 msgstr ""
 
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Formatting"
+msgstr ""
+
 #, elixir-autogen, elixir-format
 msgid "From builders who worked at"
 msgstr "来自曾在...工作的建设者"
