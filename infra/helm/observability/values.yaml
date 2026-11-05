@@ -651,6 +651,13 @@ tempo-distributed:
     replicas: 2
     nodeSelector: *statefulNodeSelector
     tolerations: *statefulTolerations
+    nginxConfig:
+      # nginx defaults to 1 MiB, which rejects the final span batch a
+      # translation Job flushes on shutdown with a 413. Tempo's OTLP HTTP
+      # receiver accepts far larger requests, so the gateway must not be the
+      # tighter limit.
+      httpSnippet: |
+        client_max_body_size 16m;
   memcached:
     tolerations: *statefulTolerations
 
