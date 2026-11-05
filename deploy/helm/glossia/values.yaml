@@ -35,6 +35,11 @@ clustering:
   distributionPortMin: 9100
   distributionPortMax: 9104
 
+# A replaced pod keeps serving the editor app previews it already runs, which
+# end within 15 minutes (Glossia.Editor.PreviewDrain). Without running
+# previews it exits right away, so this only bounds the wait.
+terminationGracePeriodSeconds: 960
+
 strategy:
   type: RollingUpdate
   rollingUpdate:

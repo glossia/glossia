@@ -1872,6 +1872,10 @@ msgid "Glossia is inspecting the repository and preparing a pull request. This u
 msgstr "Glossia está inspeccionando el repositorio y preparando una solicitud de extracción. Esto suele tomar unos minutos, y puedes salir de esta página y volver."
 
 #, elixir-autogen, elixir-format
+msgid "Glossia is updating. Reload the page to start a preview."
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Glossia logo"
 msgstr "logo de Glossia"
 
@@ -3914,6 +3918,10 @@ msgstr "Estado"
 #, elixir-autogen, elixir-format
 msgid "Step-by-step lessons to get started with Glossia."
 msgstr "Lecciones paso a paso para empezar con Glossia."
+
+#, elixir-autogen, elixir-format
+msgid "Step:"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Stop impersonating"

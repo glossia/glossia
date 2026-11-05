@@ -20,6 +20,7 @@ spec:
         app.kubernetes.io/component: agent
     spec:
       serviceAccountName: {{ include "glossia.managedRunnerServiceAccountName" . }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}

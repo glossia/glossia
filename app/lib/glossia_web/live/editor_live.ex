@@ -410,6 +410,9 @@ defmodule GlossiaWeb.EditorLive do
 
   defp preview_error(:stale), do: error(:stale)
 
+  defp preview_error(:draining),
+    do: gettext("Glossia is updating. Reload the page to start a preview.")
+
   defp preview_error(_),
     do:
       gettext(
@@ -1050,8 +1053,12 @@ defmodule GlossiaWeb.EditorLive do
                 id="editor-preview-progress"
                 value={@live_preview.step}
                 max={5}
-                title={preview_step(@live_preview.step)}
-              />
+                title={gettext("Step:")}
+              >
+                <:description>
+                  <span data-part="label">{preview_step(@live_preview.step)}</span>
+                </:description>
+              </Noora.ProgressBar.progress_bar>
             </Noora.Card.card_section>
             <Noora.Card.card_section :if={@live_preview.pid} data-part="preview-footer">
               <span data-part="muted">{gettext("Private preview")}</span>

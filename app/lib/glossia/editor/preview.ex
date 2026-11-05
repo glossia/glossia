@@ -19,8 +19,11 @@ defmodule Glossia.Editor.Preview do
   @startup_ms 420_000
   @absolute_ms 900_000
 
+  def absolute_ms, do: @absolute_ms
+
   def start(user, project, file_id, owner) when is_pid(owner) do
-    with :ok <- isolation(),
+    with :ok <- not_draining(),
+         :ok <- isolation(),
          {:ok, file} <- Editor.get_file(user, project, file_id),
          :ok <- editable(file) do
       DynamicSupervisor.start_child(
@@ -63,6 +66,9 @@ defmodule Glossia.Editor.Preview do
 
   def child_spec(args),
     do: %{id: __MODULE__, start: {__MODULE__, :start_link, [args]}, restart: :temporary}
+
+  defp not_draining,
+    do: if(Glossia.Editor.PreviewDrain.draining?(), do: {:error, :draining}, else: :ok)
 
   def isolation do
     adapter = Glossia.Sandbox.adapter()

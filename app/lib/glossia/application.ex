@@ -102,7 +102,13 @@ defmodule Glossia.Application do
         Glossia.Extensions.translation_runtime().parent_children() ++
         [
           GlossiaWeb.Endpoint
-        ] ++ internal_babel_endpoint_children()
+        ] ++
+        internal_babel_endpoint_children() ++
+        [
+          # Last, so it stops first and the endpoint keeps serving running
+          # previews while a deploy replaces this node.
+          Glossia.Editor.PreviewDrain
+        ]
 
     if Application.get_env(:glossia, Glossia.OgImage, [])[:enabled] != false do
       List.insert_at(
