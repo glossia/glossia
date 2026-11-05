@@ -53,6 +53,32 @@ spec:
       scale-down-delay-after-add: 10m
       # Cloud-init installs containerd, gVisor and kubelet on first boot.
       max-node-provision-time: 20m
+    # The chart grants the core Cluster API resources but not the provider's
+    # machine templates, which the autoscaler reads to size a node group. Its
+    # informer for them never syncs without this, and scaling stalls.
+    extraObjects:
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: Role
+        metadata:
+          name: cluster-autoscaler-infrastructure-templates
+          namespace: org-glossia
+        rules:
+          - apiGroups: ["infrastructure.cluster.x-k8s.io"]
+            resources: ["hcloudmachinetemplates"]
+            verbs: ["get", "list", "watch"]
+      - apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        metadata:
+          name: cluster-autoscaler-infrastructure-templates
+          namespace: org-glossia
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: Role
+          name: cluster-autoscaler-infrastructure-templates
+        subjects:
+          - kind: ServiceAccount
+            name: cluster-autoscaler-clusterapi-cluster-autoscaler
+            namespace: org-glossia
     resources:
       requests:
         cpu: 20m
