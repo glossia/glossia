@@ -566,6 +566,10 @@ defmodule Glossia.Editor.PreviewRuntime do
     do:
       "Preview discovery needs a supported account model API key or direct OAuth session. CLI-only credentials are not supported."
 
+  defp failure_message(:model_credits_exhausted),
+    do:
+      "The AI model provider is out of credits, so the page for this file could not be found. Add credits to the provider account and start the preview again."
+
   defp failure_message(:sandbox_quota_exceeded),
     do: "The account's sandbox limit has been reached. Stop another sandbox and retry."
 

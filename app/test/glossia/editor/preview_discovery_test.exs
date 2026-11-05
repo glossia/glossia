@@ -195,6 +195,26 @@ defmodule Glossia.Editor.PreviewDiscoveryTest do
     end
   end
 
+  test "a provider out of credits is reported as such, not as a discovery failure", c do
+    stub(Req, :request, fn _ ->
+      {:error,
+       %ReqLLM.Error.API.Request{
+         reason: "Provider response error (402)",
+         status: 402,
+         response_body: %{"error" => %{"type" => "credit_limit"}}
+       }}
+    end)
+
+    assert {:error, :model_credits_exhausted} =
+             PreviewDiscovery.discover_with_credential(
+               AuditedAdapter,
+               c.id,
+               c.root,
+               %{model: "openai/gpt-4o-mini", auth: {:api_key, "parent-only", nil}},
+               c.record
+             )
+  end
+
   test "malicious model read requests cannot become filesystem tools", c do
     stub(Req, :request, fn _ -> provider_response(~s({"read":["../../.codex/auth.json"]})) end)
 

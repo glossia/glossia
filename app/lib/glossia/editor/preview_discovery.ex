@@ -74,6 +74,7 @@ defmodule Glossia.Editor.PreviewDiscovery do
             else: {:error, :ambiguous_route}
       end
     else
+      {:error, :model_credits_exhausted} = error -> error
       _ -> {:error, :discovery_failed}
     end
   end
@@ -113,6 +114,10 @@ defmodule Glossia.Editor.PreviewDiscovery do
         _ -> {:ok, ReqLLM.Response.text(response)}
       end
     else
+      # A billing rejection is the provider account's state, not a missing
+      # credential or an unusable repository; say so instead of guessing.
+      {:error, %{status: 402}} -> {:error, :model_credits_exhausted}
+      {:ok, %Req.Response{status: 402}} -> {:error, :model_credits_exhausted}
       _ -> {:error, :preview_model_auth_unavailable}
     end
   rescue
