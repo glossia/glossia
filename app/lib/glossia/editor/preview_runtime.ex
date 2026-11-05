@@ -193,7 +193,7 @@ defmodule Glossia.Editor.PreviewRuntime do
       adapter,
       id,
       Path.dirname(root),
-      "rmdir #{shell_quote(root)} && git -c credential.helper= -c core.hooksPath=/dev/null clone --no-checkout --single-branch --branch #{shell_quote(repository.default_branch)} #{shell_quote(url)} #{shell_quote(root)} && git -C #{shell_quote(root)} remote remove origin && git -C #{shell_quote(root)} -c core.hooksPath=/dev/null checkout --force HEAD",
+      "rmdir #{shell_quote(root)} && git -c credential.helper= -c core.hooksPath=/dev/null clone --no-checkout --depth 1 --single-branch --branch #{shell_quote(repository.default_branch)} #{shell_quote(url)} #{shell_quote(root)} && git -C #{shell_quote(root)} remote remove origin && git -C #{shell_quote(root)} -c core.hooksPath=/dev/null checkout --force HEAD",
       timeout_ms: 180_000,
       env: %{
         "GIT_CONFIG_NOSYSTEM" => "1",
