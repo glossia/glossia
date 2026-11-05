@@ -52,8 +52,12 @@ spec:
         - health
         - init
         - ingress
+    # Exists keeps NotIn from also matching world, whose identity has no
+    # namespace label; without it every public download is denied.
     - toEndpoints:
         - matchExpressions:
+            - key: "k8s:io.kubernetes.pod.namespace"
+              operator: Exists
             - key: "k8s:io.kubernetes.pod.namespace"
               operator: NotIn
               values: [kube-system]

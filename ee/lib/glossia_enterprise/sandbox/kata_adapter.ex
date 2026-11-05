@@ -116,6 +116,7 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapter do
         "toEndpoints" => [
           %{
             "matchExpressions" => [
+              %{"key" => "k8s:io.kubernetes.pod.namespace", "operator" => "Exists"},
               %{
                 "key" => "k8s:io.kubernetes.pod.namespace",
                 "operator" => "NotIn",
