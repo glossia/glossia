@@ -49,7 +49,13 @@ jobs:
           set -euo pipefail
           # Checks may finish out of order. An old run must not move main or
           # latest backwards, or create a release behind a newer app tag.
-          if [[ "$(git rev-parse HEAD)" == "$(git rev-parse origin/main)" ]]; then
+          # Newer commits that leave the app untouched (infra, docs) never
+          # start an App run of their own, so they must not supersede this one.
+          if git diff --quiet HEAD origin/main -- \
+            app ee cli mise mise.toml sdk/web LICENSE.md LICENSE-APACHE \
+            .github/workflows/app.yml .github/workflows/deploy.yml \
+            ':(glob).github/scripts/*app*.sh' \
+            ':(exclude)app/priv/i18n' ':(exclude,glob)app/priv/gettext/*/LC_MESSAGES/**'; then
             echo 'should_publish=true' >> "$GITHUB_OUTPUT"
           else
             echo 'should_publish=false' >> "$GITHUB_OUTPUT"
