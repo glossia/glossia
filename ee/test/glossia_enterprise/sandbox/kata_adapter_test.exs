@@ -6,7 +6,14 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapterTest do
 
   setup do
     previous = Application.get_env(:glossia, :managed_runner)
-    on_exit(fn -> Application.put_env(:glossia, :managed_runner, previous) end)
+    previous_preview = Application.get_env(:glossia, :editor_preview)
+
+    on_exit(fn ->
+      Application.put_env(:glossia, :managed_runner, previous)
+      Application.put_env(:glossia, :editor_preview, previous_preview)
+    end)
+
+    Application.delete_env(:glossia, :editor_preview)
     :ok
   end
 
@@ -34,6 +41,36 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapterTest do
 
     assert spec["runtimeClassName"] == "kata-qemu"
     assert metadata["labels"]["glossia.ai/purpose"] == "editor_preview"
+  end
+
+  test "an explicit preview runtime isolates previews and owns their placement" do
+    put_placement(
+      runtime_class_name: "",
+      node_selector: %{"glossia.io/managed-runner" => "true"},
+      tolerations: [%{"key" => "managed-runner", "operator" => "Exists"}]
+    )
+
+    Application.put_env(:glossia, :editor_preview, runtime_class_name: "runc")
+    refute KataAdapter.preview_isolated?()
+
+    assert {:error, :preview_requires_isolation} =
+             KataAdapter.build_manifest("preview", %{purpose: "editor_preview"})
+
+    Application.put_env(:glossia, :editor_preview, runtime_class_name: "gvisor")
+    assert KataAdapter.preview_isolated?()
+
+    assert {:ok, %{"spec" => spec}} =
+             KataAdapter.build_manifest("preview", %{purpose: "editor_preview"})
+
+    assert spec["runtimeClassName"] == "gvisor"
+    refute Map.has_key?(spec, "nodeSelector")
+    refute Map.has_key?(spec, "tolerations")
+
+    assert {:ok, %{"spec" => setup_spec}} =
+             KataAdapter.build_manifest("setup", %{purpose: "project_setup"})
+
+    assert setup_spec["nodeSelector"] == %{"glossia.io/managed-runner" => "true"}
+    refute Map.has_key?(setup_spec, "runtimeClassName")
   end
 
   test "preview admission requires the chart's complete network restrictions" do

@@ -77,6 +77,12 @@ config :glossia, :managed_runner,
     log: truthy?.(System.get_env("GLOSSIA_MANAGED_K8S_LOG"))
   ]
 
+# Editor live previews run repository code, so they only start on a sandboxed
+# runtime (Kata or gVisor). The RuntimeClass named here also carries the
+# preview node pool's node selector and tolerations.
+config :glossia, :editor_preview,
+  runtime_class_name: System.get_env("GLOSSIA_EDITOR_PREVIEW_RUNTIME_CLASS_NAME")
+
 # How many HTTP connections the node holds open per host. Translation is the
 # heaviest user: every concurrent file is one long-lived connection to the model
 # gateway, and asking for more concurrent translations than this only parks the

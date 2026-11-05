@@ -1,0 +1,25 @@
+{{- /* Sandboxed runtime for editor preview pods. The scheduling block is
+  merged into every pod that names this class, so previews land on the nodes
+  that provide the handler without the app knowing about node pools. */}}
+{{- if and .Values.editorPreview.enabled .Values.editorPreview.runtimeClass.create }}
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: {{ .Values.editorPreview.runtimeClass.name }}
+  labels:
+    {{- include "glossia.labels" . | nindent 4 }}
+handler: {{ .Values.editorPreview.runtimeClass.handler }}
+{{- with .Values.editorPreview.runtimeClass }}
+{{- if or .nodeSelector .tolerations }}
+scheduling:
+  {{- with .nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

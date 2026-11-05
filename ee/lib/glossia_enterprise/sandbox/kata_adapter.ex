@@ -19,6 +19,12 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapter do
   default runtime; naming a RuntimeClass that does not exist makes the API
   server reject the pod, which fails every project setup.
 
+  Editor preview pods are the exception: they run repository code, so they
+  only start on a sandboxed runtime. `GLOSSIA_EDITOR_PREVIEW_RUNTIME_CLASS_NAME`
+  names one (production uses `gvisor`, whose RuntimeClass schedules the pods
+  onto an autoscaled, tainted node pool); without it previews use the managed
+  runner runtime class and are refused unless that is Kata.
+
   Independently of the runtime, the container never gets a service-account
   token, cannot escalate privileges, and drops every Linux capability.
 
@@ -48,6 +54,7 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapter do
   @kubectl_timeout_ms 30_000
   @exec_timeout_ms 300_000
   @create_wait_timeout_ms 120_000
+  @preview_create_wait_timeout_ms 360_000
 
   # Keep this admission contract aligned with the chart's policy. A policy's
   # name or annotation alone is not evidence of its actual restrictions.
@@ -153,7 +160,7 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapter do
          {:ok, manifest} <- build_manifest(name, params),
          :ok <- ensure_preview_network_policy(namespace, preview?),
          {:ok, _pod} <- Kubernetes.create_pod(namespace, manifest),
-         :ok <- wait_ready(namespace, name) do
+         :ok <- wait_ready(namespace, name, preview?) do
       {:ok, sandbox_id}
     else
       {:error, :already_exists} when not preview? ->
@@ -271,11 +278,23 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapter do
   @impl true
   def repo_path(_sandbox_id), do: {:ok, configured(:repo_path, @default_repo_path)}
 
+  # Previews run repository code, so they need a sandboxed kernel: a Kata
+  # microVM or gVisor's user-space kernel. Production runs them on their own
+  # autoscaled gVisor nodes through `GLOSSIA_EDITOR_PREVIEW_RUNTIME_CLASS_NAME`,
+  # whose RuntimeClass carries the node selector and tolerations; without it
+  # previews fall back to the managed runner runtime and fail closed on runc.
   @impl true
   def preview_isolated? do
-    case placement(:runtime_class_name) do
-      "kata" <> _ -> true
-      _ -> false
+    case preview_runtime_class() do
+      nil -> match?("kata" <> _, placement(:runtime_class_name))
+      runtime_class -> String.starts_with?(runtime_class, ["kata", "gvisor"])
+    end
+  end
+
+  defp preview_runtime_class do
+    case Application.get_env(:glossia, :editor_preview, [])[:runtime_class_name] do
+      runtime_class when runtime_class not in [nil, ""] -> runtime_class
+      _ -> nil
     end
   end
 
@@ -420,12 +439,28 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapter do
              }
            ]
          }
-         |> maybe_put("nodeSelector", placement(:node_selector))
-         |> maybe_put("tolerations", placement(:tolerations))
-         |> maybe_put("affinity", placement(:affinity))
-         |> maybe_put("runtimeClassName", placement(:runtime_class_name))
+         |> Map.merge(pod_placement(purpose))
          |> maybe_put("activeDeadlineSeconds", active_deadline_seconds(deadline))
      }}
+  end
+
+  # A preview runtime class schedules through its RuntimeClass, so the managed
+  # runner's node selector and tolerations must not pull the pod elsewhere.
+  defp pod_placement("editor_preview") do
+    case preview_runtime_class() do
+      nil -> managed_placement()
+      runtime_class -> %{"runtimeClassName" => runtime_class}
+    end
+  end
+
+  defp pod_placement(_purpose), do: managed_placement()
+
+  defp managed_placement do
+    %{}
+    |> maybe_put("nodeSelector", placement(:node_selector))
+    |> maybe_put("tolerations", placement(:tolerations))
+    |> maybe_put("affinity", placement(:affinity))
+    |> maybe_put("runtimeClassName", placement(:runtime_class_name))
   end
 
   defp active_deadline_seconds(nil), do: nil
@@ -477,8 +512,11 @@ defmodule GlossiaEnterprise.Sandbox.KataAdapter do
 
   # ── waiting ────────────────────────────────────────────────────────────
 
-  defp wait_ready(namespace, name) do
-    deadline = System.monotonic_time(:millisecond) + @create_wait_timeout_ms
+  # A preview may be the pod that makes the cluster-autoscaler add a node,
+  # which takes minutes; the preview itself allows seven to start.
+  defp wait_ready(namespace, name, preview?) do
+    timeout = if preview?, do: @preview_create_wait_timeout_ms, else: @create_wait_timeout_ms
+    deadline = System.monotonic_time(:millisecond) + timeout
     poll_ready(namespace, name, deadline)
   end
 

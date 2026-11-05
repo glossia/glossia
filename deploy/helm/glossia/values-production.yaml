@@ -47,6 +47,21 @@ managedRunner:
   #   nodeSelector:
   #     node.cluster.x-k8s.io/pool: managed-runner
 
+# Live app previews run on the autoscaled gVisor pool (`md-preview` in the
+# compact-production cluster profile). The RuntimeClass pins preview pods to
+# that pool and tolerates its taint; nothing else schedules there.
+editorPreview:
+  enabled: true
+  runtimeClass:
+    create: true
+    nodeSelector:
+      node.cluster.x-k8s.io/pool: editor-preview
+    tolerations:
+      - key: glossia.ai/editor-preview
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+
 internalBabel:
   enabled: true
   tls:

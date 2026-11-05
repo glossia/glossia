@@ -4,9 +4,20 @@
 
 fullnameOverride: ""
 
-# Requires Cilium and a verified Kata network boundary before enabling.
+# Editor live previews run repository code. Enabling them installs the
+# preview CiliumNetworkPolicy (requires Cilium) and tells the app which
+# sandboxed RuntimeClass (Kata or gVisor) preview pods must use; previews are
+# refused on any other runtime.
 editorPreview:
   enabled: false
+  runtimeClass:
+    name: gvisor
+    # Create the RuntimeClass from this chart. Its scheduling block moves every
+    # preview pod onto the nodes that provide the handler.
+    create: false
+    handler: runsc
+    nodeSelector: {}
+    tolerations: []
 
 replicaCount: 2
 
