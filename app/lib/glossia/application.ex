@@ -86,6 +86,7 @@ defmodule Glossia.Application do
           id: Ingestion.SetupEventBuffer
         ),
         Glossia.Analytics.SettingsCache,
+        Glossia.Editor.SyncCache,
         Glossia.OgImage.Cache,
         {Task.Supervisor, name: Glossia.OgImage.Tasks},
         Glossia.Analytics.Geolocation.Ipapi.Cache,

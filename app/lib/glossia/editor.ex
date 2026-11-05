@@ -68,7 +68,8 @@ defmodule Glossia.Editor do
   def synchronize(user, project) do
     with :ok <- authorize(user, project),
          {:ok, repository} <- repository(project),
-         {:ok, entries} <- Repository.with_checkout(repository, &inventory/1) do
+         {:ok, entries} <-
+           Repository.with_checkout(Map.put(repository, :shallow, true), &inventory/1) do
       Repo.transaction(fn ->
         lock_project(project)
         existing = Repo.all(scoped(project))

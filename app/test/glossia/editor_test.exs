@@ -121,6 +121,46 @@ defmodule Glossia.EditorTest do
   end
 
   @tag :tmp_dir
+  test "background sync clones only the tip, reuses a fresh refresh, and retries failures", c do
+    root = c.tmp_dir
+    File.mkdir_p!(Path.join(root, "en"))
+
+    File.write!(
+      Path.join(root, "L10N.md"),
+      "---\nsource_language: en\ntargets:\n  es: Spanish\nsources:\n  'en/*.json': 'es/*.json'\n---\n"
+    )
+
+    File.write!(Path.join(root, "en/home.json"), ~s({"title":"Welcome"}))
+    git(root, ["init", "-q"])
+    commit(root)
+
+    cache = :"editor_sync_#{System.unique_integer([:positive])}"
+    start_supervised!({Editor.SyncCache, name: cache})
+    test_pid = self()
+
+    stub(Repository, :with_checkout, fn repository, _callback ->
+      send(test_pid, {:checkout, repository})
+      {:error, :repository_unavailable}
+    end)
+
+    assert {:error, :repository_unavailable} =
+             Editor.SyncCache.synchronize(c.user, c.project, cache)
+
+    assert_received {:checkout, %{shallow: true}}
+
+    stub(Repository, :with_checkout, fn repository, callback ->
+      send(test_pid, {:checkout, repository})
+      callback.(root)
+    end)
+
+    assert {:ok, :synchronized} = Editor.SyncCache.synchronize(c.user, c.project, cache)
+    assert_received {:checkout, _}
+    assert {:ok, :synchronized} = Editor.SyncCache.synchronize(c.user, c.project, cache)
+    refute_received {:checkout, _}
+    assert {:error, _} = Editor.SyncCache.synchronize(nil, c.project, cache)
+  end
+
+  @tag :tmp_dir
   test "missing translations start from source and symlinks cannot be edited", c do
     root = c.tmp_dir
     File.mkdir_p!(Path.join(root, "en"))

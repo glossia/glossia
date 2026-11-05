@@ -14,7 +14,12 @@ defmodule Glossia.Translations.Repository do
     branch = repository[:publication_branch] || repository.default_branch
 
     try do
-      with {_output, 0} <- git(["clone", "--branch", branch, clone_source(repository), dir]),
+      # Callers that only read the tip (the editor inventory) skip history; a
+      # full clone of a large repository takes minutes.
+      depth = if repository[:shallow], do: ["--depth", "1"], else: []
+
+      with {_output, 0} <-
+             git(["clone", "--branch", branch] ++ depth ++ [clone_source(repository), dir]),
            :ok <-
              checkout(
                dir,

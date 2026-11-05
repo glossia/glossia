@@ -77,7 +77,7 @@ defmodule GlossiaWeb.EditorLive do
 
       socket
       |> assign(sync: :running)
-      |> start_async(:sync, fn -> Editor.synchronize(user, project) end)
+      |> start_async(:sync, fn -> Editor.SyncCache.synchronize(user, project) end)
     else
       socket
     end
