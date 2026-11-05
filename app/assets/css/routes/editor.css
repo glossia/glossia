@@ -75,6 +75,11 @@
   }
   & [data-part="source"] article { padding: var(--noora-spacing-5); background: var(--noora-surface-background-secondary); border-radius: var(--noora-radius-3); }
   & #editor-search-results [data-part="label"] { white-space: normal; overflow-wrap: anywhere; }
+  & #editor-search-results mark {
+    background: var(--noora-badge-light-fill-attention-background);
+    color: var(--noora-badge-light-fill-attention-label);
+    border-radius: var(--noora-radius-1);
+  }
   /* Noora tables size to max-content; cap excerpts so the Language and Location columns stay visible. */
   & #editor-search-results td:first-child [data-part="cell"] {
     max-inline-size: calc(var(--noora-spacing-16) * 6);

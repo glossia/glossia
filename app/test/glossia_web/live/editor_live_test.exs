@@ -164,7 +164,7 @@ defmodule GlossiaWeb.EditorLiveTest do
       ~p"/#{c.user.account.handle}/#{c.project.handle}/-/editor?#{%{search: "CAFÉ [special]."}}"
     )
 
-    assert has_element?(view, "#editor-search-results", "Café [special].")
+    assert has_element?(view, "#editor-search-results mark", "Café [special].")
     assert has_element?(view, "#editor-search-results a[href*='#{record.id}#editor-field-']")
 
     for query <- ["filename-only", "old_key", "Outdated text", "42"] do

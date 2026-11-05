@@ -48,10 +48,6 @@ msgstr[0] "%{count} idioma seleccionado"
 msgstr[1] "%{count} idiomas seleccionados"
 
 #, elixir-autogen, elixir-format
-msgid "%{count} matching text fields. Search includes source text and saved drafts."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "%{count} repository"
 msgid_plural "%{count} repositories"
 msgstr[0] "%{count} repositorio"
@@ -3794,10 +3790,6 @@ msgstr "Mostrando %{first}-%{last} de %{total}"
 #, elixir-autogen, elixir-format
 msgid "Showing the first %{limit} matches. Keep typing to narrow the results."
 msgstr "Se muestran los primeros %{limit} resultados. Sigue escribiendo para afinar los resultados."
-
-#, elixir-autogen, elixir-format
-msgid "Showing the first 200 matches. Refine your search to find a specific phrase."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Shrink"

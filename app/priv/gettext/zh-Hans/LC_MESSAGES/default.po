@@ -44,10 +44,6 @@ msgid_plural "%{count} languages selected"
 msgstr[0] "%{count} 种语言已选择"
 
 #, elixir-autogen, elixir-format
-msgid "%{count} matching text fields. Search includes source text and saved drafts."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "%{count} repository"
 msgid_plural "%{count} repositories"
 msgstr[0] "%{count} 个仓库"
@@ -3782,10 +3778,6 @@ msgstr "显示 %{first}-%{last}，共 %{total} 条"
 #, elixir-autogen, elixir-format
 msgid "Showing the first %{limit} matches. Keep typing to narrow the results."
 msgstr "显示前 %{limit} 条匹配结果。继续输入以缩小结果范围。"
-
-#, elixir-autogen, elixir-format
-msgid "Showing the first 200 matches. Refine your search to find a specific phrase."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Shrink"

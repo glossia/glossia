@@ -44,10 +44,6 @@ msgid_plural "%{count} languages selected"
 msgstr[0] "%{count} 개의 언어 선택"
 
 #, elixir-autogen, elixir-format
-msgid "%{count} matching text fields. Search includes source text and saved drafts."
-msgstr ""
-
-#, elixir-autogen, elixir-format
 msgid "%{count} repository"
 msgid_plural "%{count} repositories"
 msgstr[0] "%{count} 리포지토리"
@@ -3782,10 +3778,6 @@ msgstr "%{total} 중 %{first}-%{last} 개 표시"
 #, elixir-autogen, elixir-format
 msgid "Showing the first %{limit} matches. Keep typing to narrow the results."
 msgstr "%{limit}개 결과를 표시 중입니다. 검색 조건을 좁히려면 계속 입력하세요."
-
-#, elixir-autogen, elixir-format
-msgid "Showing the first 200 matches. Refine your search to find a specific phrase."
-msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Shrink"

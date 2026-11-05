@@ -546,18 +546,14 @@ defmodule GlossiaWeb.EditorLive do
     |> Stream.flat_map(fn file ->
       case Map.fetch(index, file.id) do
         {:ok, fields} ->
-          for field <- fields, [{start, _}] <- [Regex.run(query, field.value, return: :index)] do
-            # Locate the match in the original Unicode string for a useful
-            # excerpt even when the matching phrase is far into a long body.
-            before = field.value |> binary_part(0, start) |> String.slice(-60, 60)
-
-            after_match =
-              field.value
-              |> binary_part(start, byte_size(field.value) - start)
-              |> String.slice(0, 180)
-
-            excerpt = String.replace(before <> after_match, ~r/\s+/u, " ")
-            %{id: file.id <> field.id, file: file, field: field, excerpt: excerpt}
+          for field <- fields,
+              [{start, length}] <- [Regex.run(query, field.value, return: :index)] do
+            %{
+              id: file.id <> field.id,
+              file: file,
+              field: field,
+              excerpt: excerpt(field.value, start, length)
+            }
           end
 
         _ ->
@@ -566,6 +562,31 @@ defmodule GlossiaWeb.EditorLive do
     end)
     |> Enum.take(200)
   end
+
+  # Shows the match with some context on both sides, cut at word boundaries so
+  # the excerpt never opens or closes on a fragment like "er for" or "guara".
+  defp excerpt(value, start, length) do
+    before = binary_part(value, 0, start)
+    match = binary_part(value, start, length)
+    rest = binary_part(value, start + length, byte_size(value) - start - length)
+
+    before =
+      if String.length(before) > 60,
+        do: "…" <> (before |> String.slice(-60, 60) |> drop_partial_word(:leading)),
+        else: before
+
+    rest =
+      if String.length(rest) > 160,
+        do: (rest |> String.slice(0, 160) |> drop_partial_word(:trailing)) <> "…",
+        else: rest
+
+    %{before: collapse(before), match: collapse(match), after: collapse(rest)}
+  end
+
+  defp drop_partial_word(text, :leading), do: String.replace(text, ~r/^\S*\s+/u, "")
+  defp drop_partial_word(text, :trailing), do: String.replace(text, ~r/\s+\S*$/u, "")
+
+  defp collapse(text), do: String.replace(text, ~r/\s+/u, " ")
 
   defp filter_files(files, assigns) do
     files
@@ -598,6 +619,16 @@ defmodule GlossiaWeb.EditorLive do
 
     ~p"/#{assigns.handle}/#{assigns.project.handle}/-/editor?#{params}"
   end
+
+  defp format_icon("markdown"), do: "markdown"
+  defp format_icon("json"), do: "parentheses"
+  defp format_icon("yaml"), do: "list_tree"
+  defp format_icon(_format), do: "file_text"
+
+  defp format_name("markdown"), do: "Markdown"
+  defp format_name(format) when format in ["json", "yaml"], do: String.upcase(format)
+  defp format_name("text"), do: gettext("Text")
+  defp format_name(format), do: format
 
   defp status(%{active: false}), do: "Removed"
   defp status(%{pull_request_url: url}) when not is_nil(url), do: "In review"
@@ -680,9 +711,9 @@ defmodule GlossiaWeb.EditorLive do
         <div data-part="workspace">
           <Noora.Card.card icon="file_text" title={@file.path}>
             <:actions>
-              <Noora.Tag.tag label={String.upcase(@file.format)} />
+              <Noora.Tag.tag icon={format_icon(@file.format)} label={format_name(@file.format)} />
               <Noora.Tag.tag label={@file.locale} />
-              <Noora.Tag.tag label={status(@file)} />
+              <Noora.Tag.tag :if={status(@file) != "Synced"} label={status(@file)} />
             </:actions>
             <Noora.Card.card_section :if={@source || !@file.blob_sha} data-part="document-meta">
               <span :if={@source}>{gettext("Source:")} {@source.path} · {@source.locale}</span>
@@ -1090,16 +1121,6 @@ defmodule GlossiaWeb.EditorLive do
             />
             <Noora.Filter.active_filter :for={filter <- @active_filters} filter={filter} />
           </Noora.Card.card_section>
-          <Noora.Card.card_section :if={@search != ""} data-part="search-summary">
-            <p>
-              {gettext("%{count} matching text fields. Search includes source text and saved drafts.",
-                count: length(@search_results)
-              )}
-            </p>
-            <p :if={length(@search_results) == 200}>
-              {gettext("Showing the first 200 matches. Refine your search to find a specific phrase.")}
-            </p>
-          </Noora.Card.card_section>
           <Noora.Card.card_section data-part="file-list">
             <Noora.Table.table
               :if={@search != ""}
@@ -1109,10 +1130,13 @@ defmodule GlossiaWeb.EditorLive do
               row_navigate={fn result -> result_path(assigns, result) end}
             >
               <:col :let={result} label={gettext("Matching text")}>
-                <Noora.Table.text_cell
-                  label={result.excerpt}
-                  sublabel={field_label(result.field.label)}
-                />
+                <%!-- Noora's text_cell only takes a plain label, so this mirrors its markup to highlight the match. --%>
+                <div data-part="cell" data-type="text">
+                  <span data-part="label">
+                    {result.excerpt.before}<mark>{result.excerpt.match}</mark>{result.excerpt.after}
+                  </span>
+                  <span data-part="sublabel">{field_label(result.field.label)}</span>
+                </div>
               </:col>
               <:col :let={result} label={gettext("Language")}>
                 <Noora.Table.text_cell label={result.file.locale} />
@@ -1165,7 +1189,10 @@ defmodule GlossiaWeb.EditorLive do
                 patch={sort_path(assigns, "format")}
                 sort_order={if @sort == "format", do: @direction}
               >
-                <Noora.Table.text_cell label={String.upcase(file.format)} />
+                <Noora.Table.text_cell
+                  icon={format_icon(file.format)}
+                  label={format_name(file.format)}
+                />
               </:col>
               <:col :let={file} label={gettext("Status")}>
                 <Noora.Table.text_cell label={status(file)} />
