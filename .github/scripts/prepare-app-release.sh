@@ -35,12 +35,17 @@ if [[ ! "$previous_tag" =~ ^app-v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
   exit 1
 fi
 major="${BASH_REMATCH[1]}" minor="${BASH_REMATCH[2]}" patch="${BASH_REMATCH[3]}"
-# git-cliff's defaults: breaking changes bump major, features bump minor.
-case "$(jq -r '[.[].commits[]] | if any(.breaking) then "major" elif any(.group | test("Features")) then "minor" else "patch" end' <<< "$context")" in
-  major) tag="app-v$((major + 1)).0.0" ;;
-  minor) tag="app-v${major}.$((minor + 1)).0" ;;
-  *) tag="app-v${major}.${minor}.$((patch + 1))" ;;
-esac
+if [[ "$(jq -r '.[0].previous.version // empty' <<< "$context")" == "" ]]; then
+  # No app release yet: the first one is the initial tag itself.
+  tag="$previous_tag"
+else
+  # git-cliff's defaults: breaking changes bump major, features bump minor.
+  case "$(jq -r '[.[].commits[]] | if any(.breaking) then "major" elif any(.group | test("Features")) then "minor" else "patch" end' <<< "$context")" in
+    major) tag="app-v$((major + 1)).0.0" ;;
+    minor) tag="app-v${major}.$((minor + 1)).0" ;;
+    *) tag="app-v${major}.${minor}.$((patch + 1))" ;;
+  esac
+fi
 version="${tag#app-v}"
 git cliff "${filter[@]}" --unreleased --tag "$tag" --output app-release-notes.md
 

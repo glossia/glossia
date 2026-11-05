@@ -207,7 +207,8 @@ test('release publication is serialized, waits for both editions, and pins the t
   assert.match(workflow, /group: release-app-main\s+cancel-in-progress: false/);
   assert.ok(workflow.includes("github.event.workflow_run.event == 'push'"));
   assert.ok(workflow.includes("github.event.workflow_run.head_repository.full_name == github.repository"));
-  assert.ok(workflow.includes('git rev-parse origin/main'));
+  // Superseded only by newer commits that change the app; others start no App run.
+  assert.ok(workflow.includes('git diff --quiet HEAD origin/main'));
   assert.ok(workflow.includes('needs: [prepare, publish]'));
   assert.ok(workflow.includes("if: needs.prepare.outputs.should_release == 'true'"));
   assert.ok(workflow.includes('fail-fast: false'));
