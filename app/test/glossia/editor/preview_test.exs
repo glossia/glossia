@@ -346,6 +346,27 @@ defmodule Glossia.Editor.PreviewTest do
     wait_terminated(c.project)
   end
 
+  test "unchanged files do not count against the preview size limit", c do
+    c = c.fixture
+    # A large repository: more unchanged content than a preview may carry.
+    Repo.insert!(%EditorFile{
+      project_id: c.project.id,
+      path: "es/large.md",
+      source_path: "es/large.md",
+      locale: "es",
+      format: "markdown",
+      content: String.duplicate("a", 11_000_000),
+      blob_sha: "0000000000000000000000000000000000000000"
+    })
+
+    block_discovery(c)
+    {:ok, pid} = Preview.start(c.user, c.project, c.file.id, self())
+    assert_receive {:discovery_waiting, _, _}, 10_000
+    refute_received {:editor_preview, ^pid, %{status: :error}}
+    assert :ok = Preview.stop(pid)
+    wait_terminated(c.project)
+  end
+
   test "routes and file paths cannot become proxy destinations or escape checkout" do
     for path <- [
           "https://evil.test/x",

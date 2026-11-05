@@ -27,10 +27,11 @@ defmodule Glossia.Editor.PreviewRuntime do
       with {:ok, root} <- adapter.repo_path(sandbox.id),
            {:ok, repository} <- Editor.repository(project),
            {:ok, files} <- snapshots(user, project, file),
+           edited = Enum.filter(files, &edited?(&1, file)),
            :ok <- clone(adapter, sandbox.id, root, repository),
-           :ok <- check_bases(adapter, sandbox.id, root, files),
+           :ok <- check_bases(adapter, sandbox.id, root, edited),
            :ok <- shell(adapter, sandbox.id, root, "rm -rf .git"),
-           :ok <- write_files(adapter, sandbox.id, root, files),
+           :ok <- write_files(adapter, sandbox.id, root, edited),
            :ok <- discover(session, adapter, sandbox.id, root, project, file),
            {:ok, manifest} <- read_manifest(adapter, sandbox.id, root, file),
            {:ok, launch} <- launch_config(manifest, root, file),
@@ -123,7 +124,10 @@ defmodule Glossia.Editor.PreviewRuntime do
             else: current
         end)
 
-      bytes = Enum.reduce(selected, 0, &(byte_size(&1.draft_content || &1.content) + &2))
+      bytes =
+        selected
+        |> Enum.filter(&edited?(&1, file))
+        |> Enum.reduce(0, &(byte_size(&1.draft_content || &1.content) + &2))
 
       cond do
         is_nil(current) || not Preview.same_base?(current, file) ->
@@ -146,6 +150,10 @@ defmodule Glossia.Editor.PreviewRuntime do
       end
     end
   end
+
+  # Files without drafts already sit in the clone at HEAD, so only edited bytes
+  # travel to the sandbox; on large repositories the rest exceeds the limits.
+  defp edited?(file, current), do: file.id == current.id || not is_nil(file.draft_content)
 
   def valid_file_path?(path) when is_binary(path) do
     Path.type(path) == :relative && path != "" &&
@@ -363,7 +371,7 @@ defmodule Glossia.Editor.PreviewRuntime do
           if input = List.last(state.inputs),
             do: send(state.session, {:preview_input_ack, self(), input.sequence})
 
-          loop(%{state | revision: revision, file: file, inputs: []})
+          loop(%{state | revision: revision, file: file, files: files, inputs: []})
         else
           _ -> fail(state.session, :repository_changed)
         end
@@ -426,8 +434,14 @@ defmodule Glossia.Editor.PreviewRuntime do
   end
 
   defp upload_input(state, files, revision, content) do
+    # A draft discarded since the last upload must still be written back.
     files =
-      Enum.map(files, fn f ->
+      files
+      |> Enum.filter(fn f ->
+        edited?(f, state.file) ||
+          Enum.any?(state.files, &(&1.id == f.id && not is_nil(&1.draft_content)))
+      end)
+      |> Enum.map(fn f ->
         %{
           path: f.path,
           content: if(f.id == state.file.id, do: content, else: f.draft_content || f.content)
