@@ -27,11 +27,20 @@ if [[ "$commit_count" == 0 ]]; then
   exit 0
 fi
 
-tag="$(git cliff "${filter[@]}" --bumped-version)"
-if [[ ! "$tag" =~ ^app-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "Invalid app release tag: $tag" >&2
+# Bump from the context's previous tag instead of `--bumped-version`. With
+# --include-path, git-cliff drops a tag placed on a commit outside those paths
+# and bumps from the tag before it, recomputing a version that already exists.
+if [[ ! "$previous_tag" =~ ^app-v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+  echo "Invalid previous app release tag: $previous_tag" >&2
   exit 1
 fi
+major="${BASH_REMATCH[1]}" minor="${BASH_REMATCH[2]}" patch="${BASH_REMATCH[3]}"
+# git-cliff's defaults: breaking changes bump major, features bump minor.
+case "$(jq -r '[.[].commits[]] | if any(.breaking) then "major" elif any(.group | test("Features")) then "minor" else "patch" end' <<< "$context")" in
+  major) tag="app-v$((major + 1)).0.0" ;;
+  minor) tag="app-v${major}.$((minor + 1)).0" ;;
+  *) tag="app-v${major}.${minor}.$((patch + 1))" ;;
+esac
 version="${tag#app-v}"
 git cliff "${filter[@]}" --unreleased --tag "$tag" --output app-release-notes.md
 
