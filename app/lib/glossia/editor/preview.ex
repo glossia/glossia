@@ -103,7 +103,7 @@ defmodule Glossia.Editor.Preview do
 
   @impl true
   def handle_continue(:start, state) do
-    emit(state, %{status: :starting, message: "Preparing an isolated app preview."})
+    emit(state, %{status: :starting, step: 1, message: "Preparing an isolated app preview."})
     parent = self()
 
     {pid, ref} =

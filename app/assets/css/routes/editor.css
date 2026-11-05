@@ -193,7 +193,18 @@
     }
     & #editor-preview-help { font: var(--noora-font-body-small); }
     & [data-part="preview-empty"].noora-table {
+      display: flex;
+      flex-direction: column;
+      gap: var(--noora-spacing-6);
       background: var(--noora-surface-background-primary);
+      & .noora-table-empty-state { padding-block: var(--noora-spacing-6) var(--noora-spacing-0); }
+      & #editor-preview-progress [data-part="header"] {
+        display: flex;
+        gap: var(--noora-spacing-2);
+        & [data-part="title"] { flex: 1; }
+        & [data-part="value"], & [data-part="max-value"] { color: var(--noora-surface-label-secondary); }
+        & [data-part="max-value"]::before { content: "/ "; }
+      }
     }
   }
 

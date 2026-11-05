@@ -28,6 +28,7 @@ defmodule Glossia.Editor.PreviewRuntime do
            {:ok, repository} <- Editor.repository(project),
            {:ok, files} <- snapshots(user, project, file),
            edited = Enum.filter(files, &edited?(&1, file)),
+           event(session, %{status: :starting, step: 2, message: "Copying the repository."}),
            :ok <- clone(adapter, sandbox.id, root, repository),
            :ok <- check_bases(adapter, sandbox.id, root, edited),
            :ok <- shell(adapter, sandbox.id, root, "rm -rf .git"),
@@ -35,7 +36,7 @@ defmodule Glossia.Editor.PreviewRuntime do
            :ok <- discover(session, adapter, sandbox.id, root, project, file),
            {:ok, manifest} <- read_manifest(adapter, sandbox.id, root, file),
            {:ok, launch} <- launch_config(manifest, root, file),
-           :ok <- install(adapter, sandbox.id, root, manifest),
+           :ok <- install(session, adapter, sandbox.id, root, manifest),
            :ok <-
              adapter.upload_file(
                sandbox.id,
@@ -50,6 +51,7 @@ defmodule Glossia.Editor.PreviewRuntime do
              ) do
         event(session, %{
           status: :discovering,
+          step: 5,
           message: "Starting the discovered page and browser."
         })
 
@@ -266,6 +268,7 @@ defmodule Glossia.Editor.PreviewRuntime do
   defp discover(session, adapter, id, root, project, file) do
     event(session, %{
       status: :discovering,
+      step: 3,
       message: "Inspecting the repository startup and matching route."
     })
 
@@ -283,9 +286,10 @@ defmodule Glossia.Editor.PreviewRuntime do
     end
   end
 
-  defp install(adapter, id, root, manifest) do
+  defp install(session, adapter, id, root, manifest) do
     case manifest["install"] do
       command when is_binary(command) and command != "" ->
+        event(session, %{status: :discovering, step: 4, message: "Installing dependencies."})
         shell(adapter, id, root, "(#{command}) >/dev/null 2>&1", timeout_ms: 180_000)
 
       _ ->

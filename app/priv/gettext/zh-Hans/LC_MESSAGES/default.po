@@ -1020,6 +1020,10 @@ msgid "Copy your new client secret now. You will not be able to see it again."
 msgstr "现在复制您的新客户端密钥。您将无法再次看到它。"
 
 #, elixir-autogen, elixir-format
+msgid "Copying the repository"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Could not add catch-all rule."
 msgstr "无法添加通配规则。"
 
@@ -1660,7 +1664,7 @@ msgid "Finding page…"
 msgstr ""
 
 #, elixir-autogen, elixir-format
-msgid "Finding the right screen and starting the app. Keep editing."
+msgid "Finding the page for this file"
 msgstr ""
 
 #, elixir-autogen, elixir-format
@@ -1990,6 +1994,10 @@ msgstr "安装代码片段"
 #, elixir-autogen, elixir-format
 msgid "Install the Glossia GitHub App to import repositories and set up localization."
 msgstr "安装 Glossia GitHub App 以导入仓库并设置本地化。"
+
+#, elixir-autogen, elixir-format
+msgid "Installing dependencies"
+msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "Interactive app preview"
@@ -3300,6 +3308,10 @@ msgid "Requested permissions:"
 msgstr "请求的权限："
 
 #, elixir-autogen, elixir-format
+msgid "Reserving an isolated machine"
+msgstr ""
+
+#, elixir-autogen, elixir-format
 msgid "Resize app preview"
 msgstr ""
 
@@ -3875,6 +3887,10 @@ msgstr ""
 msgid "Started"
 msgstr "已启动"
 
+#, elixir-autogen, elixir-format
+msgid "Starting the app"
+msgstr ""
+
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Starting…"
 msgstr "设置"
@@ -4213,6 +4229,10 @@ msgstr ""
 
 #, elixir-autogen, elixir-format
 msgid "This action could not be completed safely. Your draft has been kept. Check the repository connection and try again."
+msgstr ""
+
+#, elixir-autogen, elixir-format
+msgid "This can take a few minutes. Keep editing in the meantime."
 msgstr ""
 
 #, elixir-autogen, elixir-format

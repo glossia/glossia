@@ -132,7 +132,8 @@ defmodule GlossiaWeb.EditorLive do
             empty_live_preview()
             | pid: pid,
               monitor: Process.monitor(pid),
-              status: :starting
+              status: :starting,
+              step: 1
           }
 
           {:noreply, socket |> assign(live_preview: state) |> update_live_preview()}
@@ -296,7 +297,7 @@ defmodule GlossiaWeb.EditorLive do
     if state.pid == pid do
       # Frames stay on the authenticated LiveView connection. Repository HTML
       # and scripts are never mounted in the editor's browser origin.
-      event = Map.take(event, [:status, :message, :frame, :path, :revision])
+      event = Map.take(event, [:status, :step, :message, :frame, :path, :revision])
 
       event =
         case event[:message] do
@@ -344,7 +345,16 @@ defmodule GlossiaWeb.EditorLive do
   end
 
   defp empty_live_preview do
-    %{pid: nil, monitor: nil, status: :idle, message: nil, frame: nil, path: nil, revision: 0}
+    %{
+      pid: nil,
+      monitor: nil,
+      status: :idle,
+      step: 0,
+      message: nil,
+      frame: nil,
+      path: nil,
+      revision: 0
+    }
   end
 
   defp stop_live_preview(socket) do
@@ -405,6 +415,12 @@ defmodule GlossiaWeb.EditorLive do
       gettext(
         "The app preview could not start safely. Your edits are unchanged. Check the repository and preview runner, then try again."
       )
+
+  defp preview_step(2), do: gettext("Copying the repository")
+  defp preview_step(3), do: gettext("Finding the page for this file")
+  defp preview_step(4), do: gettext("Installing dependencies")
+  defp preview_step(5), do: gettext("Starting the app")
+  defp preview_step(_), do: gettext("Reserving an isolated machine")
 
   defp preview_status(:ready), do: gettext("Live")
   defp preview_status(:updating), do: gettext("Updating…")
@@ -974,7 +990,10 @@ defmodule GlossiaWeb.EditorLive do
                 data-preview-toggle
               />
             </:actions>
-            <Noora.Card.card_section :if={!@live_preview.frame} data-part="preview-controls">
+            <Noora.Card.card_section
+              :if={!@live_preview.frame && !@live_preview.pid}
+              data-part="preview-controls"
+            >
               <p :if={!@live_preview.pid} data-part="muted">
                 {gettext("See unsaved edits in your app. Nothing is published.")}
               </p>
@@ -1025,7 +1044,13 @@ defmodule GlossiaWeb.EditorLive do
               <Noora.Table.table_empty_state
                 icon="device_desktop"
                 title={gettext("Preparing your app")}
-                subtitle={gettext("Finding the right screen and starting the app. Keep editing.")}
+                subtitle={gettext("This can take a few minutes. Keep editing in the meantime.")}
+              />
+              <Noora.ProgressBar.progress_bar
+                id="editor-preview-progress"
+                value={@live_preview.step}
+                max={5}
+                title={preview_step(@live_preview.step)}
               />
             </Noora.Card.card_section>
             <Noora.Card.card_section :if={@live_preview.pid} data-part="preview-footer">
