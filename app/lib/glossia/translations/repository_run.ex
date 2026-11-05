@@ -960,6 +960,14 @@ defmodule Glossia.Translations.RepositoryRun do
 
     engine_opts = checkpoint_options(engine_opts, session, account, item, hash_state)
 
+    # Items without an explicit model run on the account default, which is
+    # only known once the credential resolves. Attribute failures to it so a
+    # provider error names the model that produced it. The lock keeps the
+    # unresolved values: they feed the input hash, and changing them would
+    # make every existing lock stale.
+    {failed_item, failure_provider} =
+      failure_attribution(item, provider, engine_opts[:credential])
+
     try do
       case Engine.apply_item(item, account, on_event, validate, engine_opts) do
         {:ok, result} ->
@@ -1035,8 +1043,8 @@ defmodule Glossia.Translations.RepositoryRun do
           end
 
         {:error, reason} ->
-          failure = Failure.from(reason, provider)
-          log_item_failure(session, item, index, total, failure)
+          failure = Failure.from(reason, failure_provider)
+          log_item_failure(session, failed_item, index, total, failure)
 
           broadcast(
             session,
@@ -1050,7 +1058,7 @@ defmodule Glossia.Translations.RepositoryRun do
             progress_node
           )
 
-          {:error, item_failure(item, index, failure)}
+          {:error, item_failure(failed_item, index, failure)}
       end
     after
       Process.delete(model_calls_key)
@@ -1083,6 +1091,14 @@ defmodule Glossia.Translations.RepositoryRun do
       |> trim_partial_codepoint()
     end
   end
+
+  defp failure_attribution(%{model: nil} = item, _provider, %{model: model})
+       when is_binary(model) do
+    provider = ModelIdentifier.provider(model)
+    {%{item | model: model} |> Map.put(:translation_provider, provider), provider}
+  end
+
+  defp failure_attribution(item, provider, _credential), do: {item, provider}
 
   defp item_failure(item, index, reason) do
     %{
