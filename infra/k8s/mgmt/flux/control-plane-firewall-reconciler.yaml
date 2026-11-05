@@ -1,0 +1,119 @@
+# Keeps the production control-plane firewall open to every current worker.
+#
+# The control plane only accepts traffic from addresses on its Hetzner Cloud
+# firewall, and a worker's address is only known once Hetzner creates its
+# server. Without this, every new worker (a replacement or a node the
+# cluster-autoscaler adds to the editor preview pool) fails to join until an
+# operator runs `infra/k8s/allow-production-worker-control-plane.sh`.
+#
+# Every 10 seconds the loop lists the servers CAPH owns as workers of the
+# production cluster and rewrites only the three rules carrying its own
+# description, so they match those servers exactly: a removed worker loses
+# access. Every other rule on the firewall is read back and kept as is.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: control-plane-firewall-reconciler
+  namespace: org-glossia
+data:
+  reconcile.sh: |
+    set -eu
+    api=https://api.hetzner.cloud/v1
+    managed="caph workers (managed by control-plane-firewall-reconciler)"
+
+    reconcile() {
+      servers=$(curl -fsS -H "Authorization: Bearer $HCLOUD_TOKEN" \
+        --get --data-urlencode "label_selector=$WORKER_SELECTOR" --data "per_page=50" \
+        "$api/servers") || return 1
+      firewall=$(curl -fsS -H "Authorization: Bearer $HCLOUD_TOKEN" \
+        "$api/firewalls/$FIREWALL_ID") || return 1
+
+      ips=$(echo "$servers" | jq -c \
+        '[.servers[] | .public_net.ipv4.ip // empty | . + "/32"] | sort')
+
+      current=$(echo "$firewall" | jq -c --arg managed "$managed" \
+        '[.firewall.rules[] | select(.description == $managed)
+          | {protocol, source_ips: (.source_ips | sort)}] | sort_by(.protocol)')
+      desired=$(jq -cn --argjson ips "$ips" \
+        'if ($ips | length) == 0 then []
+         else [{protocol: "icmp"}, {protocol: "tcp"}, {protocol: "udp"}]
+           | map(. + {source_ips: $ips}) end')
+
+      [ "$current" = "$desired" ] && return 0
+
+      rules=$(echo "$firewall" | jq -c --arg managed "$managed" --argjson ips "$ips" \
+        '[.firewall.rules[] | select(.description != $managed)
+          | if .port == null then del(.port) else . end]
+         + (if ($ips | length) == 0 then []
+            else [{protocol: "tcp", port: "1-65535"}, {protocol: "udp", port: "1-65535"},
+                  {protocol: "icmp"}]
+              | map(. + {direction: "in", description: $managed,
+                         source_ips: $ips, destination_ips: []}) end)')
+
+      if [ "${DRY_RUN:-false}" = "true" ]; then
+        echo "would allow workers $ips (currently $current)"
+        return 0
+      fi
+
+      curl -fsS -X POST -H "Authorization: Bearer $HCLOUD_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "$(jq -cn --argjson rules "$rules" '{rules: $rules}')" \
+        "$api/firewalls/$FIREWALL_ID/actions/set_rules" >/dev/null
+      echo "allowed workers $ips"
+    }
+
+    while true; do
+      reconcile || echo "reconcile failed; retrying"
+      [ "${ONCE:-false}" = "true" ] && exit 0
+      sleep 10
+    done
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: control-plane-firewall-reconciler
+  namespace: org-glossia
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: control-plane-firewall-reconciler
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: control-plane-firewall-reconciler
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: reconciler
+          image: alpine:3.22
+          command: ["/bin/sh", "-c", "apk add --no-cache curl jq >/dev/null && exec sh /scripts/reconcile.sh"]
+          env:
+            - name: HCLOUD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hetzner
+                  key: hcloud
+            # glossia-production-control-plane-api
+            - name: FIREWALL_ID
+              value: "11181020"
+            - name: WORKER_SELECTOR
+              value: caph-cluster-glossia-production-d6zjt=owned,machine_type=worker
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: scripts
+          configMap:
+            name: control-plane-firewall-reconciler

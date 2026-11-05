@@ -17,6 +17,30 @@
         overrides:
           - name: hcloudWorkerMachineType
             value: cpx32
+    # Editor live previews run repository code, so they get their own gVisor
+    # nodes, tainted so nothing else lands on them. The cluster-autoscaler on
+    # the management cluster owns `replicas` (hence none here) within these
+    # bounds. One node stays warm because a cold node takes minutes to join,
+    # longer than a preview waits for its pod. New nodes can join because
+    # `control-plane-firewall-reconciler` allows their addresses.
+    - class: hcloud-worker-gvisor
+      name: md-preview
+      failureDomain: fsn1
+      metadata:
+        labels:
+          node.cluster.x-k8s.io/pool: editor-preview
+        annotations:
+          cluster.x-k8s.io/cluster-api-autoscaler-node-group-min-size: "1"
+          cluster.x-k8s.io/cluster-api-autoscaler-node-group-max-size: "4"
+      variables:
+        overrides:
+          - name: hcloudWorkerMachineType
+            value: cpx32
+          - name: workerNodeTaints
+            value:
+              - key: glossia.ai/editor-preview
+                value: "true"
+                effect: NoSchedule
     # Dedicated pool for the enterprise managed FLAME runner. Kept off
     # for now: the machineDeployment provisions HCloud servers that never
     # join the cluster (MachineHealthCheck cycles them every ~10 min).

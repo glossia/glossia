@@ -1,0 +1,62 @@
+# Cluster API autoscaler for glossia-production.
+#
+# Runs on the management cluster, where the MachineDeployments live, and
+# reads pending pods from the workload cluster through the kubeconfig CAPI
+# keeps in `glossia-production-kubeconfig`. It only manages MachineDeployments
+# that carry the `cluster-api-autoscaler-node-group-{min,max}-size`
+# annotations, which today is the editor preview pool (`md-preview`); the
+# combined pool keeps its fixed replica count.
+#
+# The image tracks the workload cluster's Kubernetes minor version.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cluster-autoscaler
+  namespace: flux-system
+spec:
+  interval: 1h
+  releaseName: cluster-autoscaler
+  targetNamespace: org-glossia
+  install:
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m
+  upgrade:
+    cleanupOnFail: true
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 2m
+  chart:
+    spec:
+      chart: cluster-autoscaler
+      version: 9.60.0
+      interval: 24h
+      sourceRef:
+        kind: HelmRepository
+        name: autoscaler
+        namespace: flux-system
+  values:
+    cloudProvider: clusterapi
+    clusterAPIMode: kubeconfig-incluster
+    clusterAPIKubeconfigSecret: glossia-production-kubeconfig
+    clusterAPIConfigMapsNamespace: kube-system
+    autoDiscovery:
+      clusterName: glossia-production
+      namespace: org-glossia
+    image:
+      tag: v1.34.5
+    extraArgs:
+      expander: least-waste
+      # A preview node is idle once its last preview pod ends. Keep it a
+      # while so back-to-back sessions reuse it instead of paying a cold join.
+      scale-down-unneeded-time: 15m
+      scale-down-delay-after-add: 10m
+      # Cloud-init installs containerd, gVisor and kubelet on first boot.
+      max-node-provision-time: 20m
+    resources:
+      requests:
+        cpu: 20m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
