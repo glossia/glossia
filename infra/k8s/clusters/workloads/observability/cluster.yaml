@@ -50,7 +50,7 @@ spec:
   topology:
     classRef:
       name: glossia-hcloud
-    version: v1.34.6
+    version: v1.35.10
     controlPlane:
       replicas: 1
     variables:

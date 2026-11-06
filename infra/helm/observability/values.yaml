@@ -666,6 +666,8 @@ tempo-distributed:
 # push endpoints.
 grafana:
   enabled: true
+  image:
+    tag: "12.4.14"
   # Grafana uses a single ReadWriteOnce volume in this chart.
   replicas: 1
   nodeSelector: *statefulNodeSelector

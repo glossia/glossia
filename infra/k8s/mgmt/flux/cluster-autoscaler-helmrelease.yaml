@@ -44,7 +44,7 @@ spec:
       clusterName: glossia-production
       namespace: org-glossia
     image:
-      tag: v1.34.5
+      tag: v1.35.2
     extraArgs:
       expander: least-waste
       # A preview node is idle once its last preview pod ends. Keep it a

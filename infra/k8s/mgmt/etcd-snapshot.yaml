@@ -65,7 +65,7 @@ spec:
             # short-circuits self-connections to a local IP via loopback,
             # so the Hetzner firewall isn't in the path.
             - name: snapshot
-              image: ghcr.io/siderolabs/talosctl:v1.13.0
+              image: ghcr.io/siderolabs/talosctl:v1.13.12
               args:
                 - --talosconfig=/talosconfig/talosconfig
                 - etcd

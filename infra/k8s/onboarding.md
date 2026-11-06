@@ -113,7 +113,7 @@ curl -sX POST https://api.hetzner.cloud/v1/firewalls \
 #    Talos's hcloud platform support is built-in.
 SCHEMATIC=$(curl -sX POST https://factory.talos.dev/schematics \
   -H 'Content-Type: application/json' -d '{"customization":{}}' | jq -r '.id')
-TALOS_VER=v1.13.0
+TALOS_VER=v1.13.12
 /tmp/hcloud-upload-image upload \
   --image-url "https://factory.talos.dev/image/$SCHEMATIC/$TALOS_VER/hcloud-amd64.raw.xz" \
   --architecture x86 --compression xz --location fsn1 \
@@ -143,7 +143,7 @@ WORK=$(mktemp -d /tmp/glossia-talos.XXXXXX) && chmod 700 "$WORK"
 
 talosctl gen config glossia-mgmt "https://${MGMT_IP}:6443" \
   --output-dir "$WORK" \
-  --kubernetes-version 1.34.6 \
+  --kubernetes-version 1.35.10 \
   --install-disk /dev/sda
 
 talosctl --talosconfig "$WORK/talosconfig" config endpoint "$MGMT_IP"
@@ -416,7 +416,7 @@ API_HOST=$(KUBECONFIG=~/.kube/glossia-mgmt.yaml kubectl -n org-glossia \
   get cluster glossia-production -o jsonpath='{.spec.controlPlaneEndpoint.host}')
 helm repo add cilium https://helm.cilium.io
 helm upgrade --install cilium cilium/cilium \
-  -n kube-system --version 1.18.5 \
+  -n kube-system --version 1.19.9 \
   -f ops/infra/k8s/mgmt/bootstrap/cilium-values.yaml \
   --set k8sServiceHost="${API_HOST}" \
   --set k8sServicePort=443

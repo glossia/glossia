@@ -58,20 +58,49 @@ defmodule Glossia.Translations.NativeCatalog do
   def decode_values(text, sources, preserve_kinds) do
     with {:ok, values} <- JsonArray.decode(text),
          true <- length(values) == length(sources) and Enum.all?(values, &is_binary/1) do
-      if Enum.zip(sources, values)
-         |> Enum.all?(fn {source, value} ->
-           (String.trim(source) == "" or String.trim(value) != "") and
-             arguments(source) == arguments(value) and
-             isolates(source) == isolates(value) and
-             (not balanced_isolates?(source) or balanced_isolates?(value)) and
-             PreservedTokens.unpreserved_values(source, value, preserve_kinds) == [] and
-             PreservedTokens.unpreserved_values(value, source, preserve_kinds) == [] and
-             not Regex.match?(~r/[\x00-\x08\x0b\x0c\x0e-\x1f]/, value)
-         end) do
-        {:ok, JSON.encode!(values)}
-      else
-        {:error,
-         "native text-literal response changed a format argument, isolate, or empty value"}
+      error =
+        sources
+        |> Enum.zip(values)
+        |> Enum.with_index(1)
+        |> Enum.find_value(fn {{source, value}, index} ->
+          missing = PreservedTokens.unpreserved_values(source, value, preserve_kinds)
+          unexpected = PreservedTokens.unpreserved_values(value, source, preserve_kinds)
+
+          reason =
+            cond do
+              String.trim(source) != "" and String.trim(value) == "" ->
+                "nonempty source became empty"
+
+              arguments(source) != arguments(value) ->
+                "format arguments must preserve their types and positions"
+
+              isolates(source) != isolates(value) or
+                  (balanced_isolates?(source) and not balanced_isolates?(value)) ->
+                "directional isolates must be preserved and balanced"
+
+              missing != [] ->
+                "missing preserved tokens: #{JSON.encode!(missing)}"
+
+              unexpected != [] ->
+                "unexpected preserved tokens: #{JSON.encode!(unexpected)}. Do not add formatting or tokens absent from the source value"
+
+              Regex.match?(~r/[\x00-\x08\x0b\x0c\x0e-\x1f]/, value) ->
+                "invalid control characters"
+
+              true ->
+                nil
+            end
+
+          if reason, do: "value #{index}: #{reason}"
+        end)
+
+      case error do
+        nil ->
+          {:ok, JSON.encode!(values)}
+
+        message ->
+          {:error,
+           "native text-literal response changed a format argument, isolate, or empty value: #{message}"}
       end
     else
       _ -> {:error, "native text-literal response must be a matching JSON array of strings"}

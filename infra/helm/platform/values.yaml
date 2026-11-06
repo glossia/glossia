@@ -84,6 +84,9 @@ cert-manager:
 ingress-nginx:
   enabled: true
   controller:
+    # Temporary containment while migrating off the retired controller.
+    admissionWebhooks:
+      enabled: false
     replicaCount: 2
     # Spread the two controllers across nodes. Without this both can land on
     # one node, so losing that node is a full public-ingress outage despite

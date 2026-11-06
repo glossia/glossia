@@ -103,3 +103,95 @@ Adaptations to be aware of when porting upstream changes:
 - `containerd.service` systemd unit added to both KCP and worker `files:` blocks. The plain `containerd-` tarball doesn't ship one (only the older `cri-containerd-cni-` bundle did). Without this, `systemctl start containerd` finds no unit and PLEG never goes healthy.
 - `containerRuntimeEndpoint`, `staticPodPath`, `cgroupDriver`, `clusterDNS`, `clusterDomain`, **`authentication.x509.clientCAFile`** added to the kubelet `KubeletConfiguration` shipped via the `files:` block. Critical: kubelet is invoked with two `--config` flags (kubeadm's default + ours via `kubeletExtraArgs`) and the second OVERRIDES the first, so any field omitted here gets cleared. Without `clientCAFile`, kubelet rejects the kube-apiserver's client cert as Unauthorized → `kubectl exec`, `kubectl port-forward`, and KCP's etcd health check all fail; KCP then refuses to scale the control plane to 3 replicas.
 - `resolvConf` set to `/run/systemd/resolve/resolv.conf` (not `/etc/resolv.conf`, which is a stub at 127.0.0.53 unreachable across pod network namespaces). Without this CoreDNS upstream resolution AND any pod with `dnsPolicy=Default` fails to resolve external names — in particular HCCM crashes on startup trying to resolve `api.hetzner.cloud`.
+
+## Staged security maintenance (November 2026)
+
+These are **prepared targets, not evidence of a completed upgrade**. Do not
+merge this patch set as one unattended rollout: Flux watches `main`, and
+application changes can publish images that image automation deploys. Obtain
+separate approval for deployment, then release the phases below independently.
+No existing-node maintenance is performed by editing the onboarding examples.
+
+### Preconditions and order
+
+1. Restore authenticated access to production through the approved Tailscale
+   path. The audit could read management but could not reach production;
+   do not open its public API firewall as an upgrade workaround. Record live
+   node, Cilium, ingress, Grafana and database versions before proceeding.
+2. Verify recoverable management etcd and application database backups, access
+   to Talos recovery credentials, and the current endpoint/firewall plan.
+   Management and workload topologies have single control planes: schedule
+   their API outages explicitly and never replace them simultaneously.
+3. Contain ingress admission and update the platform chart independently.
+   Chart 4.15.1 ships controller 1.15.1; admission webhooks are disabled as
+   temporary containment. This removes admission validation, not ingress
+   routing. Verify the old webhook registration, admission Service/listener
+   and certificate-patch Jobs are gone after the approved Helm upgrade.
+   ingress-nginx is retired; this is a bridge to a supported ingress, not a
+   long-term supported destination.
+4. Rebuild the application with the patched OTP/Debian base and reviewed Hex
+   lock. Run both editions' checks, scan the resulting immutable images, then
+   authorize application rollout separately from cluster maintenance. The
+   prepared dependencies do **not** resolve every Hex advisory; see below.
+5. Upgrade management Talos to **1.13.12**, preserving the installed schematic
+   and extensions. Take an etcd snapshot first and verify API/Flux/Cluster API
+   recovery afterwards. This updates containerd to **2.2.10**, but does not
+   upgrade Kubernetes. Upgrade management Kubernetes separately, one minor at
+   a time, to **1.35.10** after checking Talos/provider support.
+6. Refresh Flux to **2.9.5** using the generated components. Its public webhook
+   policy permits only port **9292**, not the internal event port. Management
+   uses Flannel; verify a policy-enforcement engine is installed and test
+   isolation from another namespace. A NetworkPolicy object alone is not
+   proof of enforcement. Update the Tailscale proxy to **1.104.5** in a
+   separate step, retaining another working administrative access path.
+7. Upgrade Cilium to **1.19.9** before the workload Kubernetes upgrade. The
+   [1.19 support matrix](https://docs.cilium.io/en/v1.19/network/kubernetes/compatibility/)
+   includes both Kubernetes **1.34** and **1.35**; rehearse the Cilium minor
+   upgrade with the actual installed configuration first. Preserve live
+   endpoint, IPAM, encryption and routing values, including the firewalled
+   API port **6443** after endpoint cutover; do not replay a fresh-bootstrap
+   command against an existing cluster. Render first; then check Cilium,
+   Envoy, DNS, network policies, external ingress and storage connectivity.
+8. Apply the ClusterClass change through its explicit maintenance path before
+   releasing either Cluster topology change. Kubeadm bootstrap templates can
+   be immutable: use new template names and update their references where
+   required, rather than deleting resources used by live Machines. All three
+   bootstrap paths target containerd **2.2.10**, runc **1.3.6**, and Kubernetes
+   **1.35.10**. A bootstrap edit is not an in-place runtime update. Upgrade
+   control planes first and roll worker pools individually, respecting Pod
+   disruption budgets, database quorum, local volumes and spare capacity.
+   Release autoscaler **1.35.2** with the workload minor upgrade. Confirm
+   every replacement's live runtime and current Ubuntu security kernel;
+   drain/reboot retained nodes separately if they were not replaced.
+9. Upgrade Grafana to **12.4.14** only after backing up its persistent database
+   and checking plugins and intermediate-major migration notes against the
+   live version. An image rollback is not a database-migration rollback.
+   Production PostgreSQL versions were not verified; select a patched image
+   on each database's **existing major**, rather than forcing an unverified
+   major upgrade through the application chart's operator-selected default.
+
+### Unresolved application advisory gates
+
+The Hex registry audit remains nonzero; do not describe these patches as a
+clean security scan or deploy them on that assumption.
+
+- **Boruta 2.3.5:** JWT assertion-expiry, dynamic-registration and remote-key
+  fetching advisories remain. Tested resolution to 2.3.8 requires Nebulex 3,
+  while its `Boruta.Cache` still references `Nebulex.Adapters.Replicated`,
+  removed from that package. The lock retains Nebulex 2 and Boruta 2.3.5 rather
+  than shipping a known boot-breaking update. A compatible upstream fix or
+  narrowly reviewed backport and OAuth regression tests are required.
+- **Hackney 1.25.0:** the consolidated fix is 4.9.0 or newer, but UAInspector,
+  ExAws and Swoosh currently constrain it to 1.x. Custom-CA pinning and SOCKS5
+  timeout paths need deployment-configuration review; no application-owned
+  custom Hackney CA/SOCKS configuration was found. Do not force a major
+  override across these consumers. Normal public-root TLS is not CA pinning.
+- **Ecto/Decimal:** closing the query-cache and numeric-allocation advisories
+  requires the coordinated Ecto 3.14 / ClickHouse adapter / Decimal 3 upgrade;
+  the locked ClickHouse adapter restricts Ecto to 3.13. No affected dynamic
+  JSON-path or Ecto splice query was found in application source. This is a
+  remaining review item, not a blanket exploitability exclusion.
+- Cloak AES-CTR and Cloak.Ecto PBKDF2 advisories require those ciphers/types;
+  the vault uses AES-GCM. Swoosh's flagged Graph adapter is not the configured
+  production mail adapter. Retain these qualifications instead of suppressing
+  the registry audit globally.

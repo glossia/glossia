@@ -1,5 +1,6 @@
 defmodule Glossia.Accounts.LLMModelTest do
   use Glossia.DataCase, async: true
+  use Mimic
 
   alias Glossia.Accounts.LLMModel
 
@@ -193,12 +194,27 @@ defmodule Glossia.Accounts.LLMModelTest do
 
   describe "available_models/0" do
     test "uses canonical identifiers and excludes deprecated Together AI models" do
+      stub(LLMDB, :providers, fn -> [%{id: :togetherai, name: "Together AI"}] end)
+
+      stub(LLMDB, :models, fn :togetherai ->
+        [
+          {"moonshotai/Kimi-K2.7-Code", []},
+          {"moonshotai/Kimi-K2.5", [extra: %{"status" => "deprecated"}]},
+          {"deprecated", [deprecated: true]},
+          {"retired", [retired: true]},
+          {"deprecated-status", [extra: %{status: "deprecated"}]},
+          {"retired-status", [extra: %{"status" => "retired"}]}
+        ]
+        |> Enum.map(fn {id, attrs} ->
+          struct!(LLMDB.Model, [id: id, provider: :togetherai] ++ attrs)
+        end)
+      end)
+
       identifiers =
         LLMModel.available_models()
         |> Enum.flat_map(fn {_provider, models} -> Enum.map(models, &elem(&1, 1)) end)
 
-      assert "togetherai/moonshotai/Kimi-K2.7-Code" in identifiers
-      refute "togetherai/moonshotai/Kimi-K2.5" in identifiers
+      assert identifiers == ["togetherai/moonshotai/Kimi-K2.7-Code", "typesafe/jev-latest"]
     end
   end
 end

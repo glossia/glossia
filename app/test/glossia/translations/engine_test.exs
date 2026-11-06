@@ -956,6 +956,50 @@ defmodule Glossia.Translations.EngineTest do
     end
 
     @tag :tmp_dir
+    test "repairs added Markdown in native UI text with value-specific feedback", %{tmp_dir: dir} do
+      source = Path.join(dir, "Localizable.strings")
+
+      File.write!(source, ~S"""
+      "ready" = "Ready";
+      "connect" = "Run claude setup-token in a terminal and paste the token it prints.";
+      "help" = "Read `config` for {name}";
+      """)
+
+      for {locale, response, corrected} <- [
+            {"pl", "Uruchom `claude setup-token` w terminalu i wklej wyświetlony token.",
+             "Uruchom claude setup-token w terminalu i wklej wyświetlony token."},
+            {"pt", "Execute `claude setup-token` num terminal e cole o token que for exibido.",
+             "Execute claude setup-token num terminal e cole o token que for exibido."}
+          ] do
+        stub_stream(fn _account, payload, _on_event ->
+          feedback = payload["last_error"] || ""
+
+          command =
+            if feedback =~ "value 2" and feedback =~ "unexpected preserved tokens" and
+                 feedback =~ "`claude setup-token`" do
+              corrected
+            else
+              response
+            end
+
+          translated(JSON.encode!(["Ready", command, "Read `config` for {name}"]))
+        end)
+
+        assert {:ok, result} =
+                 Engine.apply_item(
+                   work_item(%{source_abs: source, format: "text", locale: locale, retries: 0}),
+                   %Account{id: 1},
+                   fn _ -> :ok end
+                 )
+
+        assert result.text ==
+                 "\"ready\" = \"Ready\";\n" <>
+                   "\"connect\" = #{JSON.encode!(corrected)};\n" <>
+                   "\"help\" = \"Read `config` for {name}\";\n"
+      end
+    end
+
+    @tag :tmp_dir
     test "keeps protected variables and URLs in their own native resource value", %{tmp_dir: dir} do
       source = Path.join(dir, "Localizable.strings")
       File.write!(source, ~S("welcome" = "Welcome {name}"; "help" = "Open https://example.org";))

@@ -9,13 +9,13 @@
 # This file is based on these images:
 #
 #   - https://hub.docker.com/r/hexpm/elixir/tags - for the build image
-#   - https://hub.docker.com/_/debian?tab=tags&page=1&name=bookworm-20260202-slim - for the release image
+#   - https://hub.docker.com/_/debian?tab=tags&page=1&name=bookworm-20261104-slim - for the release image
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: https://pkgs.org/search/?q=telefonBuch
 #
-ARG ELIXIR_VERSION=1.18.3
-ARG OTP_VERSION=27.3.4.3
-ARG DEBIAN_VERSION=bookworm-20260202-slim
+ARG ELIXIR_VERSION=1.18.6
+ARG OTP_VERSION=27.3.4.19
+ARG DEBIAN_VERSION=bookworm-20261104-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -128,6 +128,7 @@ FROM ${RUNNER_IMAGE}
 COPY --from=node_runtime /usr/local/ /usr/local/
 
 RUN apt-get update -y && \
+  apt-get upgrade -y && \
   apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates chromium git curl \
   && npm install -g opencode-ai@1.17.15 @openai/codex@0.144.5 @anthropic-ai/claude-code@2.1.214 \
   && npm cache clean --force \
@@ -137,7 +138,7 @@ RUN apt-get update -y && \
 # match the workload cluster's minor version so the API surface stays aligned;
 # nothing in the sandbox path depends on a newer subcommand.
 RUN ARCH=$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/') \
- && curl -fsSL "https://dl.k8s.io/release/v1.34.0/bin/linux/${ARCH}/kubectl" \
+ && curl -fsSL "https://dl.k8s.io/release/v1.35.10/bin/linux/${ARCH}/kubectl" \
     -o /usr/local/bin/kubectl \
  && chmod +x /usr/local/bin/kubectl
 

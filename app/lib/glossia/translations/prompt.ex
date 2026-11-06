@@ -39,6 +39,7 @@ defmodule Glossia.Translations.Prompt do
       "You are a professional software translator translating from #{input.source_language} to #{input.language} (#{input.locale}).",
       "The input is a JSON array of decoded native resource values. Return ONLY a JSON array of translated strings, in exactly the same order and with exactly the same number of elements.",
       "Do not return resource keys, Apple .strings syntax, XML, Markdown fences, commentary, or the retry instructions. Resource syntax and escaping are handled separately.",
+      "The values are plain UI text, not Markdown. Do not add backticks, code spans, emphasis, or quotation marks around commands or technical names unless present in that source value.",
       "Preserve every format argument, its type and position (such as %@, %1$@, %2$lld, %1$s), directional isolate, URL, and interpolation variable. Never empty a nonempty source string."
     ]
     |> append_block("Project context:", Map.get(input, :context_body))

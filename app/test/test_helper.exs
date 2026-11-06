@@ -27,6 +27,7 @@ Mimic.copy(Glossia.Analytics.Ingestion)
 Mimic.copy(Glossia.Analytics.Verification)
 Mimic.copy(ReqLLM)
 Mimic.copy(ReqLLM.Response)
+Mimic.copy(LLMDB)
 # Domain verification shells out to `dig` and fetches the site over HTTP.
 Mimic.copy(MuonTrap)
 Mimic.copy(Glossia.Analytics.Verification.DNSResolver)

@@ -2,7 +2,7 @@
 # Enables kube-proxy replacement, host firewall, BBR + bandwidth manager,
 # egress gateway, hubble metrics, ip-masq-agent.
 #
-# Version: pin chart appVersion to v1.18.x; the glossia-hcloud
+# Version: pin chart appVersion to v1.19.x; the glossia-hcloud
 # ClusterClass already does `skipPhases: [addon/kube-proxy]` in
 # kubeadm initConfiguration, so kube-proxy DaemonSet never gets
 # created and Cilium MUST be installed before anything tries to talk
